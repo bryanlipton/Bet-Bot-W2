@@ -1,7 +1,7 @@
 // Quick test to verify the Custom GPT prediction endpoint is working
 const testPrediction = async () => {
   try {
-    const response = await fetch('https://bet-bot-blipton03.replit.app/api/custom-gpt-predict', {
+    const response = await fetch('https://bet-bot-blipton03.replit.app/api/gpt/predict', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
