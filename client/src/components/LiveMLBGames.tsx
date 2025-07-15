@@ -55,7 +55,11 @@ export function LiveMLBGames() {
   const fetchTodaysGames = async () => {
     setLoading(true);
     try {
-      const data = await apiRequest('/api/baseball/todays-games');
+      const response = await fetch('/api/baseball/todays-games');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
       setGames(data);
     } catch (error) {
       console.error('Failed to fetch today\'s games:', error);
@@ -66,7 +70,11 @@ export function LiveMLBGames() {
 
   const getPrediction = async (gameId: number) => {
     try {
-      const data = await apiRequest(`/api/baseball/live-prediction/${gameId}`);
+      const response = await fetch(`/api/baseball/live-prediction/${gameId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
       setPredictions(prev => ({ ...prev, [gameId]: data }));
     } catch (error) {
       console.error(`Failed to get prediction for game ${gameId}:`, error);
@@ -76,7 +84,11 @@ export function LiveMLBGames() {
   const update2025Data = async () => {
     setUpdating2025Data(true);
     try {
-      await apiRequest('/api/baseball/update-2025-data', { method: 'POST' });
+      const response = await fetch('/api/baseball/update-2025-data', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      await response.json();
       alert('2025 season data updated successfully! Model now includes current season performance.');
     } catch (error) {
       console.error('Failed to update 2025 data:', error);

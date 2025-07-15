@@ -36,10 +36,19 @@ export function BacktestResults() {
   const runBacktest = async () => {
     setLoading(true);
     try {
-      const data = await apiRequest('/api/baseball/backtest', {
+      const response = await fetch('/api/baseball/backtest', {
         method: 'POST',
-        body: { startDate, endDate, bankroll }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ startDate, endDate, bankroll })
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       setResult(data);
     } catch (error) {
       console.error('Backtest failed:', error);
