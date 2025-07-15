@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, BarChart3, TrendingUp, Zap } from "lucide-react";
+import { LoginButton } from "@/components/LoginButton";
 
 interface ActionStyleHeaderProps {
   darkMode: boolean;
@@ -54,6 +55,8 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
               <Zap className="w-4 h-4 mr-1" />
               Get Pro
             </Button>
+            
+            <LoginButton />
           </div>
         </div>
       </div>

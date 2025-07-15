@@ -1,7 +1,7 @@
 import { 
   users, games, odds, recommendations, chatMessages, modelMetrics,
   baseballGames, baseballPlayerStats, baseballGamePredictions, baseballModelTraining,
-  type User, type InsertUser, type Game, type InsertGame, 
+  type User, type InsertUser, type UpsertUser, type Game, type InsertGame, 
   type Odds, type InsertOdds, type Recommendation, type InsertRecommendation,
   type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics,
   type BaseballGame, type InsertBaseballGame, type BaseballPlayerStats, type InsertBaseballPlayerStats,
@@ -11,8 +11,9 @@ import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
-  getUser(id: number): Promise<User | undefined>;
+  // Users (Updated for Replit Auth)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
@@ -246,14 +247,30 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
+  // User operations (Updated for Replit Auth)
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    // This method is for backward compatibility, not used in Replit Auth
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

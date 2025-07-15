@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import ArticlesPage from "@/pages/articles";
 import NotFound from "@/pages/not-found";
+import { useAuth } from "@/hooks/useAuth";
 
 function Router() {
   return (

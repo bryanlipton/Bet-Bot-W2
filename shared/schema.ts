@@ -1,11 +1,27 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, real, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Session storage table for secure authentication
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: text("sid").primaryKey(),
+    sess: json("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table for secure user management
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  id: text("id").primaryKey().notNull(), // Replit user ID
+  email: text("email").unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  profileImageUrl: text("profile_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const games = pgTable("games", {
@@ -140,7 +156,8 @@ export const baseballModelTraining = pgTable("baseball_model_training", {
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true });
+export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
+export const upsertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const insertGameSchema = createInsertSchema(games).omit({ id: true, createdAt: true });
 export const insertOddsSchema = createInsertSchema(odds).omit({ id: true });
 export const insertRecommendationSchema = createInsertSchema(recommendations).omit({ id: true, createdAt: true });
@@ -156,6 +173,7 @@ export const insertBaseballModelTrainingSchema = createInsertSchema(baseballMode
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type Game = typeof games.$inferSelect;
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Odds = typeof odds.$inferSelect;

@@ -8,12 +8,27 @@ import { websocketService } from "./services/websocket";
 import { insertGameSchema, insertChatMessageSchema, insertRecommendationSchema, insertModelMetricsSchema } from "@shared/schema";
 import { baseballAI } from "./services/baseballAI";
 import { registerGPTExportRoutes } from "./routes-gpt-export";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Initialize WebSocket server
   websocketService.initialize(httpServer);
+
+  // Setup authentication (commented out for now)
+  // await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', async (req: any, res) => {
+    try {
+      // For now, return null to indicate no user is logged in
+      res.json(null);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
 
   // Chat endpoints
   app.post("/api/chat", async (req, res) => {
