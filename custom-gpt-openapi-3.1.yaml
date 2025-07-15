@@ -109,64 +109,12 @@ paths:
                   latestTraining:
                     type: object
 
-  /api/gpt/predict:
-    post:
-      operationId: predict_game_outcome
-      summary: Get AI prediction for team matchup
-      description: Generate AI prediction for any MLB team matchup with confidence scores
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                homeTeam:
-                  type: string
-                  description: Home team name
-                  example: "Yankees"
-                awayTeam:
-                  type: string
-                  description: Away team name
-                  example: "Red Sox"
-              required:
-                - homeTeam
-                - awayTeam
-      responses:
-        '200':
-          description: AI prediction with probabilities and betting recommendation
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  homeTeam:
-                    type: string
-                  awayTeam:
-                    type: string
-                  prediction:
-                    type: object
-                    properties:
-                      homeWinProbability:
-                        type: number
-                      awayWinProbability:
-                        type: number
-                      confidence:
-                        type: number
-                      recommendedBet:
-                        type: string
-                      edge:
-                        type: string
-                  timestamp:
-                    type: string
-                  modelStatus:
-                    type: string
-
   /api/gpt/games/today:
     get:
-      operationId: get_todays_games
-      summary: Get today's games with predictions
-      description: Current MLB games with AI predictions and live odds
+      operationId: predict_game_outcome  
+      summary: Get today's games with AI predictions (USE THIS FOR PREDICTIONS)
+      description: Get current MLB games with AI predictions and betting recommendations - REPLACES BROKEN PREDICT ENDPOINT
+
       responses:
         '200':
           description: Today's games with AI predictions
