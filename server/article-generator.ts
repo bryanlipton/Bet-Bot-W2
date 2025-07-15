@@ -140,24 +140,69 @@ export class ArticleGenerator {
   }
   
   async generateGamePreview(homeTeam: string, awayTeam: string, gameData: any, tone: string = 'professional'): Promise<GeneratedArticle> {
-    const prompt = `Write a comprehensive sports betting preview article for the upcoming ${awayTeam} vs ${homeTeam} game.
+    const gameTime = new Date(gameData.startTime || gameData.commence_time);
+    const timeString = gameTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+    const currentTime = new Date().toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+    const dateString = gameTime.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const oddsAnalysis = gameData.bookmakers?.length > 0 ? this.formatOddsForPrompt(gameData.bookmakers) : 'Betting lines not yet available';
+    
+    const prompt = `Write an Action Network style game prediction article for ${awayTeam} vs ${homeTeam}.
 
-Game Details:
-- Home Team: ${homeTeam}
-- Away Team: ${awayTeam}
-- Start Time: ${gameData.commence_time}
-- Venue: ${gameData.venue || 'TBD'}
-- Probable Pitchers: ${gameData.probablePitchers ? `Home: ${gameData.probablePitchers.home}, Away: ${gameData.probablePitchers.away}` : 'TBD'}
+GAME INFO:
+${awayTeam} (Away) @ ${homeTeam} (Home)
+First Pitch: ${timeString} ET
+Date: ${dateString}
+Venue: ${gameData.venue || 'TBD'}
 
-Current Odds:
-${gameData.bookmakers?.length > 0 ? this.formatOddsForPrompt(gameData.bookmakers) : 'Betting lines not yet available'}
+CURRENT ODDS:
+${oddsAnalysis}
 
-Write in a ${tone} tone and include:
-1. Team analysis and recent form
-2. Head-to-head matchup breakdown
-3. Key player spotlight
-4. Betting analysis with value picks
-5. Final prediction with confidence level
+Structure the article like Action Network's professional format:
+
+## Header:
+- Title: "${awayTeam} vs ${homeTeam} Prediction, Odds, Pick for ${dateString}"
+- Author: Bet Bot
+- Updated: ${currentTime} ET
+
+## Opening Paragraph:
+Set the scene with team records, game importance, recent performance, and where to watch.
+
+## Odds Breakdown Section:
+Present the current lines in a clean, professional format with actual numbers.
+
+## Game Preview Section:
+- Recent team performance and momentum analysis
+- Key player matchups and current injury reports
+- Head-to-head history this season
+- Weather/venue factors affecting play
+- Starting pitcher analysis with recent stats
+
+## Expert Analysis Section:
+- Sharp money movement and line value assessment
+- Statistical trends favoring one side
+- Detailed pitching matchup breakdown
+- Betting strategy and reasoning with data support
+
+## Best Bet Section:
+- Clear recommendation with specific bet type and reasoning
+- Supporting analysis with concrete data points
+- Risk assessment and confidence level
+- Bankroll management advice
+
+Write with ${tone} authority, include specific statistics, and provide professional betting insights that help readers make informed decisions.
 
 Format as JSON with: title, content (markdown), summary, tags array.`;
 
@@ -215,30 +260,48 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
     }).join('\n');
 
     const currentDate = new Date().toLocaleDateString();
+    const currentTime = new Date().toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
     const teams = topGames.flatMap(game => [game.awayTeam || game.away_team, game.homeTeam || game.home_team]);
     const sportsContext = await this.fetchCurrentSportsContext(teams);
     
-    const prompt = `Write a comprehensive daily sports betting roundup using real-time data for ${currentDate}.
+    const prompt = `Write a professional sports betting analysis in the Action Network style for ${currentDate}.
 
-LIVE UPCOMING GAMES WITH CURRENT ODDS:
+TODAY'S MLB SLATE WITH LIVE ODDS:
 ${gamesList}
 
 ${sportsContext}
 
-Based on current real-time conditions, provide analysis including:
-1. Current weather impact on outdoor games
-2. Latest injury reports affecting lineups
-3. Recent team momentum and performance trends
-4. Live betting market movements and sharp money indicators
-5. Starting pitcher advantages and bullpen usage patterns
-6. Line movements and public vs sharp money sentiment
+Write in the style of Action Network articles with these sections:
 
-Provide specific betting recommendations:
-- 3 strongest value plays with detailed reasoning
-- Games to approach cautiously based on current conditions
-- Live betting opportunities to monitor
+## Header Section:
+- Professional headline mentioning specific teams and betting angle
+- Author byline: "Bet Bot" 
+- Updated timestamp: ${currentTime} ET
+- Brief opening paragraph setting the scene
 
-Write in a ${tone} tone with actionable insights based on today's actual game conditions and market data.
+## Game Analysis Section:
+- Specific odds breakdown for featured matchups
+- Sharp money movement and line analysis
+- Starting pitcher matchup details with recent performance
+- Weather conditions affecting outdoor games
+- Key injury updates impacting lineups
+
+## Expert Picks Section:
+- "Best Bet" recommendation with specific reasoning
+- Supporting analysis using recent trends and statistics
+- Line value explanation and betting strategy
+- Risk assessment and bankroll management advice
+
+## Quick Stats Box:
+- Current records and recent form (last 5 games)
+- Head-to-head season series
+- Key statistical matchup advantages
+
+Write with professional authority, specific data points, and actionable betting insights. Use ${tone} tone with expert analysis backing every recommendation.
 
 Format as JSON with: title, content (markdown), summary, tags array.`;
 
@@ -272,24 +335,69 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
   }
 
   async generateStrategyGuide(topic: string, sport: string): Promise<GeneratedArticle> {
-    const prompt = `Write an educational betting strategy guide about "${topic}" for ${sport} betting.
+    const currentTime = new Date().toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZone: 'America/New_York'
+    });
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const prompt = `Write an Action Network style strategy guide about "${topic}" for ${sport.toUpperCase()}.
 
-Include:
-1. Introduction to the concept
-2. Step-by-step implementation
-3. Real examples from ${sport}
-4. Common mistakes to avoid
-5. Advanced tips for experienced bettors
-6. Risk management advice
+ARTICLE FOCUS: ${topic}
+DATE: ${currentDate}
+SPORT: ${sport.toUpperCase()}
 
-Make it educational and actionable. Format as JSON with: title, content (markdown), summary, tags array.`;
+Structure like Action Network's educational content:
+
+## Header:
+- Professional title incorporating the specific strategy topic
+- Author: Bet Bot
+- Updated: ${currentTime} ET
+- Brief introduction establishing expertise and relevance
+
+## Current Market Context:
+- How this strategy applies to today's games and lines
+- Recent examples from live markets
+- Current trends in ${sport.toUpperCase()} betting
+
+## Strategy Breakdown:
+- Clear explanation of the concept with real examples
+- Statistical backing with specific data points
+- Step-by-step application process
+- Tools and resources needed
+
+## Practical Application:
+- How to identify opportunities in current markets
+- Specific scenarios where this strategy works best
+- Common mistakes bettors make and how to avoid them
+- Bankroll management considerations
+
+## Expert Tips Section:
+- Advanced techniques for experienced bettors
+- Market timing and line shopping strategies
+- How to track and measure success
+- When to avoid using this approach
+
+## Responsible Gambling Footer:
+- Risk management advice
+- Proper bankroll allocation
+- Resources for problem gambling help
+
+Write with professional authority, include specific examples from recent games, and provide actionable insights that readers can immediately apply.
+
+Format as JSON with: title, content (markdown), summary, tags array.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: "You are an expert betting educator. Create comprehensive guides that teach sound betting principles and strategies while emphasizing responsible gambling."
+          content: "You are an expert sports betting educator and analyst. Create comprehensive strategy guides in the Action Network professional style that help bettors improve their skills while promoting responsible gambling."
         },
         { role: "user", content: prompt }
       ],
@@ -307,7 +415,7 @@ Make it educational and actionable. Format as JSON with: title, content (markdow
       articleType: 'strategy-guide',
       sport,
       thumbnail,
-      author: 'Bet Bot AI',
+      author: 'Bet Bot',
       readTime: this.calculateReadTime(article.content),
       featured: false
     };
