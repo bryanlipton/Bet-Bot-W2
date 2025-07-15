@@ -13,6 +13,7 @@ interface ArticleRequest {
 }
 
 interface GeneratedArticle {
+  id: string;
   title: string;
   content: string;
   summary: string;
@@ -20,9 +21,102 @@ interface GeneratedArticle {
   publishedAt: string;
   articleType: string;
   sport: string;
+  thumbnail: string;
+  author: string;
+  readTime: number;
+  featured: boolean;
 }
 
 export class ArticleGenerator {
+
+  async generateThumbnail(title: string, sport: string, articleType: string): Promise<string> {
+    try {
+      const prompt = this.createThumbnailPrompt(title, sport, articleType);
+      
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+      });
+
+      return response.data[0].url;
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      // Return a fallback SVG thumbnail
+      return this.generateSVGThumbnail(title, sport, articleType);
+    }
+  }
+
+  private createThumbnailPrompt(title: string, sport: string, articleType: string): string {
+    const sportMap = {
+      'baseball_mlb': 'baseball',
+      'americanfootball_nfl': 'NFL football', 
+      'basketball_nba': 'basketball'
+    };
+
+    const typeMap = {
+      'game-preview': 'game preview with team matchup',
+      'daily-roundup': 'daily betting roundup with multiple games',
+      'strategy-guide': 'educational betting strategy guide',
+      'picks-analysis': 'expert picks analysis'
+    };
+
+    return `Create a professional sports betting article thumbnail for "${title}". 
+    
+    Style: Modern, clean, Action Network inspired design
+    Sport: ${sportMap[sport] || sport}
+    Content: ${typeMap[articleType] || articleType}
+    
+    Include: Sports elements, betting odds graphics, professional typography, team colors if applicable
+    Avoid: Gambling imagery, casino elements, inappropriate content
+    Quality: High-resolution, magazine-style layout`;
+  }
+
+  private generateSVGThumbnail(title: string, sport: string, articleType: string): string {
+    const sportColors = {
+      'baseball_mlb': { primary: '#003087', secondary: '#C8102E' },
+      'americanfootball_nfl': { primary: '#013369', secondary: '#D50A0A' },
+      'basketball_nba': { primary: '#C8102E', secondary: '#1D428A' }
+    };
+
+    const colors = sportColors[sport] || { primary: '#1f2937', secondary: '#3b82f6' };
+    
+    const svg = `data:image/svg+xml;base64,${Buffer.from(`
+      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${colors.primary};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${colors.secondary};stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="400" height="300" fill="url(#grad)"/>
+        <rect x="20" y="20" width="360" height="260" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+        <text x="200" y="80" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">
+          ${title.substring(0, 30)}${title.length > 30 ? '...' : ''}
+        </text>
+        <text x="200" y="120" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white" opacity="0.8">
+          ${sport.toUpperCase().replace('_', ' ')}
+        </text>
+        <text x="200" y="250" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="white" opacity="0.6">
+          BET BOT ANALYSIS
+        </text>
+      </svg>
+    `).toString('base64')}`;
+    
+    return svg;
+  }
+
+  private calculateReadTime(content: string): number {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  }
+
+  private generateArticleId(): string {
+    return `article_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
   
   async generateGamePreview(homeTeam: string, awayTeam: string, gameData: any, tone: string = 'professional'): Promise<GeneratedArticle> {
     const prompt = `Write a comprehensive sports betting preview article for the upcoming ${awayTeam} vs ${homeTeam} game.
@@ -60,12 +154,18 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
     });
 
     const article = JSON.parse(response.choices[0].message.content);
+    const thumbnail = await this.generateThumbnail(article.title, gameData.sport_key || 'baseball_mlb', 'game-preview');
     
     return {
+      id: this.generateArticleId(),
       ...article,
       publishedAt: new Date().toISOString(),
       articleType: 'game-preview',
-      sport: gameData.sport_key || 'baseball_mlb'
+      sport: gameData.sport_key || 'baseball_mlb',
+      thumbnail,
+      author: 'Bet Bot AI',
+      readTime: this.calculateReadTime(article.content),
+      featured: false
     };
   }
 
@@ -105,12 +205,18 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
     });
 
     const article = JSON.parse(response.choices[0].message.content);
+    const thumbnail = await this.generateThumbnail(article.title, sport, 'daily-roundup');
     
     return {
+      id: this.generateArticleId(),
       ...article,
       publishedAt: new Date().toISOString(),
       articleType: 'daily-roundup',
-      sport
+      sport,
+      thumbnail,
+      author: 'Bet Bot AI',
+      readTime: this.calculateReadTime(article.content),
+      featured: true
     };
   }
 
@@ -141,12 +247,18 @@ Make it educational and actionable. Format as JSON with: title, content (markdow
     });
 
     const article = JSON.parse(response.choices[0].message.content);
+    const thumbnail = await this.generateThumbnail(article.title, sport, 'strategy-guide');
     
     return {
+      id: this.generateArticleId(),
       ...article,
       publishedAt: new Date().toISOString(),
       articleType: 'strategy-guide',
-      sport
+      sport,
+      thumbnail,
+      author: 'Bet Bot AI',
+      readTime: this.calculateReadTime(article.content),
+      featured: false
     };
   }
 
@@ -196,7 +308,7 @@ Make it educational and actionable. Format as JSON with: title, content (markdow
 }
 
 export function registerArticleRoutes(app: Express) {
-  const generator = new ArticleGenerator();
+  const generator = new ExtendedArticleGenerator();
 
   // Generate game preview article
   app.post('/api/articles/game-preview', async (req, res) => {
@@ -310,4 +422,114 @@ export function registerArticleRoutes(app: Express) {
     
     res.json(topics[sport] || []);
   });
+
+  // Get all articles
+  app.get('/api/articles', async (req, res) => {
+    try {
+      const { sport, type, limit = 10 } = req.query;
+      
+      // For now, return mock articles - in production, fetch from database
+      const articles = await generator.getMockArticles(sport as string, type as string, parseInt(limit as string));
+      
+      res.json(articles);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      res.status(500).json({ error: 'Failed to fetch articles' });
+    }
+  });
+
+  // Generate daily articles automatically
+  app.post('/api/articles/generate-daily', async (req, res) => {
+    try {
+      const articles = await generator.generateDailyArticles();
+      res.json({ 
+        message: `Generated ${articles.length} daily articles`,
+        articles: articles.map(a => ({ id: a.id, title: a.title, type: a.articleType }))
+      });
+    } catch (error) {
+      console.error('Error generating daily articles:', error);
+      res.status(500).json({ error: 'Failed to generate daily articles' });
+    }
+  });
+}
+
+// Add these methods to ArticleGenerator class
+export class ExtendedArticleGenerator extends ArticleGenerator {
+  
+  async getMockArticles(sport?: string, type?: string, limit: number = 10): Promise<GeneratedArticle[]> {
+    // Mock articles for demonstration - replace with database queries in production
+    const mockArticles: GeneratedArticle[] = [
+      {
+        id: 'article_1',
+        title: 'Yankees vs Dodgers: World Series Preview Analysis',
+        content: '# Yankees vs Dodgers Analysis\n\nComprehensive breakdown of the upcoming matchup...',
+        summary: 'Expert analysis of the Yankees-Dodgers matchup with betting insights.',
+        tags: ['MLB', 'Yankees', 'Dodgers', 'Preview'],
+        publishedAt: new Date().toISOString(),
+        articleType: 'game-preview',
+        sport: 'baseball_mlb',
+        thumbnail: this.generateSVGThumbnail('Yankees vs Dodgers Preview', 'baseball_mlb', 'game-preview'),
+        author: 'Bet Bot AI',
+        readTime: 5,
+        featured: true
+      },
+      {
+        id: 'article_2',
+        title: 'Daily MLB Betting Roundup - Top Picks',
+        content: '# Today\'s Best Bets\n\nOur top MLB picks for today\'s slate...',
+        summary: 'Daily roundup of the best MLB betting opportunities.',
+        tags: ['MLB', 'Daily', 'Picks', 'Roundup'],
+        publishedAt: new Date().toISOString(),
+        articleType: 'daily-roundup',
+        sport: 'baseball_mlb',
+        thumbnail: this.generateSVGThumbnail('Daily MLB Roundup', 'baseball_mlb', 'daily-roundup'),
+        author: 'Bet Bot AI',
+        readTime: 3,
+        featured: false
+      }
+    ];
+
+    let filtered = mockArticles;
+    
+    if (sport) {
+      filtered = filtered.filter(a => a.sport === sport);
+    }
+    
+    if (type) {
+      filtered = filtered.filter(a => a.articleType === type);
+    }
+    
+    return filtered.slice(0, limit);
+  }
+
+  async generateDailyArticles(): Promise<GeneratedArticle[]> {
+    const articles: GeneratedArticle[] = [];
+    
+    try {
+      // Generate daily roundup for MLB
+      const gamesResponse = await fetch(`http://localhost:5000/api/mlb/complete-schedule`);
+      const games = await gamesResponse.json();
+      
+      if (games.length > 0) {
+        const roundup = await this.generateDailyRoundup(games, 'baseball_mlb', 'professional');
+        articles.push(roundup);
+      }
+
+      // Generate strategy guide
+      const topics = [
+        "Weather Impact on Baseball Betting",
+        "Understanding Run Line Betting", 
+        "Bullpen Strength Analysis"
+      ];
+      
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const strategy = await this.generateStrategyGuide(randomTopic, 'baseball_mlb');
+      articles.push(strategy);
+      
+    } catch (error) {
+      console.error('Error generating daily articles:', error);
+    }
+    
+    return articles;
+  }
 }

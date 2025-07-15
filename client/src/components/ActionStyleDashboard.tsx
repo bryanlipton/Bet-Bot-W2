@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ import {
   Clock,
   Star,
   Zap,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  Newspaper
 } from "lucide-react";
 
 interface LiveOddsGame {
@@ -194,6 +197,29 @@ export function ActionStyleDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Navigation Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Bet Bot Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Professional Sports Betting Intelligence Platform
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/articles">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Newspaper className="w-4 h-4" />
+              Articles & Analysis
+            </Button>
+          </Link>
+          <Badge className="bg-green-600 text-white px-4 py-2 text-sm">
+            Live Data Feed
+          </Badge>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
         <div className="flex items-center justify-between">
