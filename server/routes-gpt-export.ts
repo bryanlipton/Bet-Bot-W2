@@ -70,13 +70,18 @@ export function registerGPTExportRoutes(app: Express) {
 
     try {
       // Test prediction endpoint
+      console.log('Testing prediction endpoint...');
       const { baseballAI } = await import('./services/baseballAI');
-      const testPrediction = await baseballAI.predictGame('Yankees', 'Red Sox');
+      console.log('BaseballAI imported successfully:', typeof baseballAI);
+      console.log('Available methods:', Object.getOwnPropertyNames(baseballAI));
+      const testPrediction = await baseballAI.predict('Yankees', 'Red Sox', new Date().toISOString().split('T')[0]);
+      console.log('Prediction successful:', testPrediction);
       testResults.endpoints['/api/gpt/predict'] = { 
         status: 'WORKING', 
         data: `Prediction engine working - ${(testPrediction.confidence * 100).toFixed(1)}% confidence` 
       };
     } catch (error) {
+      console.error('Prediction test error:', error);
       testResults.endpoints['/api/gpt/predict'] = { 
         status: 'ERROR', 
         error: error.message 
@@ -179,7 +184,7 @@ export function registerGPTExportRoutes(app: Express) {
       
       for (const game of mlbGames.slice(0, 5)) {
         try {
-          const prediction = await baseballAI.predictGame(game.home_team, game.away_team);
+          const prediction = await baseballAI.predict(game.home_team, game.away_team, new Date().toISOString().split('T')[0]);
           
           // Get best odds from multiple bookmakers
           const homeOdds = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price || -110;
@@ -419,7 +424,7 @@ export function registerGPTExportRoutes(app: Express) {
       }
       
       const { baseballAI } = await import('./services/baseballAI');
-      const prediction = await baseballAI.predictGame(homeTeam, awayTeam);
+      const prediction = await baseballAI.predict(homeTeam, awayTeam, new Date().toISOString().split('T')[0]);
       
       const response = {
         homeTeam,
@@ -465,7 +470,7 @@ export function registerGPTExportRoutes(app: Express) {
       for (const game of liveGames.slice(0, 3)) { // Limit to 3 games for performance
         try {
           const { baseballAI } = await import('./services/baseballAI');
-          const prediction = await baseballAI.predictGame(game.home_team, game.away_team);
+          const prediction = await baseballAI.predict(game.home_team, game.away_team, new Date().toISOString().split('T')[0]);
           
           gamesWithPredictions.push({
             id: game.id,
