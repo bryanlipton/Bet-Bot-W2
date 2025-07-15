@@ -101,21 +101,47 @@ export function ActionStyleDashboard() {
         const bookSpread = bookSpreads?.outcomes?.find(o => o.name === game.home_team)?.point;
         const bookTotal = bookTotals?.outcomes?.find(o => o.name === 'Over')?.point;
 
+        // Convert decimal odds to American odds format (3 digits minimum)
+        const convertToAmericanOdds = (price: number) => {
+          if (price >= 2.0) {
+            // Positive odds: (decimal - 1) * 100
+            const odds = Math.round((price - 1) * 100);
+            return odds < 100 ? 100 : odds; // Minimum +100
+          } else {
+            // Negative odds: -100 / (decimal - 1)
+            const odds = Math.round(-100 / (price - 1));
+            return odds > -100 ? -100 : odds; // Minimum -100
+          }
+        };
+
         return {
           name: book.title,
-          homeOdds: bookHomeOdds ? (bookHomeOdds > 0 ? bookHomeOdds : Math.round((bookHomeOdds - 1) * 100)) : undefined,
-          awayOdds: bookAwayOdds ? (bookAwayOdds > 0 ? bookAwayOdds : Math.round((bookAwayOdds - 1) * 100)) : undefined,
+          homeOdds: bookHomeOdds ? convertToAmericanOdds(bookHomeOdds) : undefined,
+          awayOdds: bookAwayOdds ? convertToAmericanOdds(bookAwayOdds) : undefined,
           spread: bookSpread,
           total: bookTotal
         };
       });
 
+      // Convert decimal odds to American odds format (3 digits minimum)
+      const convertToAmericanOdds = (price: number) => {
+        if (price >= 2.0) {
+          // Positive odds: (decimal - 1) * 100
+          const odds = Math.round((price - 1) * 100);
+          return odds < 100 ? 100 : odds; // Minimum +100
+        } else {
+          // Negative odds: -100 / (decimal - 1)
+          const odds = Math.round(-100 / (price - 1));
+          return odds > -100 ? -100 : odds; // Minimum -100
+        }
+      };
+
       return {
         id: game.id,
         homeTeam: game.home_team,
         awayTeam: game.away_team,
-        homeOdds: homeOutcome ? (homeOutcome.price > 0 ? homeOutcome.price : Math.round((homeOutcome.price - 1) * 100)) : undefined,
-        awayOdds: awayOutcome ? (awayOutcome.price > 0 ? awayOutcome.price : Math.round((awayOutcome.price - 1) * 100)) : undefined,
+        homeOdds: homeOutcome ? convertToAmericanOdds(homeOutcome.price) : undefined,
+        awayOdds: awayOutcome ? convertToAmericanOdds(awayOutcome.price) : undefined,
         spread: spreadOutcome?.point,
         total: totalOutcome?.point,
         startTime: new Date(game.commence_time).toLocaleString('en-US', { 
