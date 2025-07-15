@@ -6,6 +6,8 @@ info:
 servers:
   - url: https://bet-bot-blipton03.replit.app
     description: Production Bet Bot API
+  - url: http://localhost:5000
+    description: Development server (if accessing locally)
 
 paths:
   /api/gpt/test:

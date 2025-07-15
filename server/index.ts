@@ -41,12 +41,26 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add direct API route for Custom GPT before other middleware
+// Priority API routes - registered before any middleware to ensure external access
+app.use('/api', (req, res, next) => {
+  // Set CORS headers for all API routes
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Simple test endpoint to verify routing
+app.get('/api/test-routing', (req, res) => {
+  res.json({ status: 'API routing working', timestamp: new Date().toISOString() });
+});
+
 app.post('/api/gpt/matchup', async (req, res) => {
   try {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'POST');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
     
     console.log('[DIRECT] Custom GPT prediction request:', req.body);
     
