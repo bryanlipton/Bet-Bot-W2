@@ -34,37 +34,33 @@
     "Rockies": 0.40,
     "White Sox": 0.38
   },
-  "predictions": {
-    "Yankees vs Braves": {
-      "homeTeam": "Yankees",
-      "awayTeam": "Braves",
-      "homeWinProbability": 0.553,
-      "awayWinProbability": 0.447,
-      "confidence": 0.679,
-      "recommendedBet": "home",
-      "edge": "3.3%",
-      "analysis": "Yankees favored with 55.3% win probability. Analytics-based prediction with home field advantage included."
-    },
-    "Dodgers vs Astros": {
-      "homeTeam": "Dodgers",
-      "awayTeam": "Astros",
-      "homeWinProbability": 0.535,
-      "awayWinProbability": 0.465,
-      "confidence": 0.652,
-      "recommendedBet": "home",
-      "edge": "1.5%",
-      "analysis": "Dodgers slightly favored with 53.5% win probability. Close matchup between top-tier teams."
-    },
-    "Braves vs Yankees": {
-      "homeTeam": "Braves",
-      "awayTeam": "Yankees",
-      "homeWinProbability": 0.515,
-      "awayWinProbability": 0.485,
-      "confidence": 0.615,
-      "recommendedBet": "none",
-      "edge": "No edge",
-      "analysis": "Very close matchup. Braves slight home edge at 51.5%, but Yankees road strength makes this nearly even."
+  "predictionAlgorithm": {
+    "description": "Calculate predictions for any team matchup using team strength ratings",
+    "homeFieldAdvantage": 0.035,
+    "steps": [
+      "1. Get homeTeam strength from teamStrengths (default 0.50 if not found)",
+      "2. Get awayTeam strength from teamStrengths (default 0.50 if not found)", 
+      "3. Calculate homeWinProb = (homeStrength / (homeStrength + awayStrength)) + 0.035",
+      "4. Ensure homeWinProb is between 0.25 and 0.75",
+      "5. Calculate awayWinProb = 1 - homeWinProb",
+      "6. Calculate confidence = Math.abs(homeWinProb - 0.5) * 1.5 + 0.6 (max 0.85)",
+      "7. Determine recommendedBet: 'home' if homeWinProb > 0.55, 'away' if awayWinProb > 0.55, else 'none'",
+      "8. Calculate edge: if winner probability > 0.52, edge = (winnerProb - 0.52) * 100, else 'No edge'"
+    ],
+    "exampleCalculation": {
+      "matchup": "Yankees vs Braves",
+      "homeStrength": 0.72,
+      "awayStrength": 0.67,
+      "calculation": "0.72 / (0.72 + 0.67) + 0.035 = 0.553",
+      "result": "Yankees 55.3% vs Braves 44.7%"
     }
+  },
+  "commonMatchups": {
+    "Yankees vs Braves": "Yankees 55.3% (home), edge: 3.3%",
+    "Dodgers vs Astros": "Dodgers 53.5% (home), edge: 1.5%",
+    "Astros vs Yankees": "Astros 51.9% (home), close matchup",
+    "Braves vs Dodgers": "Braves 50.7% (home), very close",
+    "Phillies vs Mets": "Phillies 52.7% (home), slight edge"
   },
   "bettingGuidance": {
     "confidenceThresholds": {
@@ -94,6 +90,7 @@
       "Roster health indicators"
     ],
     "accuracy": "65.2% on recent backtests",
-    "profitability": "+8.4% ROI over last 100 predictions"
+    "profitability": "+8.4% ROI over last 100 predictions",
+    "usage": "Apply the predictionAlgorithm steps to any team matchup using the teamStrengths data"
   }
 }
