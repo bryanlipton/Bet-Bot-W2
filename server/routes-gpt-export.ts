@@ -444,8 +444,8 @@ export function registerGPTExportRoutes(app: Express) {
     }
   });
 
-  // Working prediction endpoint with unique path
-  app.post('/api/gpt/prediction-fixed', async (req, res) => {
+  // Brand new working prediction endpoint
+  app.post('/api/gpt/team-matchup', async (req, res) => {
     try {
       res.header('Access-Control-Allow-Origin', '*');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

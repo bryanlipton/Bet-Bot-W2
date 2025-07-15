@@ -668,5 +668,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register GPT export routes for real-time Custom GPT integration
   registerGPTExportRoutes(app);
 
+  // Import and setup dedicated Custom GPT endpoint
+  const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');
+  setupCustomGPTEndpoint(app);
+
   return httpServer;
 }
