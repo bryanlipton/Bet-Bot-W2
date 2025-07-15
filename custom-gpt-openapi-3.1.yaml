@@ -109,11 +109,11 @@ paths:
                   latestTraining:
                     type: object
 
-  /api/gpt/prediction-fixed:
+  /api/gpt/matchup:
     post:
       operationId: predict_game_outcome  
-      summary: Get AI prediction for team matchup (WORKING ENDPOINT)
-      description: Generate AI prediction for any MLB team matchup with confidence scores
+      summary: Get AI prediction for team matchup
+      description: Generate AI prediction for any MLB team matchup with confidence scores and betting recommendations
       requestBody:
         required: true
         content:
@@ -123,33 +123,44 @@ paths:
               properties:
                 homeTeam:
                   type: string
-                  description: Home team name
+                  description: Home team name (e.g., Yankees, Braves)
                 awayTeam:
                   type: string
-                  description: Away team name
+                  description: Away team name (e.g., Yankees, Braves)
               required:
                 - homeTeam
                 - awayTeam
 
       responses:
         '200':
-          description: Today's games with AI predictions
+          description: AI prediction with probabilities and betting recommendation
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  date:
+                  homeTeam:
                     type: string
-                  totalGames:
-                    type: integer
-                  games:
-                    type: array
-                    items:
-                      type: object
-                  lastUpdated:
+                  awayTeam:
                     type: string
-                  apiStatus:
+                  prediction:
+                    type: object
+                    properties:
+                      homeWinProbability:
+                        type: number
+                      awayWinProbability:
+                        type: number
+                      confidence:
+                        type: number
+                      recommendedBet:
+                        type: string
+                      edge:
+                        type: string
+                      analysis:
+                        type: string
+                  timestamp:
+                    type: string
+                  modelStatus:
                     type: string
 
   /api/gpt/strategies:

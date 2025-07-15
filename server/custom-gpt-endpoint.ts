@@ -1,8 +1,8 @@
 import { Express } from 'express';
 
 export function setupCustomGPTEndpoint(app: Express) {
-  // Dedicated Custom GPT prediction endpoint
-  app.post('/api/gpt/predict-team', async (req, res) => {
+  // Backup Custom GPT prediction endpoint (disabled to avoid conflicts)
+  app.post('/api/gpt/predict-team-backup', async (req, res) => {
     try {
       res.header('Access-Control-Allow-Origin', '*');
       res.header('Access-Control-Allow-Methods', 'POST');
