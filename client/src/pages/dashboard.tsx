@@ -5,6 +5,7 @@ import MainDashboard from "@/components/MainDashboard";
 import BaseballAI from "@/components/BaseballAI";
 import { BacktestResults } from "@/components/BacktestResults";
 import { LiveMLBGames } from "@/components/LiveMLBGames";
+import { PredictionChat } from "@/components/PredictionChat";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Dashboard() {
@@ -81,6 +82,16 @@ export default function Dashboard() {
               >
                 Live Games
               </button>
+              <button
+                onClick={() => setActiveTab("prediction-chat")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "prediction-chat"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Prediction Chat
+              </button>
             </div>
           </div>
 
@@ -102,6 +113,11 @@ export default function Dashboard() {
             {activeTab === "live-games" && (
               <div className="p-6">
                 <LiveMLBGames />
+              </div>
+            )}
+            {activeTab === "prediction-chat" && (
+              <div className="p-6">
+                <PredictionChat />
               </div>
             )}
           </div>
