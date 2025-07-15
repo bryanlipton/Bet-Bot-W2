@@ -467,9 +467,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const daysDiff = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
       const bankrollAmount = bankroll || 1000;
       
-      // Determine if this is 2023 (out-of-sample) or 2024 (in-sample) testing
+      // Determine if this is out-of-sample (2023, 2025) or in-sample (2024) testing
       const year = start.getFullYear();
-      const isOutOfSample = year === 2023;
+      const isOutOfSample = year === 2023 || year === 2025;
       
       // Calculate realistic metrics based on time period
       const avgGamesPerDay = 15; // MLB average games per day
