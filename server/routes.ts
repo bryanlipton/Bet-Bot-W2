@@ -7,6 +7,7 @@ import { mlEngine } from "./services/mlEngine";
 import { websocketService } from "./services/websocket";
 import { insertGameSchema, insertChatMessageSchema, insertRecommendationSchema, insertModelMetricsSchema } from "@shared/schema";
 import { baseballAI } from "./services/baseballAI";
+import { registerGPTExportRoutes } from "./routes-gpt-export";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -595,6 +596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Live prediction failed' });
     }
   });
+
+  // Register GPT export routes for real-time Custom GPT integration
+  registerGPTExportRoutes(app);
 
   return httpServer;
 }
