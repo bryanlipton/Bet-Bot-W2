@@ -24,6 +24,12 @@ interface GameCardProps {
     spread?: number;
     total?: number;
   }>;
+  gameId?: string | number;
+  probablePitchers?: {
+    home: string | null;
+    away: string | null;
+  };
+  onClick?: () => void;
 }
 
 export function ActionStyleGameCard({
@@ -36,7 +42,10 @@ export function ActionStyleGameCard({
   startTime,
   prediction,
   isLive = false,
-  bookmakers
+  bookmakers,
+  gameId,
+  probablePitchers,
+  onClick
 }: GameCardProps) {
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : `${odds}`;
@@ -62,7 +71,10 @@ export function ActionStyleGameCard({
   const recommendation = getBetRecommendation();
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700">
+    <Card 
+      className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer"
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

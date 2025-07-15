@@ -56,12 +56,16 @@ interface ProcessedGame {
   }>;
 }
 
+import { GameDetailsModal } from "./GameDetailsModal";
+
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
+  const [selectedGame, setSelectedGame] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Fetch all scheduled events (with or without odds) from The Odds API
+  // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
-    queryKey: ['/api/odds/events', selectedSport],
+    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/complete-schedule'] : ['/api/odds/events', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -139,7 +143,10 @@ export function ActionStyleDashboard() {
           hour12: true 
         }),
         sportKey: game.sport_key,
-        bookmakers
+        bookmakers,
+        gameId: game.gameId || game.id,
+        probablePitchers: game.probablePitchers,
+        venue: game.venue
       };
     });
     
@@ -343,6 +350,12 @@ export function ActionStyleDashboard() {
                   startTime={game.startTime}
                   prediction={getPrediction(game.homeTeam, game.awayTeam)}
                   bookmakers={game.bookmakers}
+                  gameId={game.gameId}
+                  probablePitchers={game.probablePitchers}
+                  onClick={() => {
+                    setSelectedGame(game);
+                    setIsModalOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -362,6 +375,23 @@ export function ActionStyleDashboard() {
           </Card>
         )}
       </div>
+
+      {/* Game Details Modal */}
+      {selectedGame && (
+        <GameDetailsModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedGame(null);
+          }}
+          gameId={selectedGame.gameId}
+          homeTeam={selectedGame.homeTeam}
+          awayTeam={selectedGame.awayTeam}
+          startTime={selectedGame.startTime}
+          venue={selectedGame.venue}
+          probablePitchers={selectedGame.probablePitchers}
+        />
+      )}
 
       {/* Recent Articles Section (Action Network Style) */}
       <div>
