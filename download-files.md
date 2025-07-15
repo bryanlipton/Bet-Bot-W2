@@ -1,63 +1,54 @@
-# How to Get Files to Your Computer
+# Download Files for Custom GPT
 
-## Current Location
-The JSON files are in your Replit workspace, not on your local computer yet.
+## Method 1: Direct File Access (Recommended)
 
-## Option 1: Download from Replit (Easiest)
-1. In Replit file explorer (left sidebar)
-2. Right-click each file:
-   - betting-strategies.json
-   - historical-results.json  
-   - team-analysis.json
-   - betting-glossary.json
-3. Select "Download" for each file
+### Files to Download:
+1. **gpt-predictions-data.json** - Main prediction data
+2. **gpt-prediction-instructions.md** - Calculation instructions
 
-## Option 2: Real-Time Connection Options
+### How to Download:
+1. **In Replit**: Click on each file in the file explorer
+2. **Copy Contents**: Select all text (Ctrl+A) and copy (Ctrl+C)
+3. **Create Local Files**: Paste into new files on your computer
+4. **Upload to Custom GPT**: Go to your Custom GPT settings and upload both files
 
-### A) Custom GPT Actions (Recommended)
-Connect your Custom GPT directly to your live Replit app:
+## Method 2: Using the Browser
 
-**In Custom GPT Actions, add:**
-```yaml
-openapi: 3.0.1
-info:
-  title: Bet Bot Live Data API
-  version: 1.0.0
-servers:
-  - url: https://your-replit-app.replit.app
-paths:
-  /api/betting/live-strategies:
-    get:
-      summary: Get current betting strategies
-      responses:
-        '200':
-          description: Current strategies and edge calculations
-  /api/baseball/latest-results:
-    get:
-      summary: Get latest backtest results
-      responses:
-        '200':
-          description: Most recent performance data
+### For gpt-predictions-data.json:
+1. Click the file in Replit's file explorer
+2. Right-click → "Save As" or use Ctrl+S
+3. Save as `gpt-predictions-data.json`
+
+### For gpt-prediction-instructions.md:
+1. Click the file in Replit's file explorer  
+2. Right-click → "Save As" or use Ctrl+S
+3. Save as `gpt-prediction-instructions.md`
+
+## Method 3: Using Git (Advanced)
+
+If you have git access to your Replit:
+```bash
+git clone [your-replit-repo-url]
 ```
 
-### B) Auto-Updating Knowledge Base
-Create an endpoint that exports fresh data:
+## What Each File Contains:
 
-1. Add route to serve updated JSON files
-2. Custom GPT fetches latest data on demand
-3. Always gets current performance metrics
+### gpt-predictions-data.json
+- Team strength ratings for all 30 MLB teams
+- Dynamic prediction algorithm with step-by-step formula
+- Betting guidance and confidence thresholds
+- Example calculations and common matchups
 
-### C) Webhook Updates (Advanced)
-Set up webhooks to notify Custom GPT when data changes:
+### gpt-prediction-instructions.md
+- Detailed instructions for your Custom GPT
+- Step-by-step calculation process
+- Example predictions with math
+- Usage guidelines for any team matchup
 
-1. Replit app sends update notifications
-2. Custom GPT refreshes its knowledge
-3. Always stays synchronized
+## Upload to Custom GPT:
+1. Go to your Custom GPT configuration
+2. Find the "Knowledge" or "Files" section
+3. Upload both downloaded files
+4. Test with queries like "Who will win Yankees vs Dodgers?"
 
-## Best Approach for Real-Time Updates
-
-**For live connection:** Use Custom GPT Actions to connect directly to your Replit app
-**For periodic updates:** Manual file uploads when you want to update the knowledge base
-**For testing:** Download files now and upload to get started quickly
-
-Would you like me to set up the live API endpoints for real-time connection?
+Your Custom GPT will now be able to predict any MLB matchup using the dynamic calculation system!
