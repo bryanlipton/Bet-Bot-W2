@@ -36,10 +36,15 @@ The application uses a comprehensive database schema including:
 - **Recommendations**: AI-generated betting suggestions with confidence metrics
 - **Chat Messages**: Conversational AI interaction history
 - **Model Metrics**: Machine learning performance tracking
+- **Baseball Games**: Specialized baseball game data with weather and detailed stats
+- **Baseball Player Stats**: Historical player performance data for model training
+- **Baseball Predictions**: AI-generated game predictions with probability distributions
+- **Baseball Model Training**: Training metrics and model performance tracking
 
 ### AI Services
 - **OpenAI Integration**: GPT-4o powered chat assistant for betting advice
 - **ML Engine**: Custom edge calculation algorithms for identifying value bets
+- **Baseball AI System**: TensorFlow.js-powered machine learning model specifically trained on baseball data
 - **Odds Analysis**: Real-time probability calculations and implied odds conversion
 
 ### Real-time Features

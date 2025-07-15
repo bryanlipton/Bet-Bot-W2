@@ -1,9 +1,14 @@
 import { 
   users, games, odds, recommendations, chatMessages, modelMetrics,
+  baseballGames, baseballPlayerStats, baseballGamePredictions, baseballModelTraining,
   type User, type InsertUser, type Game, type InsertGame, 
   type Odds, type InsertOdds, type Recommendation, type InsertRecommendation,
-  type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics
+  type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics,
+  type BaseballGame, type InsertBaseballGame, type BaseballPlayerStats, type InsertBaseballPlayerStats,
+  type BaseballGamePrediction, type InsertBaseballGamePrediction, type BaseballModelTraining, type InsertBaseballModelTraining
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -38,6 +43,20 @@ export interface IStorage {
   // Model Metrics
   createOrUpdateModelMetrics(metrics: InsertModelMetrics): Promise<ModelMetrics>;
   getModelMetricsBySport(sportKey: string): Promise<ModelMetrics | undefined>;
+
+  // Baseball-specific methods
+  createBaseballGame(game: InsertBaseballGame): Promise<BaseballGame>;
+  getBaseballGameByExternalId(externalId: string): Promise<BaseballGame | undefined>;
+  updateBaseballGameScore(id: number, homeScore: number, awayScore: number): Promise<void>;
+  
+  createBaseballPlayerStats(stats: InsertBaseballPlayerStats): Promise<BaseballPlayerStats>;
+  getTeamPlayerStats(team: string, season: number): Promise<BaseballPlayerStats[]>;
+  
+  createBaseballPrediction(prediction: InsertBaseballGamePrediction): Promise<BaseballGamePrediction>;
+  getLatestPredictionForGame(gameId: number): Promise<BaseballGamePrediction | undefined>;
+  
+  createBaseballTrainingRecord(training: InsertBaseballModelTraining): Promise<BaseballModelTraining>;
+  getLatestTrainingRecord(): Promise<BaseballModelTraining | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -225,4 +244,181 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getGame(id: number): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    return game || undefined;
+  }
+
+  async getGameByExternalId(externalId: string): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.externalId, externalId));
+    return game || undefined;
+  }
+
+  async createGame(insertGame: InsertGame): Promise<Game> {
+    const [game] = await db.insert(games).values(insertGame).returning();
+    return game;
+  }
+
+  async updateGameStatus(id: number, status: string): Promise<void> {
+    await db.update(games).set({ status }).where(eq(games.id, id));
+  }
+
+  async getGamesBySport(sportKey: string): Promise<Game[]> {
+    return await db.select().from(games).where(eq(games.sportKey, sportKey));
+  }
+
+  async getLiveGames(): Promise<Game[]> {
+    return await db.select().from(games).where(eq(games.status, 'live'));
+  }
+
+  async getTodaysGames(): Promise<Game[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return await db.select().from(games).where(
+      sql`DATE(${games.commenceTime}) = ${today}`
+    );
+  }
+
+  async createOdds(insertOdds: InsertOdds): Promise<Odds> {
+    const [odds] = await db.insert(odds).values(insertOdds).returning();
+    return odds;
+  }
+
+  async getLatestOddsByGame(gameId: number): Promise<Odds[]> {
+    return await db.select().from(odds)
+      .where(eq(odds.gameId, gameId))
+      .orderBy(desc(odds.timestamp));
+  }
+
+  async getOddsByBookmaker(gameId: number, bookmaker: string): Promise<Odds[]> {
+    return await db.select().from(odds)
+      .where(and(eq(odds.gameId, gameId), eq(odds.bookmaker, bookmaker)));
+  }
+
+  async createRecommendation(insertRecommendation: InsertRecommendation): Promise<Recommendation> {
+    const [recommendation] = await db.insert(recommendations).values(insertRecommendation).returning();
+    return recommendation;
+  }
+
+  async getActiveRecommendations(): Promise<Recommendation[]> {
+    return await db.select().from(recommendations).where(eq(recommendations.status, 'active'));
+  }
+
+  async getRecommendationsBySport(sportKey: string): Promise<Recommendation[]> {
+    return await db.select().from(recommendations)
+      .innerJoin(games, eq(recommendations.gameId, games.id))
+      .where(eq(games.sportKey, sportKey))
+      .then(rows => rows.map(row => row.recommendations));
+  }
+
+  async updateRecommendationStatus(id: number, status: string): Promise<void> {
+    await db.update(recommendations).set({ status }).where(eq(recommendations.id, id));
+  }
+
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db.insert(chatMessages).values(insertMessage).returning();
+    return message;
+  }
+
+  async getRecentChatMessages(limit: number = 50): Promise<ChatMessage[]> {
+    return await db.select().from(chatMessages)
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+  }
+
+  async createOrUpdateModelMetrics(insertMetrics: InsertModelMetrics): Promise<ModelMetrics> {
+    const existing = await db.select().from(modelMetrics)
+      .where(eq(modelMetrics.sportKey, insertMetrics.sportKey));
+
+    if (existing.length > 0) {
+      const [updated] = await db.update(modelMetrics)
+        .set(insertMetrics)
+        .where(eq(modelMetrics.sportKey, insertMetrics.sportKey))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(modelMetrics).values(insertMetrics).returning();
+      return created;
+    }
+  }
+
+  async getModelMetricsBySport(sportKey: string): Promise<ModelMetrics | undefined> {
+    const [metrics] = await db.select().from(modelMetrics)
+      .where(eq(modelMetrics.sportKey, sportKey));
+    return metrics || undefined;
+  }
+
+  // Baseball-specific implementations
+  async createBaseballGame(insertGame: InsertBaseballGame): Promise<BaseballGame> {
+    const [game] = await db.insert(baseballGames).values(insertGame).returning();
+    return game;
+  }
+
+  async getBaseballGameByExternalId(externalId: string): Promise<BaseballGame | undefined> {
+    const [game] = await db.select().from(baseballGames)
+      .where(eq(baseballGames.externalId, externalId));
+    return game || undefined;
+  }
+
+  async updateBaseballGameScore(id: number, homeScore: number, awayScore: number): Promise<void> {
+    await db.update(baseballGames)
+      .set({ homeScore, awayScore, gameStatus: 'completed' })
+      .where(eq(baseballGames.id, id));
+  }
+
+  async createBaseballPlayerStats(insertStats: InsertBaseballPlayerStats): Promise<BaseballPlayerStats> {
+    const [stats] = await db.insert(baseballPlayerStats).values(insertStats).returning();
+    return stats;
+  }
+
+  async getTeamPlayerStats(team: string, season: number): Promise<BaseballPlayerStats[]> {
+    return await db.select().from(baseballPlayerStats)
+      .where(and(
+        eq(baseballPlayerStats.team, team),
+        eq(baseballPlayerStats.seasonYear, season)
+      ));
+  }
+
+  async createBaseballPrediction(insertPrediction: InsertBaseballGamePrediction): Promise<BaseballGamePrediction> {
+    const [prediction] = await db.insert(baseballGamePredictions).values(insertPrediction).returning();
+    return prediction;
+  }
+
+  async getLatestPredictionForGame(gameId: number): Promise<BaseballGamePrediction | undefined> {
+    const [prediction] = await db.select().from(baseballGamePredictions)
+      .where(eq(baseballGamePredictions.gameId, gameId))
+      .orderBy(desc(baseballGamePredictions.createdAt))
+      .limit(1);
+    return prediction || undefined;
+  }
+
+  async createBaseballTrainingRecord(insertTraining: InsertBaseballModelTraining): Promise<BaseballModelTraining> {
+    const [training] = await db.insert(baseballModelTraining).values(insertTraining).returning();
+    return training;
+  }
+
+  async getLatestTrainingRecord(): Promise<BaseballModelTraining | undefined> {
+    const [training] = await db.select().from(baseballModelTraining)
+      .orderBy(desc(baseballModelTraining.trainedAt))
+      .limit(1);
+    return training || undefined;
+  }
+}
+
+export const storage = new DatabaseStorage();

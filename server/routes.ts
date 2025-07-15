@@ -6,6 +6,7 @@ import { openaiService } from "./services/openai";
 import { mlEngine } from "./services/mlEngine";
 import { websocketService } from "./services/websocket";
 import { insertGameSchema, insertChatMessageSchema, insertRecommendationSchema, insertModelMetricsSchema } from "@shared/schema";
+import { baseballAI } from "./services/baseballAI";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -343,6 +344,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error in periodic odds update:', error);
     }
   }, 60000); // Update every minute
+
+  // Baseball AI specific endpoints
+  app.post("/api/baseball/train", async (req, res) => {
+    try {
+      console.log('Starting baseball AI training...');
+      await baseballAI.trainModel([2023, 2024]);
+      const modelInfo = await baseballAI.getModelInfo();
+      res.json({ 
+        message: "Baseball AI model trained successfully", 
+        modelInfo 
+      });
+    } catch (error) {
+      console.error('Error training baseball model:', error);
+      res.status(500).json({ error: "Failed to train baseball model" });
+    }
+  });
+
+  app.post("/api/baseball/predict", async (req, res) => {
+    try {
+      const { homeTeam, awayTeam, gameDate, weather } = req.body;
+      
+      if (!homeTeam || !awayTeam || !gameDate) {
+        return res.status(400).json({ error: "homeTeam, awayTeam, and gameDate are required" });
+      }
+
+      const prediction = await baseballAI.predict(homeTeam, awayTeam, gameDate, weather);
+      res.json(prediction);
+    } catch (error) {
+      console.error('Error making baseball prediction:', error);
+      res.status(500).json({ error: "Failed to generate baseball prediction" });
+    }
+  });
+
+  app.get("/api/baseball/model-info", async (req, res) => {
+    try {
+      const modelInfo = await baseballAI.getModelInfo();
+      res.json(modelInfo);
+    } catch (error) {
+      console.error('Error getting model info:', error);
+      res.status(500).json({ error: "Failed to get model information" });
+    }
+  });
+
+  app.get("/api/baseball/recommendations", async (req, res) => {
+    try {
+      // Get current MLB games
+      const mlbGames = await oddsApiService.getCurrentOdds('baseball_mlb');
+      const recommendations = [];
+
+      for (const game of mlbGames.slice(0, 5)) { // Limit to 5 games for demo
+        try {
+          const prediction = await baseballAI.predict(
+            game.home_team, 
+            game.away_team, 
+            new Date().toISOString().split('T')[0]
+          );
+
+          // Find best moneyline odds
+          const homeOdds = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price || -110;
+          const awayOdds = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price || -110;
+
+          // Calculate edge for home team
+          const homeImpliedProb = oddsApiService.calculateImpliedProbability(homeOdds);
+          const homeEdge = ((prediction.homeWinProbability * 100) - homeImpliedProb) / homeImpliedProb * 100;
+
+          // Calculate edge for away team  
+          const awayImpliedProb = oddsApiService.calculateImpliedProbability(awayOdds);
+          const awayEdge = ((prediction.awayWinProbability * 100) - awayImpliedProb) / awayImpliedProb * 100;
+
+          if (homeEdge > 5) { // 5% edge threshold
+            recommendations.push({
+              id: recommendations.length + 1,
+              gameId: game.id,
+              market: 'moneyline',
+              bet: `${game.home_team} ML`,
+              edge: homeEdge.toFixed(1) + '%',
+              confidence: (prediction.confidence * 100).toFixed(1) + '%',
+              modelProbability: (prediction.homeWinProbability * 100).toFixed(1) + '%',
+              impliedProbability: homeImpliedProb.toFixed(1) + '%',
+              bestOdds: homeOdds > 0 ? `+${homeOdds}` : homeOdds.toString(),
+              bookmaker: game.bookmakers?.[0]?.title || 'Draft Kings',
+              status: 'active'
+            });
+          }
+
+          if (awayEdge > 5) {
+            recommendations.push({
+              id: recommendations.length + 1,
+              gameId: game.id,
+              market: 'moneyline',
+              bet: `${game.away_team} ML`,
+              edge: awayEdge.toFixed(1) + '%',
+              confidence: (prediction.confidence * 100).toFixed(1) + '%',
+              modelProbability: (prediction.awayWinProbability * 100).toFixed(1) + '%',
+              impliedProbability: awayImpliedProb.toFixed(1) + '%',
+              bestOdds: awayOdds > 0 ? `+${awayOdds}` : awayOdds.toString(),
+              bookmaker: game.bookmakers?.[0]?.title || 'FanDuel',
+              status: 'active'
+            });
+          }
+        } catch (predictionError) {
+          console.log(`Skipping prediction for ${game.home_team} vs ${game.away_team}:`, predictionError.message);
+        }
+      }
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating baseball recommendations:', error);
+      res.status(500).json({ error: "Failed to generate baseball recommendations" });
+    }
+  });
 
   return httpServer;
 }

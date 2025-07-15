@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import MainDashboard from "@/components/MainDashboard";
+import BaseballAI from "@/components/BaseballAI";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeSport, setActiveSport] = useState("americanfootball_nfl");
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, baseball-ai
   
   // Initialize WebSocket connection
   useWebSocket();
@@ -33,7 +35,45 @@ export default function Dashboard() {
       
       <div className="flex h-[calc(100vh-80px)]">
         <ChatSidebar />
-        <MainDashboard activeSport={activeSport} onSportChange={setActiveSport} />
+        <div className="flex-1 flex flex-col">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <div className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab("dashboard")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "dashboard"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => setActiveTab("baseball-ai")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "baseball-ai"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Baseball AI
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1 overflow-auto">
+            {activeTab === "dashboard" && (
+              <MainDashboard activeSport={activeSport} onSportChange={setActiveSport} />
+            )}
+            {activeTab === "baseball-ai" && (
+              <div className="p-6">
+                <BaseballAI />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
