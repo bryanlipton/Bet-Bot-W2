@@ -109,11 +109,11 @@ paths:
                   latestTraining:
                     type: object
 
-  /api/gpt/predict-team:
+  /api/gpt/prediction-fixed:
     post:
       operationId: predict_game_outcome  
-      summary: Get AI prediction for team matchup
-      description: Generate AI prediction for any MLB team matchup with confidence scores and betting recommendations
+      summary: Get AI prediction for team matchup (WORKING ENDPOINT)
+      description: Generate AI prediction for any MLB team matchup with confidence scores
       requestBody:
         required: true
         content:
