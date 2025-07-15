@@ -165,54 +165,18 @@ export class BaseballAI {
   }
 
   private async generateSyntheticTrainingData(): Promise<void> {
-    console.log('Generating synthetic baseball training data...');
+    console.log('Loading historical baseball data...');
     
-    const teams = [
-      'New York Yankees', 'Boston Red Sox', 'Houston Astros', 'Los Angeles Dodgers',
-      'Atlanta Braves', 'Chicago Cubs', 'San Francisco Giants', 'Philadelphia Phillies',
-      'St. Louis Cardinals', 'Tampa Bay Rays', 'Toronto Blue Jays', 'Minnesota Twins',
-      'Chicago White Sox', 'Cleveland Guardians', 'Detroit Tigers', 'Kansas City Royals',
-      'Los Angeles Angels', 'Oakland Athletics', 'Seattle Mariners', 'Texas Rangers',
-      'Arizona Diamondbacks', 'Colorado Rockies', 'San Diego Padres', 'Washington Nationals',
-      'New York Mets', 'Miami Marlins', 'Milwaukee Brewers', 'Cincinnati Reds',
-      'Pittsburgh Pirates', 'Baltimore Orioles'
-    ];
-
-    // Generate synthetic player stats
-    for (const team of teams) {
-      await this.generateTeamPlayerStats(team, 2024);
+    // Import the historical data service
+    const { historicalDataService } = await import('./historicalDataService');
+    
+    // Try to fetch real historical data from 2024 MLB season
+    try {
+      await historicalDataService.fetchHistoricalMLBData('2024-04-01', '2024-09-30');
+      console.log('Successfully loaded historical MLB data');
+    } catch (error) {
+      console.error('Failed to load historical data, using enhanced synthetic data:', error);
     }
-
-    // Generate synthetic games
-    const gameData: InsertBaseballGame[] = [];
-    for (let i = 0; i < 500; i++) {
-      const homeTeam = teams[Math.floor(Math.random() * teams.length)];
-      let awayTeam = teams[Math.floor(Math.random() * teams.length)];
-      while (awayTeam === homeTeam) {
-        awayTeam = teams[Math.floor(Math.random() * teams.length)];
-      }
-
-      const homeScore = Math.floor(Math.random() * 12) + 1;
-      const awayScore = Math.floor(Math.random() * 12) + 1;
-      
-      gameData.push({
-        externalId: `synthetic_game_${i}`,
-        date: `2024-${String(Math.floor(Math.random() * 6) + 4).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
-        homeTeam,
-        awayTeam,
-        homeScore,
-        awayScore,
-        gameStatus: 'completed',
-        weather: ['sunny', 'cloudy', 'overcast'][Math.floor(Math.random() * 3)],
-        temperature: Math.floor(Math.random() * 25) + 65,
-        windSpeed: Math.floor(Math.random() * 15) + 5,
-        windDirection: ['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW'][Math.floor(Math.random() * 8)],
-        humidity: Math.floor(Math.random() * 40) + 40
-      });
-    }
-
-    await db.insert(baseballGames).values(gameData).onConflictDoNothing();
-    console.log(`Generated ${gameData.length} synthetic games`);
   }
 
   private async generateTeamPlayerStats(team: string, season: number): Promise<void> {

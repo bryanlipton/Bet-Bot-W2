@@ -348,11 +348,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Baseball AI specific endpoints
   app.post("/api/baseball/train", async (req, res) => {
     try {
-      console.log('Starting baseball AI training...');
-      await baseballAI.trainModel([2023, 2024]);
+      console.log('Starting baseball AI training with historical data...');
+      await baseballAI.trainModel([2024]);
       const modelInfo = await baseballAI.getModelInfo();
       res.json({ 
-        message: "Baseball AI model trained successfully", 
+        message: "Baseball AI model trained successfully with historical data", 
         modelInfo 
       });
     } catch (error) {
