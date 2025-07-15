@@ -75,12 +75,15 @@ export function ActionStyleDashboard() {
   const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
     if (!oddsData) return [];
     
+    console.log(`Processing ${oddsData.length} games from API`);
+    
     // Sort games by commence time (chronological order)
     const sortedGames = [...oddsData].sort((a, b) => 
       new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime()
     );
     
-    return sortedGames.map((game) => {
+    const processedGames = sortedGames.map((game, index) => {
+      console.log(`Processing game ${index + 1}: ${game.away_team} @ ${game.home_team} - Bookmakers: ${game.bookmakers?.length || 0}`);
       const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
       const spreadsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
       const totalsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals');
@@ -129,6 +132,9 @@ export function ActionStyleDashboard() {
         bookmakers
       };
     });
+    
+    console.log(`Processed ${processedGames.length} games successfully`);
+    return processedGames;
   };
 
   const featuredGames = processLiveGames(liveOddsData || []);
