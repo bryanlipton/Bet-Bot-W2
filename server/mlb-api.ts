@@ -47,8 +47,14 @@ export function registerMLBRoutes(app: Express) {
   // Get today's MLB schedule
   app.get('/api/mlb/schedule', async (req, res) => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const url = `${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team,linescore,probablePitcher`;
+      // Get games from yesterday to next 3 days to show more games
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 1); // Yesterday
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 3); // Next 3 days
+      
+      const url = `${MLB_API_BASE_URL}/schedule?sportId=1&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&hydrate=team,linescore,probablePitcher`;
       
       console.log(`Fetching MLB schedule from: ${url}`);
       
@@ -82,7 +88,7 @@ export function registerMLBRoutes(app: Express) {
         }))
       );
       
-      console.log(`Successfully fetched ${games.length} MLB games for ${today}`);
+      console.log(`Successfully fetched ${games.length} MLB games for date range`);
       
       res.json(games);
     } catch (error) {
@@ -143,39 +149,70 @@ export function registerMLBRoutes(app: Express) {
     }
   });
 
-  // Get combined schedule with odds
+  // Get combined schedule with odds (ODDS API DATA TAKES PRIORITY)
   app.get('/api/mlb/complete-schedule', async (req, res) => {
     try {
-      // Fetch MLB schedule
-      const mlbResponse = await fetch(`http://localhost:5000/api/mlb/schedule`);
-      const mlbGames = mlbResponse.ok ? await mlbResponse.json() : [];
+      console.log('Fetching complete schedule - ODDS API PRIORITY');
       
-      // Fetch odds data
+      // Fetch live odds first (these are the primary games with betting lines)
       const oddsResponse = await fetch(`http://localhost:5000/api/odds/live/baseball_mlb`);
       const oddsGames = oddsResponse.ok ? await oddsResponse.json() : [];
       
-      // Create a map of odds by team names for easier matching
-      const oddsMap = new Map();
-      oddsGames.forEach((game: any) => {
-        const key = `${game.away_team}_${game.home_team}`;
-        oddsMap.set(key, game);
-      });
+      // Fetch MLB schedule for pitcher info
+      const mlbResponse = await fetch(`http://localhost:5000/api/mlb/schedule`);
+      const mlbGames = mlbResponse.ok ? await mlbResponse.json() : [];
       
-      // Merge MLB games with odds data
-      const completeGames = mlbGames.map((mlbGame: any) => {
-        const oddsKey = `${mlbGame.away_team}_${mlbGame.home_team}`;
-        const oddsData = oddsMap.get(oddsKey);
+      console.log(`Starting with ${oddsGames.length} odds games (PRIORITY), enriching with ${mlbGames.length} MLB games`);
+      
+      // Start with ALL odds games (these have betting lines)
+      const allGames = [...oddsGames.map(game => ({
+        ...game,
+        hasOdds: true
+      }))];
+      
+      // Enrich odds games with MLB pitcher data
+      allGames.forEach(oddsGame => {
+        const matchingMLB = mlbGames.find(mlb => {
+          // Try exact match first
+          if (mlb.home_team === oddsGame.home_team && mlb.away_team === oddsGame.away_team) {
+            return true;
+          }
+          // Try partial team name matches
+          const mlbHome = mlb.home_team.toLowerCase();
+          const mlbAway = mlb.away_team.toLowerCase();
+          const oddsHome = oddsGame.home_team.toLowerCase();
+          const oddsAway = oddsGame.away_team.toLowerCase();
+          
+          return (mlbHome.includes(oddsHome.split(' ').pop()) || oddsHome.includes(mlbHome.split(' ').pop())) &&
+                 (mlbAway.includes(oddsAway.split(' ').pop()) || oddsAway.includes(mlbAway.split(' ').pop()));
+        });
         
-        return {
-          ...mlbGame,
-          bookmakers: oddsData?.bookmakers || [],
-          hasOdds: !!oddsData
-        };
+        if (matchingMLB) {
+          oddsGame.gameId = matchingMLB.gameId;
+          oddsGame.venue = matchingMLB.venue;
+          oddsGame.probablePitchers = matchingMLB.probablePitchers;
+        }
       });
       
-      console.log(`Combined ${mlbGames.length} MLB games with ${oddsGames.length} odds games`);
+      // Add MLB-only games (no betting lines available)
+      mlbGames.forEach(mlbGame => {
+        const alreadyExists = allGames.find(game => {
+          // Check if this MLB game is already represented
+          return (game.home_team === mlbGame.home_team && game.away_team === mlbGame.away_team) ||
+                 (game.gameId && game.gameId === mlbGame.gameId);
+        });
+        
+        if (!alreadyExists) {
+          allGames.push({
+            ...mlbGame,
+            hasOdds: false,
+            bookmakers: []
+          });
+        }
+      });
       
-      res.json(completeGames);
+      console.log(`Final result: ${allGames.length} total games (${oddsGames.length} with odds, ${allGames.length - oddsGames.length} MLB-only)`);
+      res.json(allGames);
     } catch (error) {
       console.error('Error fetching complete schedule:', error);
       res.status(500).json({ 
