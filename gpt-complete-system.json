@@ -1,0 +1,187 @@
+{
+  "systemInfo": {
+    "name": "Bet Bot MLB Prediction System",
+    "version": "2.1",
+    "lastUpdated": "2025-07-15T19:00:00Z",
+    "description": "Complete MLB betting analytics system with real-time odds and prediction engine"
+  },
+  "apiAccess": {
+    "oddsAPI": {
+      "baseUrl": "https://api.the-odds-api.com/v4",
+      "sports": {
+        "mlb": "baseball_mlb",
+        "nfl": "americanfootball_nfl", 
+        "nba": "basketball_nba"
+      },
+      "endpoints": {
+        "liveOdds": "/sports/{sport}/odds?apiKey={key}&regions=us&markets=h2h,spreads,totals&oddsFormat=american",
+        "scores": "/sports/{sport}/scores?apiKey={key}",
+        "events": "/sports/{sport}/events?apiKey={key}"
+      },
+      "usage": "Replace {sport} with sport key and {key} with THE_ODDS_API_KEY"
+    },
+    "betBotAPI": {
+      "baseUrl": "https://bet-bot-blipton03.replit.app",
+      "endpoints": {
+        "predictions": "/api/gpt/matchup",
+        "liveGames": "/api/games/live",
+        "recommendations": "/api/recommendations/{sport}",
+        "metrics": "/api/metrics/{sport}"
+      }
+    }
+  },
+  "teamStrengths": {
+    "Yankees": { "strength": 0.72, "city": "New York", "league": "AL", "division": "East" },
+    "Dodgers": { "strength": 0.70, "city": "Los Angeles", "league": "NL", "division": "West" },
+    "Astros": { "strength": 0.68, "city": "Houston", "league": "AL", "division": "West" },
+    "Braves": { "strength": 0.67, "city": "Atlanta", "league": "NL", "division": "East" },
+    "Phillies": { "strength": 0.65, "city": "Philadelphia", "league": "NL", "division": "East" },
+    "Padres": { "strength": 0.64, "city": "San Diego", "league": "NL", "division": "West" },
+    "Mets": { "strength": 0.62, "city": "New York", "league": "NL", "division": "East" },
+    "Orioles": { "strength": 0.61, "city": "Baltimore", "league": "AL", "division": "East" },
+    "Guardians": { "strength": 0.60, "city": "Cleveland", "league": "AL", "division": "Central" },
+    "Brewers": { "strength": 0.59, "city": "Milwaukee", "league": "NL", "division": "Central" },
+    "Red Sox": { "strength": 0.58, "city": "Boston", "league": "AL", "division": "East" },
+    "Cardinals": { "strength": 0.57, "city": "St. Louis", "league": "NL", "division": "Central" },
+    "Giants": { "strength": 0.56, "city": "San Francisco", "league": "NL", "division": "West" },
+    "Mariners": { "strength": 0.55, "city": "Seattle", "league": "AL", "division": "West" },
+    "Tigers": { "strength": 0.54, "city": "Detroit", "league": "AL", "division": "Central" },
+    "Cubs": { "strength": 0.53, "city": "Chicago", "league": "NL", "division": "Central" },
+    "Twins": { "strength": 0.52, "city": "Minnesota", "league": "AL", "division": "Central" },
+    "Diamondbacks": { "strength": 0.51, "city": "Arizona", "league": "NL", "division": "West" },
+    "Rays": { "strength": 0.50, "city": "Tampa Bay", "league": "AL", "division": "East" },
+    "Royals": { "strength": 0.49, "city": "Kansas City", "league": "AL", "division": "Central" },
+    "Blue Jays": { "strength": 0.48, "city": "Toronto", "league": "AL", "division": "East" },
+    "Rangers": { "strength": 0.47, "city": "Texas", "league": "AL", "division": "West" },
+    "Angels": { "strength": 0.46, "city": "Los Angeles", "league": "AL", "division": "West" },
+    "Pirates": { "strength": 0.45, "city": "Pittsburgh", "league": "NL", "division": "Central" },
+    "Reds": { "strength": 0.44, "city": "Cincinnati", "league": "NL", "division": "Central" },
+    "Nationals": { "strength": 0.43, "city": "Washington", "league": "NL", "division": "East" },
+    "Athletics": { "strength": 0.42, "city": "Oakland", "league": "AL", "division": "West" },
+    "Marlins": { "strength": 0.41, "city": "Miami", "league": "NL", "division": "East" },
+    "Rockies": { "strength": 0.40, "city": "Colorado", "league": "NL", "division": "West" },
+    "White Sox": { "strength": 0.38, "city": "Chicago", "league": "AL", "division": "Central" }
+  },
+  "teamAliases": {
+    "new york yankees": "Yankees", "ny yankees": "Yankees", "nyy": "Yankees",
+    "los angeles dodgers": "Dodgers", "la dodgers": "Dodgers", "lad": "Dodgers",
+    "houston astros": "Astros", "hou": "Astros",
+    "atlanta braves": "Braves", "atl": "Braves",
+    "philadelphia phillies": "Phillies", "phi": "Phillies",
+    "san diego padres": "Padres", "sd": "Padres",
+    "new york mets": "Mets", "ny mets": "Mets", "nym": "Mets",
+    "baltimore orioles": "Orioles", "bal": "Orioles",
+    "cleveland guardians": "Guardians", "cle": "Guardians",
+    "milwaukee brewers": "Brewers", "mil": "Brewers",
+    "boston red sox": "Red Sox", "bos": "Red Sox",
+    "st louis cardinals": "Cardinals", "stl": "Cardinals",
+    "san francisco giants": "Giants", "sf": "Giants",
+    "seattle mariners": "Mariners", "sea": "Mariners",
+    "detroit tigers": "Tigers", "det": "Tigers",
+    "chicago cubs": "Cubs", "chc": "Cubs",
+    "minnesota twins": "Twins", "min": "Twins",
+    "arizona diamondbacks": "Diamondbacks", "ari": "Diamondbacks",
+    "tampa bay rays": "Rays", "tb": "Rays",
+    "kansas city royals": "Royals", "kc": "Royals",
+    "toronto blue jays": "Blue Jays", "tor": "Blue Jays",
+    "texas rangers": "Rangers", "tex": "Rangers",
+    "los angeles angels": "Angels", "la angels": "Angels", "laa": "Angels",
+    "pittsburgh pirates": "Pirates", "pit": "Pirates",
+    "cincinnati reds": "Reds", "cin": "Reds",
+    "washington nationals": "Nationals", "was": "Nationals",
+    "oakland athletics": "Athletics", "oak": "Athletics",
+    "miami marlins": "Marlins", "mia": "Marlins",
+    "colorado rockies": "Rockies", "col": "Rockies",
+    "chicago white sox": "White Sox", "chw": "White Sox"
+  },
+  "predictionEngine": {
+    "algorithm": "analytics-based",
+    "homeFieldAdvantage": 0.035,
+    "confidenceRange": [0.60, 0.85],
+    "steps": [
+      "1. Parse team names from user query using teamAliases",
+      "2. Get homeTeam and awayTeam strengths from teamStrengths",
+      "3. Calculate: homeWinProb = (homeStrength / (homeStrength + awayStrength)) + 0.035",
+      "4. Ensure homeWinProb between 0.25 and 0.75",
+      "5. Calculate: awayWinProb = 1 - homeWinProb",
+      "6. Calculate: confidence = Math.min(0.85, Math.abs(homeWinProb - 0.5) * 1.5 + 0.6)",
+      "7. Determine bet: 'home' if homeWinProb > 0.55, 'away' if awayWinProb > 0.55, else 'none'",
+      "8. Calculate edge: if max(homeWinProb, awayWinProb) > 0.52, edge = (maxProb - 0.52) * 100"
+    ],
+    "examples": {
+      "Yankees vs Dodgers": {
+        "homeTeam": "Dodgers",
+        "awayTeam": "Yankees", 
+        "calculation": "0.70 / (0.70 + 0.72) + 0.035 = 0.528",
+        "result": "Dodgers 52.8%, Yankees 47.2%",
+        "confidence": 0.642,
+        "recommendedBet": "none",
+        "edge": "0.8%"
+      },
+      "Astros vs White Sox": {
+        "homeTeam": "White Sox",
+        "awayTeam": "Astros",
+        "calculation": "0.38 / (0.38 + 0.68) + 0.035 = 0.394",
+        "result": "White Sox 39.4%, Astros 60.6%", 
+        "confidence": 0.759,
+        "recommendedBet": "away",
+        "edge": "8.6%"
+      }
+    }
+  },
+  "oddsIntegration": {
+    "description": "How to fetch and analyze live odds",
+    "process": [
+      "1. Fetch live odds using The Odds API for baseball_mlb",
+      "2. Compare model predictions with bookmaker odds",
+      "3. Calculate implied probability from American odds",
+      "4. Find value bets where model probability > implied probability",
+      "5. Apply Kelly Criterion for bet sizing recommendations"
+    ],
+    "oddsFormats": {
+      "american": "Negative odds = favorite (e.g., -150), Positive = underdog (e.g., +130)",
+      "impliedProbability": "For negative: |odds| / (|odds| + 100), For positive: 100 / (odds + 100)"
+    },
+    "valueBetting": {
+      "definition": "Bet when model probability > implied probability from odds",
+      "example": "Model: Yankees 60%, Odds: +110 (47.6% implied) = VALUE BET",
+      "kellyCriterion": "(bp - q) / b where b=odds, p=model prob, q=1-p"
+    }
+  },
+  "responseFormat": {
+    "predictionResponse": {
+      "structure": {
+        "matchup": "Team A vs Team B",
+        "homeTeam": "Team B (strength: X.XX)",
+        "awayTeam": "Team A (strength: X.XX)",
+        "predictions": {
+          "homeWinProbability": "XX.X%",
+          "awayWinProbability": "XX.X%",
+          "confidence": "XX.X%"
+        },
+        "betting": {
+          "recommendedBet": "home/away/none",
+          "edge": "X.X%" ,
+          "reasoning": "Analysis explanation"
+        },
+        "liveOdds": "If available from API",
+        "valueAssessment": "Compare model vs market"
+      }
+    }
+  },
+  "commonQueries": {
+    "teamVsTeam": ["Who will win X vs Y?", "Predict X vs Y", "X at Y odds"],
+    "teamStrength": ["How good is X?", "Team rankings", "Strongest teams"],
+    "betting": ["Best bets today", "Value opportunities", "Edge analysis"],
+    "odds": ["Current odds for X vs Y", "Live betting lines", "Market analysis"]
+  },
+  "systemCapabilities": [
+    "Calculate win probabilities for any MLB matchup",
+    "Assess betting value using edge calculations", 
+    "Integrate live odds from The Odds API",
+    "Provide confidence-weighted recommendations",
+    "Analyze market efficiency and value opportunities",
+    "Support natural language team queries",
+    "Generate detailed prediction explanations"
+  ]
+}
