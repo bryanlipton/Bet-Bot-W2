@@ -165,26 +165,27 @@ export class BaseballAI {
   }
 
   private async generateSyntheticTrainingData(): Promise<void> {
-    console.log('Loading real MLB data from multiple sources...');
+    console.log('Loading real MLB data from official MLB Stats API...');
     
     try {
-      // Import the real data service for MLB Stats API
-      const { realDataService } = await import('./realDataService');
+      // Import the real MLB data service
+      const { realMLBDataService } = await import('./realMLBDataService');
       
-      // Fetch real MLB game results from official MLB API (free)
-      await realDataService.fetchRealMLBResults('2024-04-01', '2024-09-30');
-      console.log('Successfully loaded real MLB game results and player stats');
+      // Clear existing synthetic data
+      await db.delete(baseballGames);
+      await db.delete(baseballPlayerStats);
+      
+      // Fetch actual 2024 MLB season data
+      await realMLBDataService.fetchRealMLBSeason(2024);
+      console.log('Successfully loaded real 2024 MLB season data');
+      
+      // Verify we have real data
+      const gameCount = await db.select().from(baseballGames);
+      console.log(`Loaded ${gameCount.length} real MLB games`);
+      
     } catch (error) {
       console.error('Failed to load real MLB data:', error);
-      
-      // Fallback: Try historical odds API
-      try {
-        const { historicalDataService } = await import('./historicalDataService');
-        await historicalDataService.fetchHistoricalMLBData('2024-04-01', '2024-09-30');
-        console.log('Successfully loaded historical odds data');
-      } catch (historicalError) {
-        console.error('Both real data sources failed:', historicalError);
-      }
+      throw new Error('Could not load authentic MLB data for training');
     }
   }
 
