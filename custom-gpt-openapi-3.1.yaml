@@ -200,6 +200,15 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  strategies:
+                    type: array
+                    items:
+                      type: object
+                  performance:
+                    type: object
+                  lastUpdated:
+                    type: string
 
   /api/gpt/results:
     get:
@@ -213,6 +222,19 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  period:
+                    type: string
+                  totalBets:
+                    type: integer
+                  accuracy:
+                    type: number
+                  profitLoss:
+                    type: number
+                  roi:
+                    type: number
+                  summary:
+                    type: string
 
   /api/gpt/betting-glossary:
     get:
@@ -226,3 +248,19 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  terms:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        term:
+                          type: string
+                        definition:
+                          type: string
+                        category:
+                          type: string
+                  categories:
+                    type: array
+                    items:
+                      type: string
