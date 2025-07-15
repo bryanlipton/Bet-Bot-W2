@@ -51,11 +51,7 @@ export function ActionStyleGameCard({
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
 
-  const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.75) return "text-green-600 dark:text-green-400";
-    if (confidence >= 0.65) return "text-yellow-600 dark:text-yellow-400";
-    return "text-gray-600 dark:text-gray-400";
-  };
+
 
   const getBetRecommendation = () => {
     if (!prediction) return null;
@@ -89,14 +85,7 @@ export function ActionStyleGameCard({
             </span>
           </div>
           
-          {prediction && (
-            <Badge 
-              variant="outline" 
-              className={`text-xs ${getConfidenceColor(prediction.confidence)}`}
-            >
-              {(prediction.confidence * 100).toFixed(0)}% confidence
-            </Badge>
-          )}
+
         </div>
 
         {/* Teams and Odds */}
@@ -111,11 +100,7 @@ export function ActionStyleGameCard({
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
-                {prediction && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {(prediction.awayWinProbability * 100).toFixed(1)}% win prob
-                  </p>
-                )}
+
               </div>
             </div>
             
@@ -136,11 +121,7 @@ export function ActionStyleGameCard({
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
-                {prediction && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {(prediction.homeWinProbability * 100).toFixed(1)}% win prob
-                  </p>
-                )}
+
               </div>
             </div>
             
