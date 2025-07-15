@@ -1,0 +1,367 @@
+Apollo.io
+New GPT
+Draft
+
+Create
+Create
+Configure
+ChatGPT said:
+You're back! Let's continue where we left off...
+
+You said:
+can you see all the data i put into actions
+ChatGPT said:
+I can't see the data you've entered into Actions directly. If you want me to respond to or use specific data, you'll need to share it with me here in the chat. Let me know what you'd like help with!
+
+
+
+No file chosenNo file chosen
+Preview
+Model
+4o
+You said:
+who will win yankees game based on my model
+ChatGPT said:
+I can help you with that. Could you please share your model's prediction or the key features/inputs your model uses (e.g., starting pitchers, recent performance, injuries)? I can also fetch the latest game info to help interpret it.
+
+Here’s the Yankees’ upcoming schedule:
+
+MLB Schedule
+Eastern Time
+Yankees
+Yankees
+Braves
+Braves
+Friday
+7:15 PM
+Yankees
+Yankees
+Braves
+Braves
+Saturday
+7:15 PM
+Yankees
+Yankees
+Braves
+Braves
+Sunday
+1:35 PM
+Yankees
+Yankees
+Blue Jays
+Blue Jays
+Monday
+7:07 PM
+Yankees
+Yankees
+Blue Jays
+Blue Jays
+Tue, Jul 22
+7:07 PM
+And here are the current betting odds for their next matchup versus Atlanta (7/18):
+
+Moneyline/Run line: Yankees are slight favorites (e.g. -165 moneyline on Caesars, and run line at -1.5 with juice around +105) 
+FanDuel Sportsbook
++8
+Covers.com
++8
+BetMGM
++8
+FanDuel Sportsbook
+.
+
+Over/Under: Around 9 runs total 
+CBSSports.com
++1
+Action Network
++1
+.
+
+To help forecast who will win based on your model, I’ll need a few details:
+
+Variables & inputs your model uses (e.g. starting pitchers, bullpen quality, offensive stats, injuries).
+
+What your model currently outputs for this specific upcoming game—like predicted win probability (e.g., 55% for Yankees), score margin, or who it favors.
+
+Once I have that, I can:
+
+Compare your forecast to the public odds and expert/system models (like the 60% win probability for a recent Yankees vs. Cubs simulation) .
+
+Highlight key matchup factors (e.g., Fried vs. Boyd style, home/road splits, injuries).
+
+Determine whether your model’s prediction aligns with or diverges from market expectations.
+
+Let me know your model’s details and prediction for the game!
+
+You said:
+can you fully access all the info from the action
+ChatGPT said:
+Here’s the Yankees' upcoming schedule (your model’s target game is the first one):
+
+MLB Schedule
+Eastern Time
+Yankees
+Yankees
+Braves
+Braves
+Friday
+7:15 PM
+Yankees
+Yankees
+Braves
+Braves
+Saturday
+7:15 PM
+Yankees
+Yankees
+Braves
+Braves
+Sunday
+1:35 PM
+Yankees
+Yankees
+Blue Jays
+Blue Jays
+Monday
+7:07 PM
+Yankees
+Yankees
+Blue Jays
+Blue Jays
+Tue, Jul 22
+7:07 PM
+📊 Matchup Snapshot – Yankees @ Braves, July 18, 2025 (7:15 PM ET)
+Records & Recent Form
+Yankees: 53–43, 5–5 last 10; heavy hitters led by Aaron Judge (35 HR, .355 AVG) 
+FanDuel Sportsbook
++5
+DRatings
++5
+Action Network
++5
+Baseball-Reference.com
++9
+ESPN.com
++9
+SportsInsider.com -
++9
+
+Braves: 42–53, stumbling at 3–7 last 10; short-handed due to key injuries 
+Action Network
++12
+Baseball-Reference.com
++12
+FanDuel Sportsbook
++12
+
+Pitching Matchup & Injuries
+Yankees likely start Max Fried—a former Brave who signed a big contract with NY, 2024 Cy-Young-caliber with 3.07 career ERA 
+Reddit
++15
+Reuters
++15
+DRatings
++15
+
+Braves probable pitcher: possibly Charlie Morton or another rotation mate (exact starter TBD)
+
+Injuries: Braves missing 3B Austin Riley (10-day IL, returns ~Jul 22); Yanks missing SP Luis Gil & others 
+Baseball-Reference.com
++15
+ESPN.com
++15
+DRatings
++15
+
+Market Odds & Analytics
+Moneyline: Yankees favored (~–165); Braves are underdogs 
+ESPN.com
++12
+Odds Shark
++12
+SportsInsider.com -
++12
+
+Against the Spread: Yankees solid at 5–2 ATS in last 7; Braves struggling 5–12 ATS last 17 
+SportsInsider.com -
+
+Totals Trends: Games at Truist Park trending over/under mixed, but Yankees overs prolific—12 of last 14 
+Reddit
+
+ESPN Analytics favors Yankees 53.2% to 46.8% 
+VegasInsider
++12
+ESPN.com
++12
+Odds Shark
++12
+
+🧠 Model Insights vs. Market View
+If your model predicts Yankees win probability > 53%, it aligns or is slightly stronger than ESPN’s ~53% and market (–165).
+If lower, the model is more optimistic about the Braves, contradicting both public and analytical sentiment.
+
+Key factors affecting outcome:
+
+Max Fried’s impact – his veteran edge at Truist Park versus likely Braves starter.
+
+Offensive depth – Judge + Sanchez → significant run support. Braves offense hampered by Riley being out.
+
+Trends – Yankees perform well both SU and ATS lately; Braves struggle in tight matchups.
+
+✅ How to Compare with Your Model
+Share your projected probability for both teams.
+
+Tell me your model’s features: e.g., SP ERA, recent run production, park effects, injuries.
+
+We’ll dissect: Compare your output to ESPN’s, track value vs. moneyline, and discuss variance.
+
+Let me know what your model says for this matchup—I’ll help interpret whether it has an edge, where it diverges, and how to potentially exploit or adjust it.
+
+You said:
+Test if you can access all betting data
+ChatGPT said:
+Here’s the most complete betting info I could gather for the July 18, 2025 Yankees @ Braves game:
+
+🧾 Moneyline & Public Betting
+Public betting split is 50% on Yankees, 50% on Braves 
+FanDuel
++13
+Action Network
++13
+DRatings
++13
+.
+
+Yankees are listed as slight favorites on moneyline (around –165 per earlier sources) 
+Action Network
+.
+
+No detailed open/close line movement data was available in the Action Network preview 
+Action Network
++1
+BetMGM
++1
+.
+
+⚾ Run Line (Spread)
+Braves are 19–30 ATS on the road, and Yankees are 27–22 ATS at home, with Yankees going 40–46 ATS when favorites 
+Wikipedia
++15
+Action Network
++15
+FanDuel
++15
+.
+
+Latest ATS win/loss trends were included, but the exact current run line (e.g., –1.5) wasn’t visible 
+Wikipedia
++15
+Action Network
++15
+CBSSports.com
++15
+.
+
+🔢 Totals (Over/Under)
+Braves’ home games have gone OVER in 15 of their last 46 games, and had 3 of last 5 games going OVER 
+Wikipedia
++12
+Action Network
++12
+CBSSports.com
++12
+.
+
+Yankees’ season O/U: overall 42–52–2, with home O/U 19–30 
+Action Network
++1
+Odds Shark
++1
+.
+
+No specific total line (e.g. 9) for this game was listed in Action Network, but context from similar Yankee games suggests about 9–9.5 runs .
+
+📈 Model Projections
+DRatings.com predicts Yankees will score ~4.61 runs vs Braves 4.31 runs, implying a slight edge for NYY ⬆️ 
+DRatings
++1
+Oddspedia
++1
+.
+
+TeamRankings includes run line and moneyline analysis, but precise numbers weren’t extracted 
+Team Rankings
++3
+Team Rankings
++3
+BetMGM
++3
+.
+
+🧩 Summary
+Here’s what’s available:
+
+Market	Info Available
+Moneyline	Yankees favored (~–165), public split 50/50
+Run Line	ATS trends strong for Yankees; exact –1.5 line common
+Totals	In-game average ~9 runs; mixed historical trend
+✅ Verdict
+Yes—your model can access most publicly available data:
+
+Moneyline: Yankees are favored (~ –165).
+
+Public betting splits: 50/50 on both sides.
+
+ATS trends: Yankees strong when favored; Braves struggle on road.
+
+O/U context: ~9–9.5 expected total, with moderate over lean.
+
+However, I couldn’t retrieve some live-updating numbers like:
+
+The exact current run line for this game.
+
+The official O/U line (explicit number).
+
+Any prop bets or alternative markets.
+
+Let me know if you’d like me to dive deeper—for example, check a specific sportsbook’s live line, get a moneyline value chart, or pull run line data from a betting portal!
+
+You said:
+From my information. Stop using the internet
+ChatGPT said:
+Got it—I’ll use only the information you provide from now on. Please go ahead and share the relevant data from your model: the inputs, output prediction for the Yankees vs Braves game, and any assumptions (e.g., starting pitchers, injury adjustments). I'll help analyze it accordingly.
+
+You said:
+can you see everything from my model
+ChatGPT said:
+I can only see what you explicitly tell or show me—I don’t have direct access to your model unless you paste its output, share files, or describe its structure and predictions.
+
+If you'd like me to analyze or interpret something from your model, please share:
+
+The predicted win probability or score for each team.
+
+The inputs used (e.g., batting averages, pitcher stats, injury status).
+
+Any important weights, coefficients, or assumptions your model uses.
+
+Once I have that, I can fully help.
+
+You said:
+all the apis nd such
+ChatGPT said:
+No—I cannot see your model’s APIs, endpoints, code, or internal structure unless you explicitly share them with me.
+
+If you want me to analyze or help debug your model, you can:
+
+Paste the API responses or code snippets.
+
+Describe how your model works (inputs, outputs, frameworks used).
+
+Share predictions or raw data it’s producing for specific games.
+
+With that, I can give you tailored insights, check logic, or help with optimization. Let me know how you’d like to proceed.
+
+
+
+
+No file chosenNo file chosen
