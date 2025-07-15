@@ -59,6 +59,106 @@ app.get('/api/test-routing', (req, res) => {
   res.json({ status: 'API routing working', timestamp: new Date().toISOString() });
 });
 
+// Download endpoints for GPT files
+app.get('/download/gpt-files', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Download GPT Files</title>
+      <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .file-link { display: block; padding: 10px; margin: 10px 0; background: #007bff; color: white; text-decoration: none; border-radius: 4px; text-align: center; }
+        .file-link:hover { background: #0056b3; }
+        h1 { color: #333; }
+        p { color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>Download GPT Files</h1>
+        <p>Right-click each link and choose "Save Link As" to download:</p>
+        
+        <a href="/download/gpt-complete-system.json" class="file-link" download>
+          📊 gpt-complete-system.json (Main Data)
+        </a>
+        
+        <a href="/download/gpt-instructions.md" class="file-link" download>
+          📋 gpt-instructions.md (Instructions)
+        </a>
+        
+        <a href="/download/gpt-test-examples.md" class="file-link" download>
+          🧪 gpt-test-examples.md (Test Examples)
+        </a>
+        
+        <a href="/download/COMPLETE-GPT-SETUP.md" class="file-link" download>
+          📖 COMPLETE-GPT-SETUP.md (Setup Guide)
+        </a>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+          <li>Download all 4 files above</li>
+          <li>Go to your Custom GPT in ChatGPT</li>
+          <li>Upload all files to the Knowledge section</li>
+          <li>Test with: "Who will win Yankees vs Dodgers?"</li>
+        </ol>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+// Individual file download endpoints
+app.get('/download/gpt-complete-system.json', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="gpt-complete-system.json"');
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const fs = require('fs');
+    const content = fs.readFileSync('gpt-complete-system.json', 'utf8');
+    res.send(content);
+  } catch (error) {
+    res.status(404).send('File not found');
+  }
+});
+
+app.get('/download/gpt-instructions.md', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="gpt-instructions.md"');
+  res.setHeader('Content-Type', 'text/markdown');
+  try {
+    const fs = require('fs');
+    const content = fs.readFileSync('gpt-instructions.md', 'utf8');
+    res.send(content);
+  } catch (error) {
+    res.status(404).send('File not found');
+  }
+});
+
+app.get('/download/gpt-test-examples.md', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="gpt-test-examples.md"');
+  res.setHeader('Content-Type', 'text/markdown');
+  try {
+    const fs = require('fs');
+    const content = fs.readFileSync('gpt-test-examples.md', 'utf8');
+    res.send(content);
+  } catch (error) {
+    res.status(404).send('File not found');
+  }
+});
+
+app.get('/download/COMPLETE-GPT-SETUP.md', (req, res) => {
+  res.setHeader('Content-Disposition', 'attachment; filename="COMPLETE-GPT-SETUP.md"');
+  res.setHeader('Content-Type', 'text/markdown');
+  try {
+    const fs = require('fs');
+    const content = fs.readFileSync('COMPLETE-GPT-SETUP.md', 'utf8');
+    res.send(content);
+  } catch (error) {
+    res.status(404).send('File not found');
+  }
+});
+
 app.post('/api/gpt/matchup', async (req, res) => {
   try {
     
