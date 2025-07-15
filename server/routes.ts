@@ -585,6 +585,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/baseball/test-historical-data', async (req, res) => {
+    try {
+      const { historicalDataService } = await import('./services/historicalDataService');
+      const isWorking = await historicalDataService.testHistoricalDataAccess();
+      res.json({ 
+        working: isWorking,
+        message: isWorking ? 'Historical data access successful' : 'Historical data access failed'
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to test historical data access' });
+    }
+  });
+
+  app.post('/api/baseball/fetch-real-historical', async (req, res) => {
+    try {
+      const { startDate, endDate } = req.body;
+      const { historicalDataService } = await import('./services/historicalDataService');
+      
+      const games = await historicalDataService.fetchHistoricalPeriod(
+        startDate || '2023-07-01',
+        endDate || '2023-07-07'
+      );
+      
+      res.json({ 
+        games: games.length,
+        data: games.slice(0, 10), // Return first 10 games as sample
+        message: `Fetched ${games.length} real historical games with actual odds`
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch real historical data' });
+    }
+  });
+
   app.get('/api/baseball/live-prediction/:gameId', async (req, res) => {
     try {
       const { liveMLBDataService } = await import('./services/liveMLBDataService');
