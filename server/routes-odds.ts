@@ -156,4 +156,34 @@ export function registerOddsRoutes(app: Express) {
       });
     }
   });
+
+  // API monitoring endpoint  
+  app.get('/api/odds/stats', async (req, res) => {
+    try {
+      const { oddsApiService } = await import('./services/oddsApi');
+      const stats = oddsApiService.getApiStats();
+      
+      const currentDate = new Date().toLocaleDateString();
+      const estimatedDailyUsage = stats.callCount;
+      const estimatedMonthlyUsage = estimatedDailyUsage * 30;
+      const monthlyLimit = 20000;
+      const usagePercentage = (estimatedMonthlyUsage / monthlyLimit) * 100;
+      
+      res.json({
+        ...stats,
+        dailyUsage: estimatedDailyUsage,
+        estimatedMonthlyUsage,
+        monthlyLimit,
+        usagePercentage: Math.round(usagePercentage * 100) / 100,
+        status: usagePercentage > 90 ? 'critical' : usagePercentage > 70 ? 'warning' : 'normal',
+        date: currentDate
+      });
+    } catch (error) {
+      console.error('Error fetching API stats:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch API statistics',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 }

@@ -34,9 +34,12 @@ interface Outcome {
   description?: string;
 }
 
+import { cacheService } from './cacheService';
+
 export class OddsApiService {
   private apiKey: string;
   private baseUrl = 'https://api.the-odds-api.com/v4';
+  private apiCallCount = 0;
 
   constructor() {
     this.apiKey = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY || '24945c3743973fb01abda3cc2eab07b9';
@@ -50,8 +53,18 @@ export class OddsApiService {
         return this.getMockOddsData(sport);
       }
 
+      // Check cache first (3 minute TTL for live odds)
+      const cacheKey = `odds_${sport}_${regions}_${markets}`;
+      const cachedData = cacheService.get<Game[]>(cacheKey);
+      if (cachedData) {
+        console.log(`📊 Using cached odds for ${sport} (${cachedData.length} games)`);
+        return cachedData;
+      }
+
       const url = `${this.baseUrl}/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american`;
-      console.log(`Fetching odds from: ${url.replace(this.apiKey, 'xxx...')}`);
+      console.log(`🔄 Fetching fresh odds from API for ${sport}: ${url.replace(this.apiKey, 'xxx...')}`);
+      
+      this.apiCallCount++;
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -61,7 +74,13 @@ export class OddsApiService {
         return this.getMockOddsData(sport);
       }
       
-      return await response.json();
+      const data = await response.json();
+      
+      // Cache the fresh data for 3 minutes
+      cacheService.set(cacheKey, data, 3);
+      console.log(`✅ Cached ${data.length} games for ${sport} (API calls today: ${this.apiCallCount})`);
+      
+      return data;
     } catch (error) {
       console.error('Error fetching current odds, returning mock data:', error);
       return this.getMockOddsData(sport);
@@ -70,14 +89,31 @@ export class OddsApiService {
 
   async getHistoricalOdds(sport: string, date: string, regions: string = 'us', markets: string = 'h2h,spreads,totals'): Promise<OddsApiResponse> {
     try {
+      // Check cache first (historical data can be cached longer - 30 minutes)
+      const cacheKey = `historical_${sport}_${date}_${regions}_${markets}`;
+      const cachedData = cacheService.get<OddsApiResponse>(cacheKey);
+      if (cachedData) {
+        console.log(`📊 Using cached historical odds for ${sport} on ${date}`);
+        return cachedData;
+      }
+
       const url = `${this.baseUrl}/historical/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american&date=${date}`;
+      console.log(`🔄 Fetching historical odds from API: ${url.replace(this.apiKey, 'xxx...')}`);
+      
+      this.apiCallCount++;
       const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error(`Historical odds API error: ${response.status} ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      
+      // Cache historical data for 30 minutes
+      cacheService.set(cacheKey, data, 30);
+      console.log(`✅ Cached historical odds for ${sport} on ${date} (API calls today: ${this.apiCallCount})`);
+      
+      return data;
     } catch (error) {
       console.error('Error fetching historical odds:', error);
       throw error;
@@ -127,6 +163,17 @@ export class OddsApiService {
   calculateImpliedProbability(americanOdds: number): number {
     const decimal = this.convertAmericanToDecimal(americanOdds);
     return (1 / decimal) * 100;
+  }
+
+  getApiStats(): { callCount: number; cacheStats: any } {
+    return {
+      callCount: this.apiCallCount,
+      cacheStats: cacheService.getStats()
+    };
+  }
+
+  resetCallCount(): void {
+    this.apiCallCount = 0;
   }
 
   private getMockOddsData(sport: string): Game[] {
