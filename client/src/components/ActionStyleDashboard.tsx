@@ -209,10 +209,10 @@ export function ActionStyleDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Bet Bot Analytics
+            Live Sports Analytics
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Professional Sports Betting Intelligence Platform
+            Professional Sports Analytics Platform
           </p>
         </div>
         <div className="flex items-center gap-4">
