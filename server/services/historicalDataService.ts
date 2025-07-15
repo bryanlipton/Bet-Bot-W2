@@ -63,19 +63,22 @@ export class HistoricalDataService {
     console.log(`Fetching historical MLB data from ${startDate} to ${endDate}`);
     
     try {
-      // Fetch historical odds data for multiple dates
+      // Fetch historical odds data for multiple dates with real game results
       const dates = this.generateDateRange(startDate, endDate);
       const games: Map<string, HistoricalGame> = new Map();
       
-      for (const date of dates.slice(0, 10)) { // Limit to 10 dates for demo
+      console.log(`Fetching real historical data for ${dates.length} dates...`);
+      
+      for (const date of dates) {
         try {
+          console.log(`Fetching historical MLB data for ${date}...`);
           const response = await fetch(
             `${this.baseUrl}/historical/sports/baseball_mlb/odds?` +
             `apiKey=${this.apiKey}&` +
             `regions=us&` +
             `markets=h2h,spreads,totals&` +
             `oddsFormat=american&` +
-            `date=${date}T18:00:00Z`
+            `date=${date}T20:00:00Z`
           );
 
           if (response.ok) {
@@ -83,14 +86,18 @@ export class HistoricalDataService {
             console.log(`Found ${data.data.length} games for ${date}`);
             
             for (const game of data.data) {
-              games.set(game.id, game);
+              // Only include games that have concluded with scores
+              if (new Date(game.commence_time) < new Date()) {
+                games.set(game.id, game);
+              }
             }
           } else {
-            console.warn(`Failed to fetch data for ${date}: ${response.status}`);
+            const errorText = await response.text();
+            console.warn(`Failed to fetch data for ${date}: ${response.status} - ${errorText}`);
           }
           
           // Rate limiting - wait between requests
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (error) {
           console.error(`Error fetching data for ${date}:`, error);
         }
@@ -145,7 +152,10 @@ export class HistoricalDataService {
   }
 
   private extractScore(game: HistoricalGame, teamName: string): number | null {
-    if (!game.scores) return null;
+    if (!game.scores) {
+      // If no scores available, this is likely a future/scheduled game, skip it
+      return null;
+    }
     
     const teamScore = game.scores.find(score => 
       score.name.toLowerCase().includes(teamName.toLowerCase()) ||
