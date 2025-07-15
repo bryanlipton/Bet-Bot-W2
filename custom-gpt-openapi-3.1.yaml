@@ -109,11 +109,27 @@ paths:
                   latestTraining:
                     type: object
 
-  /api/gpt/games/today:
-    get:
+  /api/gpt/prediction-fixed:
+    post:
       operationId: predict_game_outcome  
-      summary: Get today's games with AI predictions (USE THIS FOR PREDICTIONS)
-      description: Get current MLB games with AI predictions and betting recommendations - REPLACES BROKEN PREDICT ENDPOINT
+      summary: Get AI prediction for team matchup (WORKING ENDPOINT)
+      description: Generate AI prediction for any MLB team matchup with confidence scores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                homeTeam:
+                  type: string
+                  description: Home team name
+                awayTeam:
+                  type: string
+                  description: Away team name
+              required:
+                - homeTeam
+                - awayTeam
 
       responses:
         '200':

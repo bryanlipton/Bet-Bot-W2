@@ -444,8 +444,8 @@ export function registerGPTExportRoutes(app: Express) {
     }
   });
 
-  // Completely isolated prediction endpoint - no external dependencies
-  app.post('/api/gpt/predict', async (req, res) => {
+  // Working prediction endpoint with unique path
+  app.post('/api/gpt/prediction-fixed', async (req, res) => {
     try {
       res.header('Access-Control-Allow-Origin', '*');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
