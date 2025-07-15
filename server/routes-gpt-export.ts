@@ -130,6 +130,77 @@ export function registerGPTExportRoutes(app: Express) {
     }
   });
 
+  // Get today's games with AI predictions
+  app.get('/api/gpt/games/today', async (req, res) => {
+    try {
+      const { storage } = await import('./storage');
+      const { baseballAI } = await import('./services/baseballAI');
+      
+      const todaysGames = await storage.getTodaysGames();
+      const gamesWithPredictions = [];
+      
+      for (const game of todaysGames) {
+        try {
+          const prediction = await baseballAI.predictGame(game.homeTeam, game.awayTeam);
+          gamesWithPredictions.push({
+            id: game.id,
+            homeTeam: game.homeTeam,
+            awayTeam: game.awayTeam,
+            commenceTime: game.commenceTime,
+            prediction: {
+              homeWinProbability: prediction.homeWinProbability,
+              awayWinProbability: prediction.awayWinProbability,
+              confidence: prediction.confidence,
+              recommendedBet: prediction.homeWinProbability > 0.55 ? 'home' : 
+                            prediction.awayWinProbability > 0.55 ? 'away' : 'none'
+            }
+          });
+        } catch (error) {
+          gamesWithPredictions.push({
+            id: game.id,
+            homeTeam: game.homeTeam,
+            awayTeam: game.awayTeam,
+            commenceTime: game.commenceTime,
+            prediction: { error: 'Prediction unavailable' }
+          });
+        }
+      }
+      
+      res.json({
+        date: new Date().toISOString().split('T')[0],
+        totalGames: gamesWithPredictions.length,
+        games: gamesWithPredictions,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get today\'s games with predictions' });
+    }
+  });
+
+  // Run live backtest for Custom GPT
+  app.get('/api/gpt/backtest', async (req, res) => {
+    try {
+      const { mlbHistoricalDataService } = await import('./services/mlbHistoricalDataService');
+      
+      const { startDate, endDate, maxGames } = req.query;
+      
+      const results = await mlbHistoricalDataService.performRealMLBBacktest(
+        startDate as string || '2024-06-01',
+        endDate as string || '2024-06-30',
+        parseInt(maxGames as string) || 100
+      );
+      
+      res.json({
+        backtest: results,
+        dataSource: "Official MLB Stats API",
+        analysisDate: new Date().toISOString(),
+        summary: `${(results.accuracy * 100).toFixed(1)}% accuracy on ${results.totalPredictions} real games`
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to run backtest' });
+    }
+  });
+
   // Combined export for Custom GPT (all data in one call)
   app.get('/api/gpt/all', async (req, res) => {
     try {

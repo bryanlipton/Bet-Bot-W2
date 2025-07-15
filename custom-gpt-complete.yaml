@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: Bet Bot Live Data API
+  version: 1.0.0
+  description: Live sports betting analytics with real MLB data and AI predictions
+servers:
+  - url: https://bet-bot-blipton03.replit.app
+    description: Bet Bot Production Server
+paths:
+  /api/gpt/results:
+    get:
+      operationId: get_api_gpt_results
+      summary: Get latest backtest results
+      description: Fresh backtest data from real MLB games
+      responses:
+        '200':
+          description: Latest backtest results with real MLB data
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/gpt/strategies:
+    get:
+      operationId: get_api_gpt_strategies
+      summary: Get current betting strategies
+      description: Live betting strategies with real performance data
+      responses:
+        '200':
+          description: Current betting strategies and performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/gpt/all:
+    get:
+      operationId: get_api_gpt_all
+      summary: Get complete betting dataset
+      description: All betting data, strategies, and analysis
+      responses:
+        '200':
+          description: Complete dataset for betting analysis
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/gpt/games/today:
+    get:
+      operationId: get_api_gpt_games_today
+      summary: Get today's games with AI predictions
+      description: Today's MLB games with AI model predictions and betting recommendations
+      responses:
+        '200':
+          description: Today's games with AI predictions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    description: Date of games
+                  totalGames:
+                    type: number
+                    description: Number of games today
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        homeTeam:
+                          type: string
+                        awayTeam:
+                          type: string
+                        prediction:
+                          type: object
+                          properties:
+                            homeWinProbability:
+                              type: number
+                            awayWinProbability:
+                              type: number
+                            recommendedBet:
+                              type: string
+  /api/gpt/backtest:
+    get:
+      operationId: get_api_gpt_backtest
+      summary: Run custom backtest
+      description: Run backtest with custom parameters using real MLB data
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+          description: Start date (YYYY-MM-DD)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+          description: End date (YYYY-MM-DD)
+        - name: maxGames
+          in: query
+          schema:
+            type: integer
+          description: Maximum number of games to analyze
+      responses:
+        '200':
+          description: Custom backtest results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backtest:
+                    type: object
+                  summary:
+                    type: string
