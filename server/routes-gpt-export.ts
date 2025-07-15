@@ -4,6 +4,30 @@ import { Express } from "express";
 
 export function registerGPTExportRoutes(app: Express) {
   
+  // Handle OPTIONS preflight requests for CORS
+  app.options('/api/gpt/*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.sendStatus(200);
+  });
+
+  // Simple test endpoint for Custom GPT
+  app.get('/api/gpt/test', (req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.json({
+      status: 'API working',
+      timestamp: new Date().toISOString(),
+      message: 'Bet Bot API is accessible',
+      endpoints: [
+        'GET /api/gpt/games/today',
+        'POST /api/gpt/predict',
+        'GET /api/gpt/strategies',
+        'GET /api/gpt/results'
+      ]
+    });
+  });
+  
   // Export current betting strategies with latest performance data
   app.get('/api/gpt/strategies', async (req, res) => {
     try {
@@ -133,6 +157,11 @@ export function registerGPTExportRoutes(app: Express) {
   // Direct model prediction endpoint
   app.post('/api/gpt/predict', async (req, res) => {
     try {
+      // Add CORS headers for Custom GPT
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
       const { homeTeam, awayTeam } = req.body;
       
       if (!homeTeam || !awayTeam) {
@@ -142,7 +171,7 @@ export function registerGPTExportRoutes(app: Express) {
       const { baseballAI } = await import('./services/baseballAI');
       const prediction = await baseballAI.predictGame(homeTeam, awayTeam);
       
-      res.json({
+      const response = {
         homeTeam,
         awayTeam,
         prediction: {
@@ -154,9 +183,14 @@ export function registerGPTExportRoutes(app: Express) {
           edge: prediction.homeWinProbability > 0.52 ? 
                 ((prediction.homeWinProbability - 0.52) * 100).toFixed(1) + '%' : 'No edge'
         },
-        timestamp: new Date().toISOString()
-      });
+        timestamp: new Date().toISOString(),
+        modelStatus: 'active'
+      };
+      
+      console.log('GPT prediction response:', JSON.stringify(response, null, 2));
+      res.json(response);
     } catch (error) {
+      console.error('GPT prediction error:', error);
       res.status(500).json({ error: 'Failed to generate prediction: ' + error.message });
     }
   });
@@ -164,14 +198,21 @@ export function registerGPTExportRoutes(app: Express) {
   // Get today's games with AI predictions
   app.get('/api/gpt/games/today', async (req, res) => {
     try {
-      const { storage } = await import('./storage');
+      // Add CORS headers for Custom GPT
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      
       const { oddsApiService } = await import('./services/oddsApi');
+      console.log('GPT: Fetching today\'s MLB games...');
       
       // Get live MLB games from odds API
       const liveGames = await oddsApiService.getCurrentOdds('baseball_mlb');
+      console.log(`GPT: Found ${liveGames.length} MLB games`);
+      
       const gamesWithPredictions = [];
       
-      for (const game of liveGames.slice(0, 5)) { // Limit to 5 games for performance
+      for (const game of liveGames.slice(0, 3)) { // Limit to 3 games for performance
         try {
           const { baseballAI } = await import('./services/baseballAI');
           const prediction = await baseballAI.predictGame(game.home_team, game.away_team);
@@ -191,6 +232,7 @@ export function registerGPTExportRoutes(app: Express) {
             odds: game.bookmakers?.[0]?.markets?.[0]?.outcomes || []
           });
         } catch (error) {
+          console.error(`GPT: Prediction failed for ${game.home_team} vs ${game.away_team}:`, error);
           gamesWithPredictions.push({
             id: game.id,
             homeTeam: game.home_team,
@@ -201,14 +243,18 @@ export function registerGPTExportRoutes(app: Express) {
         }
       }
       
-      res.json({
+      const response = {
         date: new Date().toISOString().split('T')[0],
         totalGames: gamesWithPredictions.length,
         games: gamesWithPredictions,
         lastUpdated: new Date().toISOString(),
         apiStatus: 'Model accessible via /api/gpt/predict endpoint'
-      });
+      };
+      
+      console.log('GPT: Today\'s games response:', JSON.stringify(response, null, 2));
+      res.json(response);
     } catch (error) {
+      console.error('GPT: Failed to get today\'s games:', error);
       res.status(500).json({ error: 'Failed to get today\'s games: ' + error.message });
     }
   });
