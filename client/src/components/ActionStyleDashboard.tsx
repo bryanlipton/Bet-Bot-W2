@@ -75,7 +75,12 @@ export function ActionStyleDashboard() {
   const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
     if (!oddsData) return [];
     
-    return oddsData.slice(0, 6).map((game) => {
+    // Sort games by commence time (chronological order)
+    const sortedGames = [...oddsData].sort((a, b) => 
+      new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime()
+    );
+    
+    return sortedGames.map((game) => {
       const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
       const spreadsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
       const totalsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals');
@@ -113,7 +118,9 @@ export function ActionStyleDashboard() {
         awayOdds: awayOutcome ? (awayOutcome.price > 0 ? awayOutcome.price : Math.round((awayOutcome.price - 1) * 100)) : undefined,
         spread: spreadOutcome?.point,
         total: totalOutcome?.point,
-        startTime: new Date(game.commence_time).toLocaleTimeString('en-US', { 
+        startTime: new Date(game.commence_time).toLocaleString('en-US', { 
+          month: 'short',
+          day: 'numeric',
           hour: 'numeric', 
           minute: '2-digit',
           hour12: true 
@@ -293,21 +300,26 @@ export function ActionStyleDashboard() {
             ))}
           </div>
         ) : featuredGames.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featuredGames.map((game) => (
-              <ActionStyleGameCard
-                key={game.id}
-                homeTeam={game.homeTeam}
-                awayTeam={game.awayTeam}
-                homeOdds={game.homeOdds}
-                awayOdds={game.awayOdds}
-                spread={game.spread}
-                total={game.total}
-                startTime={game.startTime}
-                prediction={getPrediction(game.homeTeam, game.awayTeam)}
-                bookmakers={game.bookmakers}
-              />
-            ))}
+          <div className="space-y-4">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              Showing {featuredGames.length} games in chronological order
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredGames.map((game) => (
+                <ActionStyleGameCard
+                  key={game.id}
+                  homeTeam={game.homeTeam}
+                  awayTeam={game.awayTeam}
+                  homeOdds={game.homeOdds}
+                  awayOdds={game.awayOdds}
+                  spread={game.spread}
+                  total={game.total}
+                  startTime={game.startTime}
+                  prediction={getPrediction(game.homeTeam, game.awayTeam)}
+                  bookmakers={game.bookmakers}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <Card>
