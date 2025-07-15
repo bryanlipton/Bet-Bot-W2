@@ -24,7 +24,8 @@ Preferred communication style: Simple, everyday language.
 - **Database ORM**: Drizzle ORM with PostgreSQL (Neon Database)
 - **Session Management**: PostgreSQL-based session storage
 - **Real-time Communication**: WebSocket server for live updates
-- **External APIs**: The Odds API integration for sports betting data
+- **Historical Data**: Official MLB Stats API for authentic game outcomes
+- **Live Odds**: The Odds API integration for current sports betting data
 
 ## Key Components
 
@@ -43,9 +44,10 @@ The application uses a comprehensive database schema including:
 
 ### AI Services
 - **OpenAI Integration**: GPT-4o powered chat assistant for betting advice
-- **ML Engine**: Custom edge calculation algorithms for identifying value bets
+- **Real Historical Backtesting**: Official MLB Stats API integration for authentic game outcomes
 - **Baseball AI System**: TensorFlow.js-powered machine learning model specifically trained on baseball data
 - **Odds Analysis**: Real-time probability calculations and implied odds conversion
+- **Data Integrity**: 100% authentic data sources - no simulated or synthetic data
 
 ### Real-time Features
 - **WebSocket Service**: Live odds updates and recommendation notifications
@@ -54,17 +56,19 @@ The application uses a comprehensive database schema including:
 
 ## Data Flow
 
-1. **Odds Ingestion**: The Odds API service fetches live and historical sports betting data
-2. **ML Processing**: The ML engine analyzes odds to calculate edges and generate predictions
-3. **Recommendation Generation**: AI algorithms identify value betting opportunities
-4. **Real-time Distribution**: WebSocket service pushes updates to connected clients
-5. **User Interaction**: Chat interface allows users to query the AI for personalized advice
-6. **Data Persistence**: All interactions and recommendations are stored in PostgreSQL
+1. **Historical Analysis**: MLB Stats API provides authentic game outcomes for backtesting
+2. **Live Odds Ingestion**: The Odds API service fetches current sports betting data
+3. **ML Processing**: The ML engine analyzes real historical data to calculate edges and generate predictions
+4. **Recommendation Generation**: AI algorithms identify value betting opportunities using authentic data
+5. **Real-time Distribution**: WebSocket service pushes updates to connected clients
+6. **User Interaction**: Chat interface allows users to query the AI for personalized advice
+7. **Data Persistence**: All interactions and recommendations are stored in PostgreSQL
 
 ## External Dependencies
 
 ### Core Services
-- **The Odds API**: Primary source for sports betting odds and game data
+- **MLB Stats API**: Official source for historical game outcomes and authentic data (FREE)
+- **The Odds API**: Primary source for live sports betting odds and current game data
 - **OpenAI API**: Powers the conversational AI assistant
 - **Neon Database**: PostgreSQL hosting for data persistence
 
@@ -95,11 +99,12 @@ The application uses a comprehensive database schema including:
 - **Rationale**: Provides ACID compliance, complex querying, and session storage
 - **Alternatives**: MongoDB considered but PostgreSQL chosen for relational data integrity
 
-#### AI Integration Approach
-- **Problem**: Need for contextual betting advice and edge detection
-- **Solution**: Dual AI system with OpenAI for chat and custom ML for odds analysis
-- **Rationale**: Combines conversational AI with specialized betting algorithms
-- **Trade-offs**: Higher complexity but more accurate and specialized insights
+#### Real Data Integration Approach (Updated July 2025)
+- **Problem**: Need for authentic historical data validation instead of simulated backtests
+- **Solution**: Integration with official MLB Stats API for real game outcomes + The Odds API for live odds
+- **Rationale**: Professional-grade backtesting requires authentic market data, not synthetic results
+- **Implementation**: Complete removal of simulated data components, 100% real data sources
+- **Results**: Demonstrated model overfitting through authentic out-of-sample testing
 
 #### Real-time Architecture
 - **Problem**: Users need live odds updates and instant recommendations

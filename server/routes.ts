@@ -456,121 +456,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Backtesting routes
+  // Backtesting routes - NOW USING REAL MLB OUTCOMES ONLY
   app.post('/api/baseball/backtest', async (req, res) => {
     try {
-      const { startDate, endDate, bankroll, useRealData } = req.body;
+      const { startDate, endDate, bankroll } = req.body;
       
-      // Default to real historical data unless specifically requested to use simulated
-      const shouldUseRealData = useRealData !== false;
+      // Use real MLB historical data with authentic game outcomes
+      const { mlbHistoricalDataService } = await import('./services/mlbHistoricalDataService');
       
-      if (shouldUseRealData) {
-        // Use real historical data from The Odds API
-        const { realHistoricalBacktestService } = await import('./services/realHistoricalBacktest');
-        
-        const results = await realHistoricalBacktestService.performRealHistoricalBacktest(
-          startDate || '2023-07-01',
-          endDate || '2023-07-31', 
-          bankroll || 1000
-        );
-        
-        console.log(`REAL HISTORICAL backtest: ${results.period}, ${results.totalPredictions} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit`);
-        
-        res.json(results);
-        return;
-      }
-
-      // Fallback to simulated backtest (kept for comparison purposes)
-      const start = new Date(startDate || '2024-08-01');
-      const end = new Date(endDate || '2024-08-31');
-      const daysDiff = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-      const bankrollAmount = bankroll || 1000;
+      const results = await mlbHistoricalDataService.performRealMLBBacktest(
+        startDate || '2024-07-01',
+        endDate || '2024-07-31', 
+        bankroll || 1000
+      );
       
-      // Determine if this is out-of-sample (2023, 2025) or in-sample (2024) testing
-      const year = start.getFullYear();
-      const isOutOfSample = year === 2023 || year === 2025;
-      
-      // Calculate realistic metrics based on time period
-      const avgGamesPerDay = 15; // MLB average games per day
-      const totalGames = daysDiff * avgGamesPerDay;
-      const betsPlaced = Math.max(1, Math.floor(totalGames * 0.06)); // Bet on 6% of available games
-      
-      // Create consistent seed based on parameters for deterministic results
-      const seed = startDate + endDate + bankrollAmount.toString();
-      const hashCode = seed.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-      const normalizedSeed = Math.abs(hashCode) / 2147483647; // Normalize to 0-1
-      
-      // Generate consistent but varied performance based on time period and sample
-      let baseWinRate = 0.58; // Base 58% win rate for in-sample (2024)
-      
-      if (isOutOfSample) {
-        // 2023 out-of-sample: Model should perform worse on unseen data
-        baseWinRate = 0.52; // Lower base rate for out-of-sample
-        console.log(`OUT-OF-SAMPLE SIMULATED TEST: Using 2023 data (unseen by model)`);
-      } else {
-        console.log(`IN-SAMPLE SIMULATED TEST: Using 2024 data (model trained on this)`);
-      }
-      
-      const winRateVariation = (normalizedSeed - 0.5) * 0.16; // +/- 8% variation based on period
-      const winRate = Math.max(0.45, Math.min(0.75, baseWinRate + winRateVariation));
-      const wins = Math.floor(betsPlaced * winRate);
-      
-      // Calculate profit based on Kelly criterion and win rate
-      const avgStake = bankrollAmount * 0.04; // 4% of bankroll per bet
-      const profitPerWin = avgStake * 0.909; // Profit on -110 odds
-      const lossPerBet = avgStake;
-      const expectedProfit = (wins * profitPerWin) - ((betsPlaced - wins) * lossPerBet);
-      
-      // Add consistent variance based on period (not random)
-      const profitVariance = expectedProfit * (normalizedSeed - 0.5) * 0.2;
-      const finalProfit = expectedProfit + profitVariance;
-      
-      const results = {
-        totalPredictions: betsPlaced,
-        correctPredictions: wins,
-        accuracy: Math.round(winRate * 1000) / 1000,
-        profitLoss: Math.round(finalProfit * 100) / 100,
-        sharpeRatio: Math.round((0.7 + normalizedSeed * 0.8) * 100) / 100, // 0.7-1.5 range
-        maxDrawdown: Math.round((0.05 + normalizedSeed * 0.15) * 100) / 100, // 5-20% max drawdown
-        dataSource: 'SIMULATED',
-        bets: Array.from({ length: Math.min(betsPlaced, 10) }, (_, i) => {
-          const daysPerBet = Math.max(1, Math.floor(daysDiff / betsPlaced));
-          const betDate = new Date(start.getTime() + (i * daysPerBet * 24 * 60 * 60 * 1000));
-          const teams = [
-            ['Yankees', 'Red Sox'], ['Dodgers', 'Giants'], ['Astros', 'Angels'],
-            ['Braves', 'Phillies'], ['Cubs', 'Cardinals'], ['Mets', 'Nationals'],
-            ['Rays', 'Orioles'], ['Guardians', 'Tigers'], ['Twins', 'Royals'],
-            ['Padres', 'Rockies']
-          ];
-          const teamPair = teams[i % teams.length];
-          const isWin = i < wins;
-          const stake = Math.round(bankrollAmount * 0.04 * 100) / 100; // 4% per bet
-          const profit = isWin ? Math.round(stake * 0.909 * 100) / 100 : -stake; // -110 odds profit
-          
-          return {
-            date: betDate.toISOString().split('T')[0],
-            game: `${teamPair[1]} @ ${teamPair[0]}`,
-            prediction: Math.round((0.55 + ((i * 7 + hashCode) % 100) / 100 * 0.15) * 100) / 100,
-            actual: isWin ? 1 : 0,
-            correct: isWin,
-            stake: stake,
-            profit: profit,
-            odds: -110
-          };
-        })
-      };
-      
-      // Log backtest parameters and results
-      const sampleType = isOutOfSample ? 'OUT-OF-SAMPLE' : 'IN-SAMPLE';
-      console.log(`${sampleType} SIMULATED backtest: ${startDate} to ${endDate}, ${daysDiff} days, ${betsPlaced} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit on $${bankrollAmount} bankroll`);
+      console.log(`REAL MLB backtest: ${results.period}, ${results.totalPredictions} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit`);
       
       res.json(results);
     } catch (error) {
-      console.error('Backtest error:', error);
-      res.status(500).json({ error: 'Backtest failed' });
+      console.error('Real MLB backtest error:', error);
+      res.status(500).json({ error: 'Real MLB backtest failed', details: error.message });
     }
   });
 
@@ -618,41 +523,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/baseball/fetch-real-historical', async (req, res) => {
+  app.post('/api/baseball/fetch-real-games', async (req, res) => {
     try {
       const { startDate, endDate } = req.body;
-      const { historicalDataService } = await import('./services/historicalDataService');
+      const { mlbHistoricalDataService } = await import('./services/mlbHistoricalDataService');
       
-      const games = await historicalDataService.fetchHistoricalPeriod(
-        startDate || '2023-07-01',
-        endDate || '2023-07-07'
+      const games = await mlbHistoricalDataService.fetchHistoricalGames(
+        startDate || '2024-07-01',
+        endDate || '2024-07-07'
       );
       
       res.json({ 
         games: games.length,
         data: games.slice(0, 10), // Return first 10 games as sample
-        message: `Fetched ${games.length} real historical games with actual odds`
+        message: `Fetched ${games.length} real MLB games with authentic outcomes from official MLB API`
       });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch real historical data' });
+      res.status(500).json({ error: 'Failed to fetch real MLB games', details: error.message });
     }
   });
 
-  app.post('/api/baseball/backtest-simulated', async (req, res) => {
+  app.post('/api/baseball/test-mlb-api', async (req, res) => {
     try {
-      const { startDate, endDate, bankroll } = req.body;
-      
-      // Force simulated backtest
-      const result = await fetch(`${req.protocol}://${req.get('host')}/api/baseball/backtest`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startDate, endDate, bankroll, useRealData: false })
-      });
-      
-      const data = await result.json();
-      res.json(data);
+      const { mlbHistoricalDataService } = await import('./services/mlbHistoricalDataService');
+      const result = await mlbHistoricalDataService.testAPIAccess();
+      res.json(result);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to run simulated backtest' });
+      res.status(500).json({ error: 'Failed to test MLB API access', details: error.message });
     }
   });
 
