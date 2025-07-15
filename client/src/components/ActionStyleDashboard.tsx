@@ -59,9 +59,9 @@ interface ProcessedGame {
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   
-  // Fetch live odds from The Odds API
+  // Fetch all scheduled events (with or without odds) from The Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
-    queryKey: ['/api/odds/live', selectedSport],
+    queryKey: ['/api/odds/events', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -127,10 +127,10 @@ export function ActionStyleDashboard() {
         id: game.id,
         homeTeam: game.home_team,
         awayTeam: game.away_team,
-        homeOdds: homeOutcome?.price,
-        awayOdds: awayOutcome?.price,
-        spread: spreadOutcome?.point,
-        total: totalOutcome?.point,
+        homeOdds: homeOutcome?.price || null,
+        awayOdds: awayOutcome?.price || null,
+        spread: spreadOutcome?.point || null,
+        total: totalOutcome?.point || null,
         startTime: new Date(game.commence_time).toLocaleString('en-US', { 
           month: 'short',
           day: 'numeric',
@@ -280,9 +280,19 @@ export function ActionStyleDashboard() {
       {/* Featured Games */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Live Games - {sports.find(s => s.key === selectedSport)?.name}
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Live Games - {sports.find(s => s.key === selectedSport)?.name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Showing {featuredGames.length} games with available betting data
+              {featuredGames.length < 10 && (
+                <span className="ml-1">
+                  • Additional games may not have betting lines posted yet
+                </span>
+              )}
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

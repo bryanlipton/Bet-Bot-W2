@@ -108,11 +108,9 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-right">
-              {awayOdds && (
-                <div className="text-sm font-bold text-gray-900 dark:text-white">
-                  {formatOdds(awayOdds)}
-                </div>
-              )}
+              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                {awayOdds ? formatOdds(awayOdds) : 'TBD'}
+              </div>
             </div>
           </div>
 
@@ -135,11 +133,9 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-right">
-              {homeOdds && (
-                <div className="text-sm font-bold text-gray-900 dark:text-white">
-                  {formatOdds(homeOdds)}
-                </div>
-              )}
+              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                {homeOdds ? formatOdds(homeOdds) : 'TBD'}
+              </div>
             </div>
           </div>
         </div>

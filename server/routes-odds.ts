@@ -4,6 +4,60 @@ const ODDS_API_KEY = process.env.THE_ODDS_API_KEY;
 const ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4";
 
 export function registerOddsRoutes(app: Express) {
+  // Get all scheduled events for a sport (regardless of odds availability)
+  app.get('/api/odds/events/:sport', async (req, res) => {
+    try {
+      const { sport } = req.params;
+      
+      if (!ODDS_API_KEY) {
+        return res.status(500).json({ error: 'The Odds API key not configured' });
+      }
+
+      // Get events for the next 7 days
+      const dateFrom = new Date().toISOString();
+      const dateTo = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      const url = `${ODDS_API_BASE_URL}/sports/${sport}/events?apiKey=${ODDS_API_KEY}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+      
+      console.log(`Fetching scheduled events for ${sport} from: ${url.replace(ODDS_API_KEY, 'xxx...')}`);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`Events API error: ${response.status} ${response.statusText}`);
+        return res.status(response.status).json({ 
+          error: `Failed to fetch events: ${response.statusText}` 
+        });
+      }
+      
+      const events = await response.json();
+      
+      // Now fetch odds for these events
+      const oddsUrl = `${ODDS_API_BASE_URL}/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`;
+      const oddsResponse = await fetch(oddsUrl);
+      const oddsData = oddsResponse.ok ? await oddsResponse.json() : [];
+      
+      // Merge events with available odds
+      const eventsWithOdds = events.map(event => {
+        const gameOdds = oddsData.find(odds => odds.id === event.id);
+        return {
+          ...event,
+          bookmakers: gameOdds?.bookmakers || []
+        };
+      });
+      
+      console.log(`Successfully fetched ${events.length} scheduled events, ${oddsData.length} with odds for ${sport}`);
+      
+      res.json(eventsWithOdds);
+    } catch (error) {
+      console.error('Error fetching scheduled events:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch scheduled events',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Get live odds for a specific sport
   app.get('/api/odds/live/:sport', async (req, res) => {
     try {
