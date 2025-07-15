@@ -459,9 +459,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Backtesting routes
   app.post('/api/baseball/backtest', async (req, res) => {
     try {
-      const { startDate, endDate, bankroll } = req.body;
+      const { startDate, endDate, bankroll, useRealData } = req.body;
       
-      // Use custom parameters or defaults - support 2023 and 2024
+      // Default to real historical data unless specifically requested to use simulated
+      const shouldUseRealData = useRealData !== false;
+      
+      if (shouldUseRealData) {
+        // Use real historical data from The Odds API
+        const { realHistoricalBacktestService } = await import('./services/realHistoricalBacktest');
+        
+        const results = await realHistoricalBacktestService.performRealHistoricalBacktest(
+          startDate || '2023-07-01',
+          endDate || '2023-07-31', 
+          bankroll || 1000
+        );
+        
+        console.log(`REAL HISTORICAL backtest: ${results.period}, ${results.totalPredictions} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit`);
+        
+        res.json(results);
+        return;
+      }
+
+      // Fallback to simulated backtest (kept for comparison purposes)
       const start = new Date(startDate || '2024-08-01');
       const end = new Date(endDate || '2024-08-31');
       const daysDiff = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
@@ -490,9 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isOutOfSample) {
         // 2023 out-of-sample: Model should perform worse on unseen data
         baseWinRate = 0.52; // Lower base rate for out-of-sample
-        console.log(`OUT-OF-SAMPLE TEST: Using 2023 data (unseen by model)`);
+        console.log(`OUT-OF-SAMPLE SIMULATED TEST: Using 2023 data (unseen by model)`);
       } else {
-        console.log(`IN-SAMPLE TEST: Using 2024 data (model trained on this)`);
+        console.log(`IN-SAMPLE SIMULATED TEST: Using 2024 data (model trained on this)`);
       }
       
       const winRateVariation = (normalizedSeed - 0.5) * 0.16; // +/- 8% variation based on period
@@ -516,6 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profitLoss: Math.round(finalProfit * 100) / 100,
         sharpeRatio: Math.round((0.7 + normalizedSeed * 0.8) * 100) / 100, // 0.7-1.5 range
         maxDrawdown: Math.round((0.05 + normalizedSeed * 0.15) * 100) / 100, // 5-20% max drawdown
+        dataSource: 'SIMULATED',
         bets: Array.from({ length: Math.min(betsPlaced, 10) }, (_, i) => {
           const daysPerBet = Math.max(1, Math.floor(daysDiff / betsPlaced));
           const betDate = new Date(start.getTime() + (i * daysPerBet * 24 * 60 * 60 * 1000));
@@ -545,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log backtest parameters and results
       const sampleType = isOutOfSample ? 'OUT-OF-SAMPLE' : 'IN-SAMPLE';
-      console.log(`${sampleType} backtest: ${startDate} to ${endDate}, ${daysDiff} days, ${betsPlaced} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit on $${bankrollAmount} bankroll`);
+      console.log(`${sampleType} SIMULATED backtest: ${startDate} to ${endDate}, ${daysDiff} days, ${betsPlaced} bets, ${(results.accuracy * 100).toFixed(1)}% accuracy, $${results.profitLoss.toFixed(2)} profit on $${bankrollAmount} bankroll`);
       
       res.json(results);
     } catch (error) {
@@ -615,6 +635,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch real historical data' });
+    }
+  });
+
+  app.post('/api/baseball/backtest-simulated', async (req, res) => {
+    try {
+      const { startDate, endDate, bankroll } = req.body;
+      
+      // Force simulated backtest
+      const result = await fetch(`${req.protocol}://${req.get('host')}/api/baseball/backtest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate, endDate, bankroll, useRealData: false })
+      });
+      
+      const data = await result.json();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to run simulated backtest' });
     }
   });
 
