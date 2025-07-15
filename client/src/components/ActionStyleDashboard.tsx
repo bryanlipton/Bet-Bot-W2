@@ -425,15 +425,10 @@ export function ActionStyleDashboard() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Latest Analysis</h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => fetch('/api/articles/generate-daily', { method: 'POST' })}
-            className="flex items-center gap-2"
-          >
-            <BookOpen className="w-4 h-4" />
-            Generate New
-          </Button>
+          <Badge variant="outline" className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            Auto-Updated
+          </Badge>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

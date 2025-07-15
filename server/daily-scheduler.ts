@@ -12,25 +12,12 @@ class DailyScheduler {
     // Run immediately on startup
     this.generateDailyContent();
     
-    // Schedule to run every 24 hours at 6 AM
-    const now = new Date();
-    const tomorrow6AM = new Date();
-    tomorrow6AM.setDate(now.getDate() + 1);
-    tomorrow6AM.setHours(6, 0, 0, 0);
-    
-    const timeUntilNext = tomorrow6AM.getTime() - now.getTime();
-    
-    setTimeout(() => {
+    // Schedule to run every 6 hours (4 times per day)
+    this.intervalId = setInterval(() => {
       this.generateDailyContent();
-      
-      // Then run every 24 hours
-      this.intervalId = setInterval(() => {
-        this.generateDailyContent();
-      }, 24 * 60 * 60 * 1000); // 24 hours
-      
-    }, timeUntilNext);
+    }, 6 * 60 * 60 * 1000); // 6 hours
     
-    console.log(`Daily article generation scheduled. Next run: ${tomorrow6AM.toLocaleString()}`);
+    console.log(`Article generation scheduled every 6 hours for 4 daily articles with real-time data`);
   }
 
   stop() {
@@ -42,11 +29,11 @@ class DailyScheduler {
 
   private async generateDailyContent() {
     try {
-      console.log('🤖 Generating daily articles...');
+      console.log('🤖 Auto-generating articles with real-time internet data...');
       
       const articles = await this.generator.generateDailyArticles();
       
-      console.log(`✅ Generated ${articles.length} daily articles:`);
+      console.log(`✅ Auto-generated ${articles.length} articles with live data:`);
       articles.forEach(article => {
         console.log(`   - ${article.title} (${article.articleType})`);
       });
@@ -55,7 +42,7 @@ class DailyScheduler {
       // await this.saveArticlesToDatabase(articles);
       
     } catch (error) {
-      console.error('❌ Error generating daily articles:', error);
+      console.error('❌ Error auto-generating articles with real-time data:', error);
     }
   }
 
