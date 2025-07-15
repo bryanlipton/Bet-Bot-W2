@@ -93,8 +93,18 @@ export function ActionStyleDashboard() {
       const spreadOutcome = spreadsMarket?.outcomes?.find(o => o.name === game.home_team);
       const totalOutcome = totalsMarket?.outcomes?.find(o => o.name === 'Over');
 
-      // Extract bookmaker lines (first 3 books)
-      const bookmakers = game.bookmakers?.slice(0, 3).map(book => {
+      // Extract bookmaker lines (first 3 books) - prioritize major sportsbooks
+      const priorityBooks = ['FanDuel', 'DraftKings', 'BetMGM', 'Caesars', 'PointsBet'];
+      const sortedBookmakers = game.bookmakers?.sort((a, b) => {
+        const aIndex = priorityBooks.indexOf(a.title);
+        const bIndex = priorityBooks.indexOf(b.title);
+        if (aIndex === -1 && bIndex === -1) return 0;
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      });
+      
+      const bookmakers = sortedBookmakers?.slice(0, 3).map(book => {
         const bookH2h = book.markets?.find(m => m.key === 'h2h');
         const bookSpreads = book.markets?.find(m => m.key === 'spreads');
         const bookTotals = book.markets?.find(m => m.key === 'totals');

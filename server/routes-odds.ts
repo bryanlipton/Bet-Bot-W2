@@ -13,7 +13,7 @@ export function registerOddsRoutes(app: Express) {
         return res.status(500).json({ error: 'The Odds API key not configured' });
       }
 
-      const url = `${ODDS_API_BASE_URL}/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&bookmakers=fanduel,draftkings,betmgm`;
+      const url = `${ODDS_API_BASE_URL}/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`;
       
       console.log(`Fetching live odds for ${sport} from: ${url.replace(ODDS_API_KEY, 'xxx...')}`);
       
