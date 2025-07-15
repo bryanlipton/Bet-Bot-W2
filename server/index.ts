@@ -97,6 +97,10 @@ app.get('/download/gpt-files', (req, res) => {
           📖 COMPLETE-GPT-SETUP.md (Setup Guide)
         </a>
         
+        <a href="/ALL-GPT-FILES.txt" class="file-link" download>
+          📄 ALL-GPT-FILES.txt (All Files in One - Easy Copy/Paste)
+        </a>
+        
         <p><strong>Next Steps:</strong></p>
         <ol>
           <li>Download all 4 files above</li>
@@ -218,6 +222,9 @@ app.post('/api/gpt/matchup', async (req, res) => {
 });
 
 (async () => {
+  // Register download routes first, before other middleware
+  console.log('Setting up download routes...');
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

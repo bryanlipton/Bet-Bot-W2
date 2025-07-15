@@ -1,0 +1,181 @@
+========================================
+CUSTOM GPT COMPLETE FILE PACKAGE
+========================================
+
+Copy each section below into separate files for your Custom GPT:
+
+========================================
+FILE 1: gpt-complete-system.json
+========================================
+
+{
+  "systemInfo": {
+    "name": "Bet Bot MLB Prediction System",
+    "version": "2.1",
+    "lastUpdated": "2025-07-15T19:00:00Z",
+    "description": "Complete MLB betting analytics system with real-time odds and prediction engine"
+  },
+  "apiAccess": {
+    "oddsAPI": {
+      "baseUrl": "https://api.the-odds-api.com/v4",
+      "sports": {
+        "mlb": "baseball_mlb",
+        "nfl": "americanfootball_nfl", 
+        "nba": "basketball_nba"
+      },
+      "endpoints": {
+        "liveOdds": "/sports/{sport}/odds?apiKey={key}&regions=us&markets=h2h,spreads,totals&oddsFormat=american",
+        "scores": "/sports/{sport}/scores?apiKey={key}",
+        "events": "/sports/{sport}/events?apiKey={key}"
+      },
+      "usage": "Replace {sport} with sport key and {key} with THE_ODDS_API_KEY"
+    },
+    "betBotAPI": {
+      "baseUrl": "https://bet-bot-blipton03.replit.app",
+      "endpoints": {
+        "predictions": "/api/gpt/matchup",
+        "liveGames": "/api/games/live",
+        "recommendations": "/api/recommendations/{sport}",
+        "metrics": "/api/metrics/{sport}"
+      }
+    }
+  },
+  "teamStrengths": {
+    "Yankees": { "strength": 0.72, "city": "New York", "league": "AL", "division": "East" },
+    "Dodgers": { "strength": 0.70, "city": "Los Angeles", "league": "NL", "division": "West" },
+    "Astros": { "strength": 0.68, "city": "Houston", "league": "AL", "division": "West" },
+    "Braves": { "strength": 0.67, "city": "Atlanta", "league": "NL", "division": "East" },
+    "Phillies": { "strength": 0.65, "city": "Philadelphia", "league": "NL", "division": "East" },
+    "Padres": { "strength": 0.64, "city": "San Diego", "league": "NL", "division": "West" },
+    "Mets": { "strength": 0.62, "city": "New York", "league": "NL", "division": "East" },
+    "Orioles": { "strength": 0.61, "city": "Baltimore", "league": "AL", "division": "East" },
+    "Guardians": { "strength": 0.60, "city": "Cleveland", "league": "AL", "division": "Central" },
+    "Brewers": { "strength": 0.59, "city": "Milwaukee", "league": "NL", "division": "Central" },
+    "Red Sox": { "strength": 0.58, "city": "Boston", "league": "AL", "division": "East" },
+    "Cardinals": { "strength": 0.57, "city": "St. Louis", "league": "NL", "division": "Central" },
+    "Giants": { "strength": 0.56, "city": "San Francisco", "league": "NL", "division": "West" },
+    "Mariners": { "strength": 0.55, "city": "Seattle", "league": "AL", "division": "West" },
+    "Tigers": { "strength": 0.54, "city": "Detroit", "league": "AL", "division": "Central" },
+    "Cubs": { "strength": 0.53, "city": "Chicago", "league": "NL", "division": "Central" },
+    "Twins": { "strength": 0.52, "city": "Minnesota", "league": "AL", "division": "Central" },
+    "Diamondbacks": { "strength": 0.51, "city": "Arizona", "league": "NL", "division": "West" },
+    "Rays": { "strength": 0.50, "city": "Tampa Bay", "league": "AL", "division": "East" },
+    "Royals": { "strength": 0.49, "city": "Kansas City", "league": "AL", "division": "Central" },
+    "Blue Jays": { "strength": 0.48, "city": "Toronto", "league": "AL", "division": "East" },
+    "Rangers": { "strength": 0.47, "city": "Texas", "league": "AL", "division": "West" },
+    "Angels": { "strength": 0.46, "city": "Los Angeles", "league": "AL", "division": "West" },
+    "Pirates": { "strength": 0.45, "city": "Pittsburgh", "league": "NL", "division": "Central" },
+    "Reds": { "strength": 0.44, "city": "Cincinnati", "league": "NL", "division": "Central" },
+    "Nationals": { "strength": 0.43, "city": "Washington", "league": "NL", "division": "East" },
+    "Athletics": { "strength": 0.42, "city": "Oakland", "league": "AL", "division": "West" },
+    "Marlins": { "strength": 0.41, "city": "Miami", "league": "NL", "division": "East" },
+    "Rockies": { "strength": 0.40, "city": "Colorado", "league": "NL", "division": "West" },
+    "White Sox": { "strength": 0.38, "city": "Chicago", "league": "AL", "division": "Central" }
+  },
+  "predictionEngine": {
+    "algorithm": "analytics-based",
+    "homeFieldAdvantage": 0.035,
+    "confidenceRange": [0.60, 0.85],
+    "steps": [
+      "1. Parse team names from user query using teamAliases",
+      "2. Get homeTeam and awayTeam strengths from teamStrengths",
+      "3. Calculate: homeWinProb = (homeStrength / (homeStrength + awayStrength)) + 0.035",
+      "4. Ensure homeWinProb between 0.25 and 0.75",
+      "5. Calculate: awayWinProb = 1 - homeWinProb",
+      "6. Calculate: confidence = Math.min(0.85, Math.abs(homeWinProb - 0.5) * 1.5 + 0.6)",
+      "7. Determine bet: 'home' if homeWinProb > 0.55, 'away' if awayWinProb > 0.55, else 'none'",
+      "8. Calculate edge: if max(homeWinProb, awayWinProb) > 0.52, edge = (maxProb - 0.52) * 100"
+    ]
+  }
+}
+
+========================================
+FILE 2: gpt-instructions.md  
+========================================
+
+# Custom GPT Instructions for Bet Bot MLB System
+
+## Your Role
+You are an expert MLB betting analyst with access to a sophisticated prediction system and live odds data. Provide accurate, data-driven betting recommendations using the Bet Bot prediction engine.
+
+## Core Prediction Formula
+When asked about any MLB team matchup:
+
+```
+homeWinProb = (homeStrength / (homeStrength + awayStrength)) + 0.035
+awayWinProb = 1 - homeWinProb
+confidence = Math.min(0.85, Math.abs(homeWinProb - 0.5) * 1.5 + 0.6)
+```
+
+## Response Format
+For prediction queries, respond like this:
+
+```
+🏀 Yankees vs Dodgers Prediction
+
+📊 Win Probabilities:
+• Dodgers (Home): 52.8% (strength: 0.70)
+• Yankees (Away): 47.2% (strength: 0.72)
+
+🎯 Analysis:
+• Confidence: 64.2%
+• Recommended Bet: None (too close)
+• Edge: 0.8%
+• Reasoning: Very close matchup between elite teams.
+
+💰 Betting Recommendation: 
+Pass on this game - insufficient edge for profitable betting.
+```
+
+## Team Recognition
+Recognize variations like Yankees, NY Yankees, NYY, etc. All 30 teams available.
+
+## Betting Guidelines
+- High Confidence (75%+): Strong recommendation
+- Medium (65-75%): Moderate opportunity  
+- Low (60-65%): Proceed with caution
+- Edge 5%+: Excellent value, 2-5%: Good value, 0-2%: Marginal
+
+========================================
+FILE 3: gpt-test-examples.md
+========================================
+
+# Test Your Custom GPT
+
+After uploading files, test with these queries:
+
+**Test 1:** "Who will win Yankees vs Dodgers?"
+**Expected:** Dodgers 52.8%, Yankees 47.2%, confidence 64.2%
+
+**Test 2:** "Predict Astros vs White Sox"  
+**Expected:** Astros 60.6%, White Sox 39.4%, bet Astros, edge 8.6%
+
+**Test 3:** "Team strength rankings"
+**Expected:** Yankees 72%, Dodgers 70%, Astros 68%... White Sox 38%
+
+**Test 4:** "Best value bets today"
+**Expected:** Analysis of current games with highest edges
+
+**Test 5:** "How good are the Phillies?"
+**Expected:** Phillies 65% strength, 5th ranked team
+
+If these work correctly, your Custom GPT is ready!
+
+========================================
+SETUP INSTRUCTIONS
+========================================
+
+1. Copy each section above into separate files:
+   - gpt-complete-system.json
+   - gpt-instructions.md
+   - gpt-test-examples.md
+
+2. Go to your Custom GPT in ChatGPT
+
+3. Upload all 3 files to the Knowledge section
+
+4. Test with: "Who will win Yankees vs Dodgers?"
+
+5. Should return: Dodgers 52.8%, Yankees 47.2%
+
+Your Custom GPT now has complete MLB prediction capabilities!
