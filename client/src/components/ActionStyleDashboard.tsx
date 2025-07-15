@@ -101,47 +101,21 @@ export function ActionStyleDashboard() {
         const bookSpread = bookSpreads?.outcomes?.find(o => o.name === game.home_team)?.point;
         const bookTotal = bookTotals?.outcomes?.find(o => o.name === 'Over')?.point;
 
-        // Convert decimal odds to American odds format (3 digits minimum)
-        const convertToAmericanOdds = (price: number) => {
-          if (price >= 2.0) {
-            // Positive odds: (decimal - 1) * 100
-            const odds = Math.round((price - 1) * 100);
-            return odds < 100 ? 100 : odds; // Minimum +100
-          } else {
-            // Negative odds: -100 / (decimal - 1)
-            const odds = Math.round(-100 / (price - 1));
-            return odds > -100 ? -100 : odds; // Minimum -100
-          }
-        };
-
         return {
           name: book.title,
-          homeOdds: bookHomeOdds ? convertToAmericanOdds(bookHomeOdds) : undefined,
-          awayOdds: bookAwayOdds ? convertToAmericanOdds(bookAwayOdds) : undefined,
+          homeOdds: bookHomeOdds,
+          awayOdds: bookAwayOdds,
           spread: bookSpread,
           total: bookTotal
         };
       });
 
-      // Convert decimal odds to American odds format (3 digits minimum)
-      const convertToAmericanOdds = (price: number) => {
-        if (price >= 2.0) {
-          // Positive odds: (decimal - 1) * 100
-          const odds = Math.round((price - 1) * 100);
-          return odds < 100 ? 100 : odds; // Minimum +100
-        } else {
-          // Negative odds: -100 / (decimal - 1)
-          const odds = Math.round(-100 / (price - 1));
-          return odds > -100 ? -100 : odds; // Minimum -100
-        }
-      };
-
       return {
         id: game.id,
         homeTeam: game.home_team,
         awayTeam: game.away_team,
-        homeOdds: homeOutcome ? convertToAmericanOdds(homeOutcome.price) : undefined,
-        awayOdds: awayOutcome ? convertToAmericanOdds(awayOutcome.price) : undefined,
+        homeOdds: homeOutcome?.price,
+        awayOdds: awayOutcome?.price,
         spread: spreadOutcome?.point,
         total: totalOutcome?.point,
         startTime: new Date(game.commence_time).toLocaleString('en-US', { 
