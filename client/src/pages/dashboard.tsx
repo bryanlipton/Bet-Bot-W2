@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import AppHeader from "@/components/AppHeader";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
+import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ChatSidebar from "@/components/ChatSidebar";
 import MainDashboard from "@/components/MainDashboard";
 import BaseballAI from "@/components/BaseballAI";
@@ -12,7 +13,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeSport, setActiveSport] = useState("americanfootball_nfl");
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, baseball-ai, backtest, live-games
+  const [activeTab, setActiveTab] = useState("action-dashboard"); // action-dashboard, dashboard, baseball-ai, backtest, live-games
   
   // Initialize WebSocket connection
   useWebSocket();
@@ -35,14 +36,27 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <AppHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
-      <div className="flex h-[calc(100vh-80px)]">
-        <ChatSidebar />
-        <div className="flex-1 flex flex-col">
+      {activeTab === "action-dashboard" ? (
+        <ActionStyleDashboard />
+      ) : (
+        <div className="flex h-[calc(100vh-64px)]">
+          <ChatSidebar />
+          <div className="flex-1 flex flex-col">
           {/* Tab Navigation */}
           <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab("action-dashboard")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "action-dashboard"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Home
+              </button>
               <button
                 onClick={() => setActiveTab("dashboard")}
                 className={`py-3 px-1 border-b-2 font-medium text-sm ${
@@ -51,7 +65,7 @@ export default function Dashboard() {
                     : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 }`}
               >
-                Dashboard
+                Classic Dashboard
               </button>
               <button
                 onClick={() => setActiveTab("baseball-ai")}
@@ -138,6 +152,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );
