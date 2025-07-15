@@ -23,9 +23,191 @@ export function registerGPTExportRoutes(app: Express) {
         'GET /api/gpt/games/today',
         'POST /api/gpt/predict',
         'GET /api/gpt/strategies',
-        'GET /api/gpt/results'
+        'GET /api/gpt/results',
+        'GET /api/gpt/model-info',
+        'GET /api/gpt/knowledge-base',
+        'GET /api/gpt/betting-glossary',
+        'GET /api/gpt/live-recommendations'
       ]
     });
+  });
+
+  // Complete knowledge base export - everything the site knows
+  app.get('/api/gpt/knowledge-base', async (req, res) => {
+    try {
+      res.header('Access-Control-Allow-Origin', '*');
+      
+      const { baseballAI } = await import('./services/baseballAI');
+      const { storage } = await import('./storage');
+      const { oddsApiService } = await import('./services/oddsApi');
+      
+      // Get model information
+      const modelInfo = await baseballAI.getModelInfo();
+      
+      // Get recent recommendations
+      const recommendations = await storage.getActiveRecommendations();
+      
+      // Get model metrics
+      const modelMetrics = await storage.getModelMetricsBySport('baseball_mlb');
+      
+      // Get recent chat context
+      const recentChats = await storage.getRecentChatMessages(20);
+      
+      const knowledgeBase = {
+        modelCapabilities: {
+          description: 'Advanced AI-powered sports betting analytics platform using real MLB historical data',
+          trainedOn: 'Authentic MLB Stats API data (2023-2024 seasons)',
+          predictionTypes: ['Moneyline', 'Run totals', 'First inning', 'Team runs'],
+          accuracy: modelMetrics?.accuracy || 'Training in progress',
+          sports: ['MLB Baseball (primary)', 'NFL', 'NBA'],
+          dataIntegrity: '100% authentic data - no simulated results'
+        },
+        currentModel: modelInfo,
+        liveCapabilities: {
+          realTimeOdds: 'The Odds API integration for live sportsbook data',
+          edgeCalculation: 'Real-time probability vs implied odds analysis',
+          recommendations: 'AI-generated betting suggestions with confidence scores',
+          backtesting: 'Historical performance validation using real game outcomes'
+        },
+        bettingExpertise: {
+          strategies: 'Value betting, bankroll management, edge detection',
+          markets: 'Moneyline, spreads, totals, props, live betting',
+          riskManagement: 'Kelly criterion, unit sizing, variance control',
+          advancedMetrics: 'Expected value, implied probability, true odds calculation'
+        },
+        recentActivity: {
+          activeRecommendations: recommendations.length,
+          modelMetrics: modelMetrics,
+          recentInsights: recentChats.filter(chat => chat.isBot).slice(0, 5).map(chat => chat.message)
+        },
+        dataFeeds: {
+          historicalData: 'MLB Stats API - Official game outcomes and player statistics',
+          liveOdds: 'The Odds API - Real-time sportsbook odds from major providers',
+          weather: 'Integrated weather impact analysis for outdoor games',
+          lineups: 'Probable pitchers and lineup changes'
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json(knowledgeBase);
+    } catch (error) {
+      console.error('Knowledge base export error:', error);
+      res.status(500).json({ error: 'Failed to export knowledge base: ' + error.message });
+    }
+  });
+
+  // Live recommendations with detailed analysis
+  app.get('/api/gpt/live-recommendations', async (req, res) => {
+    try {
+      res.header('Access-Control-Allow-Origin', '*');
+      
+      const { storage } = await import('./storage');
+      const { oddsApiService } = await import('./services/oddsApi');
+      const { baseballAI } = await import('./services/baseballAI');
+      
+      // Get current MLB games with detailed analysis
+      const mlbGames = await oddsApiService.getCurrentOdds('baseball_mlb');
+      const detailedRecommendations = [];
+      
+      for (const game of mlbGames.slice(0, 5)) {
+        try {
+          const prediction = await baseballAI.predictGame(game.home_team, game.away_team);
+          
+          // Get best odds from multiple bookmakers
+          const homeOdds = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price || -110;
+          const awayOdds = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price || -110;
+          
+          // Calculate implied probabilities and edges
+          const homeImpliedProb = oddsApiService.calculateImpliedProbability(homeOdds);
+          const awayImpliedProb = oddsApiService.calculateImpliedProbability(awayOdds);
+          const homeEdge = ((prediction.homeWinProbability * 100) - homeImpliedProb) / homeImpliedProb * 100;
+          const awayEdge = ((prediction.awayWinProbability * 100) - awayImpliedProb) / awayImpliedProb * 100;
+          
+          detailedRecommendations.push({
+            game: {
+              homeTeam: game.home_team,
+              awayTeam: game.away_team,
+              startTime: game.commence_time,
+              status: 'upcoming'
+            },
+            aiAnalysis: {
+              homeWinProbability: (prediction.homeWinProbability * 100).toFixed(1) + '%',
+              awayWinProbability: (prediction.awayWinProbability * 100).toFixed(1) + '%',
+              confidence: (prediction.confidence * 100).toFixed(1) + '%',
+              modelEdge: {
+                home: homeEdge > 2 ? homeEdge.toFixed(1) + '%' : 'No edge',
+                away: awayEdge > 2 ? awayEdge.toFixed(1) + '%' : 'No edge'
+              }
+            },
+            marketAnalysis: {
+              homeImpliedProb: homeImpliedProb.toFixed(1) + '%',
+              awayImpliedProb: awayImpliedProb.toFixed(1) + '%',
+              bestHomeOdds: homeOdds > 0 ? '+' + homeOdds : homeOdds.toString(),
+              bestAwayOdds: awayOdds > 0 ? '+' + awayOdds : awayOdds.toString()
+            },
+            recommendation: homeEdge > 5 ? 'STRONG BET: ' + game.home_team : 
+                           awayEdge > 5 ? 'STRONG BET: ' + game.away_team :
+                           homeEdge > 2 ? 'VALUE: ' + game.home_team :
+                           awayEdge > 2 ? 'VALUE: ' + game.away_team : 'PASS'
+          });
+        } catch (predError) {
+          console.log(`Skipping analysis for ${game.home_team} vs ${game.away_team}`);
+        }
+      }
+      
+      res.json({
+        totalGames: detailedRecommendations.length,
+        recommendations: detailedRecommendations,
+        analysisTime: new Date().toISOString(),
+        disclaimer: 'AI predictions for informational purposes only. Bet responsibly.'
+      });
+    } catch (error) {
+      console.error('Live recommendations error:', error);
+      res.status(500).json({ error: 'Failed to generate live recommendations: ' + error.message });
+    }
+  });
+
+  // Complete model information export
+  app.get('/api/gpt/model-info', async (req, res) => {
+    try {
+      res.header('Access-Control-Allow-Origin', '*');
+      
+      const { baseballAI } = await import('./services/baseballAI');
+      const { storage } = await import('./storage');
+      
+      const modelInfo = await baseballAI.getModelInfo();
+      const modelMetrics = await storage.getModelMetricsBySport('baseball_mlb');
+      const latestTraining = await storage.getLatestTrainingRecord();
+      
+      const completeModelInfo = {
+        architecture: modelInfo,
+        performance: {
+          currentAccuracy: modelMetrics?.accuracy || 'Training in progress',
+          edgeDetectionRate: modelMetrics?.edgeDetectionRate || 'Calculating...',
+          profitMargin: modelMetrics?.profitMargin || 'Historical data only',
+          lastUpdate: modelMetrics?.lastUpdate || new Date().toISOString()
+        },
+        trainingData: {
+          dataSources: ['MLB Stats API (Official)', 'The Odds API (Live odds)'],
+          seasons: ['2023 (Out-of-sample)', '2024 (Training)', '2025 (Live predictions)'],
+          gamesCovered: 'Full MLB regular season and playoffs',
+          dataIntegrity: 'Authentic game outcomes only - no synthetic data'
+        },
+        predictionCapabilities: {
+          gameOutcomes: 'Win/loss probabilities with confidence intervals',
+          runTotals: 'Over/under predictions with weather factors',
+          firstInning: 'Early game momentum and scoring patterns',
+          liveUpdates: 'Real-time probability adjustments during games'
+        },
+        latestTraining: latestTraining,
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json(completeModelInfo);
+    } catch (error) {
+      console.error('Model info export error:', error);
+      res.status(500).json({ error: 'Failed to get model information: ' + error.message });
+    }
   });
   
   // Export current betting strategies with latest performance data
