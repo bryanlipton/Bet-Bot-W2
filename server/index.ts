@@ -2,6 +2,11 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Set API key from environment or direct value
+if (!process.env.THE_ODDS_API_KEY) {
+  process.env.THE_ODDS_API_KEY = "24945c3743973fb01abda3cc2eab07b9";
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

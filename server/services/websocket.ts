@@ -12,7 +12,10 @@ export class WebSocketService {
   private clients: Set<WebSocket> = new Set();
 
   initialize(server: Server): void {
-    this.wss = new WebSocketServer({ server });
+    this.wss = new WebSocketServer({ 
+      server,
+      path: '/ws'  // Use specific path to avoid conflicts with Vite
+    });
     
     this.wss.on('connection', (ws: WebSocket) => {
       console.log('New WebSocket connection established');
