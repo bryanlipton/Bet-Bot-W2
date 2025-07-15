@@ -170,33 +170,52 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
   }
 
   async generateDailyRoundup(games: any[], sport: string, tone: string = 'professional'): Promise<GeneratedArticle> {
-    const gamesWithOdds = games.filter(g => g.bookmakers?.length > 0);
-    const topGames = gamesWithOdds.slice(0, 5);
+    // Filter for upcoming games only
+    const now = new Date();
+    const upcomingGames = games.filter(game => {
+      const gameTime = new Date(game.startTime || game.commence_time);
+      return gameTime > now;
+    });
 
-    const prompt = `Write a daily sports betting roundup article for ${sport.toUpperCase()}.
+    const gamesWithOdds = upcomingGames.filter(g => g.bookmakers?.length > 0);
+    const topGames = gamesWithOdds.slice(0, 6);
 
-Today's Featured Games:
-${topGames.map(game => `
-- ${game.away_team} @ ${game.home_team}
-  Start: ${new Date(game.commence_time).toLocaleTimeString()}
-  Odds: ${this.extractKeyOdds(game)}
-`).join('')}
+    const gamesList = topGames.map(game => {
+      const gameTime = new Date(game.startTime || game.commence_time);
+      const timeString = gameTime.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        timeZone: 'America/New_York'
+      });
+      
+      return `- ${game.awayTeam || game.away_team} @ ${game.homeTeam || game.home_team}
+  Start: ${timeString} ET
+  Odds: ${this.extractKeyOdds(game)}`;
+    }).join('\n');
+
+    const prompt = `Write a daily sports betting roundup article for today's upcoming ${sport.toUpperCase()} games.
+
+TODAY'S UPCOMING GAMES:
+${gamesList}
 
 Write in a ${tone} tone and include:
-1. Daily betting landscape overview
-2. Top 3 value picks with reasoning
-3. Games to avoid and why
-4. Injury/weather updates affecting lines
-5. Responsible gambling reminder
+1. Analysis of today's betting landscape
+2. Top 3 value picks from these specific games with detailed reasoning
+3. Key pitching matchups affecting the lines
+4. Games to approach with caution and why
+5. Weather or injury updates that could impact outcomes
+6. Specific bet recommendations with reasoning
+
+Focus on these actual games happening today. Be specific about which teams and what bets you recommend.
 
 Format as JSON with: title, content (markdown), summary, tags array.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system", 
-          content: "You are a professional sports betting analyst. Write daily roundups that help bettors identify the best opportunities while promoting responsible gambling."
+          content: "You are a professional sports betting analyst. Write daily roundups analyzing specific upcoming games, helping bettors identify the best opportunities while promoting responsible gambling."
         },
         { role: "user", content: prompt }
       ],
@@ -214,7 +233,7 @@ Format as JSON with: title, content (markdown), summary, tags array.`;
       articleType: 'daily-roundup',
       sport,
       thumbnail,
-      author: 'Bet Bot AI',
+      author: 'Bet Bot',
       readTime: this.calculateReadTime(article.content),
       featured: true
     };
@@ -456,40 +475,15 @@ export function registerArticleRoutes(app: Express) {
 // Add these methods to ArticleGenerator class
 export class ExtendedArticleGenerator extends ArticleGenerator {
   
-  async getMockArticles(sport?: string, type?: string, limit: number = 10): Promise<GeneratedArticle[]> {
-    // Mock articles for demonstration - replace with database queries in production
-    const mockArticles: GeneratedArticle[] = [
-      {
-        id: 'article_1',
-        title: 'Yankees vs Dodgers: World Series Preview Analysis',
-        content: '# Yankees vs Dodgers Analysis\n\nComprehensive breakdown of the upcoming matchup...',
-        summary: 'Expert analysis of the Yankees-Dodgers matchup with betting insights.',
-        tags: ['MLB', 'Yankees', 'Dodgers', 'Preview'],
-        publishedAt: new Date().toISOString(),
-        articleType: 'game-preview',
-        sport: 'baseball_mlb',
-        thumbnail: this.generateSVGThumbnail('Yankees vs Dodgers Preview', 'baseball_mlb', 'game-preview'),
-        author: 'Bet Bot AI',
-        readTime: 5,
-        featured: true
-      },
-      {
-        id: 'article_2',
-        title: 'Daily MLB Betting Roundup - Top Picks',
-        content: '# Today\'s Best Bets\n\nOur top MLB picks for today\'s slate...',
-        summary: 'Daily roundup of the best MLB betting opportunities.',
-        tags: ['MLB', 'Daily', 'Picks', 'Roundup'],
-        publishedAt: new Date().toISOString(),
-        articleType: 'daily-roundup',
-        sport: 'baseball_mlb',
-        thumbnail: this.generateSVGThumbnail('Daily MLB Roundup', 'baseball_mlb', 'daily-roundup'),
-        author: 'Bet Bot AI',
-        readTime: 3,
-        featured: false
-      }
-    ];
+  private recentArticles: GeneratedArticle[] = [];
 
-    let filtered = mockArticles;
+  async getMockArticles(sport?: string, type?: string, limit: number = 10): Promise<GeneratedArticle[]> {
+    // Return recently generated articles or generate new ones based on live games
+    if (this.recentArticles.length === 0) {
+      await this.generateArticlesFromLiveGames();
+    }
+
+    let filtered = this.recentArticles;
     
     if (sport) {
       filtered = filtered.filter(a => a.sport === sport);
@@ -502,34 +496,74 @@ export class ExtendedArticleGenerator extends ArticleGenerator {
     return filtered.slice(0, limit);
   }
 
-  async generateDailyArticles(): Promise<GeneratedArticle[]> {
-    const articles: GeneratedArticle[] = [];
-    
+  async generateArticlesFromLiveGames(): Promise<void> {
     try {
-      // Generate daily roundup for MLB
+      // Fetch current live games from the API
       const gamesResponse = await fetch(`http://localhost:5000/api/mlb/complete-schedule`);
       const games = await gamesResponse.json();
       
-      if (games.length > 0) {
-        const roundup = await this.generateDailyRoundup(games, 'baseball_mlb', 'professional');
-        articles.push(roundup);
+      const upcomingGames = games.filter((game: any) => {
+        const gameTime = new Date(game.startTime);
+        const now = new Date();
+        return gameTime > now; // Only upcoming games
+      }).slice(0, 4); // Limit to top 4 games
+
+      this.recentArticles = [];
+
+      // Generate game preview articles for top upcoming games
+      for (const game of upcomingGames.slice(0, 2)) {
+        if (game.homeTeam && game.awayTeam) {
+          const preview = await this.generateGamePreview(
+            game.homeTeam, 
+            game.awayTeam, 
+            game, 
+            'professional'
+          );
+          this.recentArticles.push(preview);
+        }
+      }
+
+      // Generate daily roundup with all upcoming games
+      if (upcomingGames.length > 0) {
+        const roundup = await this.generateDailyRoundup(upcomingGames, 'baseball_mlb', 'professional');
+        this.recentArticles.push(roundup);
       }
 
       // Generate strategy guide
-      const topics = [
-        "Weather Impact on Baseball Betting",
-        "Understanding Run Line Betting", 
-        "Bullpen Strength Analysis"
+      const strategyTopics = [
+        "Analyzing Pitcher Matchups in Today's Games",
+        "Weather Impact on Today's MLB Slate",
+        "Bullpen Usage Trends for Active Teams"
       ];
       
-      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-      const strategy = await this.generateStrategyGuide(randomTopic, 'baseball_mlb');
-      articles.push(strategy);
-      
+      const topic = strategyTopics[Math.floor(Math.random() * strategyTopics.length)];
+      const strategy = await this.generateStrategyGuide(topic, 'baseball_mlb');
+      this.recentArticles.push(strategy);
+
     } catch (error) {
-      console.error('Error generating daily articles:', error);
+      console.error('Error generating articles from live games:', error);
+      // Fallback to simple articles if API fails
+      this.recentArticles = [{
+        id: 'fallback_1',
+        title: 'Loading Today\'s Game Analysis...',
+        content: '# Analysis Loading\n\nGenerating content based on upcoming games...',
+        summary: 'AI analysis of today\'s games is being generated.',
+        tags: ['MLB', 'Loading'],
+        publishedAt: new Date().toISOString(),
+        articleType: 'daily-roundup',
+        sport: 'baseball_mlb',
+        thumbnail: this.generateSVGThumbnail('Loading Analysis', 'baseball_mlb', 'daily-roundup'),
+        author: 'Bet Bot',
+        readTime: 2,
+        featured: false
+      }];
     }
-    
-    return articles;
+  }
+
+  async generateDailyArticles(): Promise<GeneratedArticle[]> {
+    // Clear existing articles and regenerate based on current games
+    this.recentArticles = [];
+    await this.generateArticlesFromLiveGames();
+    return this.recentArticles;
   }
 }
