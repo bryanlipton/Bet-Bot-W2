@@ -237,34 +237,65 @@ export class BaseballAI {
   }
 
   private async extractGameFeatures(game: BaseballGame): Promise<GameFeatures> {
-    // Get team stats
-    const homeStats = await this.getTeamStats(game.homeTeam, game.date);
-    const awayStats = await this.getTeamStats(game.awayTeam, game.date);
+    // Use advanced analytics for comprehensive feature extraction
+    const { advancedBaseballAnalytics } = await import('./advancedBaseballAnalytics');
+    
+    try {
+      const advancedFeatures = await advancedBaseballAnalytics.calculateAdvancedFeatures(
+        game.homeTeam,
+        game.awayTeam,
+        game.date
+      );
+      
+      // Map advanced features to our 15 core features for the neural network
+      return {
+        homeTeamBattingAvg: advancedFeatures.homeTeamBattingAvg,
+        awayTeamBattingAvg: advancedFeatures.awayTeamBattingAvg,
+        homeTeamERA: advancedFeatures.homeTeamERA,
+        awayTeamERA: advancedFeatures.awayTeamERA,
+        homeTeamOPS: advancedFeatures.homeTeamOPS,
+        awayTeamOPS: advancedFeatures.awayTeamOPS,
+        homeStarterERA: advancedFeatures.homeStarterFIP, // Use FIP instead of basic ERA
+        awayStarterERA: advancedFeatures.awayStarterFIP,
+        homeStarterWHIP: advancedFeatures.homeStarterXFIP, // Use xFIP for better prediction
+        awayStarterWHIP: advancedFeatures.awayStarterXFIP,
+        homeFieldAdvantage: advancedFeatures.homeFieldAdvantage,
+        weatherScore: advancedFeatures.weatherScore,
+        recentHomeForm: advancedFeatures.homeTeamLast10Games,
+        recentAwayForm: advancedFeatures.awayTeamLast10Games,
+        headToHeadRecord: advancedFeatures.headToHeadLast3Years
+      };
+    } catch (error) {
+      console.error('Error calculating advanced features, falling back to basic stats:', error);
+      
+      // Fallback to basic calculation
+      const homeStats = await this.getTeamStats(game.homeTeam, game.date);
+      const awayStats = await this.getTeamStats(game.awayTeam, game.date);
 
-    // Calculate weather score (simplified)
-    const weatherScore = this.calculateWeatherScore(
-      game.temperature || 75,
-      game.windSpeed || 5,
-      game.humidity || 50
-    );
+      const weatherScore = this.calculateWeatherScore(
+        game.temperature || 75,
+        game.windSpeed || 5,
+        game.humidity || 50
+      );
 
-    return {
-      homeTeamBattingAvg: homeStats.battingAvg,
-      awayTeamBattingAvg: awayStats.battingAvg,
-      homeTeamERA: homeStats.era,
-      awayTeamERA: awayStats.era,
-      homeTeamOPS: homeStats.ops,
-      awayTeamOPS: awayStats.ops,
-      homeStarterERA: homeStats.starterERA,
-      awayStarterERA: awayStats.starterERA,
-      homeStarterWHIP: homeStats.starterWHIP,
-      awayStarterWHIP: awayStats.starterWHIP,
-      homeFieldAdvantage: 0.54, // Home teams win ~54% historically
-      weatherScore,
-      recentHomeForm: 0.5, // Simplified for now
-      recentAwayForm: 0.5, // Simplified for now
-      headToHeadRecord: 0.5 // Simplified for now
-    };
+      return {
+        homeTeamBattingAvg: homeStats.battingAvg,
+        awayTeamBattingAvg: awayStats.battingAvg,
+        homeTeamERA: homeStats.era,
+        awayTeamERA: awayStats.era,
+        homeTeamOPS: homeStats.ops,
+        awayTeamOPS: awayStats.ops,
+        homeStarterERA: homeStats.starterERA,
+        awayStarterERA: awayStats.starterERA,
+        homeStarterWHIP: homeStats.starterWHIP,
+        awayStarterWHIP: awayStats.starterWHIP,
+        homeFieldAdvantage: 0.54,
+        weatherScore,
+        recentHomeForm: 0.5,
+        recentAwayForm: 0.5,
+        headToHeadRecord: 0.5
+      };
+    }
   }
 
   private async getTeamStats(team: string, gameDate: string) {
