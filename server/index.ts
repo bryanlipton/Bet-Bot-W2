@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { registerOddsRoutes } from "./routes-odds";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Set API key from environment or direct value
@@ -226,6 +227,7 @@ app.post('/api/gpt/matchup', async (req, res) => {
   console.log('Setting up download routes...');
   
   const server = await registerRoutes(app);
+  registerOddsRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

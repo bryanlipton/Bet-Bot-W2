@@ -17,6 +17,13 @@ interface GameCardProps {
     edge?: string;
   };
   isLive?: boolean;
+  bookmakers?: Array<{
+    name: string;
+    homeOdds?: number;
+    awayOdds?: number;
+    spread?: number;
+    total?: number;
+  }>;
 }
 
 export function ActionStyleGameCard({
@@ -28,7 +35,8 @@ export function ActionStyleGameCard({
   total,
   startTime,
   prediction,
-  isLive = false
+  isLive = false,
+  bookmakers
 }: GameCardProps) {
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : `${odds}`;
@@ -175,6 +183,34 @@ export function ActionStyleGameCard({
                   {prediction?.edge || "No edge"}
                 </p>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Multiple Sportsbooks */}
+        {bookmakers && bookmakers.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Other Books</p>
+            <div className="space-y-1">
+              {bookmakers.slice(1, 3).map((book, index) => (
+                <div key={index} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    {book.name}
+                  </span>
+                  <div className="flex gap-2">
+                    {book.homeOdds && (
+                      <span className="text-gray-700 dark:text-gray-200">
+                        {book.homeOdds > 0 ? `+${book.homeOdds}` : book.homeOdds}
+                      </span>
+                    )}
+                    {book.awayOdds && (
+                      <span className="text-gray-700 dark:text-gray-200">
+                        {book.awayOdds > 0 ? `+${book.awayOdds}` : book.awayOdds}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

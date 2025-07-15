@@ -12,10 +12,32 @@ import {
   Users,
   Clock,
   Star,
-  Zap
+  Zap,
+  RefreshCw
 } from "lucide-react";
 
-interface Game {
+interface LiveOddsGame {
+  id: string;
+  sport_key: string;
+  sport_title: string;
+  commence_time: string;
+  home_team: string;
+  away_team: string;
+  bookmakers: Array<{
+    key: string;
+    title: string;
+    markets: Array<{
+      key: string;
+      outcomes: Array<{
+        name: string;
+        price: number;
+        point?: number;
+      }>;
+    }>;
+  }>;
+}
+
+interface ProcessedGame {
   id: string;
   homeTeam: string;
   awayTeam: string;
@@ -25,14 +47,21 @@ interface Game {
   total?: number;
   startTime?: string;
   sportKey: string;
+  bookmakers?: Array<{
+    name: string;
+    homeOdds?: number;
+    awayOdds?: number;
+    spread?: number;
+    total?: number;
+  }>;
 }
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   
-  // Fetch live games
-  const { data: liveGames = [] } = useQuery({
-    queryKey: ['/api/games/live'],
+  // Fetch live odds from The Odds API
+  const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
+    queryKey: ['/api/odds/live', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -41,6 +70,61 @@ export function ActionStyleDashboard() {
     queryKey: ['/api/recommendations', selectedSport],
     refetchInterval: 60000, // Refresh every minute
   });
+
+  // Process live odds data into game format
+  const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
+    if (!oddsData) return [];
+    
+    return oddsData.slice(0, 6).map((game) => {
+      const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
+      const spreadsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
+      const totalsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals');
+      
+      const homeOutcome = h2hMarket?.outcomes?.find(o => o.name === game.home_team);
+      const awayOutcome = h2hMarket?.outcomes?.find(o => o.name === game.away_team);
+      const spreadOutcome = spreadsMarket?.outcomes?.find(o => o.name === game.home_team);
+      const totalOutcome = totalsMarket?.outcomes?.find(o => o.name === 'Over');
+
+      // Extract bookmaker lines (first 3 books)
+      const bookmakers = game.bookmakers?.slice(0, 3).map(book => {
+        const bookH2h = book.markets?.find(m => m.key === 'h2h');
+        const bookSpreads = book.markets?.find(m => m.key === 'spreads');
+        const bookTotals = book.markets?.find(m => m.key === 'totals');
+        
+        const bookHomeOdds = bookH2h?.outcomes?.find(o => o.name === game.home_team)?.price;
+        const bookAwayOdds = bookH2h?.outcomes?.find(o => o.name === game.away_team)?.price;
+        const bookSpread = bookSpreads?.outcomes?.find(o => o.name === game.home_team)?.point;
+        const bookTotal = bookTotals?.outcomes?.find(o => o.name === 'Over')?.point;
+
+        return {
+          name: book.title,
+          homeOdds: bookHomeOdds ? (bookHomeOdds > 0 ? bookHomeOdds : Math.round((bookHomeOdds - 1) * 100)) : undefined,
+          awayOdds: bookAwayOdds ? (bookAwayOdds > 0 ? bookAwayOdds : Math.round((bookAwayOdds - 1) * 100)) : undefined,
+          spread: bookSpread,
+          total: bookTotal
+        };
+      });
+
+      return {
+        id: game.id,
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        homeOdds: homeOutcome ? (homeOutcome.price > 0 ? homeOutcome.price : Math.round((homeOutcome.price - 1) * 100)) : undefined,
+        awayOdds: awayOutcome ? (awayOutcome.price > 0 ? awayOutcome.price : Math.round((awayOutcome.price - 1) * 100)) : undefined,
+        spread: spreadOutcome?.point,
+        total: totalOutcome?.point,
+        startTime: new Date(game.commence_time).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        }),
+        sportKey: game.sport_key,
+        bookmakers
+      };
+    });
+  };
+
+  const featuredGames = processLiveGames(liveOddsData || []);
 
   // Mock prediction function (replace with actual API call)
   const getPrediction = (homeTeam: string, awayTeam: string) => {
@@ -73,46 +157,9 @@ export function ActionStyleDashboard() {
 
   // Sports tabs
   const sports = [
-    { key: "baseball_mlb", name: "MLB", active: true },
-    { key: "americanfootball_nfl", name: "NFL", active: false },
-    { key: "basketball_nba", name: "NBA", active: false },
-  ];
-
-  // Mock featured games for demo
-  const featuredGames = [
-    {
-      id: "1",
-      homeTeam: "Dodgers",
-      awayTeam: "Yankees", 
-      homeOdds: -140,
-      awayOdds: +120,
-      spread: -1.5,
-      total: 8.5,
-      startTime: "7:10 PM ET",
-      sportKey: "baseball_mlb"
-    },
-    {
-      id: "2", 
-      homeTeam: "Astros",
-      awayTeam: "Red Sox",
-      homeOdds: -180,
-      awayOdds: +155,
-      spread: -2.5,
-      total: 9.0,
-      startTime: "8:15 PM ET",
-      sportKey: "baseball_mlb"
-    },
-    {
-      id: "3",
-      homeTeam: "Braves", 
-      awayTeam: "Phillies",
-      homeOdds: +105,
-      awayOdds: -125,
-      spread: +1.5,
-      total: 8.0,
-      startTime: "7:45 PM ET", 
-      sportKey: "baseball_mlb"
-    }
+    { key: "baseball_mlb", name: "MLB", active: selectedSport === "baseball_mlb" },
+    { key: "americanfootball_nfl", name: "NFL", active: selectedSport === "americanfootball_nfl" },
+    { key: "basketball_nba", name: "NBA", active: selectedSport === "basketball_nba" },
   ];
 
   return (
@@ -210,28 +257,72 @@ export function ActionStyleDashboard() {
       {/* Featured Games */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Featured Games</h2>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Star className="w-3 h-3" />
-            Top Picks
-          </Badge>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Live Games - {sports.find(s => s.key === selectedSport)?.name}
+          </h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchOdds()}
+              disabled={oddsLoading}
+              className="flex items-center gap-1"
+            >
+              <RefreshCw className={`w-3 h-3 ${oddsLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Star className="w-3 h-3" />
+              Live Odds
+            </Badge>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {featuredGames.map((game) => (
-            <ActionStyleGameCard
-              key={game.id}
-              homeTeam={game.homeTeam}
-              awayTeam={game.awayTeam}
-              homeOdds={game.homeOdds}
-              awayOdds={game.awayOdds}
-              spread={game.spread}
-              total={game.total}
-              startTime={game.startTime}
-              prediction={getPrediction(game.homeTeam, game.awayTeam)}
-            />
-          ))}
-        </div>
+        {oddsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : featuredGames.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredGames.map((game) => (
+              <ActionStyleGameCard
+                key={game.id}
+                homeTeam={game.homeTeam}
+                awayTeam={game.awayTeam}
+                homeOdds={game.homeOdds}
+                awayOdds={game.awayOdds}
+                spread={game.spread}
+                total={game.total}
+                startTime={game.startTime}
+                prediction={getPrediction(game.homeTeam, game.awayTeam)}
+                bookmakers={game.bookmakers}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No Live Games
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                No games are currently available for {sports.find(s => s.key === selectedSport)?.name}. 
+                Check back later or try a different sport.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Recent Articles Section (Action Network Style) */}
