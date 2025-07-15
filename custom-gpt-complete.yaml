@@ -113,3 +113,49 @@ paths:
                     type: object
                   summary:
                     type: string
+  /api/gpt/predict:
+    post:
+      operationId: post_api_gpt_predict
+      summary: Get AI prediction for specific teams
+      description: Generate AI prediction for any MLB team matchup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                homeTeam:
+                  type: string
+                  description: Home team name
+                awayTeam:
+                  type: string
+                  description: Away team name
+              required:
+                - homeTeam
+                - awayTeam
+      responses:
+        '200':
+          description: AI prediction for the matchup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  homeTeam:
+                    type: string
+                  awayTeam:
+                    type: string
+                  prediction:
+                    type: object
+                    properties:
+                      homeWinProbability:
+                        type: number
+                      awayWinProbability:
+                        type: number
+                      confidence:
+                        type: number
+                      recommendedBet:
+                        type: string
+                      edge:
+                        type: string

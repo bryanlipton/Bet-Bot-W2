@@ -130,38 +130,73 @@ export function registerGPTExportRoutes(app: Express) {
     }
   });
 
+  // Direct model prediction endpoint
+  app.post('/api/gpt/predict', async (req, res) => {
+    try {
+      const { homeTeam, awayTeam } = req.body;
+      
+      if (!homeTeam || !awayTeam) {
+        return res.status(400).json({ error: 'homeTeam and awayTeam are required' });
+      }
+      
+      const { baseballAI } = await import('./services/baseballAI');
+      const prediction = await baseballAI.predictGame(homeTeam, awayTeam);
+      
+      res.json({
+        homeTeam,
+        awayTeam,
+        prediction: {
+          homeWinProbability: prediction.homeWinProbability,
+          awayWinProbability: prediction.awayWinProbability,
+          confidence: prediction.confidence,
+          recommendedBet: prediction.homeWinProbability > 0.55 ? 'home' : 
+                        prediction.awayWinProbability > 0.55 ? 'away' : 'none',
+          edge: prediction.homeWinProbability > 0.52 ? 
+                ((prediction.homeWinProbability - 0.52) * 100).toFixed(1) + '%' : 'No edge'
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to generate prediction: ' + error.message });
+    }
+  });
+
   // Get today's games with AI predictions
   app.get('/api/gpt/games/today', async (req, res) => {
     try {
       const { storage } = await import('./storage');
-      const { baseballAI } = await import('./services/baseballAI');
+      const { oddsApiService } = await import('./services/oddsApi');
       
-      const todaysGames = await storage.getTodaysGames();
+      // Get live MLB games from odds API
+      const liveGames = await oddsApiService.getCurrentOdds('baseball_mlb');
       const gamesWithPredictions = [];
       
-      for (const game of todaysGames) {
+      for (const game of liveGames.slice(0, 5)) { // Limit to 5 games for performance
         try {
-          const prediction = await baseballAI.predictGame(game.homeTeam, game.awayTeam);
+          const { baseballAI } = await import('./services/baseballAI');
+          const prediction = await baseballAI.predictGame(game.home_team, game.away_team);
+          
           gamesWithPredictions.push({
             id: game.id,
-            homeTeam: game.homeTeam,
-            awayTeam: game.awayTeam,
-            commenceTime: game.commenceTime,
+            homeTeam: game.home_team,
+            awayTeam: game.away_team,
+            commenceTime: game.commence_time,
             prediction: {
               homeWinProbability: prediction.homeWinProbability,
               awayWinProbability: prediction.awayWinProbability,
               confidence: prediction.confidence,
               recommendedBet: prediction.homeWinProbability > 0.55 ? 'home' : 
                             prediction.awayWinProbability > 0.55 ? 'away' : 'none'
-            }
+            },
+            odds: game.bookmakers?.[0]?.markets?.[0]?.outcomes || []
           });
         } catch (error) {
           gamesWithPredictions.push({
             id: game.id,
-            homeTeam: game.homeTeam,
-            awayTeam: game.awayTeam,
-            commenceTime: game.commenceTime,
-            prediction: { error: 'Prediction unavailable' }
+            homeTeam: game.home_team,
+            awayTeam: game.away_team,
+            commenceTime: game.commence_time,
+            prediction: { error: 'Prediction unavailable: ' + error.message }
           });
         }
       }
@@ -170,10 +205,11 @@ export function registerGPTExportRoutes(app: Express) {
         date: new Date().toISOString().split('T')[0],
         totalGames: gamesWithPredictions.length,
         games: gamesWithPredictions,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
+        apiStatus: 'Model accessible via /api/gpt/predict endpoint'
       });
     } catch (error) {
-      res.status(500).json({ error: 'Failed to get today\'s games with predictions' });
+      res.status(500).json({ error: 'Failed to get today\'s games: ' + error.message });
     }
   });
 
