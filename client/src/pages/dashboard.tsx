@@ -3,12 +3,14 @@ import AppHeader from "@/components/AppHeader";
 import ChatSidebar from "@/components/ChatSidebar";
 import MainDashboard from "@/components/MainDashboard";
 import BaseballAI from "@/components/BaseballAI";
+import { BacktestResults } from "@/components/BacktestResults";
+import { LiveMLBGames } from "@/components/LiveMLBGames";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [activeSport, setActiveSport] = useState("americanfootball_nfl");
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, baseball-ai
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, baseball-ai, backtest, live-games
   
   // Initialize WebSocket connection
   useWebSocket();
@@ -59,6 +61,26 @@ export default function Dashboard() {
               >
                 Baseball AI
               </button>
+              <button
+                onClick={() => setActiveTab("backtest")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "backtest"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Backtest
+              </button>
+              <button
+                onClick={() => setActiveTab("live-games")}
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "live-games"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                Live Games
+              </button>
             </div>
           </div>
 
@@ -70,6 +92,16 @@ export default function Dashboard() {
             {activeTab === "baseball-ai" && (
               <div className="p-6">
                 <BaseballAI />
+              </div>
+            )}
+            {activeTab === "backtest" && (
+              <div className="p-6">
+                <BacktestResults />
+              </div>
+            )}
+            {activeTab === "live-games" && (
+              <div className="p-6">
+                <LiveMLBGames />
               </div>
             )}
           </div>

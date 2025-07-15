@@ -456,5 +456,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Backtesting routes
+  app.post('/api/baseball/backtest', async (req, res) => {
+    try {
+      const { backtestingService } = await import('./services/backtestingService');
+      const { startDate, endDate, bankroll } = req.body;
+      
+      const results = await backtestingService.performBacktest(
+        startDate || '2024-05-01',
+        endDate || '2024-09-30',
+        bankroll || 1000
+      );
+      
+      res.json(results);
+    } catch (error) {
+      console.error('Backtest error:', error);
+      res.status(500).json({ error: 'Backtest failed' });
+    }
+  });
+
+  // Live MLB data routes
+  app.get('/api/baseball/todays-games', async (req, res) => {
+    try {
+      const { liveMLBDataService } = await import('./services/liveMLBDataService');
+      const games = await liveMLBDataService.fetchTodaysGames();
+      res.json(games);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch today\'s games' });
+    }
+  });
+
+  app.post('/api/baseball/update-2025-data', async (req, res) => {
+    try {
+      const { liveMLBDataService } = await import('./services/liveMLBDataService');
+      await liveMLBDataService.fetch2025SeasonData();
+      res.json({ message: '2025 data updated successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update 2025 data' });
+    }
+  });
+
+  app.get('/api/baseball/live-prediction/:gameId', async (req, res) => {
+    try {
+      const { liveMLBDataService } = await import('./services/liveMLBDataService');
+      const gameId = parseInt(req.params.gameId);
+      
+      // Get probable starters
+      const starters = await liveMLBDataService.getProbableStarters(gameId);
+      
+      // Fetch game details
+      const games = await liveMLBDataService.fetchTodaysGames();
+      const game = games.find(g => g.gamePk === gameId);
+      
+      if (!game) {
+        return res.status(404).json({ error: 'Game not found' });
+      }
+      
+      // Make prediction with starter information
+      const prediction = await baseballAI.predict(
+        game.teams.home.team.name,
+        game.teams.away.team.name,
+        game.gameDate.split('T')[0]
+      );
+      
+      res.json({
+        game: {
+          homeTeam: game.teams.home.team.name,
+          awayTeam: game.teams.away.team.name,
+          gameDate: game.gameDate,
+          probableStarters: {
+            home: game.teams.home.probablePitcher?.fullName || 'TBD',
+            away: game.teams.away.probablePitcher?.fullName || 'TBD'
+          }
+        },
+        prediction,
+        starterStats: starters
+      });
+      
+    } catch (error) {
+      console.error('Live prediction error:', error);
+      res.status(500).json({ error: 'Live prediction failed' });
+    }
+  });
+
   return httpServer;
 }
