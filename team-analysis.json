@@ -1,0 +1,20 @@
+{
+  "offensiveMetrics": [
+    "Team batting average vs pitch type",
+    "On-base percentage in different counts",
+    "Slugging percentage vs LHP/RHP",
+    "Recent run scoring trends (last 10 games)"
+  ],
+  "pitchingMetrics": [
+    "Starter ERA and WHIP vs similar opponents",
+    "Bullpen effectiveness in close games",
+    "Home/away pitching splits",
+    "Rest days for starting pitcher"
+  ],
+  "situationalFactors": [
+    "Head-to-head records last 3 years",
+    "Performance in day vs night games",
+    "Weather conditions impact (wind, temperature)",
+    "Motivation factors (playoff race, rivalry)"
+  ]
+}

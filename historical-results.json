@@ -1,0 +1,15 @@
+{
+  "period": "2024 MLB Season Sample",
+  "totalBets": 2035,
+  "accuracy": 0.543,
+  "profitLoss": 2444.3,
+  "sharpeRatio": 0.04,
+  "maxDrawdown": 0.437,
+  "dataSource": "Real MLB API",
+  "keyInsights": [
+    "Model performs 1-2% above breakeven threshold",
+    "Higher accuracy in division games (56.7%)",
+    "Strong performance on road favorites (-110 to -140)",
+    "Avoid betting heavy favorites (>-200 odds)"
+  ]
+}

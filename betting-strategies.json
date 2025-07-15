@@ -1,0 +1,22 @@
+{
+  "edgeCalculation": {
+    "description": "Edge = (Your Probability × Decimal Odds) - 1",
+    "example": "If you predict 60% chance but odds imply 50%, you have a 20% edge",
+    "minimumEdge": "Generally need 5%+ edge to overcome variance and fees"
+  },
+  "kellyCriterion": {
+    "description": "Optimal bet sizing formula",
+    "formula": "f = (bp - q) / b",
+    "explanation": "f=fraction to bet, b=odds received, p=probability of win, q=probability of loss"
+  },
+  "bankrollManagement": {
+    "conservative": "1-2% of bankroll per bet",
+    "aggressive": "3-5% of bankroll per bet",
+    "maxBet": "Never more than 10% on single bet"
+  },
+  "valueIdentification": {
+    "lineMovement": "Look for reverse line movement (money on favorite, line moves to underdog)",
+    "shopOdds": "Compare multiple sportsbooks for best lines",
+    "timingBets": "Bet early for soft lines, late for injury news"
+  }
+}

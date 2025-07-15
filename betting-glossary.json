@@ -1,0 +1,9 @@
+{
+  "impliedProbability": "The probability suggested by betting odds. Calculate as: 1 / (decimal odds)",
+  "expectedValue": "Average profit/loss over many bets. Positive EV = profitable long-term",
+  "variance": "Statistical measure of how much results deviate from expected value",
+  "sharpMoney": "Bets placed by professional/sophisticated bettors",
+  "steam": "Rapid line movement across multiple sportsbooks, often following sharp money",
+  "middling": "Betting both sides of a game at different numbers to guarantee profit",
+  "arbitrage": "Betting all outcomes at different books to guarantee profit regardless of result"
+}
