@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Bet Bot Live Data API
+  version: 1.0.0
+  description: Live sports betting analytics with real MLB data
+servers:
+  - url: https://bet-bot-blipton03.replit.app
+    description: Bet Bot Production Server
+paths:
+  /api/gpt/results:
+    get:
+      operationId: get_api_gpt_results
+      summary: Get latest backtest results
+      description: Fetch fresh backtest data from real MLB games
+      responses:
+        '200':
+          description: Latest backtest results with real MLB data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                    description: Date range of backtest
+                  totalBets:
+                    type: number
+                    description: Number of bets analyzed
+                  accuracy:
+                    type: number
+                    description: Prediction accuracy percentage
+                  profitLoss:
+                    type: number
+                    description: Overall profit/loss
+                  sharpeRatio:
+                    type: number
+                    description: Risk-adjusted return metric
+                  maxDrawdown:
+                    type: number
+                    description: Largest peak-to-trough decline
+                  dataSource:
+                    type: string
+                    description: Source of the data
+                  exportedAt:
+                    type: string
+                    description: Timestamp of data export
+                  keyInsights:
+                    type: array
+                    items:
+                      type: string
+                    description: Key performance insights
+        '500':
+          description: Internal server error
+  /api/gpt/strategies:
+    get:
+      operationId: get_api_gpt_strategies
+      summary: Get current betting strategies
+      description: Live betting strategies with real performance data
+      responses:
+        '200':
+          description: Current betting strategies and performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  edgeCalculation:
+                    type: object
+                    description: Edge calculation methodology
+                  currentPerformance:
+                    type: object
+                    description: Current model performance
+                  kellyCriterion:
+                    type: object
+                    description: Bet sizing formula
+                  bankrollManagement:
+                    type: object
+                    description: Risk management guidelines
+        '500':
+          description: Internal server error
+  /api/gpt/all:
+    get:
+      operationId: get_api_gpt_all
+      summary: Get complete betting dataset
+      description: All betting data, strategies, and analysis in one call
+      responses:
+        '200':
+          description: Complete dataset for betting analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  strategies:
+                    type: object
+                    description: Betting strategies and methods
+                  results:
+                    type: object
+                    description: Latest backtest results
+                  analysis:
+                    type: object
+                    description: Team and situational analysis
+                  glossary:
+                    type: object
+                    description: Betting terminology
+        '500':
+          description: Internal server error
+  /api/gpt/analysis:
+    get:
+      operationId: get_api_gpt_analysis
+      summary: Get team analysis data
+      description: Current team performance analysis and metrics
+      responses:
+        '200':
+          description: Team analysis and situational factors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offensiveMetrics:
+                    type: array
+                    items:
+                      type: string
+                    description: Offensive performance metrics
+                  pitchingMetrics:
+                    type: array
+                    items:
+                      type: string
+                    description: Pitching performance metrics
+                  situationalFactors:
+                    type: array
+                    items:
+                      type: string
+                    description: Game situation factors
+                  lastUpdated:
+                    type: string
+                    description: Last update timestamp
+        '500':
+          description: Internal server error
+  /api/gpt/glossary:
+    get:
+      operationId: get_api_gpt_glossary
+      summary: Get betting terminology
+      description: Definitions of key betting terms and concepts
+      responses:
+        '200':
+          description: Betting terminology and definitions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  impliedProbability:
+                    type: string
+                    description: Definition of implied probability
+                  expectedValue:
+                    type: string
+                    description: Definition of expected value
+                  variance:
+                    type: string
+                    description: Definition of variance
+                  sharpMoney:
+                    type: string
+                    description: Definition of sharp money
+                  steam:
+                    type: string
+                    description: Definition of steam
+                  middling:
+                    type: string
+                    description: Definition of middling
+                  arbitrage:
+                    type: string
+                    description: Definition of arbitrage
+                  lastUpdated:
+                    type: string
+                    description: Last update timestamp
+        '500':
+          description: Internal server error
