@@ -3,7 +3,7 @@ import React from 'react';
 // Team logo mappings using TheSportsDB API
 // Attribution: Team logos provided by TheSportsDB.com
 
-export const getTeamLogo = (teamName: string): string => {
+export const getTeamLogo = (teamName: string): string | null => {
   // Map common team names to TheSportsDB logo format
   const teamMappings: { [key: string]: string } = {
     // MLB Teams
@@ -38,6 +38,16 @@ export const getTeamLogo = (teamName: string): string => {
     'Pittsburgh Pirates': 'https://www.thesportsdb.com/images/media/team/badge/tqpyqv1421418893.png',
     'Cincinnati Reds': 'https://www.thesportsdb.com/images/media/team/badge/wurxrv1421418689.png',
     'Washington Nationals': 'https://www.thesportsdb.com/images/media/team/badge/tpyrtu1421418960.png',
+    
+    // Alternative team name mappings for consistency
+    'Oakland A\'s': 'https://www.thesportsdb.com/images/media/team/badge/qwvsvy1421418877.png',
+    'LA Dodgers': 'https://www.thesportsdb.com/images/media/team/badge/wvqpyx1421418735.png',
+    'LA Angels': 'https://www.thesportsdb.com/images/media/team/badge/ysqtpx1421418795.png',
+    'NY Yankees': 'https://www.thesportsdb.com/images/media/team/badge/xxyxwp1421435600.png',
+    'NY Mets': 'https://www.thesportsdb.com/images/media/team/badge/qwvsvy1421418861.png',
+    'SF Giants': 'https://www.thesportsdb.com/images/media/team/badge/txpupv1421418910.png',
+    'TB Rays': 'https://www.thesportsdb.com/images/media/team/badge/qvuuty1421418942.png',
+    'White Sox': 'https://www.thesportsdb.com/images/media/team/badge/ywwqtu1421418705.png',
     
     // NFL Teams (adding major NFL teams)
     'New England Patriots': 'https://www.thesportsdb.com/images/media/team/badge/qtuwqt1422919040.png',
@@ -106,7 +116,7 @@ export const getTeamLogo = (teamName: string): string => {
     'New Orleans Pelicans': 'https://www.thesportsdb.com/images/media/team/badge/rptvys1420746367.png'
   };
 
-  return teamMappings[teamName] || '';
+  return teamMappings[teamName] || null;
 };
 
 // Component for displaying team logo with fallback

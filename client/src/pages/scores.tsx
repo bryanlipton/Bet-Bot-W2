@@ -191,15 +191,21 @@ export default function ScoresPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                {getTeamLogo(game.awayTeam) && (
+                                {getTeamLogo(game.awayTeam) ? (
                                   <img 
-                                    src={getTeamLogo(game.awayTeam)} 
+                                    src={getTeamLogo(game.awayTeam)!} 
                                     alt={`${game.awayTeam} logo`}
                                     className="w-8 h-8 object-contain"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
                                     }}
                                   />
+                                ) : (
+                                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                      {game.awayTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
+                                    </span>
+                                  </div>
                                 )}
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.awayTeam}
@@ -213,15 +219,21 @@ export default function ScoresPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                {getTeamLogo(game.homeTeam) && (
+                                {getTeamLogo(game.homeTeam) ? (
                                   <img 
-                                    src={getTeamLogo(game.homeTeam)} 
+                                    src={getTeamLogo(game.homeTeam)!} 
                                     alt={`${game.homeTeam} logo`}
                                     className="w-8 h-8 object-contain"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
                                     }}
                                   />
+                                ) : (
+                                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                      {game.homeTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
+                                    </span>
+                                  </div>
                                 )}
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.homeTeam}

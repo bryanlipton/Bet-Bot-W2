@@ -97,7 +97,7 @@ export function ActionStyleGameCard({
               <div className="w-8 h-8 rounded-full flex items-center justify-center">
                 {getTeamLogo(awayTeam) ? (
                   <img 
-                    src={getTeamLogo(awayTeam)} 
+                    src={getTeamLogo(awayTeam)!} 
                     alt={`${awayTeam} logo`}
                     className="w-8 h-8 object-contain"
                     onError={(e) => {
@@ -107,7 +107,7 @@ export function ActionStyleGameCard({
                 ) : (
                   <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                      {awayTeam.slice(0, 2).toUpperCase()}
+                      {awayTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
                     </span>
                   </div>
                 )}
@@ -135,7 +135,7 @@ export function ActionStyleGameCard({
               <div className="w-8 h-8 rounded-full flex items-center justify-center">
                 {getTeamLogo(homeTeam) ? (
                   <img 
-                    src={getTeamLogo(homeTeam)} 
+                    src={getTeamLogo(homeTeam)!} 
                     alt={`${homeTeam} logo`}
                     className="w-8 h-8 object-contain"
                     onError={(e) => {
@@ -145,7 +145,7 @@ export function ActionStyleGameCard({
                 ) : (
                   <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                      {homeTeam.slice(0, 2).toUpperCase()}
+                      {homeTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
                     </span>
                   </div>
                 )}

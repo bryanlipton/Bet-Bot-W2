@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
+import { getTeamLogo } from "@/utils/teamLogos";
+import Footer from "./Footer";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -486,6 +488,8 @@ export function ActionStyleDashboard() {
         open={!!selectedArticle}
         onClose={() => setSelectedArticle(null)}
       />
+      
+      <Footer />
     </div>
   );
 }
