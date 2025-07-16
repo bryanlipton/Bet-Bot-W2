@@ -1,0 +1,146 @@
+what about umpires, weather, starting pitcher probable stats, where to find these for free for upcomin games
+
+
+ChatGPT said:
+Here are free and accessible data sources you can integrate into a baseball model for umpires, weather, and starting pitchers (probables) on upcoming MLB games:
+
+⚾ Umpires
+Sportradar MLB v8 API
+
+Endpoint: /officials
+
+Description: Returns the full list of umpires (with IDs, experience, etc.) 
+NBC Los Angeles
++10
+arXiv
++10
+Reddit
++10
+highlightly.net
++4
+Sportradar Dev Portal
++4
+Sportradar Dev Portal
++4
+.
+
+MLB Stats API (Unofficial)
+
+You can infer umpire IDs or names indirectly via game boxscore feeds—but Stats API doesn't provide umpire assignments natively. However, Sportradar is your best free route here.
+
+🌦 Weather for Upcoming Games
+Swish Analytics MLB Weather
+
+Webpage: Shows probability of precipitation, temps, wind per schedule 
+Swish Analytics
+.
+
+Automating access: Scrape or parse their daily schedule pages for up-to-date weather outlooks per game.
+
+Standard Weather APIs
+
+OpenWeatherMap, Weatherbit, Visual Crossing all offer:
+
+bash
+Copy
+Edit
+GET /forecast/hourly?lat={stadium_lat}&lon={stadium_lon}
+Map each ballpark to coordinates and fetch 48‑ or 72‑hour hourly forecast (temp, wind, humidity)—crucial for modeling park/time-weather influences.
+
+🎯 Probable Starting Pitcher
+MLB Stats API
+
+Query suspended schedule:
+
+bash
+Copy
+Edit
+GET https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&hydrate=probablePitcher
+Returns upcoming games with probable pitchers and their playerId 
+Swish Analytics
++3
+Sportradar Dev Portal
++3
+Sportradar Dev Portal
++3
+arXiv
++11
+Reddit
++11
+Sportradar Dev Portal
++11
+.
+
+Then separately call:
+
+bash
+Copy
+Edit
+GET https://statsapi.mlb.com/api/v1/people/{playerId}/stats?stats=season&season=2025
+This gives their 2025 ERA, WHIP, K/9, etc.
+
+Sportradar MLB v8 “Push Probable Pitchers”
+
+Endpoint: /games/{gameId}/probable-pitchers or via push feed 
+Reddit
++4
+highlightly.net
++4
+MLB Technology Blog
++4
+Sportradar Dev Portal
++2
+Sportradar Dev Portal
++2
+Sportradar Dev Portal
++2
+Sportradar Dev Portal
+.
+
+Provides real-time updates for upcoming assignments.
+
+🔗 Summary Table
+Category	Source	Endpoint
+Umpire assignments	Sportradar v8	/officials (official IDs/experience) 
+Swish Analytics
++2
+Sportradar Dev Portal
++2
+Sportradar Dev Portal
++2
+Pitcher probables	MLB Stats API	/schedule?...hydrate=probablePitcher + /people/{playerId}/stats
+Sportradar v8	Push Probable Pitchers
+Weather & conditions	Swish Analytics	Scrape weather tables per game
+External APIs	OpenWeatherMap etc. via stadium lat/long
+
+✅ Workflow Steps
+List upcoming games → MLB Stats API /schedule + hydrate probables.
+
+Fetch pitcher stats → people/{id}/stats?season=2025.
+
+Fetch umpires → Sportradar /officials.
+
+Fetch weather → Use weather API or scrape Swish per home stadium.
+
+💡 Integrating into Your Model
+Umpire IDs → factor in umpire biases (later add dynamic pitcher-specific strike zones).
+
+Pitcher stats → ERA, WHIP, K/9, FIP, etc. build from “people” stats.
+
+Weather → temp, wind speed/direction, humidity influence run scoring or batted ball flight.
+
+Combining → Merge all data sets keyed by game ID for modeling.
+
+Let me know if you'd like sample Python client code, handling rate limits, or tips on merging spatial stadium/weather data!
+
+
+
+
+
+
+
+
+
+
+
+Sources
