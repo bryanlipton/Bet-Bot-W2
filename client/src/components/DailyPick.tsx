@@ -70,8 +70,11 @@ interface PickAnalysisDetails {
 // BetBot Icon Component
 function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
   return (
-    <div className={`${className} bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg`}>
+    <div className={`${className} bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg relative`}>
       <TrendingUp className="w-1/2 h-1/2 text-white" />
+      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+        <div className="w-2 h-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"></div>
+      </div>
     </div>
   );
 }
@@ -168,7 +171,7 @@ export default function DailyPick() {
             <BetBotIcon className="w-12 h-12" />
             <div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                Pick of the Day
+                Bet Bot Pick of the Day
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Free daily moneyline pick

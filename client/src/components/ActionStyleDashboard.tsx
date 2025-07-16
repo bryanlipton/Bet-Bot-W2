@@ -219,7 +219,7 @@ export function ActionStyleDashboard() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Pick of the Day
+            Bet Bot Pick of the Day
           </h2>
           <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
             Free Users
