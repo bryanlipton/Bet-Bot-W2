@@ -94,10 +94,24 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
-              <Zap className="w-4 h-4 mr-1" />
-              Get Pro
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
+                  <Zap className="w-4 h-4 mr-1" />
+                  Get Pro
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                <div className="space-y-1">
+                  <p className="font-medium text-gray-900 dark:text-white text-sm">Get Pro Access</p>
+                  <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-0.5">
+                    <li>- Full access to BET BOT and expert game picks</li>
+                    <li>- News Articles</li>
+                    <li>- Raffles for pro users</li>
+                  </ul>
+                </div>
+              </TooltipContent>
+            </Tooltip>
             
             <div className="flex flex-col items-center">
               <LoginButton />
