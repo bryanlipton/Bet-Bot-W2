@@ -385,13 +385,16 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
     }
   };
 
+  const isFinished = game.status.toLowerCase().includes('final');
+
   return (
     <Card className="bg-white dark:bg-gray-800">
       <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 min-w-[200px]">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 space-y-2">
+            {/* Away Team */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <div 
                   className="w-4 h-4 rounded-full shadow-sm" 
                   style={{ backgroundColor: getTeamColor(game.awayTeam) }}
@@ -400,14 +403,16 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   {game.awayTeam}
                 </span>
               </div>
-              {game.awayScore !== undefined && (
+              {isFinished && game.awayScore !== undefined && (
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {game.awayScore}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 min-w-[200px]">
+            
+            {/* Home Team */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 <div 
                   className="w-4 h-4 rounded-full shadow-sm" 
                   style={{ backgroundColor: getTeamColor(game.homeTeam) }}
@@ -416,15 +421,34 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   {game.homeTeam}
                 </span>
               </div>
-              {game.homeScore !== undefined && (
+              {isFinished && game.homeScore !== undefined && (
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {game.homeScore}
                 </span>
               )}
             </div>
+            
+            {/* Live scores for ongoing games */}
+            {!isFinished && (game.awayScore !== undefined || game.homeScore !== undefined) && (
+              <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{game.awayTeam}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {game.awayScore || 0}
+                  </div>
+                </div>
+                <div className="text-lg text-gray-400">-</div>
+                <div className="text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{game.homeTeam}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {game.homeScore || 0}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
-          <div className="text-right space-y-2">
+          <div className="text-right space-y-2 ml-6">
             {getStatusBadge(game.status)}
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {game.inning || formatTime(game.startTime)}
