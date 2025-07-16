@@ -1,5 +1,7 @@
 import { baseballSavantService, type TeamStatcastMetrics } from './baseballSavantApi';
 import { weatherService, type WeatherData, type WeatherImpact } from './weatherService';
+import { umpireService, type UmpireStats } from './umpireService';
+import { continuousTrainingService } from './continuousTrainingService';
 
 export interface OverUnderPrediction {
   predictedTotal: number;
@@ -36,6 +38,13 @@ export interface PredictionFactors {
     homeFieldAdvantage: number;
     dayGame: boolean;
     restDays: number;
+  };
+  umpire: {
+    name: string;
+    strikeZoneAccuracy: number;
+    runsImpact: number;
+    hitterFriendly: boolean;
+    confidenceMultiplier: number;
   };
 }
 
@@ -91,7 +100,9 @@ export class OverUnderPredictor {
     gameTime: Date,
     homeStarterERA: number = 4.50,
     awayStarterERA: number = 4.50,
-    marketTotal?: number
+    marketTotal?: number,
+    umpireName?: string,
+    gameId?: number
   ): Promise<OverUnderPrediction> {
     try {
       // Create a unique daily cache key based on teams and date (not time)
@@ -153,7 +164,8 @@ export class OverUnderPredictor {
         weather,
         homeStarterERA,
         awayStarterERA,
-        statcastData
+        statcastData,
+        umpireName
       );
 
       // Predict total runs
@@ -202,7 +214,8 @@ export class OverUnderPredictor {
     weather: WeatherData | null,
     homeStarterERA: number,
     awayStarterERA: number,
-    statcastData: TeamStatcastMetrics[]
+    statcastData: TeamStatcastMetrics[],
+    umpireName?: string
   ): Promise<PredictionFactors> {
     // Get team Statcast metrics
     const homeStats = statcastData.find(t => t.team === this.getTeamAbbrev(homeTeam));
@@ -220,6 +233,17 @@ export class OverUnderPredictor {
     // Ballpark factors
     const stadiumName = this.getStadiumName(homeTeam);
     const ballparkFactor = BALLPARK_FACTORS[stadiumName] || { runFactor: 100, hrFactor: 100 };
+
+    // Get umpire data
+    let umpireStats: UmpireStats | null = null;
+    let umpireImpact = { runsAdjustment: 0, confidenceMultiplier: 1.0, description: 'No umpire data' };
+    
+    if (umpireName) {
+      umpireStats = await umpireService.getRealisticUmpireData(umpireName);
+      if (umpireStats) {
+        umpireImpact = umpireService.calculateUmpireImpact(umpireStats);
+      }
+    }
 
     // Calculate expected runs per team
     const homeTeamRuns = this.calculateTeamRuns(homeStats, true, ballparkFactor, weatherImpact);
@@ -250,6 +274,13 @@ export class OverUnderPredictor {
         homeFieldAdvantage: 0.1, // Slight advantage for home team
         dayGame: this.isDayGame(gameTime),
         restDays: 1 // Assume 1 day rest
+      },
+      umpire: {
+        name: umpireStats?.name || 'Unknown',
+        strikeZoneAccuracy: umpireStats?.strikeZoneAccuracy || 94.5,
+        runsImpact: umpireImpact.runsAdjustment,
+        hitterFriendly: umpireStats ? umpireStats.hitterFriendlyPercentage > 52 : false,
+        confidenceMultiplier: umpireImpact.confidenceMultiplier
       }
     };
   }
@@ -269,6 +300,9 @@ export class OverUnderPredictor {
     if (factors.situational.dayGame) {
       total *= 1.01; // Minimal day game impact
     }
+
+    // Apply umpire impact on runs
+    total += factors.umpire.runsImpact;
 
     // Realistic MLB game totals (2024 season: avg 8.96 runs per game)
     return Math.max(7.0, Math.min(11.5, total));

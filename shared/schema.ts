@@ -95,6 +95,14 @@ export const baseballGames = pgTable("baseball_games", {
   windSpeed: integer("wind_speed"),
   windDirection: text("wind_direction"),
   humidity: integer("humidity"),
+  // Umpire data
+  homeUmpireName: text("home_umpire_name"),
+  homeUmpireId: text("home_umpire_id"),
+  umpireStrikeZoneAccuracy: real("umpire_strike_zone_accuracy"),
+  umpireConsistencyRating: real("umpire_consistency_rating"),
+  umpireHitterFriendly: real("umpire_hitter_friendly"), // Percentage tendency
+  umpirePitcherFriendly: real("umpire_pitcher_friendly"), // Percentage tendency
+  umpireRunsImpact: real("umpire_runs_impact"), // Historical runs affected per game
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -155,6 +163,68 @@ export const baseballModelTraining = pgTable("baseball_model_training", {
   hyperparameters: text("hyperparameters"), // JSON string
 });
 
+// Training data tracking - stores all inputs and actual results for continuous learning
+export const baseballTrainingData = pgTable("baseball_training_data", {
+  id: serial("id").primaryKey(),
+  gameId: integer("game_id").references(() => baseballGames.id).notNull(),
+  // All input features used for prediction
+  inputFeatures: json("input_features").notNull(),
+  // AI prediction data
+  predictedHomeWin: real("predicted_home_win"),
+  predictedAwayWin: real("predicted_away_win"),
+  predictedTotal: real("predicted_total"),
+  predictedOverProb: real("predicted_over_prob"),
+  predictedUnderProb: real("predicted_under_prob"),
+  // Actual game results
+  actualHomeScore: integer("actual_home_score"),
+  actualAwayScore: integer("actual_away_score"),
+  actualTotal: integer("actual_total"),
+  actualHomeWin: boolean("actual_home_win"),
+  actualOver: boolean("actual_over"), // Based on predicted total line
+  // Model performance metrics for this prediction
+  homeWinAccuracy: real("home_win_accuracy"), // How close prediction was
+  totalAccuracy: real("total_accuracy"), // How close total prediction was
+  // Market data at time of prediction
+  marketHomeOdds: real("market_home_odds"),
+  marketAwayOdds: real("market_away_odds"),
+  marketTotalLine: real("market_total_line"),
+  marketOverOdds: real("market_over_odds"),
+  marketUnderOdds: real("market_under_odds"),
+  // Umpire factors
+  umpireName: text("umpire_name"),
+  umpireStrikeZoneAccuracy: real("umpire_strike_zone_accuracy"),
+  umpireConsistencyRating: real("umpire_consistency_rating"),
+  umpireRunsImpact: real("umpire_runs_impact"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Umpire statistics and tendencies
+export const baseballUmpires = pgTable("baseball_umpires", {
+  id: serial("id").primaryKey(),
+  umpireName: text("umpire_name").notNull().unique(),
+  umpireId: text("umpire_id").unique(),
+  // Strike zone metrics
+  strikeZoneAccuracy: real("strike_zone_accuracy"), // Overall accuracy percentage
+  consistencyRating: real("consistency_rating"), // Game-to-game consistency
+  // Tendencies
+  hitterFriendlyPercentage: real("hitter_friendly_percentage"), // % of games favoring hitters
+  pitcherFriendlyPercentage: real("pitcher_friendly_percentage"), // % of games favoring pitchers
+  averageRunsPerGame: real("average_runs_per_game"), // Avg runs in games they umpire
+  runsImpactPerGame: real("runs_impact_per_game"), // Historical runs affected by calls
+  // Zone tendencies
+  expandedStrikeZone: real("expanded_strike_zone"), // % larger than average zone
+  tightStrikeZone: real("tight_strike_zone"), // % smaller than average zone
+  // Statistics
+  gamesUmpired: integer("games_umpired"),
+  gamesUmpiredThisSeason: integer("games_umpired_this_season"),
+  lastGameDate: timestamp("last_game_date"),
+  // Data sources and reliability
+  dataSource: text("data_source"), // Where we get the data (UmpScores, etc.)
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const upsertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
@@ -169,6 +239,8 @@ export const insertBaseballGameSchema = createInsertSchema(baseballGames).omit({
 export const insertBaseballPlayerStatsSchema = createInsertSchema(baseballPlayerStats).omit({ id: true, lastUpdated: true });
 export const insertBaseballGamePredictionSchema = createInsertSchema(baseballGamePredictions).omit({ id: true, createdAt: true });
 export const insertBaseballModelTrainingSchema = createInsertSchema(baseballModelTraining).omit({ id: true, trainedAt: true });
+export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrainingData).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -194,3 +266,7 @@ export type BaseballGamePrediction = typeof baseballGamePredictions.$inferSelect
 export type InsertBaseballGamePrediction = z.infer<typeof insertBaseballGamePredictionSchema>;
 export type BaseballModelTraining = typeof baseballModelTraining.$inferSelect;
 export type InsertBaseballModelTraining = z.infer<typeof insertBaseballModelTrainingSchema>;
+export type BaseballTrainingData = typeof baseballTrainingData.$inferSelect;
+export type InsertBaseballTrainingData = z.infer<typeof insertBaseballTrainingDataSchema>;
+export type BaseballUmpire = typeof baseballUmpires.$inferSelect;
+export type InsertBaseballUmpire = z.infer<typeof insertBaseballUmpireSchema>;
