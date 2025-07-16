@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
-import { getTeamAbbreviation } from "@/utils/teamLogos";
+import { getTeamColor } from "@/utils/teamLogos";
 import { 
   TrendingUp, 
   DollarSign, 

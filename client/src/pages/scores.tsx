@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
-import { getTeamAbbreviation } from "@/utils/teamLogos";
+import { getTeamColor } from "@/utils/teamLogos";
 import { 
   Calendar,
   Clock,
@@ -191,11 +191,10 @@ export default function ScoresPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                                  <span className="text-xs font-bold text-white">
-                                    {getTeamAbbreviation(game.awayTeam)}
-                                  </span>
-                                </div>
+                                <div 
+                                  className="w-4 h-4 rounded-full shadow-sm" 
+                                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                                />
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.awayTeam}
                                 </span>
@@ -208,11 +207,10 @@ export default function ScoresPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm">
-                                  <span className="text-xs font-bold text-white">
-                                    {getTeamAbbreviation(game.homeTeam)}
-                                  </span>
-                                </div>
+                                <div 
+                                  className="w-4 h-4 rounded-full shadow-sm" 
+                                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                                />
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.homeTeam}
                                 </span>

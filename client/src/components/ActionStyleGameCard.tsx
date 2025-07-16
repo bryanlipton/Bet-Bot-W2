@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getTeamAbbreviation } from "@/utils/teamLogos";
+import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users } from "lucide-react";
 
 interface GameCardProps {
@@ -94,11 +94,10 @@ export function ActionStyleGameCard({
           {/* Away Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                <span className="text-xs font-bold text-white">
-                  {getTeamAbbreviation(awayTeam)}
-                </span>
-              </div>
+              <div 
+                className="w-4 h-4 rounded-full shadow-sm" 
+                style={{ backgroundColor: getTeamColor(awayTeam) }}
+              />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
 
@@ -119,11 +118,10 @@ export function ActionStyleGameCard({
           {/* Home Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm">
-                <span className="text-xs font-bold text-white">
-                  {getTeamAbbreviation(homeTeam)}
-                </span>
-              </div>
+              <div 
+                className="w-4 h-4 rounded-full shadow-sm" 
+                style={{ backgroundColor: getTeamColor(homeTeam) }}
+              />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
 
