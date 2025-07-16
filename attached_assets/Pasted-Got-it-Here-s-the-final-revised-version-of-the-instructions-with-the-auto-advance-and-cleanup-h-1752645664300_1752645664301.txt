@@ -1,0 +1,74 @@
+Got it! Here's the **final revised version** of the instructions with the auto-advance and cleanup happening at **6:00 AM EST**:
+
+---
+
+## ✅ Final Game Ordering & Navigation Instructions for Replit
+
+### 1. **Group Games by Date (Daily View)**
+
+* Display games for a **single day** at a time (based on **Eastern Time**)
+* Add **left (←)** and **right (→)** arrows to navigate to **previous** and **next** days
+
+---
+
+### 2. **Sort Games Within the Selected Day**
+
+#### A. **Live Games**
+
+* Display at the **top**
+* Sort by: **Time remaining** (least time left = top)
+
+#### B. **Upcoming Games**
+
+* Display **below live games**
+* Sort by: **Start time** (earliest game = top)
+
+#### C. **Completed Games (Final)**
+
+* Display **at the bottom**
+* Sort by: **End time** — oldest to most recent
+* Mark clearly with a **“FINAL”** badge
+
+---
+
+### 3. **Daily View Navigation**
+
+* Show one day at a time using arrows
+* Default view should always be **"Today"** (based on EST)
+
+---
+
+### 4. **Auto-Advance to Next Day at 6:00 AM EST**
+
+* At **6:00 AM Eastern Time**, automatically update the default view to show that day’s games
+* Keeps previous night’s games in view for early-morning users
+
+---
+
+### 5. **Clear or Archive Old Games**
+
+* Also at **6:00 AM EST**, remove or archive games that ended **more than 2 days ago**
+* Optionally store archived games in a separate view or backend
+
+---
+
+### 6. **Tracked Games (Optional)**
+
+* If the user has tracked a game (e.g., bet placed), **pin it to the top of its section** (Live, Upcoming, or Final)
+
+---
+
+## 🧠 Summary for Dev Team
+
+| Feature          | Behavior                                            |
+| ---------------- | --------------------------------------------------- |
+| Date Grouping    | Show games by **selected date** (EST-based)         |
+| Navigation       | Arrows (← →) to switch between dates                |
+| In-Day Sorting   | Live → Upcoming → Final                             |
+| Final Game Order | By **end time**, earliest → latest                  |
+| Auto-Switch      | Switch to new day's view at **6:00 AM EST**         |
+| Cleanup          | Remove/archive games >2 days old at **6:00 AM EST** |
+
+---
+
+Let me know if you'd like this in code (JS, Python) or formatted for your README/UI spec.
