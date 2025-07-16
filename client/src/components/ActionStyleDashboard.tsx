@@ -88,6 +88,18 @@ export function ActionStyleDashboard() {
     refetchInterval: 300000, // Refresh every 5 minutes
   });
 
+  // Fetch daily pick data
+  const { data: dailyPick } = useQuery({
+    queryKey: ['/api/daily-pick'],
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+  });
+
+  // Helper function to check if a game matches the daily pick
+  const isGameDailyPick = (game: any) => {
+    if (!dailyPick) return false;
+    return game.homeTeam === dailyPick.homeTeam && game.awayTeam === dailyPick.awayTeam;
+  };
+
   // Process live odds data into game format
   const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
     if (!oddsData) return [];
@@ -313,6 +325,8 @@ export function ActionStyleDashboard() {
                   bookmakers={game.bookmakers}
                   gameId={game.gameId}
                   probablePitchers={game.probablePitchers}
+                  isDailyPick={isGameDailyPick(game)}
+                  dailyPickTeam={dailyPick?.pickTeam}
                   onClick={() => {
                     setSelectedGame(game);
                     setIsModalOpen(true);

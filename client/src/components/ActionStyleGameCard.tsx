@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users } from "lucide-react";
+import betbotLogo from "@/assets/betbot-logo.png";
 
 interface GameCardProps {
   homeTeam: string;
@@ -30,6 +31,8 @@ interface GameCardProps {
     home: string | null;
     away: string | null;
   };
+  isDailyPick?: boolean;
+  dailyPickTeam?: string;
   onClick?: () => void;
 }
 
@@ -46,6 +49,8 @@ export function ActionStyleGameCard({
   bookmakers,
   gameId,
   probablePitchers,
+  isDailyPick = false,
+  dailyPickTeam,
   onClick
 }: GameCardProps) {
   const formatOdds = (odds: number) => {
@@ -100,7 +105,18 @@ export function ActionStyleGameCard({
               />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
-
+                {isDailyPick && dailyPickTeam === awayTeam && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <img 
+                      src={betbotLogo} 
+                      alt="Bet Bot Pick" 
+                      className="w-4 h-4 object-contain"
+                    />
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      Bot Pick
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -124,7 +140,18 @@ export function ActionStyleGameCard({
               />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
-
+                {isDailyPick && dailyPickTeam === homeTeam && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <img 
+                      src={betbotLogo} 
+                      alt="Bet Bot Pick" 
+                      className="w-4 h-4 object-contain"
+                    />
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      Bot Pick
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             
