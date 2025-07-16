@@ -76,6 +76,10 @@ export interface GameFeatures {
 export class BaseballAI {
   private model: tf.LayersModel | null = null;
   private modelVersion = '1.0.0';
+  
+  // Daily prediction cache - ensures stable predictions throughout the day
+  private dailyPredictionCache: Map<string, BaseballPrediction> = new Map();
+  private currentCacheDate: string = '';
   private featureNames: string[] = [
     'homeTeamBattingAvg', 'awayTeamBattingAvg', 'homeTeamERA', 'awayTeamERA',
     'homeTeamOPS', 'awayTeamOPS', 'homeStarterERA', 'awayStarterERA',
@@ -452,12 +456,31 @@ export class BaseballAI {
     }
 
     try {
-      console.log(`🔮 Generating enhanced prediction for ${awayTeam} @ ${homeTeam} with advanced analytics...`);
+      // Create daily cache key - predictions won't change throughout the day
+      const dailyDate = gameDate.split('T')[0]; // Extract YYYY-MM-DD
+      const cacheKey = `${dailyDate}_${awayTeam}_${homeTeam}`;
+      
+      // Check if we need to clear cache for new day
+      if (this.currentCacheDate !== dailyDate) {
+        console.log(`📅 New day detected (${dailyDate}), clearing baseball prediction cache`);
+        this.dailyPredictionCache.clear();
+        this.currentCacheDate = dailyDate;
+      }
+      
+      // Return cached prediction if available
+      if (this.dailyPredictionCache.has(cacheKey)) {
+        console.log(`📋 Using cached daily baseball prediction for ${awayTeam} @ ${homeTeam}`);
+        return this.dailyPredictionCache.get(cacheKey)!;
+      }
+
+      console.log(`🔮 Generating new daily baseball prediction for ${awayTeam} @ ${homeTeam} (${dailyDate})`);
+      console.log(`📊 Using team-level offensive stats, not individual lineups`);
 
       // Get real weather data
       const weatherData = await weatherService.getGameTimeWeather(homeTeam, new Date(gameDate));
       
       // Get Statcast team metrics
+      console.log('Calculating team-level Statcast metrics...');
       const statcastData = await baseballSavantService.getTeamStatcastMetrics();
       const homeTeamMetrics = statcastData.find(t => t.team === this.getTeamAbbrev(homeTeam));
       const awayTeamMetrics = statcastData.find(t => t.team === this.getTeamAbbrev(awayTeam));
@@ -499,7 +522,7 @@ export class BaseballAI {
         weatherData
       );
 
-      return {
+      const prediction_result: BaseballPrediction = {
         homeWinProbability: predictionData[0],
         awayWinProbability: predictionData[1],
         overProbability: overUnderAnalysis.overProbability,
@@ -516,6 +539,12 @@ export class BaseballAI {
           awayTeamMetrics
         }
       };
+
+      // Cache the prediction for the entire day
+      this.dailyPredictionCache.set(cacheKey, prediction_result);
+      console.log(`💾 Cached daily baseball prediction for ${awayTeam} @ ${homeTeam}`);
+
+      return prediction_result;
     } catch (error) {
       console.error('Error making enhanced prediction:', error);
       

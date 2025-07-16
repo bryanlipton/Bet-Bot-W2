@@ -77,6 +77,10 @@ export class OverUnderPredictor {
   private statcastCache: TeamStatcastMetrics[] = [];
   private lastStatcastUpdate = 0;
   private readonly CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+  
+  // Daily prediction cache - ensures predictions don't change throughout the day
+  private dailyPredictionCache: Map<string, OverUnderPrediction> = new Map();
+  private currentCacheDate: string = '';
 
   /**
    * Generate comprehensive over/under prediction
@@ -90,7 +94,46 @@ export class OverUnderPredictor {
     marketTotal?: number
   ): Promise<OverUnderPrediction> {
     try {
-      console.log(`🎯 Generating realistic over/under prediction for ${awayTeam} @ ${homeTeam}`);
+      // Create a unique daily cache key based on teams and date (not time)
+      const gameDate = gameTime.toISOString().split('T')[0]; // YYYY-MM-DD
+      const cacheKey = `${gameDate}_${awayTeam}_${homeTeam}_${homeStarterERA}_${awayStarterERA}`;
+      
+      // Check if we need to clear the cache for a new day
+      if (this.currentCacheDate !== gameDate) {
+        console.log(`📅 New day detected (${gameDate}), clearing prediction cache`);
+        this.dailyPredictionCache.clear();
+        this.currentCacheDate = gameDate;
+      }
+      
+      // Check for cached prediction
+      if (this.dailyPredictionCache.has(cacheKey)) {
+        console.log(`📋 Using cached daily prediction for ${awayTeam} @ ${homeTeam}`);
+        const cachedPrediction = this.dailyPredictionCache.get(cacheKey)!;
+        
+        // Update market total if provided but keep same prediction
+        if (marketTotal && marketTotal !== cachedPrediction.predictedTotal) {
+          const probabilities = this.calculateProbabilities(cachedPrediction.predictedTotal, marketTotal);
+          const recommendation = this.determineRecommendation(
+            probabilities.overProbability,
+            probabilities.underProbability,
+            marketTotal
+          );
+          
+          // Return updated probabilities but same core prediction
+          return {
+            ...cachedPrediction,
+            overProbability: probabilities.overProbability,
+            underProbability: probabilities.underProbability,
+            confidence: probabilities.confidence,
+            recommendation: recommendation.bet,
+            edge: recommendation.edge
+          };
+        }
+        
+        return cachedPrediction;
+      }
+
+      console.log(`🎯 Generating new daily prediction for ${awayTeam} @ ${homeTeam} (${gameDate})`);
       console.log(`📊 Using real data from: Baseball Savant API, Weather API, MLB Ballpark factors`);
 
       // Get all data sources in parallel
@@ -127,7 +170,7 @@ export class OverUnderPredictor {
         marketTotal
       );
 
-      return {
+      const prediction: OverUnderPrediction = {
         predictedTotal: Math.round(predictedTotal * 10) / 10,
         overProbability: probabilities.overProbability,
         underProbability: probabilities.underProbability,
@@ -136,6 +179,12 @@ export class OverUnderPredictor {
         recommendation: recommendation.bet,
         edge: recommendation.edge
       };
+
+      // Cache the prediction for the entire day
+      this.dailyPredictionCache.set(cacheKey, prediction);
+      console.log(`💾 Cached daily prediction for ${awayTeam} @ ${homeTeam}`);
+
+      return prediction;
 
     } catch (error) {
       console.error('Error generating over/under prediction:', error);
@@ -304,7 +353,7 @@ export class OverUnderPredictor {
   }
 
   /**
-   * Calculate expected runs for a team
+   * Calculate expected runs for a team based on team-level statistics
    */
   private calculateTeamRuns(
     stats: TeamStatcastMetrics | undefined,
@@ -312,33 +361,39 @@ export class OverUnderPredictor {
     ballpark: { runFactor: number; hrFactor: number },
     weather: WeatherImpact
   ): number {
-    // Base runs per game (2024 MLB average ~4.28)
-    let baseRuns = 4.28;
+    // Use actual team runs per game if available, otherwise league average
+    let baseRuns = stats?.runs_per_game || 4.28; // 2024 MLB average
 
+    // If we have team Statcast metrics, adjust based on underlying performance
     if (stats) {
-      // Adjust based on team's xwOBA (league average ~0.315) - more conservative
-      const xwobaFactor = Math.min(1.25, Math.max(0.75, stats.batting_xwoba / 0.315));
-      baseRuns *= xwobaFactor;
-
-      // Factor in power (barrel percentage) - reduce impact
-      const powerFactor = Math.min(1.20, Math.max(0.80, stats.batting_barrel_percent / 8.2));
-      baseRuns *= (0.90 + 0.10 * powerFactor); // Power contributes only 10% to scoring
+      // Team offensive quality based on xwOBA (expected weighted on-base average)
+      const teamOffenseQuality = stats.batting_xwoba / 0.315; // vs league average
+      
+      // Team power based on barrel percentage and hard hit rate
+      const teamPower = (stats.batting_barrel_percent / 8.2) * 0.6 + 
+                       (stats.batting_hard_hit_percent / 42.0) * 0.4;
+      
+      // Adjust base runs by team quality (cap adjustments to prevent extreme values)
+      const offenseAdjustment = Math.min(1.20, Math.max(0.80, teamOffenseQuality));
+      const powerAdjustment = Math.min(1.10, Math.max(0.90, teamPower));
+      
+      baseRuns = baseRuns * offenseAdjustment * powerAdjustment;
     }
 
-    // Home field advantage - more realistic
+    // Home field advantage
     if (isHome) {
-      baseRuns *= 1.02; // 2% home advantage (more realistic)
+      baseRuns *= 1.025; // Slight 2.5% home advantage
     }
 
-    // Weather and ballpark effects - reduce impact
-    const parkAdjustment = Math.min(1.15, Math.max(0.85, ballpark.runFactor / 100));
+    // Ballpark environment effects
+    const parkAdjustment = Math.min(1.12, Math.max(0.88, ballpark.runFactor / 100));
     baseRuns *= parkAdjustment;
     
-    // Weather has minimal impact on total runs
-    baseRuns += weather.totalRunsImpact * 0.15; // Only 15% weather impact
+    // Weather has minimal impact
+    baseRuns += weather.totalRunsImpact * 0.1;
 
-    // Realistic bounds for team runs
-    return Math.max(3.2, Math.min(5.8, baseRuns));
+    // Keep team runs within realistic MLB range
+    return Math.max(3.0, Math.min(6.0, baseRuns));
   }
 
   /**
