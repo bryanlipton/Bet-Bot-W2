@@ -11,11 +11,6 @@ const features = [
   "Real-time odds monitoring across 15+ sportsbooks", 
   "Advanced baseball analytics with Statcast metrics",
   "Live umpire data integration and impact analysis",
-  "Weather-adjusted predictions for outdoor games",
-  "Continuous model training from actual game results",
-  "Professional betting articles and strategy guides",
-  "Edge calculation algorithms for value betting",
-  "Historical performance tracking and ROI analysis",
   "Premium chat access to BET BOT Sports Genie AI"
 ];
 
