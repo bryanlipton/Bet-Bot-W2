@@ -171,7 +171,7 @@ export default function DailyPick() {
             <BetBotIcon className="w-12 h-12" />
             <div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                Bet Bot Sports Genie AI Picks
+                Bet Bot Pick of the Day
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Free daily moneyline pick
