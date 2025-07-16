@@ -33,6 +33,7 @@ interface GameCardProps {
   };
   isDailyPick?: boolean;
   dailyPickTeam?: string;
+  dailyPickGrade?: string;
   onClick?: () => void;
 }
 
@@ -51,6 +52,7 @@ export function ActionStyleGameCard({
   probablePitchers,
   isDailyPick = false,
   dailyPickTeam,
+  dailyPickGrade,
   onClick
 }: GameCardProps) {
   const formatOdds = (odds: number) => {
@@ -129,10 +131,10 @@ export function ActionStyleGameCard({
                   <img 
                     src={betbotLogo} 
                     alt="Bet Bot Pick" 
-                    className="w-4 h-4 object-contain"
+                    className="w-6 h-6 object-contain"
                   />
                   <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    Bot Pick
+                    {dailyPickGrade || "C+"}
                   </span>
                 </div>
               ) : (
@@ -169,10 +171,10 @@ export function ActionStyleGameCard({
                   <img 
                     src={betbotLogo} 
                     alt="Bet Bot Pick" 
-                    className="w-4 h-4 object-contain"
+                    className="w-6 h-6 object-contain"
                   />
                   <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    Bot Pick
+                    {dailyPickGrade || "C+"}
                   </span>
                 </div>
               ) : (

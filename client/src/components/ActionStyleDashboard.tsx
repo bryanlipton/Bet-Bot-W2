@@ -327,6 +327,7 @@ export function ActionStyleDashboard() {
                   probablePitchers={game.probablePitchers}
                   isDailyPick={isGameDailyPick(game)}
                   dailyPickTeam={dailyPick?.pickTeam}
+                  dailyPickGrade={dailyPick?.grade}
                   onClick={() => {
                     setSelectedGame(game);
                     setIsModalOpen(true);
