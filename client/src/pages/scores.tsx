@@ -426,10 +426,11 @@ export default function ScoresPage() {
 function ScoreGameCard({ game }: { game: ScoreGame }) {
   const getStatusBadge = (status: string) => {
     const lowerStatus = status.toLowerCase();
-    if (lowerStatus.includes('live') || lowerStatus.includes('progress') || game.inning) {
-      return <Badge className="bg-green-600 text-white">Live</Badge>;
-    } else if (lowerStatus.includes('final')) {
+    // Check for final status first (including special final statuses)
+    if (lowerStatus.includes('final') || lowerStatus.includes('completed') || lowerStatus.includes('game over')) {
       return <Badge className="bg-blue-600 text-white">Final</Badge>;
+    } else if (lowerStatus.includes('live') || lowerStatus.includes('progress') || lowerStatus.includes('in progress') || game.inning) {
+      return <Badge className="bg-green-600 text-white">Live</Badge>;
     } else {
       return <Badge className="bg-gray-600 text-white">Scheduled</Badge>;
     }
