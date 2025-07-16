@@ -28,7 +28,7 @@ export function LoginButton() {
           // For now, show a message that authentication is being set up
           alert('Authentication system is being set up. Please check back soon!');
         }}
-        className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300"
+        className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
       >
         <LogIn className="w-4 h-4" />
         Login
@@ -39,7 +39,7 @@ export function LoginButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300">
+        <Button variant="outline" className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
           <Avatar className="w-6 h-6">
             <AvatarImage src={user?.profileImageUrl} alt={user?.firstName || 'User'} />
             <AvatarFallback>
