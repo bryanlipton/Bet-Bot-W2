@@ -90,13 +90,17 @@ export class OverUnderPredictor {
     marketTotal?: number
   ): Promise<OverUnderPrediction> {
     try {
-      console.log(`Generating over/under prediction for ${awayTeam} @ ${homeTeam}`);
+      console.log(`🎯 Generating realistic over/under prediction for ${awayTeam} @ ${homeTeam}`);
+      console.log(`📊 Using real data from: Baseball Savant API, Weather API, MLB Ballpark factors`);
 
       // Get all data sources in parallel
       const [statcastData, weather] = await Promise.all([
         this.getStatcastData(),
         weatherService.getGameTimeWeather(homeTeam, gameTime)
       ]);
+
+      console.log(`✅ Retrieved Statcast data for ${statcastData.length} teams from Baseball Savant`);
+      console.log(`✅ Weather data: ${weather ? 'Real weather from API' : 'Using neutral conditions'}`);
 
       // Calculate prediction factors
       const factors = await this.calculatePredictionFactors(
@@ -111,6 +115,7 @@ export class OverUnderPredictor {
 
       // Predict total runs
       const predictedTotal = this.calculatePredictedTotal(factors);
+      console.log(`📈 Predicted total: ${predictedTotal.toFixed(1)} runs (realistic MLB range: 7.0-11.5)`);
       
       // Calculate probabilities
       const probabilities = this.calculateProbabilities(predictedTotal, marketTotal);
@@ -206,19 +211,18 @@ export class OverUnderPredictor {
   private calculatePredictedTotal(factors: PredictionFactors): number {
     let total = factors.teamOffense.homeTeamRuns + factors.teamOffense.awayTeamRuns;
 
-    // Apply ballpark factor
-    total *= (factors.ballpark.parkFactor / 100);
-
-    // Apply weather impact
-    total += factors.weather.totalRunsImpact;
+    // Don't double-apply ballpark factor (already applied to team runs)
+    
+    // Apply minimal weather impact on total
+    total += factors.weather.totalRunsImpact * 0.1;
 
     // Apply situational factors
     if (factors.situational.dayGame) {
-      total *= 1.02; // Day games typically have slightly higher scoring
+      total *= 1.01; // Minimal day game impact
     }
 
-    // Ensure reasonable bounds
-    return Math.max(5.0, Math.min(15.0, total));
+    // Realistic MLB game totals (2024 season: avg 8.96 runs per game)
+    return Math.max(7.0, Math.min(11.5, total));
   }
 
   /**
@@ -308,29 +312,33 @@ export class OverUnderPredictor {
     ballpark: { runFactor: number; hrFactor: number },
     weather: WeatherImpact
   ): number {
-    // Base runs per game (league average ~4.7)
-    let baseRuns = 4.7;
+    // Base runs per game (2024 MLB average ~4.28)
+    let baseRuns = 4.28;
 
     if (stats) {
-      // Adjust based on team's xwOBA (league average ~0.320)
-      const xwobaFactor = stats.batting_xwoba / 0.320;
+      // Adjust based on team's xwOBA (league average ~0.315) - more conservative
+      const xwobaFactor = Math.min(1.25, Math.max(0.75, stats.batting_xwoba / 0.315));
       baseRuns *= xwobaFactor;
 
-      // Factor in power (barrel percentage)
-      const powerFactor = stats.batting_barrel_percent / 8.5; // League average
-      baseRuns *= (0.85 + 0.15 * powerFactor); // Power contributes 15% to scoring
+      // Factor in power (barrel percentage) - reduce impact
+      const powerFactor = Math.min(1.20, Math.max(0.80, stats.batting_barrel_percent / 8.2));
+      baseRuns *= (0.90 + 0.10 * powerFactor); // Power contributes only 10% to scoring
     }
 
-    // Home field advantage
+    // Home field advantage - more realistic
     if (isHome) {
-      baseRuns *= 1.04; // 4% home advantage
+      baseRuns *= 1.02; // 2% home advantage (more realistic)
     }
 
-    // Weather and ballpark effects
-    baseRuns *= (ballpark.runFactor / 100);
-    baseRuns += weather.totalRunsImpact * 0.5; // 50% weather impact on team runs
+    // Weather and ballpark effects - reduce impact
+    const parkAdjustment = Math.min(1.15, Math.max(0.85, ballpark.runFactor / 100));
+    baseRuns *= parkAdjustment;
+    
+    // Weather has minimal impact on total runs
+    baseRuns += weather.totalRunsImpact * 0.15; // Only 15% weather impact
 
-    return Math.max(2.0, Math.min(8.0, baseRuns));
+    // Realistic bounds for team runs
+    return Math.max(3.2, Math.min(5.8, baseRuns));
   }
 
   /**
