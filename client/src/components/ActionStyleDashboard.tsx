@@ -250,7 +250,7 @@ export function ActionStyleDashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Live Games - {sports.find(s => s.key === selectedSport)?.name}
+              Game Odds - {sports.find(s => s.key === selectedSport)?.name}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Showing {featuredGames.length} upcoming games
