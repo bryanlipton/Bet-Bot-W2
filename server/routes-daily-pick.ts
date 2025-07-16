@@ -13,11 +13,12 @@ export function registerDailyPickRoutes(app: Express) {
         const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
         const games = await gamesResponse.json();
         
-        // Filter for today's games with odds
-        const today = new Date().toISOString().split('T')[0];
+        // Filter for upcoming games with odds (today or next few days)
+        const today = new Date();
         const todaysGames = games.filter((game: any) => {
-          const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
-          return gameDate === today && game.hasOdds;
+          const gameDate = new Date(game.commence_time);
+          const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds; // Games within next 3 days
         });
 
         if (todaysGames.length > 0) {
@@ -42,11 +43,12 @@ export function registerDailyPickRoutes(app: Express) {
       const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
       const games = await gamesResponse.json();
       
-      // Filter for today's games with odds
-      const today = new Date().toISOString().split('T')[0];
+      // Filter for upcoming games with odds (today or next few days)
+      const today = new Date();
       const todaysGames = games.filter((game: any) => {
-        const gameDate = new Date(game.commence_time).toISOString().split('T')[0];
-        return gameDate >= today && game.hasOdds;
+        const gameDate = new Date(game.commence_time);
+        const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds; // Games within next 3 days
       });
 
       if (todaysGames.length === 0) {

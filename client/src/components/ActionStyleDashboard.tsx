@@ -223,18 +223,17 @@ export function ActionStyleDashboard() {
         </div>
       </div>
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+      {/* Pick of the Day Section - Always visible above sports */}
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">Today's Best Bets</h1>
-            <p className="text-blue-100">AI-powered predictions with real-time odds analysis</p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold">87%</div>
-            <div className="text-sm text-blue-100">Win Rate</div>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Pick of the Day
+          </h2>
+          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
+            Free Users
+          </Badge>
         </div>
+        <DailyPick />
       </div>
 
       {/* Sports Navigation */}
@@ -312,21 +311,6 @@ export function ActionStyleDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Daily Pick Section - Show only for MLB */}
-      {selectedSport === 'baseball_mlb' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Free Pick of the Day
-            </h2>
-            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
-              Free Users
-            </Badge>
-          </div>
-          <DailyPick />
-        </div>
-      )}
 
       {/* Featured Games */}
       <div>
