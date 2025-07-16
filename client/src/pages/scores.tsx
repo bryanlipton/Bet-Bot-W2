@@ -241,7 +241,7 @@ export default function ScoresPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         

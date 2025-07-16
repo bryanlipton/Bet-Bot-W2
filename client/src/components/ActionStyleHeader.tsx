@@ -51,10 +51,10 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
           {/* Right Side Actions */}
           <div className="flex items-start gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onToggleDarkMode}
-              className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800"
+              className="bg-white hover:bg-gray-50 border-gray-300 text-gray-700 hover:text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
