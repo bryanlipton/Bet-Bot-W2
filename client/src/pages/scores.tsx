@@ -449,6 +449,11 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
 
+  // Determine winner/loser for finished games
+  const awayWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore > game.homeScore;
+  const homeWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.homeScore > game.awayScore;
+  const isTied = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore === game.homeScore;
+
   return (
     <Card className="bg-white dark:bg-gray-800">
       <CardContent className="p-6">
@@ -461,12 +466,20 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   className="w-4 h-4 rounded-full shadow-sm" 
                   style={{ backgroundColor: getTeamColor(game.awayTeam) }}
                 />
-                <span className="font-medium text-gray-900 dark:text-white">
+                <span className={`font-medium ${
+                  isFinished && homeWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
                   {game.awayTeam}
                 </span>
               </div>
               {isFinished && game.awayScore !== undefined && (
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className={`text-2xl font-bold ${
+                  homeWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
                   {game.awayScore}
                 </span>
               )}
@@ -479,12 +492,20 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   className="w-4 h-4 rounded-full shadow-sm" 
                   style={{ backgroundColor: getTeamColor(game.homeTeam) }}
                 />
-                <span className="font-medium text-gray-900 dark:text-white">
+                <span className={`font-medium ${
+                  isFinished && awayWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
                   {game.homeTeam}
                 </span>
               </div>
               {isFinished && game.homeScore !== undefined && (
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                <span className={`text-2xl font-bold ${
+                  awayWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
                   {game.homeScore}
                 </span>
               )}
