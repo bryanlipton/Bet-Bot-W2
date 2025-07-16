@@ -105,9 +105,11 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
                 <div className="space-y-1">
                   <p className="font-medium text-gray-900 dark:text-white text-sm">Get Pro Access</p>
                   <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-0.5">
-                    <li>- Full access to BET BOT and expert game picks</li>
-                    <li>- News Articles</li>
-                    <li>- Raffles for pro users</li>
+                    <li>-Full access to BET BOT</li>
+                    <li>-All genie expert game picks</li>
+                    <li>-Daily News Articles</li>
+                    <li>-Raffles for pro users</li>
+                    <li>-Data analytics of your picks and ROI strategies</li>
                   </ul>
                 </div>
               </TooltipContent>
