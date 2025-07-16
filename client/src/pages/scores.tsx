@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,15 +20,6 @@ interface ScoreGame {
 }
 
 export default function ScoresPage() {
-  const [location] = useLocation();
-
-  // Navigation tabs
-  const navigationTabs = [
-    { path: "/", name: "Odds", active: location === "/" },
-    { path: "/scores", name: "Scores", active: location === "/scores" },
-    { path: "/my-picks", name: "My Picks", active: location === "/my-picks" },
-  ];
-
   // Fetch scores data (you can extend this to use real API)
   const { data: scoresData, isLoading } = useQuery({
     queryKey: ['/api/mlb/scores'],
@@ -98,59 +88,27 @@ export default function ScoresPage() {
   const scores = scoresData || mockScores;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Top Navigation Bar */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Scores
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Live scores and game results
-            </p>
-          </div>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Today's Games */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            Today's Games
+          </h2>
+          <Badge variant="outline" className="ml-auto">
+            MLB
+          </Badge>
         </div>
-        
-        {/* Navigation Tabs */}
-        <div className="flex items-center px-6">
-          {navigationTabs.map((tab) => (
-            <Link key={tab.path} href={tab.path}>
-              <button
-                className={`py-3 px-6 font-medium text-sm border-b-2 transition-colors ${
-                  tab.active
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                }`}
-              >
-                {tab.name}
-              </button>
-            </Link>
-          ))}
-        </div>
-      </div>
 
-      <div className="px-6 space-y-6">
-        {/* Today's Games */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Today's Games
-            </h2>
-            <Badge variant="outline" className="ml-auto">
-              MLB
-            </Badge>
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="text-gray-600 dark:text-gray-400">Loading scores...</div>
           </div>
-
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="text-gray-600 dark:text-gray-400">Loading scores...</div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {scores.map((game) => (
-                <Card key={game.id} className="hover:shadow-lg transition-shadow">
+        ) : (
+          <div className="space-y-4">
+            {scores.map((game) => (
+              <Card key={game.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -204,22 +162,21 @@ export default function ScoresPage() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
-              ))}
-              
-              {scores.length === 0 && (
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No games scheduled for today
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </div>
+              </Card>
+            ))}
+            
+            {scores.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No games scheduled for today
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
