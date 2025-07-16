@@ -96,10 +96,12 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
-                  <Zap className="w-4 h-4 mr-1" />
-                  Get Pro
-                </Button>
+                <Link href="/get-pro">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
+                    <Zap className="w-4 h-4 mr-1" />
+                    Get Pro
+                  </Button>
+                </Link>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-xs p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <div className="space-y-1">
