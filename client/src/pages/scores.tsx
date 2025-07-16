@@ -490,7 +490,7 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
               )}
             </div>
             
-            {/* Live scores for ongoing games */}
+            {/* Live scores for ongoing games only */}
             {!isFinished && (game.awayScore !== undefined || game.homeScore !== undefined) && (
               <div className="space-y-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                 {/* Current Score */}
@@ -510,7 +510,7 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   </div>
                 </div>
                 
-                {/* Live Game Details */}
+                {/* Live Game Details - only for truly live games */}
                 {game.liveDetails && (
                   <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
                     {game.liveDetails.currentInning && (
