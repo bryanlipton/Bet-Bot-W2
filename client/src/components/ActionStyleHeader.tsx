@@ -118,7 +118,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
             <div className="flex flex-col items-center">
               <LoginButton />
               <span 
-                className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300 mt-1"
+                className="text-xs text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-100 mt-1"
                 onClick={() => {
                   alert('Authentication system is being set up. Please check back soon!');
                 }}
