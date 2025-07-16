@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Moon, Sun, BarChart3, TrendingUp, Zap } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
@@ -20,6 +21,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
   ];
 
   return (
+    <TooltipProvider>
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between h-16 px-4">
@@ -27,11 +29,28 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
             <div className="flex items-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <img 
-                    src={betbotLogo} 
-                    alt="BetBot Logo" 
-                    className="w-14 h-14 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
-                  />
+                  <div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <img 
+                          src={betbotLogo} 
+                          alt="BetBot Logo" 
+                          className="w-14 h-14 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="bottom" 
+                        className="max-w-xs p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg"
+                      >
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-white">Tired of guessing?</h4>
+                          <p className="text-sm text-blue-100 leading-relaxed">
+                            Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
+                          </p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </PopoverTrigger>
                 <PopoverContent 
                   side="bottom" 
@@ -95,5 +114,6 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
         </div>
       </div>
     </header>
+    </TooltipProvider>
   );
 }
