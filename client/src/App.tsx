@@ -9,6 +9,7 @@ import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks";
 import ScoresPage from "@/pages/scores";
 import GetPro from "@/pages/GetPro";
+import Subscribe from "@/pages/Subscribe";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/my-picks" component={MyPicksPage} />
       <Route path="/scores" component={ScoresPage} />
       <Route path="/get-pro" component={GetPro} />
+      <Route path="/subscribe" component={Subscribe} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -11,12 +11,14 @@ import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // Users (Updated for Google OAuth)
+  // Users (Updated for Google OAuth and Stripe)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
+  updateUserSubscriptionStatus(userId: string, status: string, plan: string, endsAt?: Date): Promise<User>;
 
   // Games
   getGame(id: number): Promise<Game | undefined>;
@@ -261,6 +263,62 @@ export class MemStorage implements IStorage {
     return Array.from(this.modelMetrics.values())
       .find(metrics => metrics.sportKey === sportKey);
   }
+
+  // Stripe subscription stub methods for MemStorage
+  async updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    
+    const updated = { ...user, stripeCustomerId, stripeSubscriptionId, subscriptionStatus: 'active', subscriptionPlan: 'monthly' };
+    this.users.set(user.id, updated);
+    return updated;
+  }
+
+  async updateUserSubscriptionStatus(userId: string, status: string, plan: string, endsAt?: Date): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+    
+    const updated = { ...user, subscriptionStatus: status, subscriptionPlan: plan, subscriptionEndsAt: endsAt };
+    this.users.set(user.id, updated);
+    return updated;
+  }
+
+  // Baseball-specific stub methods for MemStorage
+  async createBaseballGame(game: InsertBaseballGame): Promise<BaseballGame> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async getBaseballGameByExternalId(externalId: string): Promise<BaseballGame | undefined> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async updateBaseballGameScore(id: number, homeScore: number, awayScore: number): Promise<void> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async createBaseballPlayerStats(stats: InsertBaseballPlayerStats): Promise<BaseballPlayerStats> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async getTeamPlayerStats(team: string, season: number): Promise<BaseballPlayerStats[]> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async createBaseballPrediction(prediction: InsertBaseballGamePrediction): Promise<BaseballGamePrediction> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async getLatestPredictionForGame(gameId: number): Promise<BaseballGamePrediction | undefined> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async createBaseballTrainingRecord(training: InsertBaseballModelTraining): Promise<BaseballModelTraining> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  async getLatestTrainingRecord(): Promise<BaseballModelTraining | undefined> {
+    throw new Error('Baseball methods not implemented in MemStorage');
+  }
 }
 
 // Database Storage Implementation
@@ -458,6 +516,34 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(baseballModelTraining.trainedAt))
       .limit(1);
     return training || undefined;
+  }
+
+  // Stripe subscription methods
+  async updateUserStripeInfo(userId: string, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        stripeCustomerId,
+        stripeSubscriptionId,
+        subscriptionStatus: 'active',
+        subscriptionPlan: 'monthly',
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateUserSubscriptionStatus(userId: string, status: string, plan: string, endsAt?: Date): Promise<User> {
+    const [user] = await db.update(users)
+      .set({
+        subscriptionStatus: status,
+        subscriptionPlan: plan,
+        subscriptionEndsAt: endsAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 }
 

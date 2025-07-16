@@ -21,6 +21,12 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
   googleId: text("google_id").unique(), // For backwards compatibility
+  // Stripe subscription fields
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  subscriptionStatus: text("subscription_status").default("inactive"), // active, inactive, canceled, past_due
+  subscriptionPlan: text("subscription_plan").default("free"), // free, monthly, annual
+  subscriptionEndsAt: timestamp("subscription_ends_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
