@@ -66,30 +66,16 @@ export default function ScoresPage() {
     if (!data) return [];
     
     return data.map((game: any) => {
-      // Handle MLB API format
-      if (game.gameId || game.id?.startsWith('mlb_')) {
-        return {
-          id: game.id || `mlb_${game.gameId}`,
-          homeTeam: game.homeTeam,
-          awayTeam: game.awayTeam,
-          homeScore: game.homeScore,
-          awayScore: game.awayScore,
-          status: game.status || 'Scheduled',
-          startTime: game.startTime || game.commence_time,
-          inning: game.inning,
-          sportKey: 'baseball_mlb'
-        };
-      }
-      
-      // Handle other sports API format
+      // Handle combined MLB API format (from complete-schedule endpoint)
       return {
-        id: game.id,
+        id: game.id || `mlb_${game.gameId}`,
         homeTeam: game.home_team || game.homeTeam,
         awayTeam: game.away_team || game.awayTeam,
         homeScore: game.home_score || game.homeScore,
         awayScore: game.away_score || game.awayScore,
         status: game.status || 'Scheduled',
         startTime: game.commence_time || game.startTime,
+        inning: game.inning,
         sportKey: selectedSport
       };
     });
