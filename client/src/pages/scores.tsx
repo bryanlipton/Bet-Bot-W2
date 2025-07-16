@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
-import { getTeamLogo } from "@/utils/teamLogos";
+import { getTeamAbbreviation } from "@/utils/teamLogos";
 import { 
   Calendar,
   Clock,
@@ -191,22 +191,11 @@ export default function ScoresPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                {getTeamLogo(game.awayTeam) ? (
-                                  <img 
-                                    src={getTeamLogo(game.awayTeam)!} 
-                                    alt={`${game.awayTeam} logo`}
-                                    className="w-8 h-8 object-contain"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                      {game.awayTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
+                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
+                                  <span className="text-xs font-bold text-white">
+                                    {getTeamAbbreviation(game.awayTeam)}
+                                  </span>
+                                </div>
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.awayTeam}
                                 </span>
@@ -219,22 +208,11 @@ export default function ScoresPage() {
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-3 min-w-[200px]">
-                                {getTeamLogo(game.homeTeam) ? (
-                                  <img 
-                                    src={getTeamLogo(game.homeTeam)!} 
-                                    alt={`${game.homeTeam} logo`}
-                                    className="w-8 h-8 object-contain"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                                      {game.homeTeam.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase()}
-                                    </span>
-                                  </div>
-                                )}
+                                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm">
+                                  <span className="text-xs font-bold text-white">
+                                    {getTeamAbbreviation(game.homeTeam)}
+                                  </span>
+                                </div>
                                 <span className="font-medium text-gray-900 dark:text-white">
                                   {game.homeTeam}
                                 </span>
