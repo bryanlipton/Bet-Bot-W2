@@ -548,10 +548,11 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
           
           <div className="text-right space-y-2 ml-6">
             {getStatusBadge(game.status)}
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {!isFinished && (game.inning || formatTime(game.startTime))}
-              {isFinished && formatTime(game.startTime)}
-            </div>
+            {!isFinished && (
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {game.inning || formatTime(game.startTime)}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
