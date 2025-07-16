@@ -9,6 +9,7 @@ import { insertGameSchema, insertChatMessageSchema, insertRecommendationSchema, 
 import { baseballAI } from "./services/baseballAI";
 import { registerGPTExportRoutes } from "./routes-gpt-export";
 import { registerDailyPickRoutes } from "./routes-daily-pick";
+import { registerScoresRoutes } from "./routes-scores";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { umpireService } from "./services/umpireService";
 import { continuousTrainingService } from "./services/continuousTrainingService";
@@ -902,6 +903,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register daily pick routes for free users
   registerDailyPickRoutes(app);
+
+  // Register scores routes for real-time scores data
+  registerScoresRoutes(app);
 
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');

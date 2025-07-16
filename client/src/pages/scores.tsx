@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   Calendar,
   Clock,
-  Trophy
+  Trophy,
+  RefreshCw
 } from "lucide-react";
 
 interface ScoreGame {
@@ -20,9 +23,11 @@ interface ScoreGame {
 }
 
 export default function ScoresPage() {
-  // Fetch scores data (you can extend this to use real API)
-  const { data: scoresData, isLoading } = useQuery({
-    queryKey: ['/api/mlb/scores'],
+  const [selectedSport, setSelectedSport] = useState("baseball_mlb");
+
+  // Fetch real scores data based on selected sport
+  const { data: scoresData, isLoading, refetch } = useQuery({
+    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/complete-schedule'] : ['/api/scores', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -49,46 +54,78 @@ export default function ScoresPage() {
     }
   };
 
-  // Mock scores data for demonstration
-  const mockScores: ScoreGame[] = [
-    {
-      id: "1",
-      homeTeam: "Chicago Cubs",
-      awayTeam: "Boston Red Sox",
-      homeScore: 4,
-      awayScore: 7,
-      status: "Final",
-      startTime: "2025-07-16T19:20:00Z",
-      inning: "9th",
-      sportKey: "baseball_mlb"
-    },
-    {
-      id: "2",
-      homeTeam: "New York Mets",
-      awayTeam: "Cincinnati Reds",
-      homeScore: 2,
-      awayScore: 1,
-      status: "Live",
-      startTime: "2025-07-16T23:10:00Z",
-      inning: "7th",
-      sportKey: "baseball_mlb"
-    },
-    {
-      id: "3",
-      homeTeam: "Miami Marlins",
-      awayTeam: "Kansas City Royals",
-      homeScore: 0,
-      awayScore: 0,
-      status: "Scheduled",
-      startTime: "2025-07-17T00:10:00Z",
-      sportKey: "baseball_mlb"
-    }
+  // Sport options matching the Odds tab
+  const sports = [
+    { key: "baseball_mlb", name: "MLB", active: selectedSport === "baseball_mlb" },
+    { key: "americanfootball_nfl", name: "NFL", active: selectedSport === "americanfootball_nfl" },
+    { key: "basketball_nba", name: "NBA", active: selectedSport === "basketball_nba" },
   ];
 
-  const scores = scoresData || mockScores;
+  // Convert API data to ScoreGame format
+  const processScoresData = (data: any[]): ScoreGame[] => {
+    if (!data) return [];
+    
+    return data.map((game: any) => {
+      // Handle MLB API format
+      if (game.gameId || game.id?.startsWith('mlb_')) {
+        return {
+          id: game.id || `mlb_${game.gameId}`,
+          homeTeam: game.homeTeam,
+          awayTeam: game.awayTeam,
+          homeScore: game.homeScore,
+          awayScore: game.awayScore,
+          status: game.status || 'Scheduled',
+          startTime: game.startTime || game.commence_time,
+          inning: game.inning,
+          sportKey: 'baseball_mlb'
+        };
+      }
+      
+      // Handle other sports API format
+      return {
+        id: game.id,
+        homeTeam: game.home_team || game.homeTeam,
+        awayTeam: game.away_team || game.awayTeam,
+        homeScore: game.home_score || game.homeScore,
+        awayScore: game.away_score || game.awayScore,
+        status: game.status || 'Scheduled',
+        startTime: game.commence_time || game.startTime,
+        sportKey: selectedSport
+      };
+    });
+  };
+
+  const scores = processScoresData(scoresData);
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Sport Selection */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          {sports.map((sport) => (
+            <Button
+              key={sport.key}
+              variant={sport.active ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedSport(sport.key)}
+              className={sport.active ? "bg-blue-600 text-white" : ""}
+            >
+              {sport.name}
+            </Button>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isLoading}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
+
       {/* Today's Games */}
       <div>
         <div className="flex items-center gap-2 mb-4">
@@ -97,7 +134,7 @@ export default function ScoresPage() {
             Today's Games
           </h2>
           <Badge variant="outline" className="ml-auto">
-            MLB
+            {sports.find(s => s.key === selectedSport)?.name}
           </Badge>
         </div>
 
