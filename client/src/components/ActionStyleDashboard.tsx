@@ -224,6 +224,18 @@ export function ActionStyleDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/my-picks">
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              My Picks
+            </Button>
+          </Link>
+          <Link href="/articles">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Newspaper className="w-4 h-4" />
+              Articles
+            </Button>
+          </Link>
           <Badge className="bg-green-600 text-white px-4 py-2 text-sm">
             Live Data Feed
           </Badge>
@@ -258,65 +270,6 @@ export function ActionStyleDashboard() {
             {sport.name}
           </button>
         ))}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">+$2,847</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">This Month</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">73%</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Hit Rate</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">24</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Active Bets</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">8</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">High Value</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Featured Games */}
