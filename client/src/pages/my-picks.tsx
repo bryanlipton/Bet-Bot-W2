@@ -4,23 +4,25 @@ import {
   TrendingUp, 
   Target, 
   BarChart3,
-  Zap,
-  ArrowLeft
+  Zap
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function MyPicksPage() {
+  const [location] = useLocation();
+
+  // Navigation tabs
+  const navigationTabs = [
+    { path: "/", name: "Odds", active: location === "/" },
+    { path: "/scores", name: "Scores", active: location === "/scores" },
+    { path: "/my-picks", name: "My Picks", active: location === "/my-picks" },
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Navigation Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Dashboard
-            </button>
-          </Link>
+    <div className="max-w-7xl mx-auto">
+      {/* Top Navigation Bar */}
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex items-center justify-between px-6 py-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               My Picks
@@ -30,12 +32,26 @@ export default function MyPicksPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Badge className="bg-blue-600 text-white px-4 py-2 text-sm">
-            Performance Tracking
-          </Badge>
+        
+        {/* Navigation Tabs */}
+        <div className="flex items-center px-6">
+          {navigationTabs.map((tab) => (
+            <Link key={tab.path} href={tab.path}>
+              <button
+                className={`py-3 px-6 font-medium text-sm border-b-2 transition-colors ${
+                  tab.active
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                }`}
+              >
+                {tab.name}
+              </button>
+            </Link>
+          ))}
         </div>
       </div>
+
+      <div className="px-6 space-y-6">
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -121,6 +137,7 @@ export default function MyPicksPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );
