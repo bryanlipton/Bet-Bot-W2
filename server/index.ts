@@ -262,7 +262,7 @@ app.post('/api/gpt/matchup', async (req, res) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // Start daily article generation scheduler
-    dailyScheduler.start();
+    // Start daily article generation scheduler (DISABLED)
+    // dailyScheduler.start();
   });
 })();
