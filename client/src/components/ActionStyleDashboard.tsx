@@ -93,8 +93,15 @@ export function ActionStyleDashboard() {
     
     console.log(`Processing ${oddsData.length} games from API`);
     
+    // Filter out games that have already started
+    const now = new Date();
+    const upcomingGames = oddsData.filter(game => {
+      const gameTime = new Date(game.commence_time);
+      return gameTime > now; // Only show games that haven't started yet
+    });
+    
     // Sort games by commence time (chronological order)
-    const sortedGames = [...oddsData].sort((a, b) => 
+    const sortedGames = [...upcomingGames].sort((a, b) => 
       new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime()
     );
     
@@ -320,10 +327,10 @@ export function ActionStyleDashboard() {
               Live Games - {sports.find(s => s.key === selectedSport)?.name}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Showing {featuredGames.length} games with available betting data
+              Showing {featuredGames.length} upcoming games
               {featuredGames.length < 10 && (
                 <span className="ml-1">
-                  • Additional games may not have betting lines posted yet
+                  • Some games may not have betting lines posted yet • Started games automatically removed
                 </span>
               )}
             </p>
@@ -363,7 +370,7 @@ export function ActionStyleDashboard() {
         ) : featuredGames.length > 0 ? (
           <div className="space-y-4">
             <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-              Showing {featuredGames.length} games in chronological order
+              Showing {featuredGames.length} upcoming games in chronological order • Started games automatically removed
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {featuredGames.map((game) => (
