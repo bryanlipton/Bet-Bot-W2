@@ -137,6 +137,8 @@ export function ActionStyleGameCard({
                     {dailyPickGrade || "C+"}
                   </span>
                 </div>
+              ) : isDailyPick ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">
                   <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -177,6 +179,8 @@ export function ActionStyleGameCard({
                     {dailyPickGrade || "C+"}
                   </span>
                 </div>
+              ) : isDailyPick ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">
                   <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
