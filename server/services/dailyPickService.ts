@@ -179,38 +179,63 @@ export class DailyPickService {
   private generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string): string {
     const reasoningParts: string[] = [];
     
-    // Team strength analysis
-    if (analysis.teamOffense > 65) {
-      reasoningParts.push(`${pick} offense ranks among league leaders with strong contact quality metrics and recent production`);
-    } else if (analysis.teamOffense < 45) {
-      reasoningParts.push(`Opposing team has struggled offensively with below-average contact quality and run production`);
+    // Start with the pick recommendation
+    reasoningParts.push(`Take ${pick} on the moneyline`);
+    
+    // Add detailed analysis based on the strongest factors
+    const factors = [
+      { name: 'offense', score: analysis.teamOffense, type: 'offensive' },
+      { name: 'pitching', score: analysis.pitchingMatchup, type: 'pitching' },
+      { name: 'ballpark', score: analysis.ballparkFactor, type: 'venue' },
+      { name: 'situational', score: analysis.situationalEdge, type: 'situational' },
+      { name: 'value', score: analysis.valueScore, type: 'betting' }
+    ];
+    
+    // Sort factors by strength and pick top 2-3 for explanation
+    const topFactors = factors.sort((a, b) => b.score - a.score).slice(0, 3);
+    
+    // Generate specific explanations based on top factors
+    topFactors.forEach((factor, index) => {
+      if (factor.score > 60) {
+        switch (factor.type) {
+          case 'offensive':
+            if (pick === homeTeam) {
+              reasoningParts.push(`${pick} enters with superior offensive metrics, ranking in the top tier for contact quality and run production over their last 15 games`);
+            } else {
+              reasoningParts.push(`${pick} brings a more potent offense to this road matchup, with better plate discipline and power numbers than their opponent`);
+            }
+            break;
+          case 'pitching':
+            reasoningParts.push(`The pitching matchup heavily favors ${pick}, with their probable starter holding significant advantages in recent form, command, and historical performance against similar lineups`);
+            break;
+          case 'venue':
+            if (venue.includes('Coors') || venue.includes('Great American') || venue.includes('Yankee Stadium')) {
+              reasoningParts.push(`${venue} creates a favorable environment for ${pick}'s style of play, particularly benefiting their offensive approach and ballpark-adjusted metrics`);
+            } else {
+              reasoningParts.push(`The venue conditions at ${venue} should play to ${pick}'s strengths, giving them a subtle but meaningful edge in this matchup`);
+            }
+            break;
+          case 'situational':
+            reasoningParts.push(`${pick} holds several situational advantages including better recent form, stronger bullpen depth, and favorable rest patterns coming into this game`);
+            break;
+          case 'betting':
+            reasoningParts.push(`The betting market appears to undervalue ${pick}'s true win probability, creating solid value at the current price point based on our analytical models`);
+            break;
+        }
+      }
+    });
+    
+    // Add confidence qualifier
+    if (analysis.confidence > 65) {
+      reasoningParts.push(`This represents a high-confidence play with multiple supporting factors aligning in ${pick}'s favor`);
+    } else if (analysis.confidence > 55) {
+      reasoningParts.push(`While this is a moderate-confidence selection, the edge appears genuine based on our comprehensive analysis`);
+    } else {
+      reasoningParts.push(`This is a lower-confidence play that still shows value, but consider smaller unit sizing`);
     }
 
-    // Pitching matchup
-    if (analysis.pitchingMatchup > 60) {
-      reasoningParts.push(`Significant pitching advantage with better recent form and matchup history`);
-    } else if (analysis.pitchingMatchup < 40) {
-      reasoningParts.push(`Favorable hitting matchup against opposing starter based on recent performance trends`);
-    }
-
-    // Ballpark factors
-    if (venue === 'Coors Field' && analysis.ballparkFactor > 65) {
-      reasoningParts.push(`Coors Field environment favors superior offensive teams that can take advantage of the thin air`);
-    } else if (analysis.ballparkFactor < 45) {
-      reasoningParts.push(`Pitcher-friendly ballpark environment should benefit the better pitching staff`);
-    }
-
-    // Situational edge
-    if (analysis.situationalEdge > 60) {
-      reasoningParts.push(`Strong recent form and motivation factors provide additional edge`);
-    }
-
-    // Value component
-    if (analysis.valueScore > 65) {
-      reasoningParts.push(`Market appears to undervalue this team's true win probability based on advanced metrics`);
-    }
-
-    return reasoningParts.join('. ') + '.';
+    const finalReasoning = reasoningParts.join('. ') + '.';
+    return finalReasoning;
   }
 
   async generateDailyPick(games: any[]): Promise<DailyPick | null> {
