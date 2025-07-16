@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { 
   Calendar,
   Clock,
@@ -24,6 +25,23 @@ interface ScoreGame {
 
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    document.documentElement.classList.toggle('dark', newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+  };
 
   // Fetch real scores data based on selected sport
   const { data: scoresData, isLoading, refetch } = useQuery({
@@ -112,7 +130,9 @@ export default function ScoresPage() {
   const scores = processScoresData(scoresData);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
       {/* Sport Selection */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -234,6 +254,7 @@ export default function ScoresPage() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

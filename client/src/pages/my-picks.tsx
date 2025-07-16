@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { 
   TrendingUp, 
   Target, 
@@ -8,8 +10,28 @@ import {
 } from "lucide-react";
 
 export default function MyPicksPage() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    document.documentElement.classList.toggle('dark', newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+  };
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -95,6 +117,7 @@ export default function MyPicksPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );
