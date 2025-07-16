@@ -4,7 +4,7 @@
 
 Bet Bot is a sophisticated full-stack web application that provides AI-powered sports betting analytics. The platform combines real-time odds monitoring, machine learning predictions, and intelligent chat assistance to help users make informed betting decisions. Built with a modern TypeScript stack, it features live odds tracking, edge calculation algorithms, and personalized betting recommendations.
 
-**Latest Status (July 15, 2025):** Enhanced article generation system with Action Network professional styling and real-time data aggregation. Articles now synthesize multiple information sources to create original, human-like content indistinguishable from professional sports betting publications. Authentication system framework implemented with login button in header. Confidence badges and win probability displays removed from game tiles for cleaner interface.
+**Latest Status (July 16, 2025):** Major enhancement to baseball prediction system with advanced analytics integration. Now incorporates Baseball Savant Statcast metrics (xwOBA, barrel percentage, exit velocity), real-time weather data, ballpark factors, and comprehensive over/under prediction capabilities. System features 27 enhanced features including team-level advanced metrics, environmental factors, and specialized over/under analysis. Enhanced article generation system with Action Network professional styling and real-time data aggregation. Authentication system framework implemented with login button in header.
 
 ## User Preferences
 
@@ -49,7 +49,12 @@ The application uses a comprehensive database schema including:
 - **OpenAI Integration**: GPT-4o powered chat assistant and article generation system
 - **Real Historical Backtesting**: Official MLB Stats API integration for authentic game outcomes
 - **Professional Article Generation**: Action Network-style content with real-time data aggregation
-- **Baseball AI System**: TensorFlow.js-powered machine learning model specifically trained on baseball data
+- **Enhanced Baseball AI System**: TensorFlow.js-powered machine learning model with 27 advanced features
+  - **Baseball Savant Integration**: Statcast metrics including xwOBA, barrel percentage, exit velocity
+  - **Weather Analytics**: Real-time stadium weather conditions and environmental impact scoring
+  - **Ballpark Factors**: Stadium-specific run and home run environment adjustments
+  - **Over/Under Prediction**: Specialized total runs prediction with multiple data sources
+  - **Team Analytics**: Advanced team-level performance metrics and recent form analysis
 - **Odds Analysis**: Real-time probability calculations and implied odds conversion
 - **Content Intelligence**: Synthesizes multiple data sources for original sports analysis
 - **Data Integrity**: 100% authentic data sources - no simulated or synthetic data

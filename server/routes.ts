@@ -393,6 +393,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced Over/Under prediction endpoint
+  app.post("/api/baseball/over-under", async (req, res) => {
+    try {
+      const { homeTeam, awayTeam, gameDate, marketTotal, homeStarterERA, awayStarterERA } = req.body;
+      
+      if (!homeTeam || !awayTeam || !gameDate) {
+        return res.status(400).json({ error: "homeTeam, awayTeam, and gameDate are required" });
+      }
+
+      const { overUnderPredictor } = await import('./services/overUnderPredictor');
+      const prediction = await overUnderPredictor.predictOverUnder(
+        homeTeam,
+        awayTeam,
+        new Date(gameDate),
+        homeStarterERA,
+        awayStarterERA,
+        marketTotal
+      );
+
+      res.json(prediction);
+    } catch (error) {
+      console.error('Error making over/under prediction:', error);
+      res.status(500).json({ error: "Failed to generate over/under prediction" });
+    }
+  });
+
+  // Advanced team analysis endpoint
+  app.get("/api/baseball/team-analysis/:team", async (req, res) => {
+    try {
+      const { team } = req.params;
+      const { baseballSavantService } = await import('./services/baseballSavantApi');
+      const { weatherService } = await import('./services/weatherService');
+      
+      // Get team's Statcast metrics
+      const teamMetrics = await baseballSavantService.getTeamStatcastMetrics();
+      
+      // Helper function to get team abbreviation
+      const getTeamAbbrev = (teamName: string): string => {
+        const abbrevMap: Record<string, string> = {
+          'New York Yankees': 'NYY', 'Boston Red Sox': 'BOS', 'Tampa Bay Rays': 'TB',
+          'Baltimore Orioles': 'BAL', 'Toronto Blue Jays': 'TOR', 'Houston Astros': 'HOU',
+          'Seattle Mariners': 'SEA', 'Los Angeles Angels': 'LAA', 'Oakland Athletics': 'OAK',
+          'Texas Rangers': 'TEX', 'Atlanta Braves': 'ATL', 'New York Mets': 'NYM',
+          'Philadelphia Phillies': 'PHI', 'Miami Marlins': 'MIA', 'Washington Nationals': 'WSH',
+          'Milwaukee Brewers': 'MIL', 'Chicago Cubs': 'CHC', 'Cincinnati Reds': 'CIN',
+          'Pittsburgh Pirates': 'PIT', 'St. Louis Cardinals': 'STL', 'Los Angeles Dodgers': 'LAD',
+          'San Diego Padres': 'SD', 'San Francisco Giants': 'SF', 'Colorado Rockies': 'COL',
+          'Arizona Diamondbacks': 'AZ', 'Chicago White Sox': 'CWS', 'Cleveland Guardians': 'CLE',
+          'Detroit Tigers': 'DET', 'Kansas City Royals': 'KC', 'Minnesota Twins': 'MIN'
+        };
+        return abbrevMap[teamName] || teamName.substring(0, 3).toUpperCase();
+      };
+      
+      const teamData = teamMetrics.find(t => t.team === team || t.team === getTeamAbbrev(team));
+      
+      // Get weather for team's home stadium
+      const homeWeather = await weatherService.getStadiumWeather(team);
+      
+      // Ballpark factors
+      const ballparkMap: Record<string, { runFactor: number; hrFactor: number }> = {
+        'Colorado Rockies': { runFactor: 128, hrFactor: 118 },
+        'Boston Red Sox': { runFactor: 104, hrFactor: 96 },
+        'New York Yankees': { runFactor: 103, hrFactor: 108 }
+        // Add more as needed
+      };
+      
+      res.json({
+        team,
+        statcastMetrics: teamData,
+        homeStadiumWeather: homeWeather,
+        ballparkFactors: ballparkMap[team] || { runFactor: 100, hrFactor: 100 }
+      });
+    } catch (error) {
+      console.error('Error fetching team analysis:', error);
+      res.status(500).json({ error: "Failed to fetch team analysis" });
+    }
+  });
+
   app.get("/api/baseball/model-info", async (req, res) => {
     try {
       const modelInfo = await baseballAI.getModelInfo();
