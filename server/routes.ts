@@ -758,6 +758,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced betting recommendations endpoint
+  app.post('/api/baseball/betting-recommendations', async (req, res) => {
+    try {
+      const { homeTeam, awayTeam, gameDate, probablePitchers, bookmakers } = req.body;
+      
+      if (!homeTeam || !awayTeam || !gameDate) {
+        return res.status(400).json({ error: 'homeTeam, awayTeam, and gameDate are required' });
+      }
+
+      // Get AI prediction
+      const predictionResponse = await fetch(`${req.protocol}://${req.get('host')}/api/baseball/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ homeTeam, awayTeam, gameDate, probablePitchers })
+      });
+
+      if (!predictionResponse.ok) {
+        throw new Error('Failed to get AI prediction');
+      }
+
+      const prediction = await predictionResponse.json();
+      
+      // Import and use betting recommendation engine
+      const { BettingRecommendationEngine } = await import('./services/bettingRecommendationEngine.js');
+      const engine = new BettingRecommendationEngine();
+      
+      const recommendations = engine.generateRecommendations(
+        prediction,
+        bookmakers || [],
+        homeTeam,
+        awayTeam
+      );
+
+      res.json({
+        gameInfo: {
+          homeTeam,
+          awayTeam,
+          gameDate,
+          probablePitchers
+        },
+        aiPrediction: prediction,
+        recommendations,
+        summary: {
+          totalRecommendations: recommendations.length,
+          gradeAPlusCount: recommendations.filter(r => r.grade === 'A+').length,
+          gradeACount: recommendations.filter(r => r.grade.startsWith('A')).length,
+          averageEdge: recommendations.length > 0 ? recommendations.reduce((sum, r) => sum + r.edge, 0) / recommendations.length : 0,
+          bestBet: recommendations[0] || null
+        }
+      });
+
+    } catch (error) {
+      console.error('Error generating betting recommendations:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate betting recommendations',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Register GPT export routes for real-time Custom GPT integration
   registerGPTExportRoutes(app);
 
