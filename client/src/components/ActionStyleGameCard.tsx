@@ -103,10 +103,10 @@ export function ActionStyleGameCard({
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(awayTeam) }}
               />
-              <div>
+              <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
                 {isDailyPick && dailyPickTeam === awayTeam && (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1">
                     <img 
                       src={betbotLogo} 
                       alt="Bet Bot Pick" 
@@ -138,10 +138,10 @@ export function ActionStyleGameCard({
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(homeTeam) }}
               />
-              <div>
+              <div className="flex items-center gap-2">
                 <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
                 {isDailyPick && dailyPickTeam === homeTeam && (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1">
                     <img 
                       src={betbotLogo} 
                       alt="Bet Bot Pick" 
