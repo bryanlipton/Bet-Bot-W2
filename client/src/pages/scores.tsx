@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,9 @@ import {
   Calendar,
   Clock,
   Trophy,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface ScoreGame {
@@ -25,9 +27,40 @@ interface ScoreGame {
   sportKey: string;
 }
 
+// Helper function to get Eastern Time date
+const getEasternDate = (date: Date = new Date()) => {
+  const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
+  return easternTime.toDateString();
+};
+
+// Helper function to format date for display
+const formatDateDisplay = (date: Date) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const dateStr = date.toDateString();
+  const todayStr = getEasternDate();
+  const yesterdayStr = getEasternDate(yesterday);
+  const tomorrowStr = getEasternDate(tomorrow);
+
+  if (dateStr === todayStr) return "Today";
+  if (dateStr === yesterdayStr) return "Yesterday";
+  if (dateStr === tomorrowStr) return "Tomorrow";
+  
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric',
+    weekday: 'short'
+  });
+};
+
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -43,6 +76,23 @@ export default function ScoresPage() {
     setDarkMode(newDarkMode);
     document.documentElement.classList.toggle('dark', newDarkMode);
     localStorage.setItem('darkMode', newDarkMode.toString());
+  };
+
+  // Navigation functions
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
   };
 
   // Fetch real scores data based on selected sport
@@ -74,33 +124,59 @@ export default function ScoresPage() {
     }
   };
 
-  const formatGameDate = (timeString: string) => {
-    try {
-      const date = new Date(timeString);
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      
-      // Reset time for comparison
-      const gameDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
-      
-      if (gameDate.getTime() === todayDate.getTime()) {
-        return "Today";
-      } else if (gameDate.getTime() === tomorrowDate.getTime()) {
-        return "Tomorrow";
+  // Sort and filter games by selected date and status
+  const sortedGames = useMemo(() => {
+    if (!scoresData) return [];
+
+    const selectedDateStr = selectedDate.toDateString();
+    
+    // Filter games for selected date
+    const dayGames = scoresData.filter((game: any) => {
+      const gameDate = new Date(game.commence_time || game.startTime);
+      return gameDate.toDateString() === selectedDateStr;
+    });
+
+    // Convert to ScoreGame format
+    const processedGames: ScoreGame[] = dayGames.map((game: any) => ({
+      id: game.id || `mlb_${game.gameId}`,
+      homeTeam: game.home_team || game.homeTeam,
+      awayTeam: game.away_team || game.awayTeam,
+      homeScore: game.home_score || game.homeScore,
+      awayScore: game.away_score || game.awayScore,
+      status: game.status || 'Scheduled',
+      startTime: game.commence_time || game.startTime,
+      inning: game.inning,
+      sportKey: selectedSport
+    }));
+
+    // Categorize games
+    const liveGames: ScoreGame[] = [];
+    const upcomingGames: ScoreGame[] = [];
+    const finalGames: ScoreGame[] = [];
+
+    processedGames.forEach((game: ScoreGame) => {
+      const status = game.status.toLowerCase();
+      if (status.includes('live') || status.includes('progress') || game.inning) {
+        liveGames.push(game);
+      } else if (status === 'final' || status.includes('final')) {
+        finalGames.push(game);
       } else {
-        return date.toLocaleDateString([], { 
-          month: 'short', 
-          day: 'numeric',
-          year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
-        });
+        upcomingGames.push(game);
       }
-    } catch {
-      return timeString;
-    }
-  };
+    });
+
+    // Sort each category
+    // Live games: by time remaining (we'll use a simple time-based sort for now)
+    liveGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    
+    // Upcoming games: by start time (earliest first)
+    upcomingGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    
+    // Final games: by end time (oldest to most recent)
+    finalGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+    return [...liveGames, ...upcomingGames, ...finalGames];
+  }, [scoresData, selectedDate]);
 
   // Sport options matching the Odds tab
   const sports = [
@@ -109,170 +185,253 @@ export default function ScoresPage() {
     { key: "basketball_nba", name: "NBA", active: selectedSport === "basketball_nba" },
   ];
 
-
-
-  // Convert API data to ScoreGame format
-  const processScoresData = (data: any[]): ScoreGame[] => {
-    if (!data) return [];
-    
-    return data.map((game: any) => {
-      // Handle combined MLB API format (from complete-schedule endpoint)
-      return {
-        id: game.id || `mlb_${game.gameId}`,
-        homeTeam: game.home_team || game.homeTeam,
-        awayTeam: game.away_team || game.awayTeam,
-        homeScore: game.home_score || game.homeScore,
-        awayScore: game.away_score || game.awayScore,
-        status: game.status || 'Scheduled',
-        startTime: game.commence_time || game.startTime,
-        inning: game.inning,
-        sportKey: selectedSport
-      };
-    });
-  };
-
-  const scores = processScoresData(scoresData);
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Sport Selection */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          {sports.map((sport) => (
-            <Button
-              key={sport.key}
-              variant={sport.active ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedSport(sport.key)}
-              className={sport.active ? "bg-blue-600 text-white" : ""}
-            >
-              {sport.name}
-            </Button>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isLoading}
-          className="flex items-center gap-1"
-        >
-          <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Games */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Games & Scores
-          </h2>
-          <Badge variant="outline" className="ml-auto">
-            {sports.find(s => s.key === selectedSport)?.name}
-          </Badge>
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="text-gray-600 dark:text-gray-400">Loading scores...</div>
+        
+        {/* Header with Title */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Live Scores</h1>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {scores.map((game) => (
-              <Card key={game.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-3 min-w-[200px]">
-                                <div 
-                                  className="w-4 h-4 rounded-full shadow-sm" 
-                                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
-                                />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {game.awayTeam}
-                                </span>
-                              </div>
-                              {game.awayScore !== undefined && (
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                                  {game.awayScore}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-3 min-w-[200px]">
-                                <div 
-                                  className="w-4 h-4 rounded-full shadow-sm" 
-                                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
-                                />
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {game.homeTeam}
-                                </span>
-                              </div>
-                              {game.homeScore !== undefined && (
-                                <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                                  {game.homeScore}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="text-right space-y-2">
-                            {getStatusBadge(game.status)}
-                            <div className="flex flex-col items-end gap-1 text-sm text-gray-500 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {formatGameDate(game.startTime)}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {formatTime(game.startTime)}
-                              </div>
-                            </div>
-                            {game.inning && game.status.toLowerCase() === 'live' && (
-                              <div className="text-sm text-gray-600 dark:text-gray-300">
-                                {game.inning} Inning
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Winner indicator for final games */}
-                        {game.status.toLowerCase() === 'final' && game.homeScore !== undefined && game.awayScore !== undefined && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Trophy className="w-4 h-4 text-yellow-500" />
-                            <span className="text-gray-600 dark:text-gray-400">
-                              Winner: {game.homeScore > game.awayScore ? game.homeTeam : game.awayTeam}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-              </Card>
-            ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
+
+        {/* Date Navigation */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <Button
+            onClick={goToPreviousDay}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {formatDateDisplay(selectedDate)}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {selectedDate.toLocaleDateString('en-US', { 
+                  month: 'long', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })}
+              </div>
+            </div>
             
-            {scores.length === 0 && (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600 dark:text-gray-400">
-                    No games scheduled for today
-                  </p>
-                </CardContent>
-              </Card>
+            {selectedDate.toDateString() !== new Date().toDateString() && (
+              <Button
+                onClick={goToToday}
+                variant="outline"
+                size="sm"
+                className="text-blue-600 dark:text-blue-400"
+              >
+                Today
+              </Button>
             )}
           </div>
+
+          <Button
+            onClick={goToNextDay}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Sport Selection */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            {sports.map((sport) => (
+              <Button
+                key={sport.key}
+                variant={sport.active ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedSport(sport.key)}
+                className={sport.active ? "bg-blue-600 text-white" : ""}
+              >
+                {sport.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
         )}
-      </div>
+
+        {/* Empty State */}
+        {!isLoading && sortedGames.length === 0 && (
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Games Found</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              No games scheduled for {formatDateDisplay(selectedDate)} - {selectedSport === 'baseball_mlb' ? 'MLB' : selectedSport.replace('_', ' ').toUpperCase()}.
+            </p>
+          </div>
+        )}
+
+        {/* Game Sections by Status */}
+        <div className="space-y-6">
+          {/* Live Games Section */}
+          {sortedGames.filter(game => {
+            const status = game.status.toLowerCase();
+            return status.includes('live') || status.includes('progress') || game.inning;
+          }).length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                Live Games
+              </h2>
+              <div className="space-y-4">
+                {sortedGames.filter(game => {
+                  const status = game.status.toLowerCase();
+                  return status.includes('live') || status.includes('progress') || game.inning;
+                }).map((game) => (
+                  <ScoreGameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Games Section */}
+          {sortedGames.filter(game => {
+            const status = game.status.toLowerCase();
+            return !status.includes('live') && !status.includes('progress') && !game.inning && !status.includes('final');
+          }).length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-blue-500" />
+                Upcoming Games
+              </h2>
+              <div className="space-y-4">
+                {sortedGames.filter(game => {
+                  const status = game.status.toLowerCase();
+                  return !status.includes('live') && !status.includes('progress') && !game.inning && !status.includes('final');
+                }).map((game) => (
+                  <ScoreGameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Final Games Section */}
+          {sortedGames.filter(game => {
+            const status = game.status.toLowerCase();
+            return status.includes('final');
+          }).length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-blue-500" />
+                Final Games
+              </h2>
+              <div className="space-y-4">
+                {sortedGames.filter(game => {
+                  const status = game.status.toLowerCase();
+                  return status.includes('final');
+                }).map((game) => (
+                  <ScoreGameCard key={game.id} game={game} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <Footer />
     </div>
+  );
+}
+
+// Score Game Card Component
+function ScoreGameCard({ game }: { game: ScoreGame }) {
+  const getStatusBadge = (status: string) => {
+    const lowerStatus = status.toLowerCase();
+    if (lowerStatus.includes('live') || lowerStatus.includes('progress') || game.inning) {
+      return <Badge className="bg-green-600 text-white">Live</Badge>;
+    } else if (lowerStatus.includes('final')) {
+      return <Badge className="bg-blue-600 text-white">Final</Badge>;
+    } else {
+      return <Badge className="bg-gray-600 text-white">Scheduled</Badge>;
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return timeString;
+    }
+  };
+
+  return (
+    <Card className="bg-white dark:bg-gray-800">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 min-w-[200px]">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                />
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {game.awayTeam}
+                </span>
+              </div>
+              {game.awayScore !== undefined && (
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {game.awayScore}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 min-w-[200px]">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                />
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {game.homeTeam}
+                </span>
+              </div>
+              {game.homeScore !== undefined && (
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {game.homeScore}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="text-right space-y-2">
+            {getStatusBadge(game.status)}
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {game.inning || formatTime(game.startTime)}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
