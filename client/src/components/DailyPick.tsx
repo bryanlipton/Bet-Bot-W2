@@ -144,11 +144,16 @@ export default function DailyPick() {
 
   const formatGameTime = (gameTime: string) => {
     const date = new Date(gameTime);
-    return date.toLocaleTimeString('en-US', { 
+    const gameDate = date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    const time = date.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit',
       timeZoneName: 'short'
     });
+    return `${gameDate} at ${time}`;
   };
 
   const formatOdds = (odds: number) => {
