@@ -61,6 +61,7 @@ interface ProcessedGame {
 
 import { GameDetailsModal } from "./GameDetailsModal";
 import { ArticleModal } from "./ArticleModal";
+import DailyPick from "./DailyPick";
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
@@ -311,6 +312,21 @@ export function ActionStyleDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Daily Pick Section - Show only for MLB */}
+      {selectedSport === 'baseball_mlb' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Free Pick of the Day
+            </h2>
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
+              Free Users
+            </Badge>
+          </div>
+          <DailyPick />
+        </div>
+      )}
 
       {/* Featured Games */}
       <div>

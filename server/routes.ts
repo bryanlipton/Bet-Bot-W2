@@ -8,6 +8,7 @@ import { websocketService } from "./services/websocket";
 import { insertGameSchema, insertChatMessageSchema, insertRecommendationSchema, insertModelMetricsSchema } from "@shared/schema";
 import { baseballAI } from "./services/baseballAI";
 import { registerGPTExportRoutes } from "./routes-gpt-export";
+import { registerDailyPickRoutes } from "./routes-daily-pick";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { umpireService } from "./services/umpireService";
 import { continuousTrainingService } from "./services/continuousTrainingService";
@@ -898,6 +899,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register GPT export routes for real-time Custom GPT integration
   registerGPTExportRoutes(app);
+
+  // Register daily pick routes for free users
+  registerDailyPickRoutes(app);
 
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');
