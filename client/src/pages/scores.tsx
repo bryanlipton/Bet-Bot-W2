@@ -54,6 +54,34 @@ export default function ScoresPage() {
     }
   };
 
+  const formatGameDate = (timeString: string) => {
+    try {
+      const date = new Date(timeString);
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      
+      // Reset time for comparison
+      const gameDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+      
+      if (gameDate.getTime() === todayDate.getTime()) {
+        return "Today";
+      } else if (gameDate.getTime() === tomorrowDate.getTime()) {
+        return "Tomorrow";
+      } else {
+        return date.toLocaleDateString([], { 
+          month: 'short', 
+          day: 'numeric',
+          year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+        });
+      }
+    } catch {
+      return timeString;
+    }
+  };
+
   // Sport options matching the Odds tab
   const sports = [
     { key: "baseball_mlb", name: "MLB", active: selectedSport === "baseball_mlb" },
@@ -112,12 +140,12 @@ export default function ScoresPage() {
         </Button>
       </div>
 
-      {/* Today's Games */}
+      {/* Games */}
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Today's Games
+            Games & Scores
           </h2>
           <Badge variant="outline" className="ml-auto">
             {sports.find(s => s.key === selectedSport)?.name}
@@ -161,9 +189,15 @@ export default function ScoresPage() {
                           
                           <div className="text-right space-y-2">
                             {getStatusBadge(game.status)}
-                            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                              <Clock className="w-4 h-4" />
-                              {formatTime(game.startTime)}
+                            <div className="flex flex-col items-end gap-1 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {formatGameDate(game.startTime)}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {formatTime(game.startTime)}
+                              </div>
                             </div>
                             {game.inning && game.status.toLowerCase() === 'live' && (
                               <div className="text-sm text-gray-600 dark:text-gray-300">
