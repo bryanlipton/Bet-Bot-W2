@@ -210,10 +210,11 @@ export default function ScoresPage() {
 
     processedGames.forEach((game: ScoreGame) => {
       const status = game.status.toLowerCase();
-      if (status.includes('live') || status.includes('progress') || game.inning) {
-        liveGames.push(game);
-      } else if (status === 'final' || status.includes('final')) {
+      // Check for final games first (including special final statuses)
+      if (status.includes('final') || status.includes('completed') || status.includes('game over')) {
         finalGames.push(game);
+      } else if (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) {
+        liveGames.push(game);
       } else {
         upcomingGames.push(game);
       }
@@ -351,7 +352,8 @@ export default function ScoresPage() {
           {/* Live Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
-            return status.includes('live') || status.includes('progress') || game.inning;
+            return (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) && 
+                   !status.includes('final') && !status.includes('completed');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -361,7 +363,8 @@ export default function ScoresPage() {
               <div className="space-y-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
-                  return status.includes('live') || status.includes('progress') || game.inning;
+                  return (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) && 
+                         !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} />
                 ))}
@@ -372,7 +375,8 @@ export default function ScoresPage() {
           {/* Upcoming Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
-            return !status.includes('live') && !status.includes('progress') && !game.inning && !status.includes('final');
+            return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
+                   !game.inning && !status.includes('final') && !status.includes('completed');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -382,7 +386,8 @@ export default function ScoresPage() {
               <div className="space-y-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
-                  return !status.includes('live') && !status.includes('progress') && !game.inning && !status.includes('final');
+                  return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
+                         !game.inning && !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} />
                 ))}
@@ -393,7 +398,7 @@ export default function ScoresPage() {
           {/* Final Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
-            return status.includes('final');
+            return status.includes('final') || status.includes('completed') || status.includes('game over');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -403,7 +408,7 @@ export default function ScoresPage() {
               <div className="space-y-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
-                  return status.includes('final');
+                  return status.includes('final') || status.includes('completed') || status.includes('game over');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} />
                 ))}
@@ -439,7 +444,9 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
     }
   };
 
-  const isFinished = game.status.toLowerCase().includes('final');
+  const isFinished = game.status.toLowerCase().includes('final') || 
+                     game.status.toLowerCase().includes('completed') || 
+                     game.status.toLowerCase().includes('game over');
 
   return (
     <Card className="bg-white dark:bg-gray-800">
