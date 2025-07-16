@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
+import Footer from "@/components/Footer";
 import { 
   TrendingUp, 
   Target, 
@@ -119,6 +120,7 @@ export default function MyPicksPage() {
         </Card>
       </div>
       </div>
+      <Footer />
     </div>
   );
 }

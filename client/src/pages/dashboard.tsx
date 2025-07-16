@@ -8,6 +8,7 @@ import { BacktestResults } from "@/components/BacktestResults";
 import { LiveMLBGames } from "@/components/LiveMLBGames";
 import { PredictionChat } from "@/components/PredictionChat";
 import { GPTDownloader } from "@/components/GPTDownloader";
+import Footer from "@/components/Footer";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Dashboard() {
@@ -39,7 +40,10 @@ export default function Dashboard() {
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
       {activeTab === "action-dashboard" ? (
-        <ActionStyleDashboard />
+        <div className="min-h-screen flex flex-col">
+          <ActionStyleDashboard />
+          <Footer />
+        </div>
       ) : (
         <div className="flex h-[calc(100vh-64px)]">
           <ChatSidebar />
@@ -152,6 +156,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+          <Footer />
         </div>
       )}
     </div>

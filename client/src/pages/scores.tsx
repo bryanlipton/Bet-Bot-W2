@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
+import Footer from "@/components/Footer";
+import { getTeamLogo } from "@/utils/teamLogos";
 import { 
   Calendar,
   Clock,
@@ -107,6 +109,8 @@ export default function ScoresPage() {
     { key: "basketball_nba", name: "NBA", active: selectedSport === "basketball_nba" },
   ];
 
+
+
   // Convert API data to ScoreGame format
   const processScoresData = (data: any[]): ScoreGame[] => {
     if (!data) return [];
@@ -186,9 +190,21 @@ export default function ScoresPage() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="space-y-2">
                             <div className="flex items-center gap-4">
-                              <span className="font-medium text-gray-900 dark:text-white min-w-[180px]">
-                                {game.awayTeam}
-                              </span>
+                              <div className="flex items-center gap-3 min-w-[200px]">
+                                {getTeamLogo(game.awayTeam) && (
+                                  <img 
+                                    src={getTeamLogo(game.awayTeam)} 
+                                    alt={`${game.awayTeam} logo`}
+                                    className="w-8 h-8 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                )}
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  {game.awayTeam}
+                                </span>
+                              </div>
                               {game.awayScore !== undefined && (
                                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                   {game.awayScore}
@@ -196,9 +212,21 @@ export default function ScoresPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-4">
-                              <span className="font-medium text-gray-900 dark:text-white min-w-[180px]">
-                                {game.homeTeam}
-                              </span>
+                              <div className="flex items-center gap-3 min-w-[200px]">
+                                {getTeamLogo(game.homeTeam) && (
+                                  <img 
+                                    src={getTeamLogo(game.homeTeam)} 
+                                    alt={`${game.homeTeam} logo`}
+                                    className="w-8 h-8 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                )}
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  {game.homeTeam}
+                                </span>
+                              </div>
                               {game.homeScore !== undefined && (
                                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                                   {game.homeScore}
@@ -256,6 +284,7 @@ export default function ScoresPage() {
         )}
       </div>
       </div>
+      <Footer />
     </div>
   );
 }

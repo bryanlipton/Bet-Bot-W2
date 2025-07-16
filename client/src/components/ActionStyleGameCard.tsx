@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getTeamLogo } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users } from "lucide-react";
 
 interface GameCardProps {
@@ -93,10 +94,23 @@ export function ActionStyleGameCard({
           {/* Away Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {awayTeam.slice(0, 2).toUpperCase()}
-                </span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                {getTeamLogo(awayTeam) ? (
+                  <img 
+                    src={getTeamLogo(awayTeam)} 
+                    alt={`${awayTeam} logo`}
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                      {awayTeam.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
@@ -118,10 +132,23 @@ export function ActionStyleGameCard({
           {/* Home Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  {homeTeam.slice(0, 2).toUpperCase()}
-                </span>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                {getTeamLogo(homeTeam) ? (
+                  <img 
+                    src={getTeamLogo(homeTeam)} 
+                    alt={`${homeTeam} logo`}
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                      {homeTeam.slice(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
