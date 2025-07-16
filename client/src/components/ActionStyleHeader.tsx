@@ -27,7 +27,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
             <img 
               src={betbotLogo} 
               alt="BetBot Logo" 
-              className="w-10 h-10 object-contain"
+              className="w-12 h-12 object-contain"
             />
           </div>
 
