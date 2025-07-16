@@ -120,7 +120,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
               <span 
                 className="text-xs text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-100 mt-1"
                 onClick={() => {
-                  alert('Authentication system is being set up. Please check back soon!');
+                  window.location.href = '/api/login';
                 }}
               >
                 Log in for another free pick

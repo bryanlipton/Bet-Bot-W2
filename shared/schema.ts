@@ -15,11 +15,12 @@ export const sessions = pgTable(
 
 // User storage table for secure user management
 export const users = pgTable("users", {
-  id: text("id").primaryKey().notNull(), // Replit user ID
+  id: text("id").primaryKey().notNull(), // Replit user ID (sub claim)
   email: text("email").unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
+  googleId: text("google_id").unique(), // For backwards compatibility
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

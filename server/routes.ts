@@ -21,19 +21,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket server
   websocketService.initialize(httpServer);
 
-  // Setup authentication (commented out for now)
-  // await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
-    try {
-      // For now, return null to indicate no user is logged in
-      res.json(null);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Setup Replit authentication
+  await setupAuth(app);
 
   // Chat endpoints
   app.post("/api/chat", async (req, res) => {
