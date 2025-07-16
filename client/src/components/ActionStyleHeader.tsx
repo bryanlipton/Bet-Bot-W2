@@ -123,7 +123,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
                   alert('Authentication system is being set up. Please check back soon!');
                 }}
               >
-                Login for another free pick
+                Log in for another free pick
               </span>
             </div>
           </div>
