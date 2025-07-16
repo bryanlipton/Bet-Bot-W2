@@ -64,18 +64,16 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
               Get Pro
             </Button>
             
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-center gap-1">
               <LoginButton />
-              <Button 
-                variant="ghost" 
-                size="sm"
+              <span 
+                className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:text-blue-700 dark:hover:text-blue-300"
                 onClick={() => {
                   alert('Authentication system is being set up. Please check back soon!');
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 h-6 px-2"
               >
                 Login for another free pick
-              </Button>
+              </span>
             </div>
           </div>
         </div>
