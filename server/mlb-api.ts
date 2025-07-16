@@ -19,6 +19,7 @@ interface MLBGame {
         id: number;
         fullName: string;
       };
+      score?: number;
     };
     home: {
       team: {
@@ -29,10 +30,22 @@ interface MLBGame {
         id: number;
         fullName: string;
       };
+      score?: number;
     };
   };
   venue: {
     name: string;
+  };
+  linescore?: {
+    currentInning?: number;
+    inningState?: string;
+    teams?: {
+      home?: { runs?: number };
+      away?: { runs?: number };
+    };
+    balls?: number;
+    strikes?: number;
+    outs?: number;
   };
 }
 
@@ -80,6 +93,10 @@ export function registerMLBRoutes(app: Express) {
           away_team: game.teams.away.team.name,
           venue: game.venue.name,
           status: game.status.detailedState,
+          abstractGameState: game.status.abstractGameState,
+          homeScore: game.teams.home.score || game.linescore?.teams?.home?.runs,
+          awayScore: game.teams.away.score || game.linescore?.teams?.away?.runs,
+          linescore: game.linescore,
           probablePitchers: {
             home: game.teams.home.probablePitcher?.fullName || null,
             away: game.teams.away.probablePitcher?.fullName || null

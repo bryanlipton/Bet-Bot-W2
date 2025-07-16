@@ -25,6 +25,13 @@ interface ScoreGame {
   startTime: string;
   inning?: string;
   sportKey: string;
+  liveDetails?: {
+    currentInning?: number;
+    inningState?: string;
+    balls?: number;
+    strikes?: number;
+    outs?: number;
+  };
 }
 
 // Helper function to get Eastern Time date
@@ -137,17 +144,64 @@ export default function ScoresPage() {
     });
 
     // Convert to ScoreGame format
-    const processedGames: ScoreGame[] = dayGames.map((game: any) => ({
-      id: game.id || `mlb_${game.gameId}`,
-      homeTeam: game.home_team || game.homeTeam,
-      awayTeam: game.away_team || game.awayTeam,
-      homeScore: game.home_score || game.homeScore,
-      awayScore: game.away_score || game.awayScore,
-      status: game.status || 'Scheduled',
-      startTime: game.commence_time || game.startTime,
-      inning: game.inning,
-      sportKey: selectedSport
-    }));
+    const processedGames: ScoreGame[] = dayGames.map((game: any) => {
+      // Handle different score field names from different APIs
+      const homeScore = game.home_score ?? game.homeScore ?? game.scores?.home ?? 
+                       (game.linescore && game.linescore.teams?.home?.runs) ?? undefined;
+      const awayScore = game.away_score ?? game.awayScore ?? game.scores?.away ?? 
+                       (game.linescore && game.linescore.teams?.away?.runs) ?? undefined;
+      
+      // Enhanced status detection
+      let status = game.status || 'Scheduled';
+      if (game.status_type) status = game.status_type;
+      if (game.abstractGameState) status = game.abstractGameState;
+      if (game.detailedState) status = game.detailedState;
+      
+      // Enhanced inning information
+      let inning = game.inning;
+      if (game.linescore?.currentInning && game.linescore?.inningState) {
+        inning = `${game.linescore.inningState} ${game.linescore.currentInning}`;
+      }
+      
+      // Live game details for enhanced display
+      const liveDetails = game.linescore ? {
+        currentInning: game.linescore.currentInning,
+        inningState: game.linescore.inningState,
+        balls: game.linescore.balls,
+        strikes: game.linescore.strikes,
+        outs: game.linescore.outs
+      } : undefined;
+      
+      // Handle special cases for scores
+      let finalHomeScore = homeScore;
+      let finalAwayScore = awayScore;
+      
+      // For All-Star game or special events that show "Final: Tied" etc.
+      if (status.toLowerCase().includes('final') && status.toLowerCase().includes('tied')) {
+        // Try to extract actual scores from the status if available
+        const scoreMatch = status.match(/(\d+)-(\d+)/);
+        if (scoreMatch) {
+          finalAwayScore = parseInt(scoreMatch[1]);
+          finalHomeScore = parseInt(scoreMatch[2]);
+        } else {
+          // For tied games without explicit scores, show as tied
+          finalHomeScore = finalAwayScore = 0; // or could be undefined to show "Tied"
+        }
+      }
+      
+      return {
+        id: game.id || `mlb_${game.gameId}`,
+        homeTeam: game.home_team || game.homeTeam,
+        awayTeam: game.away_team || game.awayTeam,
+        homeScore: finalHomeScore,
+        awayScore: finalAwayScore,
+        status: status,
+        startTime: game.commence_time || game.startTime,
+        inning: inning,
+        sportKey: selectedSport,
+        liveDetails: liveDetails
+      };
+    });
 
     // Categorize games
     const liveGames: ScoreGame[] = [];
@@ -430,19 +484,55 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
             
             {/* Live scores for ongoing games */}
             {!isFinished && (game.awayScore !== undefined || game.homeScore !== undefined) && (
-              <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{game.awayTeam}</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {game.awayScore || 0}
+              <div className="space-y-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                {/* Current Score */}
+                <div className="flex items-center justify-center gap-4">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{game.awayTeam}</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {game.awayScore || 0}
+                    </div>
+                  </div>
+                  <div className="text-lg text-gray-400">-</div>
+                  <div className="text-center">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{game.homeTeam}</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {game.homeScore || 0}
+                    </div>
                   </div>
                 </div>
-                <div className="text-lg text-gray-400">-</div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{game.homeTeam}</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {game.homeScore || 0}
+                
+                {/* Live Game Details */}
+                {game.liveDetails && (
+                  <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+                    {game.liveDetails.currentInning && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Inning:</span>
+                        <span>{game.liveDetails.inningState} {game.liveDetails.currentInning}</span>
+                      </div>
+                    )}
+                    {game.liveDetails.outs !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Outs:</span>
+                        <span>{game.liveDetails.outs}</span>
+                      </div>
+                    )}
+                    {(game.liveDetails.balls !== undefined || game.liveDetails.strikes !== undefined) && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Count:</span>
+                        <span>{game.liveDetails.balls || 0}-{game.liveDetails.strikes || 0}</span>
+                      </div>
+                    )}
                   </div>
+                )}
+              </div>
+            )}
+            
+            {/* Special status for tied/special games */}
+            {isFinished && game.status.toLowerCase().includes('tied') && (game.homeScore === undefined || game.awayScore === undefined) && (
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  {game.status}
                 </div>
               </div>
             )}
