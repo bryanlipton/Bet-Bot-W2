@@ -54,12 +54,12 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
               variant="ghost"
               size="sm"
               onClick={onToggleDarkMode}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800"
             >
               {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
               <Zap className="w-4 h-4 mr-1" />
               Get Pro
             </Button>

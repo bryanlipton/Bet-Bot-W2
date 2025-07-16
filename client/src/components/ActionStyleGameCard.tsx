@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock } from "lucide-react";
-import betbotLogo from "@/assets/betbot-logo.png";
+import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface GameCardProps {
   homeTeam: string;
