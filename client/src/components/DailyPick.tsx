@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Info, TrendingUp, Target, MapPin, Clock, Users } from "lucide-react";
-import betbotLogo from "@/assets/betbot-logo.png";
+import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface DailyPickAnalysis {
   teamOffense: number;

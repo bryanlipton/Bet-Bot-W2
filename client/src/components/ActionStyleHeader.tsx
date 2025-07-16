@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, BarChart3, TrendingUp, Zap } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
-import betbotLogo from "@/assets/betbot-logo.png";
+import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface ActionStyleHeaderProps {
   darkMode: boolean;
