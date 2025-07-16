@@ -31,7 +31,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
                   <img 
                     src={betbotLogo} 
                     alt="BetBot Logo" 
-                    className="w-14 h-14 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                    className="w-14 h-14 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
                   />
                 </TooltipTrigger>
                 <TooltipContent 
