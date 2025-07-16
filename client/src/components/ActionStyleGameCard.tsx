@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTeamColor } from "@/utils/teamLogos";
-import { Clock, TrendingUp, TrendingDown, Users } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Users, Lock } from "lucide-react";
 import betbotLogo from "@/assets/betbot-logo.png";
 
 interface GameCardProps {
@@ -94,33 +94,26 @@ export function ActionStyleGameCard({
 
         </div>
 
+        {/* Header with Bet Bot Pick Column */}
+        <div className="grid grid-cols-4 gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="col-span-2">Teams</div>
+          <div className="text-center">Odds</div>
+          <div className="text-center">Bet Bot Pick</div>
+        </div>
+
         {/* Teams and Odds */}
         <div className="space-y-3">
           {/* Away Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-4 gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-3">
               <div 
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(awayTeam) }}
               />
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
-                {isDailyPick && dailyPickTeam === awayTeam && (
-                  <div className="flex items-center gap-1">
-                    <img 
-                      src={betbotLogo} 
-                      alt="Bet Bot Pick" 
-                      className="w-4 h-4 object-contain"
-                    />
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      Bot Pick
-                    </span>
-                  </div>
-                )}
-              </div>
+              <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
             </div>
             
-            <div className="text-right">
+            <div className="text-center">
               <div className="text-sm font-bold text-gray-900 dark:text-white">
                 {awayOdds ? formatOdds(awayOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
@@ -129,33 +122,38 @@ export function ActionStyleGameCard({
                 )}
               </div>
             </div>
+
+            <div className="text-center">
+              {isDailyPick && dailyPickTeam === awayTeam ? (
+                <div className="flex items-center justify-center gap-1">
+                  <img 
+                    src={betbotLogo} 
+                    alt="Bet Bot Pick" 
+                    className="w-4 h-4 object-contain"
+                  />
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    Bot Pick
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Home Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-4 gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-3">
               <div 
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(homeTeam) }}
               />
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
-                {isDailyPick && dailyPickTeam === homeTeam && (
-                  <div className="flex items-center gap-1">
-                    <img 
-                      src={betbotLogo} 
-                      alt="Bet Bot Pick" 
-                      className="w-4 h-4 object-contain"
-                    />
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      Bot Pick
-                    </span>
-                  </div>
-                )}
-              </div>
+              <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
             </div>
             
-            <div className="text-right">
+            <div className="text-center">
               <div className="text-sm font-bold text-gray-900 dark:text-white">
                 {homeOdds ? formatOdds(homeOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
@@ -163,6 +161,25 @@ export function ActionStyleGameCard({
                   </span>
                 )}
               </div>
+            </div>
+
+            <div className="text-center">
+              {isDailyPick && dailyPickTeam === homeTeam ? (
+                <div className="flex items-center justify-center gap-1">
+                  <img 
+                    src={betbotLogo} 
+                    alt="Bet Bot Pick" 
+                    className="w-4 h-4 object-contain"
+                  />
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                    Bot Pick
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                </div>
+              )}
             </div>
           </div>
         </div>
