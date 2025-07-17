@@ -115,7 +115,6 @@ function scoreToGrade(score: number): string {
 
 // Factor Score Component with Info
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
-
   return (
     <div className="flex items-center justify-between py-1">
       <div className="flex items-center gap-2">
@@ -353,15 +352,26 @@ export default function DailyPick() {
           {/* Left side - Team matchup and odds (scorebug) */}
           <div className="flex-1 space-y-1">
             <div className="flex items-center space-x-2">
-              <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
-                {matchup.topTeam}
-              </h4>
+              <div className="flex flex-col">
+                <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
+                  {matchup.topTeam}
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  P: {dailyPick.probablePitchers.away || 'TBD'}
+                </p>
+              </div>
               <span className="font-mono text-lg text-gray-700 dark:text-gray-300">
                 {formatOdds(dailyPick.odds, dailyPick.pickType)}
               </span>
             </div>
-            <div className="text-lg text-gray-600 dark:text-gray-400">
-              {matchup.separator} {matchup.bottomTeam}
+            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
+              <span>{matchup.separator}</span>
+              <div className="flex flex-col">
+                <span>{matchup.bottomTeam}</span>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  P: {dailyPick.probablePitchers.home || 'TBD'}
+                </p>
+              </div>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
@@ -383,12 +393,7 @@ export default function DailyPick() {
           </div>
         </div>
 
-        {dailyPick.probablePitchers.home && (
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <span>SP: {dailyPick.probablePitchers.away}</span>
-            <span>SP: {dailyPick.probablePitchers.home}</span>
-          </div>
-        )}
+
       </CardContent>
     </Card>
   );

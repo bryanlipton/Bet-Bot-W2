@@ -149,6 +149,16 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id, 
+      email: insertUser.email ?? null,
+      firstName: insertUser.firstName ?? null,
+      lastName: insertUser.lastName ?? null,
+      profileImageUrl: insertUser.profileImageUrl ?? null,
+      googleId: insertUser.googleId ?? null,
+      stripeCustomerId: insertUser.stripeCustomerId ?? null,
+      stripeSubscriptionId: insertUser.stripeSubscriptionId ?? null,
+      subscriptionStatus: insertUser.subscriptionStatus ?? null,
+      subscriptionPlan: insertUser.subscriptionPlan ?? null,
+      subscriptionEndsAt: insertUser.subscriptionEndsAt ?? null,
       createdAt: new Date(), 
       updatedAt: new Date() 
     };
@@ -308,7 +318,7 @@ export class MemStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error('User not found');
     
-    const updated = { ...user, subscriptionStatus: status, subscriptionPlan: plan, subscriptionEndsAt: endsAt };
+    const updated = { ...user, subscriptionStatus: status, subscriptionPlan: plan, subscriptionEndsAt: endsAt ?? null };
     this.users.set(user.id, updated);
     return updated;
   }
@@ -357,6 +367,13 @@ export class MemStorage implements IStorage {
       ...insertBet, 
       id, 
       status: insertBet.status || 'pending',
+      venue: insertBet.venue ?? null,
+      result: insertBet.result ?? null,
+      finalScore: insertBet.finalScore ?? null,
+      settledAt: insertBet.settledAt ?? null,
+      notes: insertBet.notes ?? null,
+      profitLoss: insertBet.profitLoss ?? "0.00",
+      placedAt: insertBet.placedAt ?? new Date(),
       createdAt: new Date(), 
       updatedAt: new Date() 
     };
@@ -523,8 +540,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOdds(insertOdds: InsertOdds): Promise<Odds> {
-    const [odds] = await db.insert(odds).values(insertOdds).returning();
-    return odds;
+    const [newOdds] = await db.insert(odds).values(insertOdds).returning();
+    return newOdds;
   }
 
   async getLatestOddsByGame(gameId: number): Promise<Odds[]> {
