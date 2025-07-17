@@ -357,30 +357,6 @@ export function ActionStyleGameCard({
             )}
           </div>
         </div>
-                  O/U {total}
-                </p>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
-                    className="text-xs px-1 py-1 h-6"
-                  >
-                    O
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
-                    className="text-xs px-1 py-1 h-6"
-                  >
-                    U
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Recommendation */}
         {recommendation && (
