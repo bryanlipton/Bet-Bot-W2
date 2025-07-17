@@ -415,12 +415,7 @@ export default function DailyPick() {
             <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <span>{matchup.separator}</span>
-                <div className="flex-1 min-w-0">
-                  <span className="block">{matchup.bottomTeam}</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
-                  </p>
-                </div>
+                <span className="block">{matchup.bottomTeam}</span>
               </div>
               <div className="flex-shrink-0 ml-4">
                 {dailyPick.pickType === 'moneyline' && (
@@ -435,6 +430,11 @@ export default function DailyPick() {
                 )}
               </div>
             </div>
+            <div className="ml-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+              </p>
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
             </p>
@@ -442,7 +442,7 @@ export default function DailyPick() {
 
           {/* Right side - Factor scores in 2 columns x 3 rows */}
           <div className="w-80">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3 mt-1">
               Analysis Factors
             </h5>
             
