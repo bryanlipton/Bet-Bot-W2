@@ -102,21 +102,29 @@ function scoreToGrade(score: number): string {
   return 'D';
 }
 
+// Unified Info Button Component with Dark Background
+function InfoButton({ info, title }: { info: string; title: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Info className="h-3 w-3 text-white" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3 text-xs" side="top">
+        <div className="font-medium mb-1">{title}</div>
+        <div>{info}</div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Factor Score Component with Info Button
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
   return (
     <div className="flex items-center justify-between py-1">
       <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-0 h-4 w-4">
-              <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-3 text-xs" side="top">
-            {info}
-          </PopoverContent>
-        </Popover>
+        <InfoButton info={info} title={title} />
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
       <div className="bg-orange-400 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
@@ -323,8 +331,8 @@ export default function LoggedInLockPick() {
             <GradeBadge grade={lockPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <Info className="w-4 h-4" />
+                <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
+                  <Info className="h-3 w-3 text-white" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Info, TrendingUp, Target, MapPin, Clock, Users } from "lucide-react";
@@ -100,26 +101,29 @@ function scoreToGrade(score: number): string {
   return 'D';
 }
 
+// Unified Info Button Component with Dark Background
+function InfoButton({ info, title }: { info: string; title: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Info className="h-3 w-3 text-white" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3 text-xs" side="top">
+        <div className="font-medium mb-1">{title}</div>
+        <div>{info}</div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Factor Score Component with Info
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
   return (
     <div className="flex items-center justify-between py-1">
       <div className="flex items-center gap-2">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-0 h-4 w-4">
-              <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{title}</DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {info}
-            </p>
-          </DialogContent>
-        </Dialog>
+        <InfoButton info={info} title={title} />
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
       <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
@@ -284,8 +288,8 @@ export default function DailyPick() {
             <GradeBadge grade={dailyPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-0 h-4 w-4">
-                  <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
+                  <Info className="h-3 w-3 text-white" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
