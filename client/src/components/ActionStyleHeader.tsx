@@ -119,14 +119,6 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
             
             <div className="flex flex-col items-center">
               <LoginButton />
-              <span 
-                className="text-xs text-blue-600 dark:text-blue-300 cursor-pointer hover:text-blue-700 dark:hover:text-blue-100 mt-1"
-                onClick={() => {
-                  window.location.href = '/api/login';
-                }}
-              >
-                Log in for another free pick
-              </span>
             </div>
           </div>
         </div>

@@ -309,7 +309,7 @@ export default function LoggedInLockPick() {
             <div className="text-center">
               <Lock className="w-12 h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
               <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">
-                Log in for another free pick
+                Premium Lock Pick
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Click here to access your exclusive lock pick
