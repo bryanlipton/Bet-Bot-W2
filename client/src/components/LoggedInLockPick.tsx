@@ -279,13 +279,17 @@ export default function LoggedInLockPick() {
       return {
         topTeam: homeTeam,
         bottomTeam: awayTeam,
-        separator: 'vs.'
+        separator: 'vs.',
+        topTeamPitcher: 'home',
+        bottomTeamPitcher: 'away'
       };
     } else {
       return {
         topTeam: awayTeam,
         bottomTeam: homeTeam,
-        separator: '@'
+        separator: '@',
+        topTeamPitcher: 'away',
+        bottomTeamPitcher: 'home'
       };
     }
   };
@@ -391,7 +395,7 @@ export default function LoggedInLockPick() {
                   {matchup.topTeam}
                 </h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
-                  P: {lockPick.probablePitchers.away || 'TBD'}
+                  P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
                 </p>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent ml-auto">
@@ -403,7 +407,7 @@ export default function LoggedInLockPick() {
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  P: {lockPick.probablePitchers.home || 'TBD'}
+                  P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
                 </p>
               </div>
             </div>

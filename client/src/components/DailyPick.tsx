@@ -255,13 +255,17 @@ export default function DailyPick() {
       return {
         topTeam: homeTeam,
         bottomTeam: awayTeam,
-        separator: 'vs.'
+        separator: 'vs.',
+        topTeamPitcher: 'home',
+        bottomTeamPitcher: 'away'
       };
     } else {
       return {
         topTeam: awayTeam,
         bottomTeam: homeTeam,
-        separator: '@'
+        separator: '@',
+        topTeamPitcher: 'away',
+        bottomTeamPitcher: 'home'
       };
     }
   };
@@ -348,7 +352,7 @@ export default function DailyPick() {
                   {matchup.topTeam}
                 </h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
-                  P: {dailyPick.probablePitchers.away || 'TBD'}
+                  P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
                 </p>
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent ml-auto">
@@ -360,7 +364,7 @@ export default function DailyPick() {
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  P: {dailyPick.probablePitchers.home || 'TBD'}
+                  P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
                 </p>
               </div>
             </div>
