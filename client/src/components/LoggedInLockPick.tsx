@@ -124,12 +124,12 @@ function InfoButton({ info, title }: { info: string; title: string }) {
 // Factor Score Component with Info Button
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <div className="flex items-center gap-1">
+    <div className="flex items-center py-1">
+      <div className="flex items-center gap-1 flex-1 min-w-0 pr-3">
         <InfoButton info={info} title={title} />
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{title}</span>
       </div>
-      <div className="bg-orange-400 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
+      <div className="bg-orange-400 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-auto">
         {score !== null ? score : 'NA'}
       </div>
     </div>
@@ -270,7 +270,7 @@ export default function LoggedInLockPick() {
       },
       {
         key: 'ballparkAdvantage',
-        title: 'Field Advantage',
+        title: 'Field Value',
         score: analysis.ballparkAdvantage,
         info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
       }
