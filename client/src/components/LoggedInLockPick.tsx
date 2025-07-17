@@ -84,9 +84,9 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
   const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'bg-orange-500';
-    if (grade.startsWith('B')) return 'bg-orange-500';
-    if (grade.startsWith('C')) return 'bg-orange-500';
+    if (grade.startsWith('A')) return 'bg-green-500';
+    if (grade.startsWith('B')) return 'bg-blue-500';
+    if (grade.startsWith('C')) return 'bg-yellow-500';
     if (grade.startsWith('D')) return 'bg-orange-500';
     return 'bg-red-500';
   };
