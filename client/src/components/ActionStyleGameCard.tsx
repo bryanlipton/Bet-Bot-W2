@@ -313,21 +313,6 @@ export function ActionStyleGameCard({
                       <Target className="w-3 h-3 mr-1" />
                       Pick
                     </Button>
-                    {spread !== undefined && spread !== null && ((isDailyPick && dailyPickTeam !== awayTeam) || (isAuthenticated && lockPickTeam !== awayTeam)) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          const isFavoredHome = spread < 0;
-                          const underdog = isFavoredHome ? awayTeam : homeTeam;
-                          const favoredSpread = Math.abs(spread);
-                          handleMakePick(e, 'spread', underdog, favoredSpread);
-                        }}
-                        className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
-                      >
-                        Fade
-                      </Button>
-                    )}
                   </div>
                 ) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
@@ -382,21 +367,6 @@ export function ActionStyleGameCard({
                       <Target className="w-3 h-3 mr-1" />
                       Pick
                     </Button>
-                    {spread !== undefined && spread !== null && ((isDailyPick && dailyPickTeam === awayTeam) || (isAuthenticated && lockPickTeam === awayTeam)) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          const isFavoredHome = spread < 0;
-                          const underdog = isFavoredHome ? awayTeam : homeTeam;
-                          const favoredSpread = Math.abs(spread);
-                          handleMakePick(e, 'spread', underdog, favoredSpread);
-                        }}
-                        className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
-                      >
-                        Fade
-                      </Button>
-                    )}
                   </div>
                 ) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
@@ -455,6 +425,14 @@ export function ActionStyleGameCard({
                         >
                           Pick
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                          className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                        >
+                          Fade
+                        </Button>
                       </div>
                     </div>
                   );
@@ -473,6 +451,14 @@ export function ActionStyleGameCard({
                     className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
                   >
                     Pick
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                  >
+                    Fade
                   </Button>
                 </div>
               </div>
