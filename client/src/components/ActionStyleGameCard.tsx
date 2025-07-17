@@ -381,17 +381,18 @@ export function ActionStyleGameCard({
 
         </div>
 
-        {/* Header with Bet Bot Pick Column */}
-        <div className="grid grid-cols-4 gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
+        {/* Header with Pick Column */}
+        <div className="grid grid-cols-5 gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
           <div className="col-span-2">Teams</div>
           <div className="text-center">Odds</div>
+          <div className="text-center">Pick</div>
           <div className="text-center">Bet Bot Pick</div>
         </div>
 
         {/* Teams and Odds */}
         <div className="space-y-3">
           {/* Away Team */}
-          <div className="grid grid-cols-4 gap-2 items-center">
+          <div className="grid grid-cols-5 gap-2 items-center">
             <div className="col-span-2 flex items-center gap-3">
               <div 
                 className="w-4 h-4 rounded-full shadow-sm" 
@@ -410,42 +411,39 @@ export function ActionStyleGameCard({
               </span>
             </div>
 
-            <div className="flex items-center justify-between pl-4">
-              <div className="flex items-center gap-2">
-                {isDailyPick && dailyPickTeam === awayTeam ? (
-                  <>
-                    <GradeBubble grade={dailyPickGrade || "C+"} />
-                    <InfoButton pickId={dailyPickId} pickType="daily" />
-                  </>
-                ) : isAuthenticated && lockPickTeam === awayTeam ? (
-                  <>
-                    <GradeBubble grade={lockPickGrade || "C+"} />
-                    <InfoButton pickId={lockPickId} pickType="lock" />
-                  </>
-                ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
-                  <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
-                ) : (
-                  <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                )}
-              </div>
-              <div className="ml-auto">
-                {awayOdds && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
-                    className="text-xs px-2 py-1 h-6"
-                  >
-                    <Target className="w-3 h-3 mr-1" />
-                    Pick
-                  </Button>
-                )}
-              </div>
+            <div className="flex items-center justify-center">
+              {awayOdds && (
+                <Button
+                  size="sm"
+                  onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
+                  className="text-xs px-3 py-1 h-7 bg-blue-600 hover:bg-blue-700 text-white border-0 font-semibold shadow-sm"
+                >
+                  Pick
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              {isDailyPick && dailyPickTeam === awayTeam ? (
+                <>
+                  <GradeBubble grade={dailyPickGrade || "C+"} />
+                  <InfoButton pickId={dailyPickId} pickType="daily" />
+                </>
+              ) : isAuthenticated && lockPickTeam === awayTeam ? (
+                <>
+                  <GradeBubble grade={lockPickGrade || "C+"} />
+                  <InfoButton pickId={lockPickId} pickType="lock" />
+                </>
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : (
+                <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              )}
             </div>
           </div>
 
           {/* Home Team */}
-          <div className="grid grid-cols-4 gap-2 items-center">
+          <div className="grid grid-cols-5 gap-2 items-center">
             <div className="col-span-2 flex items-center gap-3">
               <div 
                 className="w-4 h-4 rounded-full shadow-sm" 
@@ -464,37 +462,34 @@ export function ActionStyleGameCard({
               </span>
             </div>
 
-            <div className="flex items-center justify-between pl-4">
-              <div className="flex items-center gap-2">
-                {isDailyPick && dailyPickTeam === homeTeam ? (
-                  <>
-                    <GradeBubble grade={dailyPickGrade || "C+"} />
-                    <InfoButton pickId={dailyPickId} pickType="daily" />
-                  </>
-                ) : isAuthenticated && lockPickTeam === homeTeam ? (
-                  <>
-                    <GradeBubble grade={lockPickGrade || "C+"} />
-                    <InfoButton pickId={lockPickId} pickType="lock" />
-                  </>
-                ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
-                  <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
-                ) : (
-                  <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                )}
-              </div>
-              <div className="ml-auto">
-                {homeOdds && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
-                    className="text-xs px-2 py-1 h-6"
-                  >
-                    <Target className="w-3 h-3 mr-1" />
-                    Pick
-                  </Button>
-                )}
-              </div>
+            <div className="flex items-center justify-center">
+              {homeOdds && (
+                <Button
+                  size="sm"
+                  onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
+                  className="text-xs px-3 py-1 h-7 bg-blue-600 hover:bg-blue-700 text-white border-0 font-semibold shadow-sm"
+                >
+                  Pick
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center gap-2">
+              {isDailyPick && dailyPickTeam === homeTeam ? (
+                <>
+                  <GradeBubble grade={dailyPickGrade || "C+"} />
+                  <InfoButton pickId={dailyPickId} pickType="daily" />
+                </>
+              ) : isAuthenticated && lockPickTeam === homeTeam ? (
+                <>
+                  <GradeBubble grade={lockPickGrade || "C+"} />
+                  <InfoButton pickId={lockPickId} pickType="lock" />
+                </>
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : (
+                <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              )}
             </div>
           </div>
         </div>
@@ -520,17 +515,15 @@ export function ActionStyleGameCard({
                       <div className="flex gap-1">
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
-                          className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                          className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                         >
                           Pick
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
                           onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
-                          className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                          className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                         >
                           Fade
                         </Button>
@@ -547,17 +540,15 @@ export function ActionStyleGameCard({
                 <div className="flex gap-1">
                   <Button
                     size="sm"
-                    variant="outline"
                     disabled
-                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
                   >
                     Pick
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     disabled
-                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
                   >
                     Fade
                   </Button>
