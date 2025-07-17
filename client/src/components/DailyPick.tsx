@@ -349,9 +349,9 @@ export default function DailyPick() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* Team matchup and odds */}
-          <div className="space-y-1">
+        <div className="flex items-start justify-between space-x-6">
+          {/* Left side - Team matchup and odds (scorebug) */}
+          <div className="flex-1 space-y-1">
             <div className="flex items-center space-x-2">
               <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
                 {matchup.topTeam}
@@ -368,14 +368,14 @@ export default function DailyPick() {
             </p>
           </div>
 
-          {/* Factor scores in 3x2 grid */}
-          <div>
+          {/* Right side - Factor scores in 3 columns x 2 rows */}
+          <div className="w-80">
             <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">
               Analysis Factors
             </h5>
             
-            {/* 3x2 Grid of factor scores */}
-            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-2">
+            {/* 3 columns x 2 rows grid of factor scores */}
+            <div className="grid grid-cols-3 grid-rows-2 gap-x-3 gap-y-2">
               {factors.map(({ key, title, score, info }) => (
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
