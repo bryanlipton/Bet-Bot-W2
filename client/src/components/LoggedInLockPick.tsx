@@ -257,8 +257,8 @@ export default function LoggedInLockPick() {
 
   const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
   const sortedFactors = getSortedFactors(lockPick.analysis);
-  const topFactors = sortedFactors.slice(0, 3);
-  const additionalFactors = sortedFactors.slice(3);
+  const topFactors = sortedFactors.slice(0, 2);
+  const additionalFactors = sortedFactors.slice(2);
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
@@ -358,7 +358,7 @@ export default function LoggedInLockPick() {
               Factor Grades
             </h5>
             
-            {/* Top 3 factors */}
+            {/* Top 2 factors */}
             <div className="space-y-1">
               {topFactors.map(({ key, title, score }) => (
                 <FactorGrade key={key} title={title} score={score} />

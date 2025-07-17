@@ -246,8 +246,8 @@ export default function DailyPick() {
 
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
   const sortedFactors = getSortedFactors(dailyPick.analysis);
-  const topFactors = sortedFactors.slice(0, 3);
-  const additionalFactors = sortedFactors.slice(3);
+  const topFactors = sortedFactors.slice(0, 2);
+  const additionalFactors = sortedFactors.slice(2);
 
   return (
     <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
@@ -345,7 +345,7 @@ export default function DailyPick() {
               Factor Grades
             </h5>
             
-            {/* Top 3 factors */}
+            {/* Top 2 factors */}
             <div className="space-y-1">
               {topFactors.map(({ key, title, score }) => (
                 <FactorGrade key={key} title={title} score={score} />
