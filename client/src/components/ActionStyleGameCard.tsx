@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
@@ -78,8 +79,15 @@ function scoreToGrade(score: number): string {
 
 // Info Button Component for Bet Bot picks - opens detailed analysis dialog
 function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' | 'lock' }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   const { data: analysisData } = useQuery({
     queryKey: [`/api/daily-pick/${pickId}/analysis`],
+    enabled: !!pickId && !!pickType,
+  });
+
+  const { data: pickData } = useQuery({
+    queryKey: pickType === 'daily' ? ['/api/daily-pick'] : ['/api/daily-pick/lock'],
     enabled: !!pickId && !!pickType,
   });
 
@@ -119,7 +127,39 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return 'D';
   };
 
-  if (!pickId || !pickType || !analysisData) {
+  const calculateOverallGrade = () => {
+    if (!analysisData) return 'C+';
+    const scores = [
+      analysisData.bettingValue,
+      analysisData.fieldValue,
+      analysisData.pitchingEdge,
+      analysisData.recentForm,
+      analysisData.weatherImpact,
+      analysisData.offensiveEdge
+    ].filter(score => score > 0);
+    
+    if (scores.length === 0) return 'C+';
+    const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    return scoreToGrade(average);
+  };
+
+  const formatOdds = (odds: number) => {
+    return odds > 0 ? `+${odds}` : odds.toString();
+  };
+
+  const formatGameTime = (startTime: string) => {
+    const date = new Date(startTime);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    }) + ' at ' + date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  };
+
+  if (!pickId || !pickType) {
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -135,6 +175,22 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     );
   }
 
+  if (!analysisData || !pickData) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+            <Info className="h-3 w-3 text-black dark:text-white" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3 text-xs" side="top">
+          <div className="font-medium mb-1">Loading Analysis...</div>
+          <div>Loading pick analysis and details...</div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   const factors = [
     { key: 'bettingValue', score: analysisData.bettingValue },
     { key: 'fieldValue', score: analysisData.fieldValue },
@@ -145,28 +201,60 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   ];
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
-          <Info className="h-3 w-3 text-black dark:text-white" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4 text-xs" side="top">
-        <div className="font-medium mb-3">Analysis Factors</div>
-        <div className="space-y-3">
-          {factors.map(({ key, score }) => (
-            <div key={key} className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="font-medium">{getFactorTitle(key)}</span>
-                <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+    <>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+        onClick={() => setIsOpen(true)}
+      >
+        <Info className="h-3 w-3 text-black dark:text-white" />
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Pick Analysis: {calculateOverallGrade()} Grade</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Pick Details */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Pick Details</h3>
+              <div className="space-y-2 text-sm">
+                <p><span className="font-medium">Game:</span> {pickData.awayTeam} @ {pickData.homeTeam}</p>
+                <p><span className="font-medium">Pick:</span> {pickData.pickTeam} ML {formatOdds(pickData.odds)}</p>
+                <p><span className="font-medium">Venue:</span> {pickData.venue}</p>
+                <p><span className="font-medium">Time:</span> {formatGameTime(pickData.gameTime)}</p>
               </div>
-              <Progress value={score} className="h-1" />
-              <p className="text-xs text-gray-500 dark:text-gray-400">{getFactorInfo(key)}</p>
             </div>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+
+            {/* Reasoning */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Reasoning</h3>
+              <p className="text-sm leading-relaxed">{analysisData.reasoning || "Analysis reasoning not available."}</p>
+            </div>
+
+            {/* Analysis Factors */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Analysis Factors</h3>
+              <div className="space-y-4">
+                {factors.map(({ key, score }) => (
+                  <div key={key} className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{getFactorTitle(key)}</span>
+                      <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                    </div>
+                    <Progress value={score || 0} className="h-2" />
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{getFactorInfo(key)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
