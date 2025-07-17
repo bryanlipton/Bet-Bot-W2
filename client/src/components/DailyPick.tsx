@@ -116,19 +116,17 @@ function scoreToGrade(score: number): string {
 // Factor Score Component with Info
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
   const getScoreColor = (score: number) => {
-    if (score >= 95) return 'text-green-600 dark:text-green-400';
-    if (score >= 87) return 'text-green-500 dark:text-green-300';
-    if (score >= 80) return 'text-blue-600 dark:text-blue-400';
-    if (score >= 77) return 'text-blue-500 dark:text-blue-300';
-    if (score >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    if (score >= 67) return 'text-orange-600 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
   return (
-    <div className="flex items-center justify-between text-xs">
-      <div className="flex items-center gap-1">
-        <span className="text-gray-600 dark:text-gray-400 font-medium">{title}</span>
+    <div className="flex items-center justify-between py-2">
+      <div className="flex items-center gap-1 flex-1">
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -145,7 +143,9 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
           </DialogContent>
         </Dialog>
       </div>
-      <span className={`font-bold ${getScoreColor(score)}`}>{score}</span>
+      <div className={`${getScoreColor(score)} text-white text-xs font-bold px-2 py-1 rounded-full min-w-[32px] text-center`}>
+        {score}
+      </div>
     </div>
   );
 }
@@ -384,7 +384,7 @@ export default function DailyPick() {
             </h5>
             
             {/* 3x2 Grid of factor scores */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {factors.map(({ key, title, score, info }) => (
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
