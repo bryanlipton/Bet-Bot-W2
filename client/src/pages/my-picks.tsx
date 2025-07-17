@@ -205,6 +205,10 @@ export default function MyPicksPage() {
         return;
       }
 
+      // Find the selected option to get the proper selection name
+      const selectedOption = getBettingOptions().find(opt => opt.value === manualEntry.selection);
+      const actualSelection = selectedOption ? selectedOption.selection : manualEntry.selection;
+
       const pick: Pick = {
         id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         timestamp: new Date().toISOString(),
@@ -217,7 +221,7 @@ export default function MyPicksPage() {
         },
         betInfo: {
           market: manualEntry.market,
-          selection: manualEntry.selection,
+          selection: actualSelection,
           line: manualEntry.line ? parseFloat(manualEntry.line) : undefined,
           odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0
         },
@@ -309,16 +313,18 @@ export default function MyPicksPage() {
     
     const options = [];
     
-    // Moneyline options
+    // Moneyline options - Use unique values to avoid conflicts
     options.push({
-      value: selectedGame.away_team,
+      value: `${selectedGame.away_team}_moneyline`,
       label: `${selectedGame.away_team} Moneyline`,
-      market: 'moneyline'
+      market: 'moneyline',
+      selection: selectedGame.away_team
     });
     options.push({
-      value: selectedGame.home_team,
+      value: `${selectedGame.home_team}_moneyline`,
       label: `${selectedGame.home_team} Moneyline`, 
-      market: 'moneyline'
+      market: 'moneyline',
+      selection: selectedGame.home_team
     });
     
     // Extract spread and total from bookmaker data
@@ -335,10 +341,11 @@ export default function MyPicksPage() {
           if (point !== undefined && point !== null) {
             const sign = point > 0 ? '+' : '';
             options.push({
-              value: outcome.name,
+              value: `${outcome.name}_spread_${point}`,
               label: `${outcome.name} ${sign}${point}`,
               market: 'spread',
-              line: point
+              line: point,
+              selection: outcome.name
             });
           }
         });
@@ -351,10 +358,11 @@ export default function MyPicksPage() {
           const point = outcome.point;
           if (point !== undefined && point !== null) {
             options.push({
-              value: outcome.name,
+              value: `${outcome.name}_total_${point}`,
               label: `${outcome.name} ${point}`,
               market: 'total',
-              line: point
+              line: point,
+              selection: outcome.name
             });
           }
         });
@@ -371,10 +379,14 @@ export default function MyPicksPage() {
       return;
     }
 
+    // Find the selected option to get the proper selection name
+    const selectedOption = getBettingOptions().find(opt => opt.value === manualEntry.selection);
+    const actualSelection = selectedOption ? selectedOption.selection : manualEntry.selection;
+
     const newLeg = {
       gameId: selectedGame.id,
       market: manualEntry.market,
-      selection: manualEntry.selection,
+      selection: actualSelection,
       line: manualEntry.line,
       odds: manualEntry.odds,
       game: selectedGame
@@ -768,7 +780,7 @@ export default function MyPicksPage() {
                     <Select value={manualEntry.selection} onValueChange={(value) => {
                       const option = getBettingOptions().find(opt => opt.value === value);
                       if (option) {
-                        handleManualEntryChange('selection', value);
+                        handleManualEntryChange('selection', value); // Store the unique value
                         handleManualEntryChange('market', option.market);
                         handleManualEntryChange('line', option.line?.toString() || '');
                       }
@@ -883,7 +895,7 @@ export default function MyPicksPage() {
                     <Select value={manualEntry.selection} onValueChange={(value) => {
                       const option = getBettingOptions().find(opt => opt.value === value);
                       if (option) {
-                        handleManualEntryChange('selection', value);
+                        handleManualEntryChange('selection', value); // Store the unique value
                         handleManualEntryChange('market', option.market);
                         handleManualEntryChange('line', option.line?.toString() || '');
                       }
