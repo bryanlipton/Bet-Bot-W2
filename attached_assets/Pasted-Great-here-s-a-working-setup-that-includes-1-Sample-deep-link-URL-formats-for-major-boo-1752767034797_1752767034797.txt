@@ -1,0 +1,95 @@
+Great — here's a working setup that includes:
+
+1. ✅ **Sample deep link URL formats** for major books
+2. ✅ **Helper logic** to map event/bet info to a usable link
+3. ✅ Notes on how to expand this with affiliate tags
+
+---
+
+## 🧩 1. Sample Deep Link URL Patterns (by Book)
+
+| Sportsbook     | Deep Link Format                                                                              | Notes                                   |
+| -------------- | --------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **DraftKings** | `https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event={event_id}` | Most structured, accepts `event_id`     |
+| **FanDuel**    | `https://www.fanduel.com/sportsbook/mlb/{team}-{team}/{date}`                                 | Game-specific, use slugs and date       |
+| **Caesars**    | `https://www.caesars.com/sportsbook`                                                          | No deep link support, just use homepage |
+| **BetMGM**     | `https://sports.nj.betmgm.com/en/sports/baseball-7/betting/usa-9/major-league-baseball-6009`  | Can link to league or sport, not bet    |
+| **ESPN Bet**   | `https://www.espnbet.com/mlb/{team}-vs-{team}`                                                | New; supports some game-level links     |
+| **PointsBet**  | `https://nj.pointsbet.com/sports/baseball`                                                    | No bet-specific links; use fallback     |
+
+---
+
+## 🧠 2. Helper Logic: Build Deep Link + Attach Affiliate Tag
+
+```js
+// Your affiliate links config
+const affiliateLinks = {
+  DraftKings: "&utm_source=affid123",
+  FanDuel: "?ref=fanAff123",
+  Caesars: "?ref=caesars123",
+  BetMGM: "?ref=mgm123",
+  ESPNBet: "?ref=espn123",
+  PointsBet: "?ref=points123"
+}
+
+// Builds the deep link based on book, teams, and date
+function getDeepLink(book, teams, date, eventId = null) {
+  const [team1, team2] = teams.map(t => t.toLowerCase().replace(/\s+/g, '-'))
+
+  switch (book) {
+    case "DraftKings":
+      return eventId
+        ? `https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event=${eventId}${affiliateLinks[book]}`
+        : "https://sportsbook.draftkings.com/leagues/baseball/mlb" + affiliateLinks[book]
+
+    case "FanDuel":
+      const fdDate = date.split('T')[0] // e.g., 2025-07-17
+      return `https://www.fanduel.com/sportsbook/mlb/${team1}-vs-${team2}/${fdDate}${affiliateLinks[book]}`
+
+    case "Caesars":
+    case "BetMGM":
+    case "PointsBet":
+    case "ESPNBet":
+      return `https://${book.toLowerCase()}.com/sportsbook${affiliateLinks[book] || ""}`
+
+    default:
+      return "#"
+  }
+}
+```
+
+### 📦 Example Call:
+
+```js
+const link = getDeepLink("DraftKings", ["Yankees", "Red Sox"], "2025-07-17T19:05:00Z", "game-123456")
+```
+
+Returns:
+
+```
+https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event=game-123456&utm_source=affid123
+```
+
+---
+
+## 🛠️ 3. How to Use This
+
+* Call `getDeepLink()` when a user selects a book from the odds modal.
+* Redirect them with:
+
+  ```js
+  window.location.href = getDeepLink(bookName, [homeTeam, awayTeam], gameDate, eventId)
+  ```
+* If you don’t have `eventId` from The Odds API, leave it `null` — it’ll fallback to the base page.
+
+---
+
+## 🔜 Optional Upgrades
+
+* If you get internal **event IDs** from your odds feed or through a partner API → use them for better precision
+* You can build a **redirect handler (like `/go?book=DK&game=xyz`)** that masks affiliate links and tracks clicks
+* Store click data for future affiliate revenue reporting
+
+---
+
+Would you like me to generate a complete `deepLinkBuilder.js` module and matching `MyPicks` tracker next?
