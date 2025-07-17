@@ -270,7 +270,7 @@ export default function ScoresPage() {
         </div>
 
         {/* Date Navigation */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <Button
             onClick={goToPreviousDay}
             variant="outline"
@@ -281,20 +281,20 @@ export default function ScoresPage() {
             Previous
           </Button>
           
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                {formatDateDisplay(selectedDate)}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {selectedDate.toLocaleDateString('en-US', { 
-                  month: 'long', 
-                  day: 'numeric', 
-                  year: 'numeric' 
-                })}
-              </div>
+          <div className="text-center">
+            <div className="text-lg font-semibold text-gray-900 dark:text-white">
+              {formatDateDisplay(selectedDate)}
             </div>
-            
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {selectedDate.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
             <Button
               onClick={goToNextDay}
               variant="outline"
@@ -304,18 +304,20 @@ export default function ScoresPage() {
               Next
               <ChevronRight className="w-4 h-4" />
             </Button>
+            
+            <div className="w-24 flex justify-center">
+              {selectedDate.toDateString() !== new Date().toDateString() && (
+                <Button
+                  onClick={goToToday}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 dark:text-blue-400"
+                >
+                  Go to Today
+                </Button>
+              )}
+            </div>
           </div>
-
-          {selectedDate.toDateString() !== new Date().toDateString() && (
-            <Button
-              onClick={goToToday}
-              variant="outline"
-              size="sm"
-              className="text-blue-600 dark:text-blue-400"
-            >
-              Go to Today
-            </Button>
-          )}
         </div>
 
         {/* Sport Selection */}
