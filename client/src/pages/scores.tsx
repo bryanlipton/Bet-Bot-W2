@@ -289,27 +289,27 @@ export default function ScoresPage() {
               </div>
             </div>
             
-            {selectedDate.toDateString() !== new Date().toDateString() && (
-              <Button
-                onClick={goToToday}
-                variant="outline"
-                size="sm"
-                className="text-blue-600 dark:text-blue-400"
-              >
-                Today
-              </Button>
-            )}
+            <Button
+              onClick={goToNextDay}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
 
-          <Button
-            onClick={goToNextDay}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+          {selectedDate.toDateString() !== new Date().toDateString() && (
+            <Button
+              onClick={goToToday}
+              variant="outline"
+              size="sm"
+              className="text-blue-600 dark:text-blue-400"
+            >
+              Go to Today
+            </Button>
+          )}
         </div>
 
         {/* Sport Selection */}
