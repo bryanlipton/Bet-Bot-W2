@@ -441,36 +441,38 @@ export default function LoggedInLockPick() {
                 <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent">
                   {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
-                {lockPick.pickType === 'moneyline' && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam)}
-                      className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
-                    >
-                      Pick
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
-                      className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
-                    >
-                      Fade
-                    </Button>
-                  </div>
+                {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam)}
+                    className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                  >
+                    Pick
+                  </Button>
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-base text-gray-600 dark:text-gray-400">
-              <span>{matchup.separator}</span>
-              <div className="flex-1 min-w-0">
-                <span className="truncate block">{matchup.bottomTeam}</span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
-                </p>
+            <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <span>{matchup.separator}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="truncate block">{matchup.bottomTeam}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+                  </p>
+                </div>
               </div>
+              {lockPick.pickType === 'moneyline' && lockPick.pickTeam !== matchup.topTeam && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
+                  className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 flex-shrink-0"
+                >
+                  Fade
+                </Button>
+              )}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(lockPick.gameTime)} • {lockPick.venue}

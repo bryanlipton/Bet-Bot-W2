@@ -398,36 +398,38 @@ export default function DailyPick() {
                 <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
                   {formatOdds(dailyPick.odds, dailyPick.pickType)}
                 </span>
-                {dailyPick.pickType === 'moneyline' && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
-                      className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
-                    >
-                      Pick
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
-                      className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
-                    >
-                      Fade
-                    </Button>
-                  </div>
+                {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
+                    className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                  >
+                    Pick
+                  </Button>
                 )}
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-base text-gray-600 dark:text-gray-400">
-              <span>{matchup.separator}</span>
-              <div className="flex-1 min-w-0">
-                <span className="truncate block">{matchup.bottomTeam}</span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
-                </p>
+            <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <span>{matchup.separator}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="truncate block">{matchup.bottomTeam}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+                  </p>
+                </div>
               </div>
+              {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.topTeam && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                  className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 flex-shrink-0"
+                >
+                  Fade
+                </Button>
+              )}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
