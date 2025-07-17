@@ -277,8 +277,11 @@ export function ActionStyleDashboard() {
             Free Users
           </Badge>
         </div>
-        <DailyPick />
-        <LoggedInLockPick />
+        {/* Side-by-side layout for picks */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DailyPick />
+          <LoggedInLockPick />
+        </div>
       </div>
 
       {/* Sports Navigation */}
