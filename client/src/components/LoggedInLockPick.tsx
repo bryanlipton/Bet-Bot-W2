@@ -396,7 +396,7 @@ export default function LoggedInLockPick() {
                 <h4 className="font-bold text-xl text-amber-600 dark:text-amber-400">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
                   P: {lockPick.probablePitchers.away || 'TBD'}
                 </p>
               </div>
@@ -404,11 +404,8 @@ export default function LoggedInLockPick() {
                 {formatOdds(lockPick.odds, lockPick.pickType)}
               </span>
             </div>
-            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start">
-              <div className="flex flex-col w-6">
-                <span>{matchup.separator}</span>
-                <span className="text-xs invisible">P:</span>
-              </div>
+            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
+              <span>{matchup.separator}</span>
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
