@@ -7,6 +7,7 @@ export interface AffiliateLink {
   affiliateUrl: string;
   isActive: boolean;
   deepLinkSupport: boolean;
+  deepLinkTemplate?: string; // Template for deep linking to specific bets
 }
 
 export const affiliateLinks: Record<string, AffiliateLink> = {
@@ -16,7 +17,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'DraftKings',
     affiliateUrl: 'https://sportsbook.draftkings.com/r/sb/1234567', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory={gameId}'
   },
   
   fanduel: {
@@ -24,7 +26,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'FanDuel',
     affiliateUrl: 'https://sportsbook.fanduel.com/?ref=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb?tab=game&market=83'
   },
   
   betmgm: {
@@ -32,7 +35,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'BetMGM',
     affiliateUrl: 'https://sports.betmgm.com/en/sports?wm=1234567', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75'
   },
   
   caesars: {
@@ -40,7 +44,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'Caesars',
     affiliateUrl: 'https://sportsbook.caesars.com/?affiliate=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb'
   },
   
   betrivers: {
@@ -48,7 +53,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'BetRivers',
     affiliateUrl: 'https://pa.betrivers.com/?affiliate=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: false
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb'
   },
   
   bovada: {
@@ -64,7 +70,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'Fanatics',
     affiliateUrl: 'https://sportsbook.fanatics.com/?ref=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: false
+    deepLinkSupport: true,
+    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb'
   },
   
   mybookie: {
@@ -88,12 +95,51 @@ export const fallbackUrls: Record<string, string> = {
   mybookie: 'https://www.mybookie.ag'
 };
 
-// Helper function to get the best URL for a bookmaker
-export function getBookmakerUrl(bookmakerKey: string): string {
+// Helper function to get the best URL for a bookmaker with deep linking support
+export function getBookmakerUrl(
+  bookmakerKey: string, 
+  gameInfo?: {
+    homeTeam: string;
+    awayTeam: string;
+    gameId?: string | number;
+    sport?: string;
+  },
+  betInfo?: {
+    market: 'moneyline' | 'spread' | 'total' | 'over' | 'under';
+    selection: string;
+    line?: number;
+  }
+): string {
   const normalizedKey = bookmakerKey.toLowerCase().replace(/[^a-z]/g, '');
+  const affiliate = affiliateLinks[normalizedKey];
+  
+  // If we have game and bet info, try to generate a deep link
+  if (gameInfo && betInfo && affiliate?.deepLinkTemplate && affiliate.deepLinkSupport) {
+    try {
+      let deepLink = affiliate.deepLinkTemplate;
+      
+      // Replace template variables
+      if (gameInfo.gameId) {
+        deepLink = deepLink.replace('{gameId}', gameInfo.gameId.toString());
+      }
+      deepLink = deepLink.replace('{homeTeam}', encodeURIComponent(gameInfo.homeTeam));
+      deepLink = deepLink.replace('{awayTeam}', encodeURIComponent(gameInfo.awayTeam));
+      deepLink = deepLink.replace('{market}', betInfo.market);
+      deepLink = deepLink.replace('{selection}', encodeURIComponent(betInfo.selection));
+      
+      // Add affiliate parameters if active
+      if (affiliate.isActive) {
+        const separator = deepLink.includes('?') ? '&' : '?';
+        deepLink += `${separator}ref=betbot`;
+      }
+      
+      return deepLink;
+    } catch (error) {
+      console.warn(`Failed to generate deep link for ${bookmakerKey}:`, error);
+    }
+  }
   
   // Check if we have an active affiliate link
-  const affiliate = affiliateLinks[normalizedKey];
   if (affiliate && affiliate.isActive) {
     return affiliate.affiliateUrl;
   }

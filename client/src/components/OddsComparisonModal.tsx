@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock } from "lucide-react";
-import { getBookmakerUrl, getBookmakerDisplayName } from '@/config/affiliateLinks';
+import { ExternalLink, TrendingUp, Crown, Clock, Zap } from "lucide-react";
+import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { pickStorage } from '@/services/pickStorage';
 import { Pick } from '@/types/picks';
 
@@ -78,12 +78,25 @@ export function OddsComparisonModal({
 
     if (!outcome) return null;
 
+    // Generate deep link URL for this specific bet
+    const deepLinkUrl = getBookmakerUrl(
+      bookmaker.key,
+      gameInfo,
+      {
+        market: selectedBet.market === 'total' ? 
+          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
+          selectedBet.market,
+        selection: selectedBet.selection,
+        line: selectedBet.line || outcome.point
+      }
+    );
+
     return {
       bookmaker: bookmaker.key,
       displayName: getBookmakerDisplayName(bookmaker.key),
       odds: outcome.price,
       line: outcome.point,
-      url: getBookmakerUrl(bookmaker.key),
+      url: deepLinkUrl, // Use deep link instead of generic URL
       lastUpdate: bookmaker.last_update
     };
   }).filter(Boolean);
@@ -229,9 +242,18 @@ export function OddsComparisonModal({
                           <Crown className="w-4 h-4 text-green-600" />
                         )}
                         <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            {odds!.displayName}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              {odds!.displayName}
+                            </h4>
+                            {(() => {
+                              const normalizedKey = odds!.bookmaker.toLowerCase().replace(/[^a-z]/g, '');
+                              const affiliate = affiliateLinks[normalizedKey];
+                              return affiliate?.deepLinkSupport ? (
+                                <Zap className="w-3 h-3 text-blue-500" title="Deep Link Support - Opens specific bet" />
+                              ) : null;
+                            })()}
+                          </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Updated: {new Date(odds!.lastUpdate).toLocaleTimeString()}
                           </p>
@@ -271,11 +293,15 @@ export function OddsComparisonModal({
           </div>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
               Click "Bet Now" to save this pick and open the sportsbook. 
               Your pick will be tracked in "My Picks".
             </p>
+            <div className="flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+              <Zap className="w-3 h-3" />
+              <span>Deep Link Support: Opens specific bet page when available</span>
+            </div>
           </div>
         </div>
       </DialogContent>
