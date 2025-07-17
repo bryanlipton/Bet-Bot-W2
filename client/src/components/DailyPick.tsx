@@ -107,8 +107,8 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
       <div className="flex items-center gap-2">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
-              <Info className="h-3 w-3 text-gray-400" />
+            <Button variant="ghost" size="sm" className="p-0 h-4 w-4">
+              <Info className="h-3 w-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
@@ -284,8 +284,8 @@ export default function DailyPick() {
             <GradeBadge grade={dailyPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 w-9 p-0 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800">
-                  <Info className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <Button variant="outline" size="sm" className="h-4 w-4 p-0 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800">
+                  <Info className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
