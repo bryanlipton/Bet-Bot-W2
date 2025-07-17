@@ -427,7 +427,7 @@ export default function LoggedInLockPick() {
 
         <div className="flex items-start justify-between space-x-6">
           {/* Left side - Team matchup and odds (scorebug) */}
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <h4 className="font-bold text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
@@ -455,12 +455,20 @@ export default function LoggedInLockPick() {
                 P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
               </p>
             </div>
-            <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
-              <div className="flex items-center space-x-2 flex-1 min-w-0">
-                <span>{matchup.separator}</span>
-                <span className="block">{matchup.bottomTeam}</span>
-              </div>
-              <div className="flex-shrink-0 ml-4">
+            <div className="flex items-center space-x-2 flex-1 min-w-0 text-base text-gray-600 dark:text-gray-400">
+              <span>{matchup.separator}</span>
+              <span className="block">{matchup.bottomTeam}</span>
+            </div>
+            <div className="ml-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+              </p>
+            </div>
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
+              </p>
+              <div className="flex-shrink-0">
                 {lockPick.pickType === 'moneyline' && (
                   <Button
                     size="sm"
@@ -473,14 +481,6 @@ export default function LoggedInLockPick() {
                 )}
               </div>
             </div>
-            <div className="ml-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
-              </p>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
-            </p>
           </div>
 
           {/* Right side - Factor scores in 2 columns x 3 rows */}
