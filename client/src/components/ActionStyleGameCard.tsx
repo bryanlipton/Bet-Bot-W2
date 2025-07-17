@@ -1,11 +1,43 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
+import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
+
+// Analysis interfaces
+interface PickAnalysisDetails {
+  overall: {
+    grade: string;
+    confidence: number;
+    reasoning: string;
+  };
+  factors: {
+    offensivePower: { score: number; description: string };
+    pitchingEdge: { score: number; description: string };
+    ballparkAdvantage: { score: number; description: string };
+    recentForm: { score: number; description: string };
+    weatherConditions: { score: number; description: string };
+    bettingValue: { score: number; description: string };
+  };
+  gameDetails: {
+    matchup: string;
+    venue: string;
+    gameTime: string;
+    pickTeam: string;
+    odds: string;
+    probablePitchers: {
+      home: string | null;
+      away: string | null;
+    };
+  };
+}
 
 interface GameCardProps {
   homeTeam: string;
@@ -57,20 +89,122 @@ interface GameCardProps {
   }>;
 }
 
-// Info Button Component for Bet Bot picks
-function InfoButton({ info, title }: { info: string; title: string }) {
+// Helper functions for analysis
+function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <img 
+      src={betbotLogo} 
+      alt="BetBot Logo" 
+      className={`${className} object-contain`}
+    />
+  );
+}
+
+function scoreToGrade(score: number): string {
+  if (score >= 95) return 'A+';
+  if (score >= 88) return 'A';
+  if (score >= 83) return 'B+';
+  if (score >= 78) return 'B';
+  if (score >= 73) return 'C+';
+  if (score >= 68) return 'C';
+  if (score >= 63) return 'D+';
+  return 'D';
+}
+
+// Info Button Component for Bet Bot picks - opens detailed analysis dialog
+function InfoButton({ gameId, pickTeam, pickType }: { gameId: string; pickTeam: string; pickType: string }) {
+  const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+  
+  // Determine pick ID based on whether it's daily or lock pick
+  const pickId = pickTeam ? `pick_${gameId}_${pickTeam}` : null;
+  
+  const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
+    queryKey: [`/api/daily-pick/${pickId}/analysis`],
+    enabled: !!pickId && analysisDialogOpen,
+  });
+
+  const formatOdds = (odds: number, pickType: string) => {
+    if (pickType === 'spread') {
+      return odds > 0 ? `+${odds}` : `${odds}`;
+    }
+    return odds > 0 ? `+${odds}` : `${odds}`;
+  };
+
+  const formatGameTime = (gameTime: string) => {
+    const date = new Date(gameTime);
+    const gameDate = date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    const time = date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+    return `${gameDate} at ${time}`;
+  };
+
+  return (
+    <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+      <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
           <Info className="h-3 w-3 text-black dark:text-white" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 text-xs" side="top">
-        <div className="font-medium mb-1">{title}</div>
-        <div>{info}</div>
-      </PopoverContent>
-    </Popover>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <BetBotIcon className="w-6 h-6" />
+            <span>Pick Analysis: {analysisDetails?.overall.grade || 'Loading...'} Grade</span>
+          </DialogTitle>
+        </DialogHeader>
+        
+        {analysisDetails && (
+          <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+              <h4 className="font-semibold mb-3">Pick Details</h4>
+              <div className="space-y-2 text-sm">
+                <div><strong>Game:</strong> {analysisDetails.gameDetails.matchup}</div>
+                <div><strong>Pick:</strong> {analysisDetails.gameDetails.pickTeam} {analysisDetails.gameDetails.odds}</div>
+                <div><strong>Venue:</strong> {analysisDetails.gameDetails.venue}</div>
+                <div><strong>Time:</strong> {formatGameTime(analysisDetails.gameDetails.gameTime)}</div>
+                <div><strong>Pitchers:</strong> {analysisDetails.gameDetails.probablePitchers.away} vs {analysisDetails.gameDetails.probablePitchers.home}</div>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+              <h4 className="font-semibold mb-3">Reasoning</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                {analysisDetails.overall.reasoning}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-3">Analysis Factors</h4>
+              <div className="space-y-3">
+                {Object.entries(analysisDetails.factors).map(([key, factor]) => (
+                  <div key={key} className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{key === 'offensivePower' ? 'Offensive Power' : 
+                        key === 'pitchingEdge' ? 'Pitching Edge' : 
+                        key === 'ballparkAdvantage' ? 'Ballpark Advantage' : 
+                        key === 'recentForm' ? 'Recent Form' : 
+                        key === 'weatherConditions' ? 'Weather Conditions' : 
+                        key === 'bettingValue' ? 'Betting Value' : key}</span>
+                      <span className="font-bold">
+                        {factor.score !== null && factor.score > 0 ? `${scoreToGrade(factor.score)} (${factor.score}/100)` : 'N/A'}
+                      </span>
+                    </div>
+                    <Progress value={factor.score > 0 ? factor.score : 0} className="h-2" />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{factor.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -229,16 +363,18 @@ export function ActionStyleGameCard({
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
                   <InfoButton 
-                    info="This is Bet Bot's AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
-                    title="Bet Bot AI Pick" 
+                    gameId={gameId?.toString() || ""}
+                    pickTeam={awayTeam}
+                    pickType="moneyline"
                   />
                 </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
                   <InfoButton 
-                    info="This is Bet Bot's premium AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
-                    title="Bet Bot Lock Pick" 
+                    gameId={gameId?.toString() || ""}
+                    pickTeam={awayTeam}
+                    pickType="moneyline"
                   />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
@@ -289,16 +425,18 @@ export function ActionStyleGameCard({
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
                   <InfoButton 
-                    info="This is Bet Bot's AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
-                    title="Bet Bot AI Pick" 
+                    gameId={gameId?.toString() || ""}
+                    pickTeam={homeTeam}
+                    pickType="moneyline"
                   />
                 </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
                   <InfoButton 
-                    info="This is Bet Bot's premium AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
-                    title="Bet Bot Lock Pick" 
+                    gameId={gameId?.toString() || ""}
+                    pickTeam={homeTeam}
+                    pickType="moneyline"
                   />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (

@@ -411,7 +411,7 @@ export default function LoggedInLockPick() {
                         <div key={key} className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span className="font-medium">{title}</span>
-                            <span className="font-bold">{scoreToGrade(score)} ({score}/100)</span>
+                            <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                           </div>
                           <Progress value={score} className="h-2" />
                           <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
