@@ -404,8 +404,11 @@ export default function LoggedInLockPick() {
                 {formatOdds(lockPick.odds, lockPick.pickType)}
               </span>
             </div>
-            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
-              <span>{matchup.separator}</span>
+            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start">
+              <div className="flex flex-col w-6">
+                <span>{matchup.separator}</span>
+                <span className="text-xs invisible">P:</span>
+              </div>
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
