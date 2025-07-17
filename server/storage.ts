@@ -85,12 +85,13 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
+  private users: Map<string, User>;
   private games: Map<number, Game>;
   private odds: Map<number, Odds>;
   private recommendations: Map<number, Recommendation>;
   private chatMessages: Map<number, ChatMessage>;
   private modelMetrics: Map<number, ModelMetrics>;
+  private userBets: Map<number, UserBet>;
   
   private currentUserId: number;
   private currentGameId: number;
@@ -98,6 +99,7 @@ export class MemStorage implements IStorage {
   private currentRecommendationId: number;
   private currentChatMessageId: number;
   private currentModelMetricsId: number;
+  private currentUserBetId: number;
 
   constructor() {
     this.users = new Map();
@@ -106,6 +108,7 @@ export class MemStorage implements IStorage {
     this.recommendations = new Map();
     this.chatMessages = new Map();
     this.modelMetrics = new Map();
+    this.userBets = new Map();
     
     this.currentUserId = 1;
     this.currentGameId = 1;
@@ -113,6 +116,7 @@ export class MemStorage implements IStorage {
     this.currentRecommendationId = 1;
     this.currentChatMessageId = 1;
     this.currentModelMetricsId = 1;
+    this.currentUserBetId = 1;
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -141,8 +145,13 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const id = (this.currentUserId++).toString();
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
     this.users.set(id, user);
     return user;
   }
@@ -339,6 +348,105 @@ export class MemStorage implements IStorage {
 
   async getLatestTrainingRecord(): Promise<BaseballModelTraining | undefined> {
     throw new Error('Baseball methods not implemented in MemStorage');
+  }
+
+  // User bet tracking methods implementation
+  async createUserBet(insertBet: InsertUserBet): Promise<UserBet> {
+    const id = this.currentUserBetId++;
+    const bet: UserBet = { 
+      ...insertBet, 
+      id, 
+      status: insertBet.status || 'pending',
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
+    this.userBets.set(id, bet);
+    return bet;
+  }
+
+  async getUserBets(userId: string, limit: number = 100, offset: number = 0): Promise<UserBet[]> {
+    const userBets = Array.from(this.userBets.values())
+      .filter(bet => bet.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+      .slice(offset, offset + limit);
+    return userBets;
+  }
+
+  async getUserBetsByTeam(userId: string, teamName: string): Promise<UserBet[]> {
+    return Array.from(this.userBets.values())
+      .filter(bet => bet.userId === userId && bet.teamBet === teamName)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getUserBetsByDateRange(userId: string, startDate: Date, endDate: Date): Promise<UserBet[]> {
+    return Array.from(this.userBets.values())
+      .filter(bet => bet.userId === userId && bet.createdAt && bet.createdAt >= startDate && bet.createdAt <= endDate)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getUserBetsByStatus(userId: string, status: string): Promise<UserBet[]> {
+    return Array.from(this.userBets.values())
+      .filter(bet => bet.userId === userId && bet.status === status)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async updateUserBet(betId: number, updates: Partial<UserBet>): Promise<UserBet> {
+    const bet = this.userBets.get(betId);
+    if (!bet) {
+      throw new Error(`Bet with id ${betId} not found`);
+    }
+    
+    const updatedBet = { ...bet, ...updates, updatedAt: new Date() };
+    this.userBets.set(betId, updatedBet);
+    return updatedBet;
+  }
+
+  async getUserBetStats(userId: string): Promise<{
+    totalBets: number;
+    totalWagered: number;
+    totalWon: number;
+    totalLost: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    pendingCount: number;
+    roi: number;
+  }> {
+    const userBets = Array.from(this.userBets.values()).filter(bet => bet.userId === userId);
+    
+    const stats = {
+      totalBets: userBets.length,
+      totalWagered: 0,
+      totalWon: 0,
+      totalLost: 0,
+      winCount: 0,
+      lossCount: 0,
+      pushCount: 0,
+      pendingCount: 0,
+      roi: 0,
+    };
+
+    for (const bet of userBets) {
+      stats.totalWagered += parseFloat(bet.stake.toString());
+      
+      if (bet.status === 'won') {
+        stats.winCount++;
+        stats.totalWon += parseFloat(bet.toWin.toString());
+      } else if (bet.status === 'lost') {
+        stats.lossCount++;
+        stats.totalLost += parseFloat(bet.stake.toString());
+      } else if (bet.status === 'push') {
+        stats.pushCount++;
+      } else if (bet.status === 'pending') {
+        stats.pendingCount++;
+      }
+    }
+
+    if (stats.totalWagered > 0) {
+      stats.roi = ((stats.totalWon - stats.totalLost) / stats.totalWagered) * 100;
+    }
+
+    return stats;
   }
 }
 
