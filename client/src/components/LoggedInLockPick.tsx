@@ -154,6 +154,11 @@ export default function LoggedInLockPick() {
     enabled: !!lockPick?.id && analysisDialogOpen && isAuthenticated,
   });
 
+  const { data: gamesData } = useQuery({
+    queryKey: ['/api/mlb/complete-schedule'],
+    enabled: !!lockPick?.gameId,
+  });
+
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
@@ -480,6 +485,7 @@ export default function LoggedInLockPick() {
             </div>
           </div>
         </div>
+        </div>
       </CardContent>
       
       {/* Odds Comparison Modal */}
@@ -494,7 +500,7 @@ export default function LoggedInLockPick() {
             sport: 'baseball_mlb',
             gameTime: lockPick.gameTime
           }}
-          bookmakers={[]} // This will need to be populated with actual odds data
+          bookmakers={gamesData?.find((game: any) => game.id === lockPick.gameId)?.bookmakers || []}
           selectedBet={selectedBet}
         />
       )}

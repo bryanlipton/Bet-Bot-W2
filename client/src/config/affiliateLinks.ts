@@ -18,7 +18,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://sportsbook.draftkings.com/r/sb/1234567', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory={gameId}'
+    deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory={gameId}&betslip={market}:{selection}:{odds}'
   },
   
   fanduel: {
@@ -27,7 +27,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://sportsbook.fanduel.com/?ref=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb?tab=game&market=83'
+    deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb/{homeTeam}-{awayTeam}?tab=game&market={market}&selection={selection}&betslip=add'
   },
   
   betmgm: {
@@ -36,7 +36,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://sports.betmgm.com/en/sports?wm=1234567', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75'
+    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75?add-to-betslip={market}:{selection}:{odds}'
   },
   
   caesars: {
@@ -45,7 +45,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://sportsbook.caesars.com/?affiliate=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb'
+    deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb?addToBetslip={market}|{selection}|{odds}&game={gameId}'
   },
   
   betrivers: {
@@ -54,7 +54,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://pa.betrivers.com/?affiliate=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb'
+    deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb?bet={market}&selection={selection}&odds={odds}&slip=auto'
   },
   
   bovada: {
@@ -71,7 +71,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     affiliateUrl: 'https://sportsbook.fanatics.com/?ref=betbot', // Replace with actual affiliate link
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb'
+    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb?quickbet={market}:{selection}:{odds}'
   },
   
   mybookie: {

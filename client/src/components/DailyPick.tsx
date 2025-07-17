@@ -456,7 +456,7 @@ export default function DailyPick() {
             sport: 'baseball_mlb',
             gameTime: dailyPick.gameTime
           }}
-          bookmakers={[]} // This will need to be populated with actual odds data
+          bookmakers={gamesData?.find((game: any) => game.id === dailyPick.gameId)?.bookmakers || []}
           selectedBet={selectedBet}
         />
       )}
