@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { oddsApiService } from "./services/oddsApi";
 
 const ODDS_API_KEY = process.env.THE_ODDS_API_KEY;
 const ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4";
