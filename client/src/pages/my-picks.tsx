@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import { pickStorage } from '@/services/pickStorage';
 import { Pick } from '@/types/picks';
@@ -14,13 +15,18 @@ import {
   Calendar,
   DollarSign,
   BarChart3,
-  AlertCircle
+  AlertCircle,
+  Edit3,
+  Save,
+  X
 } from "lucide-react";
 
 export default function MyPicksPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'won' | 'lost'>('all');
+  const [editingOdds, setEditingOdds] = useState<string | null>(null);
+  const [tempOdds, setTempOdds] = useState<string>('');
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -119,6 +125,43 @@ export default function MyPicksPage() {
     if (confirm('Are you sure you want to delete all picks? This cannot be undone.')) {
       pickStorage.clearAllPicks();
     }
+  };
+
+  const handleEditOdds = (pickId: string, currentOdds: number) => {
+    setEditingOdds(pickId);
+    setTempOdds(currentOdds === 0 ? '' : currentOdds.toString());
+  };
+
+  const handleSaveOdds = (pickId: string) => {
+    const odds = parseFloat(tempOdds);
+    if (isNaN(odds) || odds === 0) {
+      alert('Please enter valid odds (e.g., -110, +150)');
+      return;
+    }
+
+    // Update the pick with new odds
+    const updatedPicks = picks.map(pick => {
+      if (pick.id === pickId) {
+        return {
+          ...pick,
+          betInfo: {
+            ...pick.betInfo,
+            odds: odds
+          }
+        };
+      }
+      return pick;
+    });
+
+    setPicks(updatedPicks);
+    pickStorage.updatePick(pickId, { betInfo: { odds } });
+    setEditingOdds(null);
+    setTempOdds('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingOdds(null);
+    setTempOdds('');
   };
 
   // Calculate stats
@@ -285,9 +328,63 @@ export default function MyPicksPage() {
                       <p className="font-medium text-gray-900 dark:text-white">
                         {formatBet(pick)}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatOdds(pick.betInfo.odds)}
-                      </p>
+                      {/* Manual odds entry interface */}
+                      {pick.betInfo.odds === 0 && pick.bookmaker.key === 'manual' ? (
+                        <div className="mt-2">
+                          {editingOdds === pick.id ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                value={tempOdds}
+                                onChange={(e) => setTempOdds(e.target.value)}
+                                placeholder="Enter odds (e.g., -110)"
+                                className="w-24 h-8 text-xs"
+                              />
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveOdds(pick.id)}
+                                className="h-8 px-2"
+                              >
+                                <Save className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCancelEdit}
+                                className="h-8 px-2"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
+                              className="text-xs h-8 px-2"
+                            >
+                              <Edit3 className="w-3 h-3 mr-1" />
+                              Enter Odds
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatOdds(pick.betInfo.odds)}
+                          </p>
+                          {pick.bookmaker.key === 'manual' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
+                              className="h-6 px-1 text-xs"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Bookmaker */}

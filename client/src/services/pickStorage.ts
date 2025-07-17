@@ -73,6 +73,21 @@ class LocalPickStorageService implements PickStorageService {
     }
   }
 
+  updatePick(id: string, updates: Partial<Pick>): void {
+    const picks = this.getStoredPicks();
+    const pickIndex = picks.findIndex(pick => pick.id === id);
+    
+    if (pickIndex !== -1) {
+      picks[pickIndex] = { ...picks[pickIndex], ...updates };
+      this.setStoredPicks(picks);
+
+      // Trigger custom event for pick update
+      window.dispatchEvent(new CustomEvent('pickUpdated', { 
+        detail: { id, updates } 
+      }));
+    }
+  }
+
   deletePick(id: string): void {
     const picks = this.getStoredPicks();
     const filteredPicks = picks.filter(pick => pick.id !== id);

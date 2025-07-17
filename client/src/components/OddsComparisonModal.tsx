@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock, Zap } from "lucide-react";
+import { ExternalLink, TrendingUp, Crown, Clock, Zap, Edit3 } from "lucide-react";
+import { Link } from 'wouter';
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
@@ -172,6 +173,40 @@ export function OddsComparisonModal({
     handleClose();
   };
 
+  const handleEnterManually = () => {
+    // Save pick to localStorage with manual entry flag
+    const pickData: Omit<Pick, 'id' | 'timestamp'> = {
+      gameInfo: {
+        homeTeam: gameInfo.homeTeam,
+        awayTeam: gameInfo.awayTeam,
+        gameId: gameInfo.gameId,
+        sport: gameInfo.sport || 'baseball_mlb',
+        gameTime: gameInfo.gameTime
+      },
+      betInfo: {
+        market: selectedBet.market === 'total' ? 
+          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
+          selectedBet.market,
+        selection: selectedBet.selection,
+        odds: 0, // Will be entered manually
+        line: selectedBet.line
+      },
+      bookmaker: {
+        key: 'manual',
+        displayName: 'Manual Entry',
+        url: '#'
+      },
+      status: 'pending'
+    };
+
+    pickStorage.savePick(pickData);
+
+    // Close modal and redirect to My Picks
+    handleClose();
+    // Navigate to My Picks page
+    window.location.href = '/my-picks';
+  };
+
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : odds.toString();
   };
@@ -316,6 +351,18 @@ export function OddsComparisonModal({
                 </Card>
               ))
             )}
+          </div>
+
+          {/* Enter Manually Button */}
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={handleEnterManually}
+              variant="outline"
+              className="bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Enter Manually
+            </Button>
           </div>
 
           {/* Footer */}
