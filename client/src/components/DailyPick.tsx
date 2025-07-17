@@ -281,24 +281,24 @@ export default function DailyPick() {
   return (
     <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <BetBotIcon className="w-12 h-12" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <BetBotIcon className="w-14 h-14" />
             <div>
-              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                Bet Bot Pick of the Day
+              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+                Pick of the Day
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Free daily moneyline pick
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                AI-Powered Baseball Analysis
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <GradeBadge grade={dailyPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                  <Info className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="h-9 w-9 p-0 border-blue-200 hover:bg-blue-50 dark:border-blue-700 dark:hover:bg-blue-950">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
