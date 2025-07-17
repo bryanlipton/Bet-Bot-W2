@@ -6,6 +6,8 @@ Bet Bot is a sophisticated full-stack web application that provides AI-powered s
 
 **Latest Status (July 17, 2025):** Enhanced daily pick blurbs with specific bet details and actionable insights. The "Pick of the Day" feature now generates highly specific reasoning that includes exact odds (+181, -150 format), home/away context, venue information, implied probability calculations, and unit sizing recommendations (1-3 units). Each blurb is tailored to the actual bet rather than using generic language, providing users with precise betting advice and strategic analysis specific to each game's conditions.
 
+**Recent UI and Authentication Fixes (July 17, 2025):** Fixed critical issue where logged-in users were seeing the same pick as the daily pick. The LoggedInLockPick component now correctly fetches from `/api/daily-pick/lock` endpoint, ensuring authenticated users receive a different game/bet than the free daily pick. Enhanced the analysis endpoint to support both daily picks and lock picks. Navigation buttons are now consistently sized, and pitcher displays maintain proper alignment with ml-6 indentation.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

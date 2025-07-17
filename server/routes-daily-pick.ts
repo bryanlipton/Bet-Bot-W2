@@ -74,7 +74,14 @@ export function registerDailyPickRoutes(app: Express) {
   app.get("/api/daily-pick/:pickId/analysis", async (req: Request, res: Response) => {
     try {
       const { pickId } = req.params;
-      const pick = await dailyPickService.getTodaysPick();
+      
+      // First try to find it as a daily pick
+      let pick = await dailyPickService.getTodaysPick();
+      
+      // If not found or ID doesn't match, try lock pick
+      if (!pick || pick.id !== pickId) {
+        pick = await dailyPickService.getTodaysLockPick();
+      }
       
       if (!pick || pick.id !== pickId) {
         return res.status(404).json({ error: "Pick not found" });
