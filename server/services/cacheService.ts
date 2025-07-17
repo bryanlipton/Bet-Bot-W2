@@ -6,6 +6,9 @@ interface CacheEntry<T> {
 
 class CacheService {
   private cache = new Map<string, CacheEntry<any>>();
+  private dailyApiCallCount = 0;
+  private lastResetDate = new Date().toDateString();
+  private readonly DAILY_API_LIMIT = 645;
   
   set<T>(key: string, data: T, ttlMinutes: number = 5): void {
     const entry: CacheEntry<T> = {
@@ -26,6 +29,15 @@ class CacheService {
       return null;
     }
     
+    return entry.data as T;
+  }
+
+  // Get cached data even if expired (used when daily quota is reached)
+  getExpiredOk<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    // Return the data regardless of expiration
     return entry.data as T;
   }
   
@@ -50,7 +62,33 @@ class CacheService {
     this.cache.delete(key);
   }
   
-  getStats(): { size: number; keys: string[] } {
+  // Daily API call tracking methods
+  incrementApiCallCount(): void {
+    this.resetDailyCountIfNeeded();
+    this.dailyApiCallCount++;
+    console.log(`📊 Daily API calls: ${this.dailyApiCallCount}/${this.DAILY_API_LIMIT}`);
+  }
+
+  canMakeApiCall(): boolean {
+    this.resetDailyCountIfNeeded();
+    return this.dailyApiCallCount < this.DAILY_API_LIMIT;
+  }
+
+  getDailyApiCallCount(): number {
+    this.resetDailyCountIfNeeded();
+    return this.dailyApiCallCount;
+  }
+
+  private resetDailyCountIfNeeded(): void {
+    const today = new Date().toDateString();
+    if (this.lastResetDate !== today) {
+      this.dailyApiCallCount = 0;
+      this.lastResetDate = today;
+      console.log(`🔄 Daily API call counter reset for ${today}`);
+    }
+  }
+
+  getStats(): { size: number; keys: string[]; dailyApiCalls: number; dailyLimit: number } {
     // Clean expired entries first
     const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
@@ -59,9 +97,13 @@ class CacheService {
       }
     }
     
+    this.resetDailyCountIfNeeded();
+    
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
+      dailyApiCalls: this.dailyApiCallCount,
+      dailyLimit: this.DAILY_API_LIMIT
     };
   }
 }

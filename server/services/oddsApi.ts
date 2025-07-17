@@ -69,6 +69,19 @@ export class OddsApiService {
         return cachedData;
       }
 
+      // Check daily API quota before making any call
+      if (!cacheService.canMakeApiCall()) {
+        console.log(`🚫 Daily API limit reached (${cacheService.getDailyApiCallCount()}/645), maintaining existing odds`);
+        // Return the most recent cached data even if expired, or mock data as fallback
+        const expiredData = cacheService.getExpiredOk<Game[]>(cacheKey);
+        if (expiredData) {
+          console.log(`📊 Using expired cached odds for ${sport} to maintain consistency`);
+          return expiredData;
+        }
+        console.log('No cached data available, returning mock data for demo');
+        return this.getMockOddsData(sport);
+      }
+
       // Rate limiting: Enforce minimum interval between API calls
       const now = Date.now();
       const timeSinceLastCall = now - this.lastCallTime;
@@ -81,8 +94,11 @@ export class OddsApiService {
       const url = `${this.baseUrl}/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american&includeLinks=true&includeSids=true`;
       console.log(`🔄 Fetching fresh odds from API for ${sport}: ${url.replace(this.apiKey, 'xxx...')}`);
       
+      // Track API call in both local and daily counters
       this.apiCallCount++;
       this.lastCallTime = Date.now();
+      cacheService.incrementApiCallCount();
+      
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -118,7 +134,10 @@ export class OddsApiService {
       const url = `${this.baseUrl}/historical/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american&date=${date}`;
       console.log(`🔄 Fetching historical odds from API: ${url.replace(this.apiKey, 'xxx...')}`);
       
+      // Track API call in both local and daily counters
       this.apiCallCount++;
+      cacheService.incrementApiCallCount();
+      
       const response = await fetch(url);
       
       if (!response.ok) {
