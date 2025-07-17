@@ -79,7 +79,7 @@ function scoreToGrade(score: number): string {
 // Info Button Component for Bet Bot picks - opens detailed analysis dialog
 function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' | 'lock' }) {
   const { data: analysisData } = useQuery({
-    queryKey: [`/api/daily-pick${pickType === 'lock' ? '/lock' : ''}`, pickId, 'analysis'],
+    queryKey: [`/api/daily-pick/${pickId}/analysis`],
     enabled: !!pickId && !!pickType,
   });
 
