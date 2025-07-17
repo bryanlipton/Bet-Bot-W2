@@ -63,6 +63,7 @@ interface ProcessedGame {
 import { GameDetailsModal } from "./GameDetailsModal";
 import { ArticleModal } from "./ArticleModal";
 import DailyPick from "./DailyPick";
+import LoggedInLockPick from "./LoggedInLockPick";
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
@@ -238,6 +239,7 @@ export function ActionStyleDashboard() {
           </Badge>
         </div>
         <DailyPick />
+        <LoggedInLockPick />
       </div>
 
       {/* Sports Navigation */}

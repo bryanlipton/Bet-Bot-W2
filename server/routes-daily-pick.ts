@@ -1,5 +1,6 @@
 import { Express, Request, Response } from "express";
 import { dailyPickService } from "./services/dailyPickService";
+import { isAuthenticated } from "./replitAuth";
 
 export function registerDailyPickRoutes(app: Express) {
   // Get today's pick of the day
@@ -148,6 +149,69 @@ export function registerDailyPickRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to get pick analysis:", error);
       res.status(500).json({ error: "Failed to get pick analysis" });
+    }
+  });
+
+  // Get today's logged-in lock pick (for authenticated users)
+  app.get("/api/daily-pick/lock", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const todaysLockPick = await dailyPickService.getTodaysLockPick();
+      
+      if (!todaysLockPick) {
+        // Try to generate a new lock pick if none exists
+        const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
+        const games = await gamesResponse.json();
+        
+        // Filter for upcoming games with odds (today or next few days)
+        const today = new Date();
+        const todaysGames = games.filter((game: any) => {
+          const gameDate = new Date(game.commence_time);
+          const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds; // Games within next 3 days
+        });
+
+        if (todaysGames.length > 0) {
+          const newLockPick = await dailyPickService.generateAndSaveTodaysLockPick(todaysGames);
+          return res.json(newLockPick);
+        } else {
+          return res.json(null);
+        }
+      }
+
+      res.json(todaysLockPick);
+    } catch (error) {
+      console.error("Failed to get lock pick:", error);
+      res.status(500).json({ error: "Failed to get lock pick" });
+    }
+  });
+
+  // Generate new lock pick (admin/testing endpoint)
+  app.post("/api/daily-pick/lock/generate", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
+      const games = await gamesResponse.json();
+      
+      const today = new Date();
+      const todaysGames = games.filter((game: any) => {
+        const gameDate = new Date(game.commence_time);
+        const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds; // Games within next 3 days
+      });
+
+      if (todaysGames.length === 0) {
+        return res.status(400).json({ error: "No games with odds available for today" });
+      }
+
+      const newLockPick = await dailyPickService.generateAndSaveTodaysLockPick(todaysGames);
+      
+      if (newLockPick) {
+        res.json(newLockPick);
+      } else {
+        res.status(400).json({ error: "Could not generate a suitable lock pick from available games" });
+      }
+    } catch (error) {
+      console.error("Failed to generate lock pick:", error);
+      res.status(500).json({ error: "Failed to generate lock pick" });
     }
   });
 }

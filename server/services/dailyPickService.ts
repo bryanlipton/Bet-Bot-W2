@@ -1,6 +1,6 @@
 import { storage } from '../storage';
 import { db } from '../db';
-import { dailyPicks } from '../../shared/schema';
+import { dailyPicks, loggedInLockPicks } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export interface DailyPickAnalysis {
@@ -399,6 +399,74 @@ export class DailyPickService {
     }
 
     return newPick;
+  }
+
+  // Methods for logged-in lock picks
+  async saveLockPick(pick: DailyPick): Promise<void> {
+    try {
+      await db.insert(loggedInLockPicks).values({
+        id: pick.id,
+        gameId: pick.gameId,
+        homeTeam: pick.homeTeam,
+        awayTeam: pick.awayTeam,
+        pickTeam: pick.pickTeam,
+        pickType: pick.pickType,
+        odds: pick.odds,
+        grade: pick.grade,
+        confidence: pick.confidence,
+        reasoning: pick.reasoning,
+        analysis: pick.analysis,
+        gameTime: new Date(pick.gameTime),
+        venue: pick.venue,
+        probablePitchers: pick.probablePitchers,
+        pickDate: new Date(pick.pickDate)
+      });
+    } catch (error) {
+      console.log('Failed to save lock pick to database');
+    }
+  }
+
+  async getTodaysLockPick(): Promise<DailyPick | null> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    try {
+      const [pick] = await db
+        .select()
+        .from(loggedInLockPicks)
+        .where(eq(loggedInLockPicks.pickDate, new Date(today)))
+        .limit(1);
+      
+      return pick || null;
+    } catch (error) {
+      console.log('Failed to get lock pick from database');
+      return null;
+    }
+  }
+
+  async generateAndSaveTodaysLockPick(games: any[]): Promise<DailyPick | null> {
+    const existingLockPick = await this.getTodaysLockPick();
+    if (existingLockPick) {
+      return existingLockPick;
+    }
+
+    // Generate a different pick from the regular daily pick
+    const dailyPick = await this.getTodaysPick();
+    const availableGames = games.filter(game => 
+      !dailyPick || game.id !== dailyPick.gameId
+    );
+
+    if (availableGames.length === 0) {
+      return null;
+    }
+
+    const newLockPick = await this.generateDailyPick(availableGames);
+    if (newLockPick) {
+      // Create a new ID for the lock pick
+      newLockPick.id = `lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await this.saveLockPick(newLockPick);
+    }
+
+    return newLockPick;
   }
 }
 

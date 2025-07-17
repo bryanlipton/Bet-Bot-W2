@@ -252,6 +252,26 @@ export const dailyPicks = pgTable("daily_picks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Logged-in lock picks for authenticated users
+export const loggedInLockPicks = pgTable("logged_in_lock_picks", {
+  id: text("id").primaryKey(),
+  gameId: text("game_id").notNull(),
+  homeTeam: text("home_team").notNull(),
+  awayTeam: text("away_team").notNull(),
+  pickTeam: text("pick_team").notNull(),
+  pickType: text("pick_type").notNull().default("moneyline"),
+  odds: integer("odds").notNull(),
+  grade: text("grade").notNull(), // A+, A, A-, B+, B, B-, C+, C, C-, D+, D, F
+  confidence: integer("confidence").notNull(), // 0-100
+  reasoning: text("reasoning").notNull(),
+  analysis: json("analysis").notNull(), // DailyPickAnalysis object
+  gameTime: timestamp("game_time").notNull(),
+  venue: text("venue").notNull(),
+  probablePitchers: json("probable_pitchers").notNull(),
+  pickDate: timestamp("pick_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const upsertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
@@ -269,6 +289,7 @@ export const insertBaseballModelTrainingSchema = createInsertSchema(baseballMode
 export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrainingData).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
+export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
