@@ -424,17 +424,21 @@ export function ActionStyleGameCard({
               )}
             </div>
 
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center">
               {isDailyPick && dailyPickTeam === awayTeam ? (
-                <>
+                <div className="relative">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <InfoButton pickId={dailyPickId} pickType="daily" />
-                </>
+                  <div className="absolute -top-1 -right-1">
+                    <InfoButton pickId={dailyPickId} pickType="daily" />
+                  </div>
+                </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
-                <>
+                <div className="relative">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <InfoButton pickId={lockPickId} pickType="lock" />
-                </>
+                  <div className="absolute -top-1 -right-1">
+                    <InfoButton pickId={lockPickId} pickType="lock" />
+                  </div>
+                </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
@@ -476,17 +480,21 @@ export function ActionStyleGameCard({
               )}
             </div>
 
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center">
               {isDailyPick && dailyPickTeam === homeTeam ? (
-                <>
+                <div className="relative">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <InfoButton pickId={dailyPickId} pickType="daily" />
-                </>
+                  <div className="absolute -top-1 -right-1">
+                    <InfoButton pickId={dailyPickId} pickType="daily" />
+                  </div>
+                </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
-                <>
+                <div className="relative">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <InfoButton pickId={lockPickId} pickType="lock" />
-                </>
+                  <div className="absolute -top-1 -right-1">
+                    <InfoButton pickId={lockPickId} pickType="lock" />
+                  </div>
+                </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
