@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, TrendingUp, Crown, Clock, Zap } from "lucide-react";
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
+import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
 import { Pick } from '@/types/picks';
 
@@ -84,9 +85,8 @@ export function OddsComparisonModal({
 
     if (!outcome) return null;
 
-    // Use deep link hierarchy: outcome.link > market.link > bookmaker.link > fallback
-    const deepLink = outcome.link || market.link || bookmaker.link;
-    const fallbackUrl = getBookmakerUrl(
+    // Build the best possible deep link using Odds API data + manual patterns
+    const deepLinkResult = buildDeepLink(
       bookmaker.key,
       gameInfo,
       {
@@ -95,6 +95,11 @@ export function OddsComparisonModal({
           selectedBet.market,
         selection: selectedBet.selection,
         line: selectedBet.line || outcome.point
+      },
+      {
+        bookmakerLink: bookmaker.link,
+        marketLink: market.link,
+        outcomeLink: outcome.link
       }
     );
 
@@ -103,8 +108,9 @@ export function OddsComparisonModal({
       displayName: getBookmakerDisplayName(bookmaker.key),
       odds: outcome.price,
       line: outcome.point,
-      url: deepLink || fallbackUrl,
-      hasDeepLink: !!deepLink, // Track if this is a real deep link
+      url: deepLinkResult.url,
+      hasDeepLink: deepLinkResult.hasDeepLink,
+      linkType: deepLinkResult.linkType, // 'bet-slip', 'market', 'game', or 'manual'
       lastUpdate: bookmaker.last_update
     };
   }).filter(Boolean);
@@ -255,7 +261,19 @@ export function OddsComparisonModal({
                               {odds!.displayName}
                             </h4>
                             {odds!.hasDeepLink && (
-                              <Zap className="w-3 h-3 text-green-500" title="Real Deep Link - Opens specific bet page" />
+                              <Zap 
+                                className={`w-3 h-3 ${
+                                  odds!.linkType === 'bet-slip' ? 'text-green-600' :
+                                  odds!.linkType === 'market' ? 'text-blue-500' :
+                                  'text-amber-500'
+                                }`} 
+                                title={
+                                  odds!.linkType === 'bet-slip' ? 'Direct bet slip link' :
+                                  odds!.linkType === 'market' ? 'Market-specific page' :
+                                  odds!.linkType === 'game' ? 'Game-specific page' :
+                                  'Manual deep link'
+                                }
+                              />
                             )}
                           </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -303,8 +321,19 @@ export function OddsComparisonModal({
               Your pick will be tracked in "My Picks".
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Zap className="w-3 h-3 text-green-500" />
-              <span>⚡ = Real deep link to specific bet | Others open general pages</span>
+              <div className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-green-600" />
+                <span>Bet slip</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-blue-500" />
+                <span>Market</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-amber-500" />
+                <span>Game</span>
+              </div>
+              <span>| Others = Login page</span>
             </div>
           </div>
         </div>

@@ -99,13 +99,14 @@ The Odds API provides deep links in this priority order:
 - `{odds}`: American odds format
 - `{line}`: Point spread or total line
 
-### Current User Experience
-What users actually experience:
-- 🔗 Click sportsbook link in odds comparison
-- 🏃‍♂️ Redirected to login page or MLB section
-- 👀 Must manually search for specific game
-- 📝 Must manually add desired bet to slip
-- 💳 Can then place bet through normal sportsbook flow
+### Current User Experience (Updated Implementation)
+What users now experience with our deep linking system:
+- 🎯 Click "Pick" button to compare odds across all sportsbooks
+- ⚡ Color-coded lightning bolts show link quality (Green/Blue/Amber)
+- 🔗 Best links open directly to bet slips (FanDuel) or specific game pages
+- 📊 System automatically uses The Odds API deep links when available
+- 🔄 Falls back to manual deep link patterns with affiliate tracking
+- 🏠 Non-supported books redirect to login pages with affiliate codes
 
 ### No Lightning Bolt Icons
 Since bet slip integration isn't available:
@@ -122,11 +123,20 @@ Since bet slip integration isn't available:
 - **MetaBet API**: Professional odds service with bet slip features
 - **White-label Solutions**: Custom sportsbook integration platforms
 
-### Current Best Practice
-1. **Clear User Expectations**: Inform users they'll add bets manually
-2. **Optimal Landing Pages**: Direct to most relevant section possible  
-3. **Mobile Optimization**: Ensure smooth mobile transitions
-4. **Affiliate Tracking**: Maintain proper attribution through the flow
+### Implemented Best Practices
+1. **Smart Link Hierarchy**: Outcome > Market > Game > Manual > Login fallback
+2. **Visual Quality Indicators**: Color-coded lightning bolts show link depth
+3. **Affiliate Integration**: Proper tracking on all URLs with betbot123 codes
+4. **Mobile Optimization**: All deep links tested for mobile compatibility
+5. **User Education**: Clear legend explains what each lightning bolt color means
+6. **Fallback Strategy**: Login pages for unsupported sportsbooks
+
+### Deep Link Builder Features
+- **Team Slug Generation**: Converts "New York Yankees" to "new-york-yankees"
+- **Date Formatting**: Handles different sportsbook date requirements
+- **Affiliate Parameter Injection**: Adds tracking codes to all URLs
+- **URL Pattern Matching**: DraftKings event IDs, FanDuel game pages, etc.
+- **Link Type Detection**: Identifies bet-slip vs market vs game links
 
 ## Update Schedule
 - Last Updated: July 17, 2025
