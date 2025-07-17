@@ -373,8 +373,10 @@ export function ActionStyleDashboard() {
                   isDailyPick={isGameDailyPick(game)}
                   dailyPickTeam={dailyPick?.pickTeam}
                   dailyPickGrade={dailyPick?.grade}
+                  dailyPickId={dailyPick?.id}
                   lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
                   lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
+                  lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
                   isAuthenticated={!!user}
                   rawBookmakers={game.rawBookmakers}
                   onClick={() => {

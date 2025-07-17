@@ -41,8 +41,10 @@ interface GameCardProps {
   isDailyPick?: boolean;
   dailyPickTeam?: string;
   dailyPickGrade?: string;
+  dailyPickId?: string;
   lockPickTeam?: string;
   lockPickGrade?: string;
+  lockPickId?: string;
   isAuthenticated?: boolean;
   onClick?: () => void;
   // Raw bookmakers data for odds comparison
@@ -75,7 +77,73 @@ function scoreToGrade(score: number): string {
 }
 
 // Info Button Component for Bet Bot picks - opens detailed analysis dialog
-function InfoButton() {
+function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' | 'lock' }) {
+  const { data: analysisData } = useQuery({
+    queryKey: [`/api/daily-pick${pickType === 'lock' ? '/lock' : ''}`, pickId, 'analysis'],
+    enabled: !!pickId && !!pickType,
+  });
+
+  // Factor information mapping
+  const getFactorInfo = (key: string): string => {
+    const factorDescriptions: Record<string, string> = {
+      bettingValue: "Analysis of odds value comparing our probability model to available betting lines and market efficiency.",
+      fieldValue: "Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.",
+      pitchingEdge: "Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.",
+      recentForm: "Team performance over last 10 games including wins, runs scored, and momentum indicators.",
+      weatherImpact: "Wind speed/direction, temperature, and humidity effects on ball flight and overall scoring.",
+      offensiveEdge: "Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games."
+    };
+    return factorDescriptions[key] || "Analysis factor description not available.";
+  };
+
+  const getFactorTitle = (key: string): string => {
+    const factorTitles: Record<string, string> = {
+      bettingValue: "Betting Value",
+      fieldValue: "Field Value",
+      pitchingEdge: "Pitching Edge",
+      recentForm: "Recent Form",
+      weatherImpact: "Weather Impact",
+      offensiveEdge: "Offensive Edge"
+    };
+    return factorTitles[key] || key;
+  };
+
+  const scoreToGrade = (score: number): string => {
+    if (score >= 95) return 'A+';
+    if (score >= 88) return 'A';
+    if (score >= 83) return 'B+';
+    if (score >= 78) return 'B';
+    if (score >= 73) return 'C+';
+    if (score >= 68) return 'C';
+    if (score >= 63) return 'D+';
+    return 'D';
+  };
+
+  if (!pickId || !pickType || !analysisData) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+            <Info className="h-3 w-3 text-black dark:text-white" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3 text-xs" side="top">
+          <div className="font-medium mb-1">Bet Bot AI Analysis</div>
+          <div>Our AI analyzes 6 key factors including pitching matchups, offensive power, recent team form, ballpark effects, weather conditions, and betting value to generate grade-based recommendations for each game.</div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  const factors = [
+    { key: 'bettingValue', score: analysisData.bettingValue },
+    { key: 'fieldValue', score: analysisData.fieldValue },
+    { key: 'pitchingEdge', score: analysisData.pitchingEdge },
+    { key: 'recentForm', score: analysisData.recentForm },
+    { key: 'weatherImpact', score: analysisData.weatherImpact },
+    { key: 'offensiveEdge', score: analysisData.offensiveEdge }
+  ];
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -83,9 +151,20 @@ function InfoButton() {
           <Info className="h-3 w-3 text-black dark:text-white" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 text-xs" side="top">
-        <div className="font-medium mb-1">Bet Bot AI Analysis</div>
-        <div>Our AI analyzes 6 key factors including pitching matchups, offensive power, recent team form, ballpark effects, weather conditions, and betting value to generate grade-based recommendations for each game.</div>
+      <PopoverContent className="w-80 p-4 text-xs" side="top">
+        <div className="font-medium mb-3">Analysis Factors</div>
+        <div className="space-y-3">
+          {factors.map(({ key, score }) => (
+            <div key={key} className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="font-medium">{getFactorTitle(key)}</span>
+                <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+              </div>
+              <Progress value={score} className="h-1" />
+              <p className="text-xs text-gray-500 dark:text-gray-400">{getFactorInfo(key)}</p>
+            </div>
+          ))}
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -126,8 +205,10 @@ export function ActionStyleGameCard({
   isDailyPick = false,
   dailyPickTeam,
   dailyPickGrade,
+  dailyPickId,
   lockPickTeam,
   lockPickGrade,
+  lockPickId,
   isAuthenticated = false,
   onClick,
   rawBookmakers
@@ -245,12 +326,12 @@ export function ActionStyleGameCard({
               {isDailyPick && dailyPickTeam === awayTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <InfoButton />
+                  <InfoButton pickId={dailyPickId} pickType="daily" />
                 </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <InfoButton />
+                  <InfoButton pickId={lockPickId} pickType="lock" />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
@@ -299,12 +380,12 @@ export function ActionStyleGameCard({
               {isDailyPick && dailyPickTeam === homeTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <InfoButton />
+                  <InfoButton pickId={dailyPickId} pickType="daily" />
                 </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
                 <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <InfoButton />
+                  <InfoButton pickId={lockPickId} pickType="lock" />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
