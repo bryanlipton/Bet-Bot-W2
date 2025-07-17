@@ -84,9 +84,9 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
   const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'bg-green-500';
-    if (grade.startsWith('B')) return 'bg-blue-500';
-    if (grade.startsWith('C')) return 'bg-yellow-500';
+    if (grade.startsWith('A')) return 'bg-orange-500';
+    if (grade.startsWith('B')) return 'bg-orange-500';
+    if (grade.startsWith('C')) return 'bg-orange-500';
     if (grade.startsWith('D')) return 'bg-orange-500';
     return 'bg-red-500';
   };
@@ -131,7 +131,7 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
         </Popover>
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
-      <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+      <div className="bg-orange-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
         {score}
       </div>
     </div>
