@@ -273,20 +273,38 @@ export function ActionStyleGameCard({
             {spread !== undefined && (
               <div className="text-center space-y-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {spread > 0 ? `+${spread}` : spread}
-                </p>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={(e) => handleMakePick(e, 'spread', homeTeam, spread)}
-                    className="text-xs px-2 py-1 h-6"
-                  >
-                    <Target className="w-3 h-3 mr-1" />
-                    Pick
-                  </Button>
-                </div>
+                {(() => {
+                  // Determine which team is favored (negative spread = favored)
+                  const isFavoredHome = spread < 0;
+                  const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                  const favoredSpread = Math.abs(spread);
+                  
+                  return (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {favoredTeam} -{favoredSpread}
+                      </p>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                          className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                        >
+                          Pick
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                          className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                        >
+                          Fade
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
             
