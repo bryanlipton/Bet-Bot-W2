@@ -34,6 +34,7 @@ export default function MyPicksPage() {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [availableGames, setAvailableGames] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState<any>(null);
+  const [entryType, setEntryType] = useState<'single' | 'parlay'>('single');
   const [manualEntry, setManualEntry] = useState({
     gameId: '',
     market: 'moneyline' as 'moneyline' | 'spread' | 'total',
@@ -41,6 +42,15 @@ export default function MyPicksPage() {
     line: '',
     odds: ''
   });
+  const [parlayLegs, setParlayLegs] = useState<Array<{
+    gameId: string;
+    market: 'moneyline' | 'spread' | 'total';
+    selection: string;
+    line: string;
+    odds: string;
+    game?: any;
+  }>>([]);
+  const [parlayOdds, setParlayOdds] = useState('');
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -122,6 +132,9 @@ export default function MyPicksPage() {
 
   const formatBet = (pick: Pick) => {
     const { betInfo } = pick;
+    if (betInfo.market === 'parlay') {
+      return `${betInfo.selection} Parlay`;
+    }
     if (betInfo.market === 'moneyline') {
       return `${betInfo.selection} ML`;
     }
@@ -185,45 +198,90 @@ export default function MyPicksPage() {
   };
 
   const handleManualEntry = () => {
-    if (!selectedGame || !manualEntry.selection) {
-      alert('Please select a game and betting option');
-      return;
+    if (entryType === 'single') {
+      // Single bet handling
+      if (!selectedGame || !manualEntry.selection) {
+        alert('Please select a game and betting option');
+        return;
+      }
+
+      const pick: Pick = {
+        id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        gameInfo: {
+          awayTeam: selectedGame.away_team,
+          homeTeam: selectedGame.home_team,
+          gameTime: selectedGame.commence_time,
+          venue: selectedGame.venue || 'TBD',
+          sport: 'baseball_mlb'
+        },
+        betInfo: {
+          market: manualEntry.market,
+          selection: manualEntry.selection,
+          line: manualEntry.line ? parseFloat(manualEntry.line) : undefined,
+          odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0
+        },
+        bookmaker: {
+          key: 'manual',
+          title: 'Manual Entry',
+          displayName: 'Manual Entry',
+          url: '#'
+        },
+        status: 'pending'
+      };
+
+      pickStorage.savePick(pick);
+      
+    } else if (entryType === 'parlay') {
+      // Parlay bet handling
+      if (parlayLegs.length < 2) {
+        alert('A parlay must have at least 2 legs');
+        return;
+      }
+
+      if (!parlayOdds) {
+        alert('Please enter the parlay odds');
+        return;
+      }
+
+      // Create a single pick representing the parlay
+      const parlayPick: Pick = {
+        id: `parlay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        gameInfo: {
+          awayTeam: `${parlayLegs.length}-Leg Parlay`,
+          homeTeam: 'Multiple Games',
+          gameTime: new Date().toISOString(),
+          venue: 'Multiple Venues',
+          sport: 'baseball_mlb'
+        },
+        betInfo: {
+          market: 'parlay',
+          selection: `${parlayLegs.length} Legs`,
+          line: undefined,
+          odds: parseFloat(parlayOdds) || 0,
+          parlayLegs: parlayLegs.map(leg => ({
+            game: `${leg.game?.away_team} @ ${leg.game?.home_team}`,
+            market: leg.market,
+            selection: leg.selection,
+            line: leg.line ? parseFloat(leg.line) : undefined,
+            odds: leg.odds ? parseFloat(leg.odds) : 0
+          }))
+        },
+        bookmaker: {
+          key: 'manual',
+          title: 'Manual Entry',
+          displayName: 'Manual Entry',
+          url: '#'
+        },
+        status: 'pending'
+      };
+
+      pickStorage.savePick(parlayPick);
     }
-
-    const pick: Pick = {
-      id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      gameInfo: {
-        awayTeam: selectedGame.away_team,
-        homeTeam: selectedGame.home_team,
-        gameTime: selectedGame.commence_time,
-        venue: selectedGame.venue || 'TBD'
-      },
-      betInfo: {
-        market: manualEntry.market,
-        selection: manualEntry.selection,
-        line: manualEntry.line ? parseFloat(manualEntry.line) : undefined,
-        odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0
-      },
-      bookmaker: {
-        key: 'manual',
-        title: 'Manual Entry',
-        displayName: 'Manual Entry'
-      },
-      status: 'pending'
-    };
-
-    pickStorage.savePick(pick);
     
-    // Reset form
-    setManualEntry({
-      gameId: '',
-      market: 'moneyline',
-      selection: '',
-      line: '',
-      odds: ''
-    });
-    setSelectedGame(null);
+    // Reset form and close modal
+    resetManualEntry();
     setShowManualEntry(false);
   };
 
@@ -304,6 +362,53 @@ export default function MyPicksPage() {
     }
     
     return options;
+  };
+
+  // Parlay functionality
+  const addParlayLeg = () => {
+    if (!selectedGame || !manualEntry.selection || !manualEntry.market) {
+      alert('Please select a game and betting option first');
+      return;
+    }
+
+    const newLeg = {
+      gameId: selectedGame.id,
+      market: manualEntry.market,
+      selection: manualEntry.selection,
+      line: manualEntry.line,
+      odds: manualEntry.odds,
+      game: selectedGame
+    };
+
+    setParlayLegs([...parlayLegs, newLeg]);
+    
+    // Reset form for next leg
+    setSelectedGame(null);
+    setManualEntry({
+      gameId: '',
+      market: 'moneyline',
+      selection: '',
+      line: '',
+      odds: ''
+    });
+  };
+
+  const removeParlayLeg = (index: number) => {
+    setParlayLegs(parlayLegs.filter((_, i) => i !== index));
+  };
+
+  const resetManualEntry = () => {
+    setSelectedGame(null);
+    setManualEntry({
+      gameId: '',
+      market: 'moneyline',
+      selection: '',
+      line: '',
+      odds: ''
+    });
+    setParlayLegs([]);
+    setParlayOdds('');
+    setEntryType('single');
   };
 
   // Calculate stats
@@ -480,6 +585,22 @@ export default function MyPicksPage() {
                       <p className="font-medium text-gray-900 dark:text-white">
                         {formatBet(pick)}
                       </p>
+                      {/* Parlay legs display */}
+                      {pick.betInfo.market === 'parlay' && pick.betInfo.parlayLegs && (
+                        <div className="mt-2 space-y-1">
+                          {pick.betInfo.parlayLegs.map((leg, index) => (
+                            <div key={index} className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-1 rounded">
+                              <div className="font-medium">{leg.game}</div>
+                              <div>
+                                {leg.selection} {leg.market === 'spread' && leg.line ? `${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
+                                {leg.market === 'total' && leg.line ? `${leg.line}` : ''}
+                                {leg.market === 'moneyline' ? 'ML' : ''}
+                                {leg.odds > 0 && ` (${formatOdds(leg.odds)})`}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       {/* Manual odds entry interface */}
                       {pick.betInfo.odds === 0 && pick.bookmaker.key === 'manual' ? (
                         <div className="mt-2">
@@ -584,96 +705,253 @@ export default function MyPicksPage() {
       </div>
 
       {/* Manual Entry Modal */}
-      <Dialog open={showManualEntry} onOpenChange={setShowManualEntry}>
-        <DialogContent className="max-w-md">
+      <Dialog open={showManualEntry} onOpenChange={(open) => {
+        setShowManualEntry(open);
+        if (!open) resetManualEntry();
+      }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Enter Manual Pick</DialogTitle>
           </DialogHeader>
+          
+          {/* Tabs for Single vs Parlay */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+            <button
+              onClick={() => setEntryType('single')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                entryType === 'single' 
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              Single Bet
+            </button>
+            <button
+              onClick={() => setEntryType('parlay')}
+              className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                entryType === 'parlay' 
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              Parlay
+            </button>
+          </div>
+
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Select Game
-              </label>
-              <Select value={manualEntry.gameId} onValueChange={handleGameSelection}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a game" />
-                </SelectTrigger>
-                <SelectContent>
-                  {gamesData?.map((game: any) => (
-                    <SelectItem key={game.id} value={game.id}>
-                      {game.away_team} @ {game.home_team}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {selectedGame && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Betting Option
-                </label>
-                <Select value={manualEntry.selection} onValueChange={(value) => {
-                  const option = getBettingOptions().find(opt => opt.value === value);
-                  if (option) {
-                    handleManualEntryChange('selection', value);
-                    handleManualEntryChange('market', option.market);
-                    handleManualEntryChange('line', option.line?.toString() || '');
-                  }
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose your bet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getBettingOptions().map((option, index) => (
-                      <SelectItem key={index} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Single Bet Tab */}
+            {entryType === 'single' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Select Game
+                  </label>
+                  <Select value={manualEntry.gameId} onValueChange={handleGameSelection}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a game" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gamesData?.map((game: any) => (
+                        <SelectItem key={game.id} value={game.id}>
+                          {game.away_team} @ {game.home_team}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedGame && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Betting Option
+                    </label>
+                    <Select value={manualEntry.selection} onValueChange={(value) => {
+                      const option = getBettingOptions().find(opt => opt.value === value);
+                      if (option) {
+                        handleManualEntryChange('selection', value);
+                        handleManualEntryChange('market', option.market);
+                        handleManualEntryChange('line', option.line?.toString() || '');
+                      }
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose your bet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getBettingOptions().map((option, index) => (
+                          <SelectItem key={index} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Odds (optional)
+                  </label>
+                  <Input
+                    value={manualEntry.odds}
+                    onChange={(e) => handleManualEntryChange('odds', e.target.value)}
+                    placeholder="e.g., -110, +150"
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    onClick={handleManualEntry}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={!selectedGame || !manualEntry.selection}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Pick
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowManualEntry(false);
+                      resetManualEntry();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
             )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Odds (optional)
-              </label>
-              <Input
-                value={manualEntry.odds}
-                onChange={(e) => handleManualEntryChange('odds', e.target.value)}
-                placeholder="e.g., -110, +150"
-                className="w-full"
-              />
-            </div>
-            
-            <div className="flex gap-2 pt-4">
-              <Button
-                onClick={handleManualEntry}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={!selectedGame || !manualEntry.selection}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Pick
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowManualEntry(false);
-                  setSelectedGame(null);
-                  setManualEntry({
-                    gameId: '',
-                    market: 'moneyline',
-                    selection: '',
-                    line: '',
-                    odds: ''
-                  });
-                }}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </div>
+
+            {/* Parlay Tab */}
+            {entryType === 'parlay' && (
+              <>
+                {/* Existing Parlay Legs */}
+                {parlayLegs.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Parlay Legs ({parlayLegs.length})
+                    </label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {parlayLegs.map((leg, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                          <div className="text-sm">
+                            <div className="font-medium">{leg.game?.away_team} @ {leg.game?.home_team}</div>
+                            <div className="text-gray-600 dark:text-gray-400">
+                              {leg.selection} {leg.market === 'spread' && leg.line ? `${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
+                              {leg.market === 'total' && leg.line ? `${leg.line}` : ''}
+                              {leg.market === 'moneyline' ? 'ML' : ''}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeParlayLeg(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add New Leg */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Add Leg - Select Game
+                  </label>
+                  <Select value={manualEntry.gameId} onValueChange={handleGameSelection}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a game" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gamesData?.map((game: any) => (
+                        <SelectItem key={game.id} value={game.id}>
+                          {game.away_team} @ {game.home_team}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedGame && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Betting Option
+                    </label>
+                    <Select value={manualEntry.selection} onValueChange={(value) => {
+                      const option = getBettingOptions().find(opt => opt.value === value);
+                      if (option) {
+                        handleManualEntryChange('selection', value);
+                        handleManualEntryChange('market', option.market);
+                        handleManualEntryChange('line', option.line?.toString() || '');
+                      }
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose your bet" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getBettingOptions().map((option, index) => (
+                          <SelectItem key={index} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Add Leg Button */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={addParlayLeg}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!selectedGame || !manualEntry.selection}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Leg
+                  </Button>
+                </div>
+
+                {/* Parlay Odds */}
+                {parlayLegs.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Parlay Odds
+                    </label>
+                    <Input
+                      value={parlayOdds}
+                      onChange={(e) => setParlayOdds(e.target.value)}
+                      placeholder="e.g., +250, +400"
+                      className="w-full"
+                    />
+                  </div>
+                )}
+                
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    onClick={handleManualEntry}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={parlayLegs.length < 2 || !parlayOdds}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Parlay
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowManualEntry(false);
+                      resetManualEntry();
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

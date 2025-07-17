@@ -2,7 +2,7 @@
 
 export interface Pick {
   id: string;
-  timestamp: number;
+  timestamp: string;
   gameInfo: {
     homeTeam: string;
     awayTeam: string;
@@ -11,10 +11,17 @@ export interface Pick {
     gameTime?: string;
   };
   betInfo: {
-    market: 'moneyline' | 'spread' | 'total' | 'over' | 'under';
+    market: 'moneyline' | 'spread' | 'total' | 'over' | 'under' | 'parlay';
     selection: string; // Team name or "Over"/"Under"
     odds: number;
     line?: number; // For spread/total bets
+    parlayLegs?: Array<{
+      game: string;
+      market: 'moneyline' | 'spread' | 'total' | 'over' | 'under';
+      selection: string;
+      line?: number;
+      odds: number;
+    }>;
   };
   bookmaker: {
     key: string;
