@@ -416,7 +416,8 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
-                  className="text-xs px-3 py-1 h-7 bg-blue-600 hover:bg-blue-700 text-white border-0 font-semibold shadow-sm"
+                  className="text-xs px-3 py-1 h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
+                  style={{ backgroundColor: getTeamColor(awayTeam) }}
                 >
                   Pick
                 </Button>
@@ -467,7 +468,8 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
-                  className="text-xs px-3 py-1 h-7 bg-blue-600 hover:bg-blue-700 text-white border-0 font-semibold shadow-sm"
+                  className="text-xs px-3 py-1 h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
+                  style={{ backgroundColor: getTeamColor(homeTeam) }}
                 >
                   Pick
                 </Button>
@@ -568,17 +570,15 @@ export function ActionStyleGameCard({
                 <div className="flex gap-1">
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
-                    className="text-xs px-1 py-1 h-6"
+                    className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     O
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
-                    className="text-xs px-1 py-1 h-6"
+                    className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     U
                   </Button>

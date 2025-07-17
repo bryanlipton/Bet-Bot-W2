@@ -398,9 +398,8 @@ export default function DailyPick() {
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
-                    className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                    className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
                   </Button>
@@ -421,9 +420,8 @@ export default function DailyPick() {
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.bottomTeam && (
                   <Button
                     size="sm"
-                    variant="outline"
                     onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
-                    className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                    className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
                   </Button>
