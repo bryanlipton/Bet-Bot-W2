@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { oddsApiService } from "./services/oddsApi";
 
-const ODDS_API_KEY = process.env.THE_ODDS_API_KEY;
+const ODDS_API_KEY = 'bcf462d7c3a36ee7010e52baed084eae';
 const ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4";
 
 export function registerOddsRoutes(app: Express) {
