@@ -386,18 +386,15 @@ export default function DailyPick() {
           {/* Left side - Team matchup and odds (scorebug) */}
           <div className="flex-1 space-y-1">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-lg text-blue-600 dark:text-blue-400 truncate">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <h4 className="font-bold text-lg text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-4">
-                  P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3 flex-shrink-0">
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
+                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(dailyPick.odds, dailyPick.pickType)}
                 </span>
+              </div>
+              <div className="flex-shrink-0">
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
@@ -410,17 +407,22 @@ export default function DailyPick() {
                 )}
               </div>
             </div>
+            <div className="ml-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
+              </p>
+            </div>
             <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <span>{matchup.separator}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="truncate block">{matchup.bottomTeam}</span>
+                  <span className="block">{matchup.bottomTeam}</span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
                   </p>
                 </div>
               </div>
-              {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.topTeam && (
+              {dailyPick.pickType === 'moneyline' && (
                 <Button
                   size="sm"
                   variant="outline"

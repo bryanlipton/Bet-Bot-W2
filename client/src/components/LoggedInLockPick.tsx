@@ -429,18 +429,15 @@ export default function LoggedInLockPick() {
           {/* Left side - Team matchup and odds (scorebug) */}
           <div className="flex-1 space-y-1">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-lg text-amber-600 dark:text-amber-400 truncate">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <h4 className="font-bold text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-4">
-                  P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3 flex-shrink-0">
-                <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent">
+                <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
+              </div>
+              <div className="flex-shrink-0">
                 {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
@@ -453,17 +450,22 @@ export default function LoggedInLockPick() {
                 )}
               </div>
             </div>
+            <div className="ml-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
+              </p>
+            </div>
             <div className="flex items-center justify-between text-base text-gray-600 dark:text-gray-400">
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <span>{matchup.separator}</span>
                 <div className="flex-1 min-w-0">
-                  <span className="truncate block">{matchup.bottomTeam}</span>
+                  <span className="block">{matchup.bottomTeam}</span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
                   </p>
                 </div>
               </div>
-              {lockPick.pickType === 'moneyline' && lockPick.pickTeam !== matchup.topTeam && (
+              {lockPick.pickType === 'moneyline' && (
                 <Button
                   size="sm"
                   variant="outline"
