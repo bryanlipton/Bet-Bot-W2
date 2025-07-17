@@ -367,7 +367,7 @@ export function ActionStyleGameCard({
                       <Target className="w-3 h-3 mr-1" />
                       Pick
                     </Button>
-                    {spread !== undefined && spread !== null && (isDailyPick && dailyPickTeam === homeTeam || isAuthenticated && lockPickTeam === homeTeam) && (
+                    {spread !== undefined && spread !== null && ((isDailyPick && dailyPickTeam === homeTeam) || (isAuthenticated && lockPickTeam === homeTeam)) && (
                       <Button
                         size="sm"
                         variant="outline"
