@@ -390,11 +390,11 @@ export default function DailyPick() {
                 <h4 className="font-bold text-lg text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
+                <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(dailyPick.odds, dailyPick.pickType)}
                 </span>
               </div>
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 ml-4">
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
@@ -422,16 +422,18 @@ export default function DailyPick() {
                   </p>
                 </div>
               </div>
-              {dailyPick.pickType === 'moneyline' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
-                  className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 flex-shrink-0"
-                >
-                  Fade
-                </Button>
-              )}
+              <div className="flex-shrink-0 ml-4">
+                {dailyPick.pickType === 'moneyline' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                    className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                  >
+                    Fade
+                  </Button>
+                )}
+              </div>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}

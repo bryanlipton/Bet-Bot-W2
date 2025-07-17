@@ -433,11 +433,11 @@ export default function LoggedInLockPick() {
                 <h4 className="font-bold text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <span className="text-lg font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
+                <span className="font-bold text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
               </div>
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 ml-4">
                 {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
@@ -465,16 +465,18 @@ export default function LoggedInLockPick() {
                   </p>
                 </div>
               </div>
-              {lockPick.pickType === 'moneyline' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
-                  className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 flex-shrink-0"
-                >
-                  Fade
-                </Button>
-              )}
+              <div className="flex-shrink-0 ml-4">
+                {lockPick.pickType === 'moneyline' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
+                    className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                  >
+                    Fade
+                  </Button>
+                )}
+              </div>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
               {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
