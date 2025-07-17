@@ -166,10 +166,10 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
           <Button 
             variant="ghost" 
             size="sm" 
-            className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+            className="p-0 h-4 w-4 bg-black dark:bg-gray-500 hover:bg-gray-800 dark:hover:bg-gray-400 rounded-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <Info className="h-3 w-3 text-black dark:text-white" />
+            <Info className="h-2.5 w-2.5 text-white dark:text-black" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3 text-xs" side="top">
@@ -187,10 +187,10 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
           <Button 
             variant="ghost" 
             size="sm" 
-            className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+            className="p-0 h-4 w-4 bg-black dark:bg-gray-500 hover:bg-gray-800 dark:hover:bg-gray-400 rounded-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <Info className="h-3 w-3 text-black dark:text-white" />
+            <Info className="h-2.5 w-2.5 text-white dark:text-black" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3 text-xs" side="top">
@@ -215,13 +215,13 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
       <Button 
         variant="ghost" 
         size="sm" 
-        className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+        className="p-0 h-4 w-4 bg-black dark:bg-gray-500 hover:bg-gray-800 dark:hover:bg-gray-400 rounded-full flex items-center justify-center"
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(true);
         }}
       >
-        <Info className="h-3 w-3 text-black dark:text-white" />
+        <Info className="h-2.5 w-2.5 text-white dark:text-black" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -428,14 +428,14 @@ export function ActionStyleGameCard({
               {isDailyPick && dailyPickTeam === awayTeam ? (
                 <div className="relative">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-2 -right-2 p-1 cursor-pointer">
                     <InfoButton pickId={dailyPickId} pickType="daily" />
                   </div>
                 </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
                 <div className="relative">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-2 -right-2 p-1 cursor-pointer">
                     <InfoButton pickId={lockPickId} pickType="lock" />
                   </div>
                 </div>
@@ -484,14 +484,14 @@ export function ActionStyleGameCard({
               {isDailyPick && dailyPickTeam === homeTeam ? (
                 <div className="relative">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-2 -right-2 p-1 cursor-pointer">
                     <InfoButton pickId={dailyPickId} pickType="daily" />
                   </div>
                 </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
                 <div className="relative">
                   <GradeBubble grade={lockPickGrade || "C+"} />
-                  <div className="absolute -top-1 -right-1">
+                  <div className="absolute -top-2 -right-2 p-1 cursor-pointer">
                     <InfoButton pickId={lockPickId} pickType="lock" />
                   </div>
                 </div>
