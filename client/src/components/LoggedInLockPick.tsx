@@ -97,8 +97,45 @@ function GradeBadge({ grade }: { grade: string }) {
   );
 }
 
+// Factor Grade Conversion
+function scoreToGrade(score: number): string {
+  if (score >= 95) return 'A+';
+  if (score >= 90) return 'A';
+  if (score >= 87) return 'A-';
+  if (score >= 84) return 'B+';
+  if (score >= 80) return 'B';
+  if (score >= 77) return 'B-';
+  if (score >= 74) return 'C+';
+  if (score >= 70) return 'C';
+  if (score >= 67) return 'C-';
+  if (score >= 64) return 'D+';
+  if (score >= 60) return 'D';
+  if (score >= 57) return 'D-';
+  return 'F';
+}
+
+// Factor Grade Component
+function FactorGrade({ title, score }: { title: string; score: number }) {
+  const grade = scoreToGrade(score);
+  const getGradeColor = (grade: string) => {
+    if (grade.startsWith('A')) return 'text-green-600 dark:text-green-400';
+    if (grade.startsWith('B')) return 'text-blue-600 dark:text-blue-400';
+    if (grade.startsWith('C')) return 'text-yellow-600 dark:text-yellow-400';
+    if (grade.startsWith('D')) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
+  return (
+    <div className="flex items-center justify-between py-1">
+      <span className="text-sm text-gray-700 dark:text-gray-300">{title}</span>
+      <span className={`font-bold text-sm ${getGradeColor(grade)}`}>{grade}</span>
+    </div>
+  );
+}
+
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+  const [showMoreFactors, setShowMoreFactors] = useState(false);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   const { data: lockPick, isLoading } = useQuery<DailyPick | null>({
@@ -170,9 +207,58 @@ export default function LoggedInLockPick() {
     return `${gameDate} at ${time}`;
   };
 
-  const formatOdds = (odds: number) => {
-    return odds > 0 ? `+${odds}` : `${odds}`;
+  const formatOdds = (odds: number, pickType: string) => {
+    const sign = odds > 0 ? `+${odds}` : `${odds}`;
+    const type = pickType === 'moneyline' ? 'ML' : 
+                 pickType === 'spread' ? 'SP' : 
+                 pickType === 'over_under' ? 'O/U' : 'ML';
+    return `${type} ${sign}`;
   };
+
+  // Get factors sorted by score (highest to lowest)
+  const getSortedFactors = (analysis: DailyPickAnalysis) => {
+    const factorTitles = {
+      teamOffense: 'Team Offense',
+      pitchingMatchup: 'Pitching Matchup',
+      ballparkFactor: 'Ballpark Factor',
+      weatherImpact: 'Weather Impact',
+      situationalEdge: 'Situational Edge',
+      valueScore: 'Value Score',
+      confidence: 'Confidence'
+    };
+
+    return Object.entries(analysis)
+      .filter(([key]) => key !== 'confidence') // Exclude confidence from factors
+      .map(([key, score]) => ({
+        key,
+        title: factorTitles[key as keyof typeof factorTitles] || key,
+        score: score as number
+      }))
+      .sort((a, b) => b.score - a.score);
+  };
+
+  // Determine if pick team is away or home, format matchup accordingly
+  const formatMatchup = (homeTeam: string, awayTeam: string, pickTeam: string) => {
+    const isPickHome = pickTeam === homeTeam;
+    if (isPickHome) {
+      return {
+        topTeam: homeTeam,
+        bottomTeam: awayTeam,
+        separator: 'vs.'
+      };
+    } else {
+      return {
+        topTeam: awayTeam,
+        bottomTeam: homeTeam,
+        separator: '@'
+      };
+    }
+  };
+
+  const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
+  const sortedFactors = getSortedFactors(lockPick.analysis);
+  const topFactors = sortedFactors.slice(0, 3);
+  const additionalFactors = sortedFactors.slice(3);
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
@@ -192,143 +278,123 @@ export default function LoggedInLockPick() {
           </div>
           <div className="flex items-center space-x-2">
             <GradeBadge grade={lockPick.grade} />
-            <div className="text-right">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Confidence</div>
-              <div className="font-bold text-lg">{lockPick.confidence}%</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Target className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              <span className="font-semibold text-lg">
-                {lockPick.pickTeam} {lockPick.pickType}
-              </span>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Odds</div>
-              <div className="font-bold text-xl text-green-600 dark:text-green-400">
-                {formatOdds(lockPick.odds)}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center space-x-1">
-              <Users className="w-4 h-4" />
-              <span>{lockPick.awayTeam} @ {lockPick.homeTeam}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <MapPin className="w-4 h-4" />
-              <span>{lockPick.venue}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
-              <span>{formatGameTime(lockPick.gameTime)}</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Confidence Level</span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">{lockPick.confidence}%</span>
-            </div>
-            <Progress value={lockPick.confidence} className="h-2" />
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-start space-x-2">
-              <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Analysis
-                </h4>
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {lockPick.reasoning}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Updated: {new Date(lockPick.createdAt).toLocaleString()}
-            </div>
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center space-x-1">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                   <Info className="w-4 h-4" />
-                  <span>Full Analysis</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Lock Pick Analysis Details</DialogTitle>
+                  <DialogTitle className="flex items-center space-x-2">
+                    <BetBotIcon className="w-6 h-6" />
+                    <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
+                  </DialogTitle>
                 </DialogHeader>
-                {analysisDetails ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-2">Overall Assessment</h4>
-                        <div className="space-y-1">
-                          <div className="flex justify-between">
-                            <span>Grade:</span>
-                            <GradeBadge grade={analysisDetails.overall.grade} />
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Confidence:</span>
-                            <span className="font-semibold">{analysisDetails.overall.confidence}%</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">Game Details</h4>
-                        <div className="space-y-1 text-sm">
-                          <div><strong>Matchup:</strong> {analysisDetails.gameDetails.matchup}</div>
-                          <div><strong>Venue:</strong> {analysisDetails.gameDetails.venue}</div>
-                          <div><strong>Time:</strong> {analysisDetails.gameDetails.gameTime}</div>
-                          <div><strong>Pick:</strong> {analysisDetails.gameDetails.pickTeam} ({analysisDetails.gameDetails.odds})</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-semibold mb-3">Analysis Factors</h4>
-                      <div className="space-y-3">
-                        {Object.entries(analysisDetails.factors).map(([key, factor]) => (
-                          <div key={key} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                              <span>{factor.score}/100</span>
-                            </div>
-                            <Progress value={factor.score} className="h-2" />
-                            <p className="text-xs text-gray-600 dark:text-gray-400">{factor.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">Reasoning</h4>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{analysisDetails.overall.reasoning}</p>
+                
+                <div className="space-y-4">
+                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                    <h4 className="font-semibold mb-3">Pick Details</h4>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                      <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                      <div><strong>Venue:</strong> {lockPick.venue}</div>
+                      <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-500 dark:text-gray-400">Loading detailed analysis...</p>
+                  
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                    <h4 className="font-semibold mb-3">Reasoning</h4>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {lockPick.reasoning}
+                    </p>
                   </div>
-                )}
+
+                  <div>
+                    <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                    <div className="space-y-3">
+                      {sortedFactors.map(({ key, title, score }) => (
+                        <div key={key} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">{title}</span>
+                            <span className="font-bold">{scoreToGrade(score)} ({score}/100)</span>
+                          </div>
+                          <Progress value={score} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
         </div>
+
+        <div className="flex items-start justify-between space-x-6">
+          {/* Left side - Team matchup and odds */}
+          <div className="flex-1">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <h4 className="font-bold text-xl text-amber-600 dark:text-amber-400">
+                  {matchup.topTeam}
+                </h4>
+                <span className="font-mono text-lg text-gray-700 dark:text-gray-300">
+                  {formatOdds(lockPick.odds, lockPick.pickType)}
+                </span>
+              </div>
+              <div className="text-lg text-gray-600 dark:text-gray-400">
+                {matchup.separator} {matchup.bottomTeam}
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
+              </p>
+            </div>
+          </div>
+
+          {/* Right side - Factor grades */}
+          <div className="w-48 space-y-2">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Factor Grades
+            </h5>
+            
+            {/* Top 3 factors */}
+            <div className="space-y-1">
+              {topFactors.map(({ key, title, score }) => (
+                <FactorGrade key={key} title={title} score={score} />
+              ))}
+            </div>
+
+            {/* Show more button and additional factors */}
+            {additionalFactors.length > 0 && (
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMoreFactors(!showMoreFactors)}
+                  className="h-6 text-xs text-gray-500 dark:text-gray-400 p-0 hover:text-amber-600"
+                >
+                  {showMoreFactors ? 'Show less' : `Show ${additionalFactors.length} more`}
+                </Button>
+                
+                {showMoreFactors && (
+                  <div className="space-y-1">
+                    {additionalFactors.map(({ key, title, score }) => (
+                      <FactorGrade key={key} title={title} score={score} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {lockPick.probablePitchers.home && (
+          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-500 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <span>SP: {lockPick.probablePitchers.away}</span>
+            <span>SP: {lockPick.probablePitchers.home}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
