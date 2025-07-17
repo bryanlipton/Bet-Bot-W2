@@ -71,7 +71,7 @@ export function ActionStyleDashboard() {
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
@@ -250,7 +250,7 @@ export function ActionStyleDashboard() {
 
       {/* Pick of the Day Section - Always visible above sports */}
       <div className="space-y-4">
-        {!isAuthenticated && (
+        {!authLoading && !isAuthenticated && (
           <div className="mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
             <h4 className="font-semibold text-white">Tired of guessing?</h4>
             <p className="text-sm text-blue-100 leading-relaxed">
