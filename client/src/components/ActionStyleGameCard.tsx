@@ -313,11 +313,12 @@ export function ActionStyleGameCard({
         </div>
 
         {/* Betting Lines */}
-        {(spread !== undefined || total !== undefined) && (
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-            {spread !== undefined && (
-              <div className="text-center space-y-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          {/* Spread Section */}
+          <div className="text-center space-y-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+            {spread !== undefined && spread !== null ? (
+              <>
                 {(() => {
                   // Determine which team is favored (negative spread = favored)
                   const isFavoredHome = spread < 0;
@@ -350,12 +351,39 @@ export function ActionStyleGameCard({
                     </div>
                   );
                 })()}
+              </>
+            ) : (
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                  Spread TBD
+                </p>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                  >
+                    Pick
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                  >
+                    Fade
+                  </Button>
+                </div>
               </div>
             )}
-            
-            {total !== undefined && (
-              <div className="text-center space-y-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+          </div>
+          
+          {/* Total Section */}
+          <div className="text-center space-y-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+            {total !== undefined && total !== null ? (
+              <>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   O/U {total}
                 </p>
@@ -377,10 +405,34 @@ export function ActionStyleGameCard({
                     U
                   </Button>
                 </div>
-              </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                  O/U TBD
+                </p>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                  >
+                    O
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled
+                    className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                  >
+                    U
+                  </Button>
+                </div>
+              </>
             )}
           </div>
-        )}
+        </div>
 
         {/* Recommendation */}
         {recommendation && (
