@@ -16,7 +16,6 @@ import {
   Star,
   Zap,
   RefreshCw,
-  BookOpen,
   Newspaper
 } from "lucide-react";
 
@@ -61,7 +60,7 @@ interface ProcessedGame {
 }
 
 import { GameDetailsModal } from "./GameDetailsModal";
-import { ArticleModal } from "./ArticleModal";
+
 import DailyPick from "./DailyPick";
 import LoggedInLockPick from "./LoggedInLockPick";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,7 +69,7 @@ export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch complete schedule from MLB API + Odds API
@@ -85,11 +84,7 @@ export function ActionStyleDashboard() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Fetch AI-generated articles
-  const { data: articles = [] } = useQuery({
-    queryKey: ['/api/articles'],
-    refetchInterval: 300000, // Refresh every 5 minutes
-  });
+
 
   // Fetch daily pick data
   const { data: dailyPick } = useQuery({
@@ -404,139 +399,9 @@ export function ActionStyleDashboard() {
         />
       )}
 
-      {/* Latest Analysis Section with AI-Generated Articles */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Latest Analysis</h2>
-          <Badge variant="outline" className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            Auto-Updated
-          </Badge>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {articles.slice(0, 4).map((article, index) => {
-            const getTypeColor = (type: string) => {
-              switch (type) {
-                case 'game-preview': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-                case 'daily-roundup': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-                case 'strategy-guide': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-                case 'picks-analysis': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-                default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-              }
-            };
 
-            const formatTimeAgo = (dateString: string) => {
-              const now = new Date();
-              const publishTime = new Date(dateString);
-              const diffInHours = Math.floor((now.getTime() - publishTime.getTime()) / (1000 * 60 * 60));
-              
-              if (diffInHours < 1) return 'Just now';
-              if (diffInHours === 1) return '1 hour ago';
-              if (diffInHours < 24) return `${diffInHours} hours ago`;
-              
-              const diffInDays = Math.floor(diffInHours / 24);
-              if (diffInDays === 1) return '1 day ago';
-              return `${diffInDays} days ago`;
-            };
 
-            return (
-              <Card 
-                key={article.id} 
-                className="hover:shadow-lg transition-all duration-200 cursor-pointer transform hover:-translate-y-1"
-                onClick={() => {
-                  setSelectedArticle(article);
-                  setIsModalOpen(true);
-                }}
-              >
-                <CardContent className="p-0">
-                  <div className="relative h-48 overflow-hidden rounded-t-lg">
-                    <img 
-                      src={article.thumbnail} 
-                      alt={article.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.parentElement.style.background = 
-                          index % 2 === 0 
-                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                            : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    {article.featured && (
-                      <Badge className="absolute top-3 right-3 bg-yellow-500 text-black">
-                        <Star className="w-3 h-3 mr-1" />
-                        Featured
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="p-4">
-                    <Badge className={`mb-2 ${getTypeColor(article.articleType)}`}>
-                      {article.articleType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Badge>
-                    
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                      {article.title}
-                    </h3>
-                    
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                      {article.summary}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>by Bet Bot • {formatTimeAgo(article.publishedAt)}</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {article.readTime} min read
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-          
-          {articles.length === 0 && (
-            <>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <div className="h-48 bg-gradient-to-r from-blue-500 to-purple-600 rounded-t-lg flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-80" />
-                      <p className="text-sm opacity-90">Loading AI Analysis...</p>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <Badge variant="secondary" className="mb-2">AI Generated</Badge>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">
-                      Generating Daily Sports Analysis
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      AI-powered articles are being generated with the latest odds and insights.
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>by Bet Bot • Generating...</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        Loading...
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
-      </div>
 
-      {/* Article Modal */}
-      <ArticleModal
-        article={selectedArticle}
-        open={!!selectedArticle}
-        onClose={() => setSelectedArticle(null)}
-      />
     </div>
   );
 }
