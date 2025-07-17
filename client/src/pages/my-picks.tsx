@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,9 +32,10 @@ export default function MyPicksPage() {
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [availableGames, setAvailableGames] = useState<any[]>([]);
+  const [selectedGame, setSelectedGame] = useState<any>(null);
   const [manualEntry, setManualEntry] = useState({
-    awayTeam: '',
-    homeTeam: '',
+    gameId: '',
     market: 'moneyline' as 'moneyline' | 'spread' | 'total',
     selection: '',
     line: '',
@@ -61,6 +63,12 @@ export default function MyPicksPage() {
     document.documentElement.classList.toggle('dark', newDarkMode);
     localStorage.setItem('darkMode', newDarkMode.toString());
   };
+
+  // Fetch available games for manual entry
+  const { data: gamesData } = useQuery({
+    queryKey: ['/api/mlb/complete-schedule'],
+    enabled: showManualEntry,
+  });
 
   // Load picks from localStorage
   useEffect(() => {
@@ -177,8 +185,8 @@ export default function MyPicksPage() {
   };
 
   const handleManualEntry = () => {
-    if (!manualEntry.awayTeam || !manualEntry.homeTeam || !manualEntry.selection) {
-      alert('Please fill in all required fields');
+    if (!selectedGame || !manualEntry.selection) {
+      alert('Please select a game and betting option');
       return;
     }
 
@@ -186,10 +194,10 @@ export default function MyPicksPage() {
       id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
       gameInfo: {
-        awayTeam: manualEntry.awayTeam,
-        homeTeam: manualEntry.homeTeam,
-        gameTime: new Date().toISOString(),
-        venue: 'TBD'
+        awayTeam: selectedGame.awayTeam,
+        homeTeam: selectedGame.homeTeam,
+        gameTime: selectedGame.gameTime,
+        venue: selectedGame.venue || 'TBD'
       },
       betInfo: {
         market: manualEntry.market,
@@ -209,13 +217,13 @@ export default function MyPicksPage() {
     
     // Reset form
     setManualEntry({
-      awayTeam: '',
-      homeTeam: '',
+      gameId: '',
       market: 'moneyline',
       selection: '',
       line: '',
       odds: ''
     });
+    setSelectedGame(null);
     setShowManualEntry(false);
   };
 
@@ -224,6 +232,75 @@ export default function MyPicksPage() {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleGameSelection = (gameId: string) => {
+    const game = gamesData?.find((g: any) => g.id === gameId);
+    setSelectedGame(game);
+    setManualEntry(prev => ({
+      ...prev,
+      gameId: gameId,
+      selection: '',
+      line: '',
+      market: 'moneyline'
+    }));
+  };
+
+  const getBettingOptions = () => {
+    if (!selectedGame) return [];
+    
+    const options = [];
+    
+    // Moneyline options
+    options.push({
+      value: selectedGame.awayTeam,
+      label: `${selectedGame.awayTeam} Moneyline`,
+      market: 'moneyline'
+    });
+    options.push({
+      value: selectedGame.homeTeam,
+      label: `${selectedGame.homeTeam} Moneyline`, 
+      market: 'moneyline'
+    });
+    
+    // Spread options (if available)
+    if (selectedGame.spread !== undefined && selectedGame.spread !== null) {
+      const isFavoredHome = selectedGame.spread < 0;
+      const favoredTeam = isFavoredHome ? selectedGame.homeTeam : selectedGame.awayTeam;
+      const underdogTeam = isFavoredHome ? selectedGame.awayTeam : selectedGame.homeTeam;
+      const line = Math.abs(selectedGame.spread);
+      
+      options.push({
+        value: favoredTeam,
+        label: `${favoredTeam} -${line}`,
+        market: 'spread',
+        line: -line
+      });
+      options.push({
+        value: underdogTeam,
+        label: `${underdogTeam} +${line}`,
+        market: 'spread',
+        line: line
+      });
+    }
+    
+    // Total options (if available)
+    if (selectedGame.total !== undefined && selectedGame.total !== null) {
+      options.push({
+        value: 'Over',
+        label: `Over ${selectedGame.total}`,
+        market: 'total',
+        line: selectedGame.total
+      });
+      options.push({
+        value: 'Under',
+        label: `Under ${selectedGame.total}`,
+        market: 'total',
+        line: selectedGame.total
+      });
+    }
+    
+    return options;
   };
 
   // Calculate stats
@@ -512,67 +589,46 @@ export default function MyPicksPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Away Team
+                Select Game
               </label>
-              <Input
-                value={manualEntry.awayTeam}
-                onChange={(e) => handleManualEntryChange('awayTeam', e.target.value)}
-                placeholder="e.g., Boston Red Sox"
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Home Team
-              </label>
-              <Input
-                value={manualEntry.homeTeam}
-                onChange={(e) => handleManualEntryChange('homeTeam', e.target.value)}
-                placeholder="e.g., Chicago Cubs"
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Bet Type
-              </label>
-              <Select value={manualEntry.market} onValueChange={(value) => handleManualEntryChange('market', value)}>
+              <Select value={manualEntry.gameId} onValueChange={handleGameSelection}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select bet type" />
+                  <SelectValue placeholder="Choose a game" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="moneyline">Moneyline</SelectItem>
-                  <SelectItem value="spread">Spread</SelectItem>
-                  <SelectItem value="total">Total (Over/Under)</SelectItem>
+                  {gamesData?.map((game: any) => (
+                    <SelectItem key={game.id} value={game.id}>
+                      {game.awayTeam} @ {game.homeTeam}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Selection
-              </label>
-              <Input
-                value={manualEntry.selection}
-                onChange={(e) => handleManualEntryChange('selection', e.target.value)}
-                placeholder="e.g., Boston Red Sox, Over, Under"
-                className="w-full"
-              />
-            </div>
-            
-            {(manualEntry.market === 'spread' || manualEntry.market === 'total') && (
+            {selectedGame && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Line/Point
+                  Betting Option
                 </label>
-                <Input
-                  value={manualEntry.line}
-                  onChange={(e) => handleManualEntryChange('line', e.target.value)}
-                  placeholder="e.g., -1.5, 8.5"
-                  className="w-full"
-                />
+                <Select value={manualEntry.selection} onValueChange={(value) => {
+                  const option = getBettingOptions().find(opt => opt.value === value);
+                  if (option) {
+                    handleManualEntryChange('selection', value);
+                    handleManualEntryChange('market', option.market);
+                    handleManualEntryChange('line', option.line?.toString() || '');
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose your bet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getBettingOptions().map((option, index) => (
+                      <SelectItem key={index} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
             
@@ -592,13 +648,24 @@ export default function MyPicksPage() {
               <Button
                 onClick={handleManualEntry}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={!selectedGame || !manualEntry.selection}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Pick
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setShowManualEntry(false)}
+                onClick={() => {
+                  setShowManualEntry(false);
+                  setSelectedGame(null);
+                  setManualEntry({
+                    gameId: '',
+                    market: 'moneyline',
+                    selection: '',
+                    line: '',
+                    odds: ''
+                  });
+                }}
                 className="flex-1"
               >
                 Cancel
