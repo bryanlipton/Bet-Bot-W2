@@ -254,6 +254,95 @@ export class OddsApiService {
       });
     }
     
+    if (sport === 'baseball_mlb') {
+      games.push({
+        id: 'mock_mlb_game_1',
+        sport_key: 'baseball_mlb',
+        sport_title: 'MLB',
+        commence_time: new Date(now.getTime() + 3600000).toISOString(), // 1 hour from now
+        home_team: 'Los Angeles Dodgers',
+        away_team: 'New York Yankees',
+        bookmakers: [{
+          key: 'draftkings',
+          title: 'DraftKings',
+          last_update: now.toISOString(),
+          markets: [{
+            key: 'h2h',
+            outcomes: [
+              { name: 'Los Angeles Dodgers', price: -155 },
+              { name: 'New York Yankees', price: 135 }
+            ]
+          }, {
+            key: 'spreads',
+            outcomes: [
+              { name: 'Los Angeles Dodgers', price: -110, point: -1.5 },
+              { name: 'New York Yankees', price: -110, point: 1.5 }
+            ]
+          }, {
+            key: 'totals',
+            outcomes: [
+              { name: 'Over', price: -110, point: 8.5 },
+              { name: 'Under', price: -110, point: 8.5 }
+            ]
+          }]
+        }]
+      });
+      
+      games.push({
+        id: 'mock_mlb_game_2',
+        sport_key: 'baseball_mlb',
+        sport_title: 'MLB',
+        commence_time: new Date(now.getTime() + 5400000).toISOString(), // 1.5 hours from now
+        home_team: 'Atlanta Braves',
+        away_team: 'Philadelphia Phillies',
+        bookmakers: [{
+          key: 'fanduel',
+          title: 'FanDuel',
+          last_update: now.toISOString(),
+          markets: [{
+            key: 'h2h',
+            outcomes: [
+              { name: 'Atlanta Braves', price: 120 },
+              { name: 'Philadelphia Phillies', price: -145 }
+            ]
+          }, {
+            key: 'spreads',
+            outcomes: [
+              { name: 'Atlanta Braves', price: -110, point: 1.5 },
+              { name: 'Philadelphia Phillies', price: -110, point: -1.5 }
+            ]
+          }, {
+            key: 'totals',
+            outcomes: [
+              { name: 'Over', price: -115, point: 9.5 },
+              { name: 'Under', price: -105, point: 9.5 }
+            ]
+          }]
+        }]
+      });
+      
+      games.push({
+        id: 'mock_mlb_game_3',
+        sport_key: 'baseball_mlb',
+        sport_title: 'MLB',
+        commence_time: new Date(now.getTime() + 7200000).toISOString(), // 2 hours from now
+        home_team: 'Houston Astros',
+        away_team: 'Boston Red Sox',
+        bookmakers: [{
+          key: 'betmgm',
+          title: 'BetMGM',
+          last_update: now.toISOString(),
+          markets: [{
+            key: 'h2h',
+            outcomes: [
+              { name: 'Houston Astros', price: -180 },
+              { name: 'Boston Red Sox', price: 155 }
+            ]
+          }]
+        }]
+      });
+    }
+    
     return games;
   }
 }
