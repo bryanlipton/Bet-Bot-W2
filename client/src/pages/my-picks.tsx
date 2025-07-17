@@ -18,16 +18,22 @@ import {
 } from "lucide-react";
 
 export default function MyPicksPage() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'won' | 'lost'>('all');
 
-  // Initialize dark mode from localStorage
+  // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedDarkMode);
-    if (savedDarkMode) {
+    const savedDarkMode = localStorage.getItem('darkMode');
+    // Default to dark mode if no preference is saved
+    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
+    setDarkMode(isDarkMode);
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
+    }
+    // Save the default preference if none exists
+    if (savedDarkMode === null) {
+      localStorage.setItem('darkMode', 'true');
     }
   }, []);
 

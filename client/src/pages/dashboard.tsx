@@ -12,19 +12,25 @@ import Footer from "@/components/Footer";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Dashboard() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [activeSport, setActiveSport] = useState("americanfootball_nfl");
   const [activeTab, setActiveTab] = useState("action-dashboard");
   
   // Initialize WebSocket connection
   useWebSocket();
 
-  // Initialize dark mode from localStorage
+  // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(savedDarkMode);
-    if (savedDarkMode) {
+    const savedDarkMode = localStorage.getItem('darkMode');
+    // Default to dark mode if no preference is saved
+    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
+    setDarkMode(isDarkMode);
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
+    }
+    // Save the default preference if none exists
+    if (savedDarkMode === null) {
+      localStorage.setItem('darkMode', 'true');
     }
   }, []);
 
