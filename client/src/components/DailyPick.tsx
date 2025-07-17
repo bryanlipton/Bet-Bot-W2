@@ -115,13 +115,6 @@ function scoreToGrade(score: number): string {
 
 // Factor Score Component with Info
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'bg-green-500';
-    if (score >= 80) return 'bg-blue-500';
-    if (score >= 70) return 'bg-yellow-500';
-    if (score >= 60) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
 
   return (
     <div className="flex items-center justify-between py-1">
@@ -143,7 +136,7 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
         </Dialog>
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
-      <div className={`${getScoreColor(score)} text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center`}>
+      <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
         {score}
       </div>
     </div>
