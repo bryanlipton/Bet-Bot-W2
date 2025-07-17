@@ -10,6 +10,8 @@ Bet Bot is a sophisticated full-stack web application that provides AI-powered s
 
 **Model Grading System Fix (July 17, 2025):** Resolved critical bug in the grading algorithm where picks were incorrectly receiving "F" grades despite high confidence scores. The issue was caused by outdated field references (`offensivePower` instead of `offensiveEdge`) in both the `calculateGrade` and `generateReasoning` methods. Updated the entire system to use the new "Offensive Edge" terminology consistently. Picks now display correct grades based on their confidence scores (82 confidence = B grade, as expected).
 
+**Homefield Advantage Model Update (July 17, 2025):** Recalculated the ballpark advantage factor to focus specifically on homefield advantage rather than including weather conditions. The new algorithm gives home teams a +12 point bonus and away teams a -8 point penalty, with additional ballpark-specific adjustments. Weather conditions remain as a separate factor. Updated frontend displays to show "Homefield Advantage" instead of "Ballpark Edge" with descriptions focusing on crowd support, familiarity, and last at-bat advantages rather than weather impacts.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

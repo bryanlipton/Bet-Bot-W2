@@ -100,36 +100,37 @@ export class DailyPickService {
     return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
-  private getBallparkAdvantage(venue: string, pickTeam: string, homeTeam: string): number {
+  private getHomefieldAdvantage(venue: string, pickTeam: string, homeTeam: string): number {
     const ballparkFactors = {
-      'Coors Field': 28,           // Very hitter friendly
+      'Coors Field': 8,            // Very hitter friendly
       'Fenway Park': 4,            // Slightly hitter friendly
       'Yankee Stadium': 3,         // Slightly hitter friendly
-      'loanDepot park': -4,        // Slightly pitcher friendly
+      'loanDepot park': -2,        // Slightly pitcher friendly
       'Wrigley Field': 0,          // Neutral
-      'Truist Park': -2,           // Slightly pitcher friendly
-      'Progressive Field': -3,     // Slightly pitcher friendly
-      'Citi Field': -5,            // Pitcher friendly
-      'Globe Life Field': 2,      // Slightly hitter friendly
-      'George M. Steinbrenner Field': -1, // Neutral
+      'Truist Park': -1,           // Slightly pitcher friendly
+      'Progressive Field': -2,     // Slightly pitcher friendly
+      'Citi Field': -3,            // Pitcher friendly
+      'Globe Life Field': 2,       // Slightly hitter friendly
+      'George M. Steinbrenner Field': 0, // Neutral
       'Rogers Centre': 1,          // Neutral
       'Citizens Bank Park': 2,     // Slightly hitter friendly
-      'PNC Park': -3,              // Slightly pitcher friendly
+      'PNC Park': -2,              // Slightly pitcher friendly
       'Nationals Park': -1,        // Neutral
       'Chase Field': 1,            // Neutral
-      'T-Mobile Park': -4,         // Pitcher friendly
+      'T-Mobile Park': -3,         // Pitcher friendly
       'Dodger Stadium': -2         // Slightly pitcher friendly
     };
 
-    const factor = ballparkFactors[venue as keyof typeof ballparkFactors] || 0;
+    const ballparkFactor = ballparkFactors[venue as keyof typeof ballparkFactors] || 0;
     const isPickHome = pickTeam === homeTeam;
     
-    // Home teams get full ballpark advantage, away teams get neutral/slight disadvantage
-    const advantageMultiplier = isPickHome ? 1 : 0.3;
-    const adjustedFactor = factor * advantageMultiplier;
+    // Home teams get significant advantage (both ballpark familiarity + crowd + last at-bat)
+    // Away teams get slight disadvantage
+    const homefieldBonus = isPickHome ? 12 : -8; // Home team gets +12, away gets -8
+    const ballparkAdjustment = isPickHome ? ballparkFactor : (ballparkFactor * 0.5);
     
     // Convert to 60-100 scale (75 = neutral)
-    const rawScore = 50 + adjustedFactor;
+    const rawScore = 50 + homefieldBonus + ballparkAdjustment;
     return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
@@ -298,7 +299,7 @@ export class DailyPickService {
           pickTeam
         );
         
-        const ballparkAdvantage = this.getBallparkAdvantage(game.venue || '', pickTeam, game.home_team);
+        const homefieldAdvantage = this.getHomefieldAdvantage(game.venue || '', pickTeam, game.home_team);
         const weatherConditions = this.getWeatherConditions();
         const recentForm = this.analyzeRecentForm(pickTeam);
         
@@ -307,12 +308,12 @@ export class DailyPickService {
         const bettingValue = this.calculateBettingValue(outcome.price, impliedProb);
         
         // Calculate confidence as average of all factors
-        const confidence = Math.round((offensiveEdge + pitchingEdge + ballparkAdvantage + recentForm + weatherConditions + bettingValue) / 6);
+        const confidence = Math.round((offensiveEdge + pitchingEdge + homefieldAdvantage + recentForm + weatherConditions + bettingValue) / 6);
         
         const analysis: DailyPickAnalysis = {
           offensiveEdge,
           pitchingEdge,
-          ballparkAdvantage,
+          ballparkAdvantage: homefieldAdvantage,
           recentForm,
           weatherConditions,
           bettingValue,
