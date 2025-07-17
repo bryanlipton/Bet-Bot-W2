@@ -309,12 +309,12 @@ export default function LoggedInLockPick() {
         <div className={!isAuthenticated ? 'blur-sm' : ''}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <BetBotIcon className="w-12 h-12" />
+            <BetBotIcon className="w-14 h-14" />
             <div>
-              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
                 Logged in Lock of the Day
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                 Exclusive pick for authenticated users
               </p>
             </div>
