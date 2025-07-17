@@ -246,13 +246,7 @@ export function OddsComparisonModal({
                             <h4 className="font-medium text-gray-900 dark:text-white">
                               {odds!.displayName}
                             </h4>
-                            {(() => {
-                              const normalizedKey = odds!.bookmaker.toLowerCase().replace(/[^a-z]/g, '');
-                              const affiliate = affiliateLinks[normalizedKey];
-                              return affiliate?.deepLinkSupport ? (
-                                <Zap className="w-3 h-3 text-blue-500" title="Deep Link Support - Opens specific bet" />
-                              ) : null;
-                            })()}
+                            {/* Lightning bolt icons removed - no public bet slip APIs available */}
                           </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Updated: {new Date(odds!.lastUpdate).toLocaleTimeString()}
@@ -298,9 +292,9 @@ export function OddsComparisonModal({
               Click "Bet Now" to save this pick and open the sportsbook. 
               Your pick will be tracked in "My Picks".
             </p>
-            <div className="flex items-center justify-center gap-2 text-xs text-blue-600 dark:text-blue-400">
-              <Zap className="w-3 h-3" />
-              <span>Deep Link Support: Opens specific bet page when available</span>
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <ExternalLink className="w-3 h-3" />
+              <span>Opens sportsbook - you'll need to manually find and add the bet</span>
             </div>
           </div>
         </div>

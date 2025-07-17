@@ -17,8 +17,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'DraftKings',
     affiliateUrl: 'https://sportsbook.draftkings.com/r/sb/login/signup?wm=betbot123', // Login page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory={gameId}&betslip={market}:{selection}:{odds}'
+    deepLinkSupport: false, // DraftKings doesn't have public bet slip API
+    deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb' // Takes to MLB section only
   },
   
   fanduel: {
@@ -26,8 +26,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'FanDuel',
     affiliateUrl: 'https://account.sportsbook.fanduel.com/login?ref=betbot123', // Login page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb/{homeTeam}-{awayTeam}?tab=game&market={market}&selection={selection}&betslip=add'
+    deepLinkSupport: false, // FanDuel doesn't have public bet slip API
+    deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb' // Takes to MLB section only
   },
   
   betmgm: {
@@ -35,8 +35,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'BetMGM',
     affiliateUrl: 'https://account.betmgm.com/en/registration?wm=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75?add-to-betslip={market}:{selection}:{odds}'
+    deepLinkSupport: false, // BetMGM doesn't have public bet slip API
+    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75' // Takes to MLB section only
   },
   
   caesars: {
@@ -44,8 +44,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'Caesars',
     affiliateUrl: 'https://www.caesars.com/sportsbook/registration?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb?addToBetslip={market}|{selection}|{odds}&game={gameId}'
+    deepLinkSupport: false, // Caesars doesn't have public bet slip API
+    deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb' // Takes to MLB section only
   },
   
   betrivers: {
@@ -53,8 +53,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'BetRivers',
     affiliateUrl: 'https://account.pa.betrivers.com/account/registration?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb?bet={market}&selection={selection}&odds={odds}&slip=auto'
+    deepLinkSupport: false, // BetRivers doesn't have public bet slip API
+    deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb' // Takes to MLB section only
   },
   
   bovada: {
@@ -70,8 +70,8 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
     displayName: 'Fanatics',
     affiliateUrl: 'https://account.sportsbook.fanatics.com/registration?ref=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
-    deepLinkSupport: true,
-    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb?quickbet={market}:{selection}:{odds}'
+    deepLinkSupport: false, // Fanatics doesn't have public bet slip API
+    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb' // Takes to MLB section only
   },
   
   mybookie: {
