@@ -154,13 +154,11 @@ export function ActionStyleGameCard({
                 <div className="flex items-center justify-center">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
                 </div>
-              ) : isDailyPick ? (
-                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
                 <div className="flex items-center justify-center">
                   <GradeBubble grade={lockPickGrade || "C+"} />
                 </div>
-              ) : isAuthenticated ? (
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">
@@ -195,13 +193,11 @@ export function ActionStyleGameCard({
                 <div className="flex items-center justify-center">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
                 </div>
-              ) : isDailyPick ? (
-                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
                 <div className="flex items-center justify-center">
                   <GradeBubble grade={lockPickGrade || "C+"} />
                 </div>
-              ) : isAuthenticated ? (
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">

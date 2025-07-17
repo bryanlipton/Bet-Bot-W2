@@ -107,8 +107,8 @@ function InfoButton({ info, title }: { info: string; title: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
-          <Info className="h-3 w-3 text-white" />
+        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Info className="h-3 w-3 text-black dark:text-white" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-3 text-xs" side="top">
@@ -345,8 +345,8 @@ export default function LoggedInLockPick() {
             <GradeBadge grade={lockPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-black/80 hover:bg-black/90 rounded-full flex items-center justify-center">
-                  <Info className="h-3 w-3 text-white" />
+                <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+                  <Info className="h-3 w-3 text-black dark:text-white" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
