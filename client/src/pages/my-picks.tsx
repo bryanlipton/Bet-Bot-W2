@@ -263,41 +263,44 @@ export default function MyPicksPage() {
       market: 'moneyline'
     });
     
-    // Spread options (if available)
-    if (selectedGame.spread !== undefined && selectedGame.spread !== null) {
-      const isFavoredHome = selectedGame.spread < 0;
-      const favoredTeam = isFavoredHome ? selectedGame.home_team : selectedGame.away_team;
-      const underdogTeam = isFavoredHome ? selectedGame.away_team : selectedGame.home_team;
-      const line = Math.abs(selectedGame.spread);
+    // Extract spread and total from bookmaker data
+    if (selectedGame.bookmakers && selectedGame.bookmakers.length > 0) {
+      // Get the first bookmaker's markets to find spread and total values
+      const firstBookmaker = selectedGame.bookmakers[0];
+      const markets = firstBookmaker.markets || [];
       
-      options.push({
-        value: favoredTeam,
-        label: `${favoredTeam} -${line}`,
-        market: 'spread',
-        line: -line
-      });
-      options.push({
-        value: underdogTeam,
-        label: `${underdogTeam} +${line}`,
-        market: 'spread',
-        line: line
-      });
-    }
-    
-    // Total options (if available)
-    if (selectedGame.total !== undefined && selectedGame.total !== null) {
-      options.push({
-        value: 'Over',
-        label: `Over ${selectedGame.total}`,
-        market: 'total',
-        line: selectedGame.total
-      });
-      options.push({
-        value: 'Under',
-        label: `Under ${selectedGame.total}`,
-        market: 'total',
-        line: selectedGame.total
-      });
+      // Find spread market
+      const spreadMarket = markets.find((m: any) => m.key === 'spreads');
+      if (spreadMarket && spreadMarket.outcomes) {
+        spreadMarket.outcomes.forEach((outcome: any) => {
+          const point = outcome.point;
+          if (point !== undefined && point !== null) {
+            const sign = point > 0 ? '+' : '';
+            options.push({
+              value: outcome.name,
+              label: `${outcome.name} ${sign}${point}`,
+              market: 'spread',
+              line: point
+            });
+          }
+        });
+      }
+      
+      // Find total market
+      const totalMarket = markets.find((m: any) => m.key === 'totals');
+      if (totalMarket && totalMarket.outcomes) {
+        totalMarket.outcomes.forEach((outcome: any) => {
+          const point = outcome.point;
+          if (point !== undefined && point !== null) {
+            options.push({
+              value: outcome.name,
+              label: `${outcome.name} ${point}`,
+              market: 'total',
+              line: point
+            });
+          }
+        });
+      }
     }
     
     return options;
