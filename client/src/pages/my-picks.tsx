@@ -194,9 +194,9 @@ export default function MyPicksPage() {
       id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date().toISOString(),
       gameInfo: {
-        awayTeam: selectedGame.awayTeam,
-        homeTeam: selectedGame.homeTeam,
-        gameTime: selectedGame.gameTime,
+        awayTeam: selectedGame.away_team,
+        homeTeam: selectedGame.home_team,
+        gameTime: selectedGame.commence_time,
         venue: selectedGame.venue || 'TBD'
       },
       betInfo: {
@@ -253,21 +253,21 @@ export default function MyPicksPage() {
     
     // Moneyline options
     options.push({
-      value: selectedGame.awayTeam,
-      label: `${selectedGame.awayTeam} Moneyline`,
+      value: selectedGame.away_team,
+      label: `${selectedGame.away_team} Moneyline`,
       market: 'moneyline'
     });
     options.push({
-      value: selectedGame.homeTeam,
-      label: `${selectedGame.homeTeam} Moneyline`, 
+      value: selectedGame.home_team,
+      label: `${selectedGame.home_team} Moneyline`, 
       market: 'moneyline'
     });
     
     // Spread options (if available)
     if (selectedGame.spread !== undefined && selectedGame.spread !== null) {
       const isFavoredHome = selectedGame.spread < 0;
-      const favoredTeam = isFavoredHome ? selectedGame.homeTeam : selectedGame.awayTeam;
-      const underdogTeam = isFavoredHome ? selectedGame.awayTeam : selectedGame.homeTeam;
+      const favoredTeam = isFavoredHome ? selectedGame.home_team : selectedGame.away_team;
+      const underdogTeam = isFavoredHome ? selectedGame.away_team : selectedGame.home_team;
       const line = Math.abs(selectedGame.spread);
       
       options.push({
@@ -598,7 +598,7 @@ export default function MyPicksPage() {
                 <SelectContent>
                   {gamesData?.map((game: any) => (
                     <SelectItem key={game.id} value={game.id}>
-                      {game.awayTeam} @ {game.homeTeam}
+                      {game.away_team} @ {game.home_team}
                     </SelectItem>
                   ))}
                 </SelectContent>
