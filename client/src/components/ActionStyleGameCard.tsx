@@ -296,29 +296,29 @@ export function ActionStyleGameCard({
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(awayTeam) }}
               />
-              <p className="font-medium text-gray-900 dark:text-white">{awayTeam}</p>
+              <p className="font-medium text-xs text-gray-900 dark:text-white">{awayTeam}</p>
             </div>
             
-            <div className="text-center">
-              <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center justify-between">
-                <span className="flex-1">{awayOdds ? formatOdds(awayOdds) : (
+            <div className="flex items-center">
+              <span className="text-xs font-bold text-gray-900 dark:text-white mr-2">
+                {awayOdds ? formatOdds(awayOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
                   </span>
-                )}</span>
-                <div className="w-16 flex justify-end">
-                  {awayOdds && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
-                      className="text-xs px-2 py-1 h-6"
-                    >
-                      <Target className="w-3 h-3 mr-1" />
-                      Pick
-                    </Button>
-                  )}
-                </div>
+                )}
+              </span>
+              <div className="ml-auto">
+                {awayOdds && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
+                    className="text-xs px-2 py-1 h-6"
+                  >
+                    <Target className="w-3 h-3 mr-1" />
+                    Pick
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -354,29 +354,29 @@ export function ActionStyleGameCard({
                 className="w-4 h-4 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(homeTeam) }}
               />
-              <p className="font-medium text-gray-900 dark:text-white">{homeTeam}</p>
+              <p className="font-medium text-xs text-gray-900 dark:text-white">{homeTeam}</p>
             </div>
             
-            <div className="text-center">
-              <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center justify-between">
-                <span className="flex-1">{homeOdds ? formatOdds(homeOdds) : (
+            <div className="flex items-center">
+              <span className="text-xs font-bold text-gray-900 dark:text-white mr-2">
+                {homeOdds ? formatOdds(homeOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
                   </span>
-                )}</span>
-                <div className="w-16 flex justify-end">
-                  {homeOdds && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
-                      className="text-xs px-2 py-1 h-6"
-                    >
-                      <Target className="w-3 h-3 mr-1" />
-                      Pick
-                    </Button>
-                  )}
-                </div>
+                )}
+              </span>
+              <div className="ml-auto">
+                {homeOdds && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
+                    className="text-xs px-2 py-1 h-6"
+                  >
+                    <Target className="w-3 h-3 mr-1" />
+                    Pick
+                  </Button>
+                )}
               </div>
             </div>
 
