@@ -15,7 +15,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   draftkings: {
     bookmaker: 'draftkings',
     displayName: 'DraftKings',
-    affiliateUrl: 'https://sportsbook.draftkings.com/r/sb/1234567', // Replace with actual affiliate link
+    affiliateUrl: 'https://sportsbook.draftkings.com/r/sb/login/signup?wm=betbot123', // Login page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory={gameId}&betslip={market}:{selection}:{odds}'
@@ -24,7 +24,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   fanduel: {
     bookmaker: 'fanduel',
     displayName: 'FanDuel',
-    affiliateUrl: 'https://sportsbook.fanduel.com/?ref=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://account.sportsbook.fanduel.com/login?ref=betbot123', // Login page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb/{homeTeam}-{awayTeam}?tab=game&market={market}&selection={selection}&betslip=add'
@@ -33,7 +33,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   betmgm: {
     bookmaker: 'betmgm',
     displayName: 'BetMGM',
-    affiliateUrl: 'https://sports.betmgm.com/en/sports?wm=1234567', // Replace with actual affiliate link
+    affiliateUrl: 'https://account.betmgm.com/en/registration?wm=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75?add-to-betslip={market}:{selection}:{odds}'
@@ -42,7 +42,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   caesars: {
     bookmaker: 'caesars',
     displayName: 'Caesars',
-    affiliateUrl: 'https://sportsbook.caesars.com/?affiliate=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://www.caesars.com/sportsbook/registration?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://sportsbook.caesars.com/us/co/baseball/mlb?addToBetslip={market}|{selection}|{odds}&game={gameId}'
@@ -51,7 +51,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   betrivers: {
     bookmaker: 'betrivers',
     displayName: 'BetRivers',
-    affiliateUrl: 'https://pa.betrivers.com/?affiliate=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://account.pa.betrivers.com/account/registration?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://pa.betrivers.com/online-sports-betting/baseball/mlb?bet={market}&selection={selection}&odds={odds}&slip=auto'
@@ -60,7 +60,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   bovada: {
     bookmaker: 'bovada',
     displayName: 'Bovada',
-    affiliateUrl: 'https://www.bovada.lv?affiliate=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://www.bovada.lv/welcome/P2A99A1D9/join?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: false
   },
@@ -68,7 +68,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   fanatics: {
     bookmaker: 'fanatics',
     displayName: 'Fanatics',
-    affiliateUrl: 'https://sportsbook.fanatics.com/?ref=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://account.sportsbook.fanatics.com/registration?ref=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: true,
     deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb?quickbet={market}:{selection}:{odds}'
@@ -77,7 +77,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   mybookie: {
     bookmaker: 'mybookie',
     displayName: 'MyBookie',
-    affiliateUrl: 'https://www.mybookie.ag/?affiliate=betbot', // Replace with actual affiliate link
+    affiliateUrl: 'https://www.mybookie.ag/account/signup/?affiliate=betbot123', // Login/signup page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: false
   }
@@ -94,6 +94,20 @@ export const fallbackUrls: Record<string, string> = {
   fanatics: 'https://sportsbook.fanatics.com',
   mybookie: 'https://www.mybookie.ag'
 };
+
+// Get affiliate link from environment variables or use default login page
+function getAffiliateLink(bookmaker: string, defaultLoginUrl: string): string {
+  // Check for environment variable (for production use)
+  const envKey = `VITE_${bookmaker.toUpperCase()}_AFFILIATE_URL`;
+  const envUrl = import.meta.env[envKey];
+  
+  if (envUrl) {
+    return envUrl;
+  }
+  
+  // Use default login page with dummy affiliate
+  return defaultLoginUrl;
+}
 
 // Helper function to get the best URL for a bookmaker with deep linking support
 export function getBookmakerUrl(
@@ -139,9 +153,11 @@ export function getBookmakerUrl(
     }
   }
   
-  // Check if we have an active affiliate link
-  if (affiliate && affiliate.isActive) {
-    return affiliate.affiliateUrl;
+  // Check if we have an active affiliate link (using environment variables or default)
+  if (affiliate) {
+    // Try to get real affiliate link from environment, fallback to login page
+    const realAffiliateUrl = getAffiliateLink(normalizedKey, affiliate.affiliateUrl);
+    return realAffiliateUrl;
   }
   
   // Fallback to official website
