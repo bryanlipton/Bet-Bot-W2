@@ -349,29 +349,27 @@ export default function DailyPick() {
           </div>
         </div>
 
-        <div className="flex items-start justify-between space-x-6">
-          {/* Left side - Team matchup and odds */}
-          <div className="flex-1">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
-                  {matchup.topTeam}
-                </h4>
-                <span className="font-mono text-lg text-gray-700 dark:text-gray-300">
-                  {formatOdds(dailyPick.odds, dailyPick.pickType)}
-                </span>
-              </div>
-              <div className="text-lg text-gray-600 dark:text-gray-400">
-                {matchup.separator} {matchup.bottomTeam}
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
-              </p>
+        <div className="space-y-4">
+          {/* Team matchup and odds */}
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
+                {matchup.topTeam}
+              </h4>
+              <span className="font-mono text-lg text-gray-700 dark:text-gray-300">
+                {formatOdds(dailyPick.odds, dailyPick.pickType)}
+              </span>
             </div>
+            <div className="text-lg text-gray-600 dark:text-gray-400">
+              {matchup.separator} {matchup.bottomTeam}
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+              {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
+            </p>
           </div>
 
-          {/* Right side - Factor scores in 3x2 grid */}
-          <div className="w-64 space-y-2">
+          {/* Factor scores in 3x2 grid */}
+          <div>
             <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">
               Analysis Factors
             </h5>
