@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import { pickStorage } from '@/services/pickStorage';
 import { Pick } from '@/types/picks';
@@ -18,7 +20,8 @@ import {
   AlertCircle,
   Edit3,
   Save,
-  X
+  X,
+  Plus
 } from "lucide-react";
 
 export default function MyPicksPage() {
@@ -27,6 +30,15 @@ export default function MyPicksPage() {
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'won' | 'lost'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
+  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [manualEntry, setManualEntry] = useState({
+    awayTeam: '',
+    homeTeam: '',
+    market: 'moneyline' as 'moneyline' | 'spread' | 'total',
+    selection: '',
+    line: '',
+    odds: ''
+  });
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -164,6 +176,56 @@ export default function MyPicksPage() {
     setTempOdds('');
   };
 
+  const handleManualEntry = () => {
+    if (!manualEntry.awayTeam || !manualEntry.homeTeam || !manualEntry.selection) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const pick: Pick = {
+      id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      gameInfo: {
+        awayTeam: manualEntry.awayTeam,
+        homeTeam: manualEntry.homeTeam,
+        gameTime: new Date().toISOString(),
+        venue: 'TBD'
+      },
+      betInfo: {
+        market: manualEntry.market,
+        selection: manualEntry.selection,
+        line: manualEntry.line ? parseFloat(manualEntry.line) : undefined,
+        odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0
+      },
+      bookmaker: {
+        key: 'manual',
+        title: 'Manual Entry',
+        displayName: 'Manual Entry'
+      },
+      status: 'pending'
+    };
+
+    pickStorage.savePick(pick);
+    
+    // Reset form
+    setManualEntry({
+      awayTeam: '',
+      homeTeam: '',
+      market: 'moneyline',
+      selection: '',
+      line: '',
+      odds: ''
+    });
+    setShowManualEntry(false);
+  };
+
+  const handleManualEntryChange = (field: string, value: string) => {
+    setManualEntry(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   // Calculate stats
   const stats = {
     total: picks.length,
@@ -249,6 +311,16 @@ export default function MyPicksPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Enter Manually Button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={() => setShowManualEntry(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 shadow-sm"
+          >
+            Enter Manually
+          </Button>
         </div>
 
         {/* Filter Tabs */}
@@ -430,6 +502,111 @@ export default function MyPicksPage() {
           </div>
         )}
       </div>
+
+      {/* Manual Entry Modal */}
+      <Dialog open={showManualEntry} onOpenChange={setShowManualEntry}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Manual Pick</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Away Team
+              </label>
+              <Input
+                value={manualEntry.awayTeam}
+                onChange={(e) => handleManualEntryChange('awayTeam', e.target.value)}
+                placeholder="e.g., Boston Red Sox"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Home Team
+              </label>
+              <Input
+                value={manualEntry.homeTeam}
+                onChange={(e) => handleManualEntryChange('homeTeam', e.target.value)}
+                placeholder="e.g., Chicago Cubs"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Bet Type
+              </label>
+              <Select value={manualEntry.market} onValueChange={(value) => handleManualEntryChange('market', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select bet type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="moneyline">Moneyline</SelectItem>
+                  <SelectItem value="spread">Spread</SelectItem>
+                  <SelectItem value="total">Total (Over/Under)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Selection
+              </label>
+              <Input
+                value={manualEntry.selection}
+                onChange={(e) => handleManualEntryChange('selection', e.target.value)}
+                placeholder="e.g., Boston Red Sox, Over, Under"
+                className="w-full"
+              />
+            </div>
+            
+            {(manualEntry.market === 'spread' || manualEntry.market === 'total') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Line/Point
+                </label>
+                <Input
+                  value={manualEntry.line}
+                  onChange={(e) => handleManualEntryChange('line', e.target.value)}
+                  placeholder="e.g., -1.5, 8.5"
+                  className="w-full"
+                />
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Odds (optional)
+              </label>
+              <Input
+                value={manualEntry.odds}
+                onChange={(e) => handleManualEntryChange('odds', e.target.value)}
+                placeholder="e.g., -110, +150"
+                className="w-full"
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={handleManualEntry}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Pick
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowManualEntry(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
