@@ -51,6 +51,9 @@ export default function MyPicksPage() {
     game?: any;
   }>>([]);
   const [parlayOdds, setParlayOdds] = useState('');
+  const [betUnit, setBetUnit] = useState(50);
+  const [editingBetUnit, setEditingBetUnit] = useState(false);
+  const [tempBetUnit, setTempBetUnit] = useState('');
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -103,6 +106,41 @@ export default function MyPicksPage() {
       window.removeEventListener('allPicksCleared', handlePickUpdate);
     };
   }, []);
+
+  // Load bet unit from localStorage
+  useEffect(() => {
+    const savedBetUnit = localStorage.getItem('betUnit');
+    if (savedBetUnit) {
+      setBetUnit(parseFloat(savedBetUnit));
+    }
+  }, []);
+
+  // Save bet unit to localStorage
+  const saveBetUnit = (newBetUnit: number) => {
+    setBetUnit(newBetUnit);
+    localStorage.setItem('betUnit', newBetUnit.toString());
+  };
+
+  const handleEditBetUnit = () => {
+    setEditingBetUnit(true);
+    setTempBetUnit(betUnit.toString());
+  };
+
+  const handleSaveBetUnit = () => {
+    const newBetUnit = parseFloat(tempBetUnit);
+    if (isNaN(newBetUnit) || newBetUnit <= 0) {
+      alert('Please enter a valid bet unit amount');
+      return;
+    }
+    saveBetUnit(newBetUnit);
+    setEditingBetUnit(false);
+    setTempBetUnit('');
+  };
+
+  const handleCancelBetUnitEdit = () => {
+    setEditingBetUnit(false);
+    setTempBetUnit('');
+  };
 
   const filteredPicks = picks.filter(pick => {
     if (selectedStatus === 'all') return true;
@@ -480,7 +518,7 @@ export default function MyPicksPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
@@ -526,6 +564,45 @@ export default function MyPicksPage() {
                     {stats.winRate.toFixed(1)}%
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <div>
+                  {editingBetUnit ? (
+                    <div className="flex items-center gap-1">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">$</span>
+                      <Input
+                        value={tempBetUnit}
+                        onChange={(e) => setTempBetUnit(e.target.value)}
+                        className="w-16 h-8 text-lg font-bold p-1"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                      />
+                      <Button size="sm" onClick={handleSaveBetUnit} className="h-6 w-6 p-0">
+                        <Save className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit} className="h-6 w-6 p-0">
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        ${betUnit}
+                      </p>
+                      <Button size="sm" variant="ghost" onClick={handleEditBetUnit} className="h-6 w-6 p-0">
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Bet Unit</p>
                 </div>
               </div>
             </CardContent>
