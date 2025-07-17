@@ -19,11 +19,15 @@ interface Bookmaker {
   key: string;
   title: string;
   last_update: string;
+  link?: string;  // Event-level deep link
+  sid?: string;   // Source ID for event
   markets: Market[];
 }
 
 interface Market {
   key: string;
+  link?: string;   // Market-level deep link
+  sid?: string;    // Source ID for market
   outcomes: Outcome[];
 }
 
@@ -32,6 +36,8 @@ interface Outcome {
   price: number;
   point?: number;
   description?: string;
+  link?: string;   // Outcome-level deep link (bet slip)
+  sid?: string;    // Source ID for outcome
 }
 
 import { cacheService } from './cacheService';
@@ -61,7 +67,7 @@ export class OddsApiService {
         return cachedData;
       }
 
-      const url = `${this.baseUrl}/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american`;
+      const url = `${this.baseUrl}/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american&includeLinks=true&includeSids=true`;
       console.log(`🔄 Fetching fresh odds from API for ${sport}: ${url.replace(this.apiKey, 'xxx...')}`);
       
       this.apiCallCount++;

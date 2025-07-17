@@ -11,12 +11,18 @@ import { Pick } from '@/types/picks';
 interface BookmakerOdds {
   key: string;
   title: string;
+  link?: string;  // Event-level deep link
+  sid?: string;   // Source ID
   markets: Array<{
     key: string;
+    link?: string;   // Market-level deep link
+    sid?: string;    // Market source ID
     outcomes: Array<{
       name: string;
       price: number;
       point?: number;
+      link?: string;   // Outcome-level deep link (bet slip)
+      sid?: string;    // Outcome source ID
     }>;
   }>;
   last_update: string;
@@ -78,8 +84,9 @@ export function OddsComparisonModal({
 
     if (!outcome) return null;
 
-    // Generate deep link URL for this specific bet
-    const deepLinkUrl = getBookmakerUrl(
+    // Use deep link hierarchy: outcome.link > market.link > bookmaker.link > fallback
+    const deepLink = outcome.link || market.link || bookmaker.link;
+    const fallbackUrl = getBookmakerUrl(
       bookmaker.key,
       gameInfo,
       {
@@ -96,7 +103,8 @@ export function OddsComparisonModal({
       displayName: getBookmakerDisplayName(bookmaker.key),
       odds: outcome.price,
       line: outcome.point,
-      url: deepLinkUrl, // Use deep link instead of generic URL
+      url: deepLink || fallbackUrl,
+      hasDeepLink: !!deepLink, // Track if this is a real deep link
       lastUpdate: bookmaker.last_update
     };
   }).filter(Boolean);
@@ -246,7 +254,9 @@ export function OddsComparisonModal({
                             <h4 className="font-medium text-gray-900 dark:text-white">
                               {odds!.displayName}
                             </h4>
-                            {/* Lightning bolt icons removed - no public bet slip APIs available */}
+                            {odds!.hasDeepLink && (
+                              <Zap className="w-3 h-3 text-green-500" title="Real Deep Link - Opens specific bet page" />
+                            )}
                           </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Updated: {new Date(odds!.lastUpdate).toLocaleTimeString()}
@@ -293,8 +303,8 @@ export function OddsComparisonModal({
               Your pick will be tracked in "My Picks".
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <ExternalLink className="w-3 h-3" />
-              <span>Opens sportsbook - you'll need to manually find and add the bet</span>
+              <Zap className="w-3 h-3 text-green-500" />
+              <span>⚡ = Real deep link to specific bet | Others open general pages</span>
             </div>
           </div>
         </div>

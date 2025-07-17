@@ -1,0 +1,124 @@
+Yes — **deep linking directly into a bet slip (pre-filled pick)** is *possible*, **but only supported by a few sportsbooks** and typically **not through public APIs**. Here's a detailed breakdown:
+
+---
+
+## ✅ **Can You Deep Link into a Pre-Filled Bet Slip?**
+
+### Short Answer:
+
+* **Yes, but only for certain books** that explicitly support it via structured URLs or SDK integrations.
+* There's **no universal API** that works across all sportsbooks.
+* Most deep links are **manually constructed using URL parameters**, and you need to know:
+
+  * **Event ID**
+  * **Market type** (e.g. spread, moneyline)
+  * **Outcome ID or selection ID**
+
+---
+
+## 🔍 Examples of Deep Linking to Bet Slips
+
+### 🟢 **DraftKings**
+
+* DraftKings allows limited deep linking via structured URLs:
+
+  ```
+  https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event={event_id}
+  ```
+* You can’t always drop directly into the bet slip with a pre-selected wager, but you can **link to a specific market**, which gets the user *very close*.
+
+> ❗ *You need internal event/market IDs that The Odds API does not always expose.*
+
+---
+
+### 🟢 **FanDuel**
+
+* FanDuel supports **deep linking to specific games and markets**, like:
+
+  ```
+  https://www.fanduel.com/sportsbook/mlb/{team-name}-{date}
+  ```
+* Direct-to-slip with bet pre-selected: ❌ **Not officially supported** without a FanDuel SDK.
+
+---
+
+### 🟡 **BetMGM / Caesars / Others**
+
+* Most support basic deep links to:
+
+  * A **sport homepage** or
+  * A **game page**
+* Deep linking to pre-filled slips: ❌ Not generally supported.
+
+---
+
+## 🛠️ How Do You Build These Links?
+
+### Option 1: **Reverse-engineer links manually**
+
+* Visit each sportsbook, build a bet in the slip, and copy the final URL.
+* Look for consistent URL patterns — many include:
+
+  * Market ID
+  * Event ID
+  * Bet type (e.g. `moneyline`, `spread`)
+
+#### Example (DK pattern):
+
+```
+https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event=gameId123456
+```
+
+### Option 2: **Check for a Partner SDK or API**
+
+Some books (esp. those with affiliate programs) offer **private APIs or SDKs** for:
+
+* Deep linking directly to pre-filled bets
+* Tracking conversions
+* Embedding mini betslips
+
+To access:
+
+* You must be an **approved affiliate**
+* Ask your affiliate manager for **deep link documentation or tools**
+
+---
+
+## 🚫 Why There’s No Public API for This
+
+* **Bet slip APIs are sensitive** because placing a bet involves money and KYC.
+* **Security + legal compliance** prevent books from letting 3rd parties pre-fill or place bets through open APIs.
+* That’s why they rely on **links and partnerships**, not open API calls.
+
+---
+
+## 🔑 Best Current Solution
+
+If you're not yet an approved affiliate partner with API access:
+
+1. **Use structured deep links** to the game/market (best possible UX right now).
+2. **Highlight the bet in your UI**, so when they land on the sportsbook page, they know exactly what to select.
+3. **Track conversion with your affiliate tag** (e.g. `?affid=123`).
+
+---
+
+## 🚀 Action Steps for You
+
+| Task                                            | Notes                                                         |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| ✅ Draft deep links for top 3 sportsbooks        | DK, FD, Caesars                                               |
+| ✅ Contact affiliate managers                    | Ask for deep linking or SDK docs                              |
+| ❓ Test structured links manually                | Build a bet on each book → copy the URL → reverse-engineer it |
+| 🔜 Optional: Implement link preview/test button | So users can preview where they’ll land                       |
+
+---
+
+## Want Help?
+
+I can help:
+
+* Create a table of sample deep links per book
+* Build a helper function that uses team names + bet type → generates closest deep link
+* Set up affiliate-ready redirect handler
+
+Would you like me to generate sample deep links and event-to-URL mappings next?

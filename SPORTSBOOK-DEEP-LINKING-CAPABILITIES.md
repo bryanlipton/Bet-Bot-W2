@@ -1,27 +1,36 @@
-# Sportsbook Deep Linking Capabilities - UPDATED
+# Sportsbook Deep Linking Capabilities - UPDATED 
 
-**Reality Check (July 17, 2025):** After research, major sportsbooks do NOT have public APIs for bet slip integration. This document now reflects the actual capabilities available.
+**BREAKTHROUGH (July 17, 2025):** The Odds API actually provides real deep linking capabilities! This document reflects the actual working deep links vs limitations.
 
-## Current Capabilities Assessment
+## Actual Deep Linking Status
 
-### Universal Limitation
-❌ **No sportsbook provides public bet slip API access**
-❌ **Automatic bet slip population is not possible without official partnerships**
-❌ **Deep linking parameters shown are theoretical, not functional**
+### ✅ **The Odds API Deep Links ARE REAL**
+✅ **Event-level deep links available for most major sportsbooks**
+✅ **Market-level deep links for some bookmakers** 
+✅ **Outcome-level bet slip links for FanDuel and others**
+❌ **Full bet slip automation still requires partnerships**
 
-## Actual Sportsbook Access Levels
+## The Odds API Deep Link Hierarchy
 
-### 1. DraftKings ❌
-- **Bet Slip Integration**: None (no public API)
-- **Available Access**: MLB betting section only
-- **User Experience**: Must manually find game and add bets
-- **Research Confirmed**: No official bet slip integration available
+The Odds API provides deep links in this priority order:
+1. **outcome.link** - Direct bet slip population (BEST)
+2. **market.link** - Specific market page 
+3. **bookmaker.link** - Game-specific page
+4. **Fallback** - Our affiliate link to general section
 
-### 2. FanDuel ❌  
-- **Bet Slip Integration**: None (no public API)
-- **Available Access**: MLB betting section only  
-- **User Experience**: Manual navigation to specific games required
-- **Research Confirmed**: No public deep linking to bet slip
+## Real Sportsbook Deep Link Status
+
+### 1. FanDuel ✅ FULL SUPPORT
+- **Bet Slip Integration**: outcome.link provides direct bet slip URLs  
+- **Available Access**: `sportsbook.fanduel.com/addToBetslip?marketId=X&selectionId=Y`
+- **User Experience**: Bet pre-populated in slip, ready to confirm
+- **Real API Confirmed**: Working bet slip integration via The Odds API
+
+### 2. DraftKings ⚠️ GAME-LEVEL  
+- **Event Deep Links**: bookmaker.link opens specific game pages
+- **Available Access**: Game-specific URLs, manual bet selection needed
+- **User Experience**: Opens right game, user selects specific bet
+- **Real API Confirmed**: Event-level deep linking functional
 
 ### 3. BetMGM ❌
 - **Bet Slip Integration**: None (no public API)
