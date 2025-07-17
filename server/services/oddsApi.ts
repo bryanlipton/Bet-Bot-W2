@@ -46,6 +46,8 @@ export class OddsApiService {
   private apiKey: string;
   private baseUrl = 'https://api.the-odds-api.com/v4';
   private apiCallCount = 0;
+  private lastCallTime = 0;
+  private minCallInterval = 5000; // 5 seconds minimum between API calls
 
   constructor() {
     this.apiKey = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY || '24945c3743973fb01abda3cc2eab07b9';
@@ -59,18 +61,28 @@ export class OddsApiService {
         return this.getMockOddsData(sport);
       }
 
-      // Check cache first (3 minute TTL for live odds)
+      // Check cache first (15 minute TTL for live odds to reduce API calls)
       const cacheKey = `odds_${sport}_${regions}_${markets}`;
       const cachedData = cacheService.get<Game[]>(cacheKey);
       if (cachedData) {
-        console.log(`📊 Using cached odds for ${sport} (${cachedData.length} games)`);
+        console.log(`📊 Using cached odds for ${sport} (${cachedData.length} games) - Cache hit!`);
         return cachedData;
+      }
+
+      // Rate limiting: Enforce minimum interval between API calls
+      const now = Date.now();
+      const timeSinceLastCall = now - this.lastCallTime;
+      if (timeSinceLastCall < this.minCallInterval) {
+        const waitTime = this.minCallInterval - timeSinceLastCall;
+        console.log(`⏳ Rate limiting: waiting ${waitTime}ms before API call`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
 
       const url = `${this.baseUrl}/sports/${sport}/odds?apiKey=${this.apiKey}&regions=${regions}&markets=${markets}&oddsFormat=american&includeLinks=true&includeSids=true`;
       console.log(`🔄 Fetching fresh odds from API for ${sport}: ${url.replace(this.apiKey, 'xxx...')}`);
       
       this.apiCallCount++;
+      this.lastCallTime = Date.now();
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -82,9 +94,9 @@ export class OddsApiService {
       
       const data = await response.json();
       
-      // Cache the fresh data for 3 minutes
-      cacheService.set(cacheKey, data, 3);
-      console.log(`✅ Cached ${data.length} games for ${sport} (API calls today: ${this.apiCallCount})`);
+      // Cache the fresh data for 15 minutes to reduce API calls
+      cacheService.set(cacheKey, data, 15);
+      console.log(`✅ Cached ${data.length} games for ${sport} for 15 minutes (API calls today: ${this.apiCallCount})`);
       
       return data;
     } catch (error) {
