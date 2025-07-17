@@ -351,16 +351,16 @@ export default function DailyPick() {
         <div className="flex items-start justify-between space-x-6">
           {/* Left side - Team matchup and odds (scorebug) */}
           <div className="flex-1 space-y-1">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-start space-x-2">
               <div className="flex flex-col">
                 <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
                   P: {dailyPick.probablePitchers.away || 'TBD'}
                 </p>
               </div>
-              <span className="font-mono text-lg text-gray-700 dark:text-gray-300">
+              <span className="font-mono text-lg text-gray-700 dark:text-gray-300 ml-auto">
                 {formatOdds(dailyPick.odds, dailyPick.pickType)}
               </span>
             </div>
@@ -368,7 +368,7 @@ export default function DailyPick() {
               <span>{matchup.separator}</span>
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 ml-4">
                   P: {dailyPick.probablePitchers.home || 'TBD'}
                 </p>
               </div>
