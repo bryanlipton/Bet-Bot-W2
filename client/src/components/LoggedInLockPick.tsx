@@ -237,9 +237,9 @@ export default function LoggedInLockPick() {
       },
       {
         key: 'ballparkAdvantage',
-        title: 'Homefield Advantage',
+        title: 'Ballpark Advantage',
         score: analysis.ballparkAdvantage,
-        info: 'Home team advantage including crowd support, ballpark familiarity, last at-bat, and stadium dimensions that favor the home team.'
+        info: 'Stadium factors including dimensions, weather conditions, and how they favor hitters or pitchers.'
       },
       {
         key: 'recentForm',
