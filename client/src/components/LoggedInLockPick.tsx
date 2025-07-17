@@ -229,7 +229,7 @@ export default function LoggedInLockPick() {
   };
 
   // Get all 6 factors with their info descriptions in permanent order
-  const getFactors = (analysis: DailyPickAnalysis) => {
+  const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
     const factorData = [
       {
         key: 'bettingValue',
@@ -242,13 +242,23 @@ export default function LoggedInLockPick() {
         title: 'Ballpark Advantage',
         score: analysis.ballparkAdvantage,
         info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
-      },
-      {
+      }
+    ];
+
+    // Only include Pitching Edge if both pitchers are known (not TBD)
+    const homePitcher = probablePitchers.home || 'TBD';
+    const awayPitcher = probablePitchers.away || 'TBD';
+    
+    if (homePitcher !== 'TBD' && awayPitcher !== 'TBD') {
+      factorData.push({
         key: 'pitchingEdge',
         title: 'Pitching Edge', 
         score: analysis.pitchingEdge,
         info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
-      },
+      });
+    }
+
+    factorData.push(
       {
         key: 'recentForm',
         title: 'Recent Form',
@@ -267,7 +277,7 @@ export default function LoggedInLockPick() {
         score: analysis.offensiveEdge,
         info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
       }
-    ];
+    );
 
     return factorData;
   };
@@ -295,7 +305,7 @@ export default function LoggedInLockPick() {
   };
 
   const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
-  const factors = getFactors(lockPick.analysis);
+  const factors = getFactors(lockPick.analysis, lockPick.probablePitchers);
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
