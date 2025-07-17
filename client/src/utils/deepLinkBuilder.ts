@@ -55,47 +55,50 @@ function buildManualDeepLink(
 
   switch (bookmakerKey.toLowerCase()) {
     case 'draftkings':
-      // Best deep linking support - can use event ID if available
+      // Enhanced game-specific URL with bet type targeting
       if (gameInfo.gameId) {
-        return `https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&event=${gameInfo.gameId}${affiliate}`;
+        const betType = betInfo?.market === 'spread' ? 'spreads' : betInfo?.market === 'total' ? 'totals' : 'moneyline';
+        return `https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines&subcategory=${betType}&event=${gameInfo.gameId}${affiliate}`;
       }
-      return `https://sportsbook.draftkings.com/leagues/baseball/mlb${affiliate}`;
+      return `https://sportsbook.draftkings.com/leagues/baseball/mlb?category=game-lines${affiliate}`;
 
     case 'fanduel':
-      // FanDuel main page - use www domain which should work better
+      // FanDuel main sportsbook homepage - most reliable entry point
       return `https://www.fanduel.com/sportsbook${affiliate}`;
 
     case 'betmgm':
-      // League-level deep linking
-      return `https://sports.nj.betmgm.com/en/sports/baseball-7/betting/usa-9/major-league-baseball-6009${affiliate}`;
+      // Enhanced MLB-specific URL with game targeting
+      const betTypeCode = betInfo?.market === 'spread' ? 'spread' : betInfo?.market === 'total' ? 'total' : 'moneyline';
+      return `https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75?market=${betTypeCode}${affiliate}`;
 
     case 'caesars':
-      // Basic sportsbook access
-      return `https://www.caesars.com/sportsbook${affiliate}`;
+      // Enhanced MLB-specific targeting
+      return `https://sportsbook.caesars.com/us/co/baseball/mlb?game=${team1}-${team2}${affiliate}`;
 
     case 'espnbet':
-      // Game-level support for some matchups
-      return `https://www.espnbet.com/mlb/${team1}-vs-${team2}${affiliate}`;
+      // Game-specific URL with enhanced targeting
+      const espnBetType = betInfo?.market === 'spread' ? 'spread' : betInfo?.market === 'total' ? 'total' : 'moneyline';
+      return `https://www.espnbet.com/mlb/${team1}-vs-${team2}?market=${espnBetType}${affiliate}`;
 
     case 'betrivers':
-      // Sport-level deep linking
-      return `https://www.betrivers.com/sportsbook/baseball${affiliate}`;
+      // Enhanced MLB game targeting
+      return `https://www.betrivers.com/online-sports-betting/baseball/mlb/${team1}-vs-${team2}${affiliate}`;
 
     case 'pointsbet':
-      // Sport-level only
-      return `https://nj.pointsbet.com/sports/baseball${affiliate}`;
+      // Enhanced sport-level with game hint
+      return `https://nj.pointsbet.com/sports/baseball/mlb/${team1}-${team2}${affiliate}`;
 
     case 'bovada':
-      // Basic access
-      return `https://www.bovada.lv/sports/baseball${affiliate}`;
+      // Enhanced MLB game targeting
+      return `https://www.bovada.lv/sports/baseball/mlb/${team1}-vs-${team2}${affiliate}`;
 
     case 'mybookie':
-      // Basic access  
-      return `https://www.mybookie.ag/sportsbook/mlb${affiliate}`;
+      // Enhanced MLB targeting with game info
+      return `https://www.mybookie.ag/sportsbook/mlb/${team1}-${team2}${affiliate}`;
 
     case 'fanatics':
-      // Sport-level access
-      return `https://www.fanaticssportsbook.com/mlb${affiliate}`;
+      // Enhanced game-specific targeting
+      return `https://sportsbook.fanatics.com/sports/baseball/mlb/${team1}-vs-${team2}${affiliate}`;
 
     default:
       return '#';
@@ -198,16 +201,16 @@ export function getLoginUrl(bookmakerKey: string): string {
   const affiliate = affiliateParams[bookmakerKey as keyof typeof affiliateParams] || '';
   
   const loginUrls: Record<string, string> = {
-    draftkings: `https://sportsbook.draftkings.com/login${affiliate}`,
-    fanduel: `https://www.fanduel.com/sportsbook/login?ref=betbot123`,
-    betmgm: `https://sports.nj.betmgm.com/login${affiliate}`,
-    caesars: `https://www.caesars.com/sportsbook/login${affiliate}`,
-    espnbet: `https://www.espnbet.com/login${affiliate}`,
-    betrivers: `https://www.betrivers.com/login${affiliate}`,
-    pointsbet: `https://nj.pointsbet.com/login${affiliate}`,
-    bovada: `https://www.bovada.lv/login${affiliate}`,
-    mybookie: `https://www.mybookie.ag/login${affiliate}`,
-    fanatics: `https://www.fanaticssportsbook.com/login${affiliate}`
+    draftkings: `https://sportsbook.draftkings.com/account/signup?wm=betbot123`,
+    fanduel: `https://account.fanduel.com/registration?ref=betbot123`,
+    betmgm: `https://account.nj.betmgm.com/registration?wm=betbot123`,
+    caesars: `https://www.caesars.com/sportsbook/account/registration?affiliate=betbot123`,
+    espnbet: `https://account.espnbet.com/registration?ref=betbot123`,
+    betrivers: `https://account.betrivers.com/registration?affiliate=betbot123`,
+    pointsbet: `https://nj.pointsbet.com/account/register?promo=betbot123`,
+    bovada: `https://www.bovada.lv/welcome/P2A99A1D9/join?ref=betbot123`,
+    mybookie: `https://www.mybookie.ag/account/register?affiliate=betbot123`,
+    fanatics: `https://account.fanaticssportsbook.com/registration?ref=betbot123`
   };
 
   return loginUrls[bookmakerKey.toLowerCase()] || buildManualDeepLink(bookmakerKey, { homeTeam: '', awayTeam: '' });

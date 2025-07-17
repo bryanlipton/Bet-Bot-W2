@@ -1,0 +1,33 @@
+Sportsbook,Display Name,Link Destination,Link Quality,Bet Slip Access,Market Access,Game Access,Login/Signup Access,Affiliate Tracking,Notes
+DraftKings,DraftKings,Game-specific betting lines with bet type targeting,Excellent,❌,✅,✅,✅,✅,"Best deep linking - can target specific game + bet type (moneyline/spread/total). Uses event ID when available."
+FanDuel,FanDuel,Main sportsbook homepage or API deep links,Good,✅*,✅*,✅*,✅,✅,"*When API provides links. Manual links blocked by 403 errors. Prioritizes official API deep links when available."
+BetMGM,BetMGM,MLB section with market type targeting,Good,❌,✅,✅,✅,✅,"Enhanced MLB URL with market parameter (moneyline/spread/total). Takes users to specific bet type section."
+Caesars,Caesars,MLB section with game hint,Fair,❌,❌,✅,✅,✅,"Game-specific URL structure with team names. Takes users to general MLB area."
+ESPNBet,ESPNBet,Game-specific page with market targeting,Good,❌,✅,✅,✅,✅,"Enhanced game URL with market parameter. Modern URL structure with good targeting."
+BetRivers,BetRivers,Game-specific MLB page,Good,❌,❌,✅,✅,✅,"Enhanced URL with team matchup targeting. Takes users to specific game page."
+PointsBet,PointsBet,MLB section with game hint,Fair,❌,❌,✅,✅,✅,"Sport-level targeting with team name hints. Limited deep linking capability."
+Bovada,Bovada,Game-specific MLB page,Fair,❌,❌,✅,✅,✅,"Enhanced URL with team matchup structure. Basic game-level targeting."
+MyBookie,MyBookie,MLB section with game info,Fair,❌,❌,✅,✅,✅,"Enhanced URL with team name structure. Limited targeting capability."
+Fanatics,Fanatics,Game-specific page,Good,❌,❌,✅,✅,✅,"Enhanced game-specific URL structure. Takes users to individual game page."
+
+Summary:
+- ✅ Available: Feature is supported and working
+- ❌ Not Available: Feature is not supported
+- ✅* Conditional: Available only when API provides authentic deep links
+
+Best Performing:
+1. DraftKings - Can target specific games AND bet types
+2. FanDuel - Best when API links available, otherwise homepage
+3. BetMGM - Market-specific targeting within MLB
+4. ESPNBet - Game + market targeting
+5. BetRivers - Game-specific pages
+
+Most Limited:
+1. PointsBet - Basic sport-level only
+2. Bovada - Game-level but limited functionality  
+3. MyBookie - Basic MLB section access
+
+All sportsbooks support:
+- Affiliate tracking with betbot123 parameter
+- Login/signup page access
+- At minimum game-level or sport-level targeting

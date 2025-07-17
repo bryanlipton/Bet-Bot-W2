@@ -1,0 +1,43 @@
+Sportsbook,Display Name,Deep Link Capability,Link Hierarchy,Bet Slip Access,Market Targeting,Game Targeting,Registration Page,Affiliate Parameter,Link Quality Score,User Journey,Notes
+DraftKings,DraftKings,Excellent,"API > Game+BetType > MLB Lines > Login",✅ (API),✅ (subcategory),✅ (event ID),Signup optimized,wm=betbot123,9/10,"API → Bet Slip OR Game → Specific bet type → Place bet","Best overall. Can target exact game + bet type (moneyline/spread/total)"
+FanDuel,FanDuel,Conditional,"API > Homepage > Login",✅ (API only),✅ (API only),✅ (API only),Registration page,ref=betbot123,8/10,"API → Market/Game OR Homepage → Navigate → Place bet","Excellent when API provides links. Blocks manual URLs with 403 errors"
+BetMGM,BetMGM,Good,"Market+Type > MLB > Login",❌,✅ (market param),✅,Registration page,wm=betbot123,7/10,"Landing → MLB section → Market type → Find game → Place bet","Enhanced targeting with market parameter (moneyline/spread/total)"
+ESPNBet,ESPNBet,Good,"Game+Market > Login",❌,✅ (market param),✅ (team matchup),Registration page,ref=betbot123,7/10,"Landing → Game page → Market section → Place bet","Modern URL structure with game and market targeting"
+BetRivers,BetRivers,Fair,"Game Page > Login",❌,❌,✅ (team matchup),Registration page,affiliate=betbot123,6/10,"Landing → Game page → Browse markets → Place bet","Takes users to specific game but no market targeting"
+Fanatics,Fanatics,Fair,"Game Page > Login",❌,❌,✅ (team matchup),Registration page,ref=betbot123,6/10,"Landing → Game page → Browse markets → Place bet","Game-specific page with team matchup structure"
+Caesars,Caesars,Fair,"MLB+Game > Login",❌,❌,✅ (game hint),Login page,affiliate=betbot123,5/10,"Landing → MLB section → Find game → Place bet","Basic MLB targeting with team name hints"
+Bovada,Bovada,Fair,"Game Page > Login",❌,❌,✅ (team matchup),Welcome page,ref=betbot123,5/10,"Landing → Game page → Browse markets → Place bet","Basic game-level targeting with team structure"
+PointsBet,PointsBet,Limited,"MLB+Hint > Login",❌,❌,✅ (team hint),Registration page,promo=betbot123,4/10,"Landing → MLB section → Find game → Place bet","Limited targeting, team names as URL hints only"
+MyBookie,MyBookie,Limited,"MLB+Teams > Login",❌,❌,✅ (team names),Registration page,affiliate=betbot123,4/10,"Landing → MLB section → Find game → Place bet","Basic MLB section with team name structure"
+
+Deep Link Quality Legend:
+- ✅ Available and working
+- ❌ Not supported
+- ✅ (API only) Available only through The Odds API
+- ✅ (param) Available with URL parameters
+
+Link Quality Scores (1-10):
+- 9-10: Excellent - Direct to bet slip or game+market targeting
+- 7-8: Good - Market or game-specific targeting  
+- 5-6: Fair - Game-level targeting only
+- 3-4: Limited - Sport-level with hints only
+- 1-2: Poor - Homepage or login only
+
+Best User Experience Flow:
+1. DraftKings: Game + Bet Type → 1-2 clicks to place bet
+2. FanDuel: Direct to market/bet slip (when API available) → 1 click to place bet  
+3. BetMGM: Market-specific landing → 2-3 clicks to place bet
+4. ESPNBet: Game + Market page → 2-3 clicks to place bet
+5. Others: Game or sport page → 3-4 clicks to place bet
+
+API vs Manual Links:
+- API Links: Provided by The Odds API (most reliable, direct to betting markets)
+- Manual Links: Custom URL patterns (backup when API unavailable)
+- FanDuel: Prioritizes API links due to 403 blocking of manual patterns
+- Others: Use API when available, fallback to enhanced manual patterns
+
+All sportsbooks optimized for:
+- User registration instead of just login
+- Affiliate tracking with betbot123 parameter  
+- Shortest path to placing the specific bet
+- Enhanced URL patterns with team names and market hints
