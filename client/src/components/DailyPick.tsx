@@ -356,7 +356,7 @@ export default function DailyPick() {
                 <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   P: {dailyPick.probablePitchers.away || 'TBD'}
                 </p>
               </div>
@@ -368,7 +368,7 @@ export default function DailyPick() {
               <span>{matchup.separator}</span>
               <div className="flex flex-col">
                 <span>{matchup.bottomTeam}</span>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   P: {dailyPick.probablePitchers.home || 'TBD'}
                 </p>
               </div>
