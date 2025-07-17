@@ -1,0 +1,56 @@
+Got it — here’s the **full updated explanation** of the feature that you can give directly to **Replit** (or any dev assistant). This version includes the **affiliate link system** built in, and it’s written to assume Replit will handle the coding:
+
+---
+
+## 🎯 Feature: “Make Pick” Flow with Odds Comparison, Deep Links, and Pick Tracking
+
+We want to add a feature to our existing betting site (already connected to The Odds API) that allows users to go from **finding a line** → **seeing the best odds across books** → **clicking a deep link to place the bet** → **tracking the pick**.
+
+---
+
+### 🧩 How It Works:
+
+1. **Add a “Make Pick” Button**
+
+   * Place this next to each displayed betting line (e.g., Yankees -1.5 @ +140).
+   * When clicked, it should open a modal.
+
+2. **Show Odds Comparison Modal**
+
+   * The modal displays odds for that **exact bet** from all available books using The Odds API.
+   * The **best odds are visually highlighted**.
+   * Each book has a **clickable button**.
+
+3. **Book Buttons → Deep Links with Affiliate Tags**
+
+   * Each sportsbook button redirects the user to that sportsbook’s **deep link**, using our **custom affiliate link** for that book.
+   * If we don’t yet have an affiliate link for a book, either:
+
+     * Show a placeholder (“Coming Soon”), or
+     * Fallback to a generic homepage link for that sportsbook.
+
+4. **Store Affiliate Links in One Config File**
+
+   * Create a config or JSON file where we can manually store **one affiliate link per book**.
+   * When we get new links, we just update this file — no need to touch the rest of the code.
+
+5. **Track the Pick in Local Storage**
+
+   * When the user clicks a book to make the pick, save the pick info (teams, market, odds, book, timestamp) to local storage.
+   * This should go to a “My Picks” page where the user can later see all of their tracked picks.
+
+---
+
+### ✅ Summary of Requirements:
+
+* “Make Pick” button next to each betting line
+* Modal with odds from all books (highlight best)
+* Each book uses our affiliate deep link (stored in a config file)
+* Fallback if affiliate link not available
+* Track picks in local storage and display them on a “My Picks” page
+
+---
+
+This should be built on top of the existing project (which already uses The Odds API). Replit can handle the implementation — just follow the structure above.
+
+Let me know if you'd like a bonus add-on for syncing these picks to a cloud DB or for eventually integrating BetSync-style tracking.

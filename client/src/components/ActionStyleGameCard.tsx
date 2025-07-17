@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getTeamColor } from "@/utils/teamLogos";
-import { Clock, TrendingUp, TrendingDown, Users, Lock } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Users, Lock, Target } from "lucide-react";
+import { OddsComparisonModal } from "./OddsComparisonModal";
 
 interface GameCardProps {
   homeTeam: string;
@@ -37,6 +40,20 @@ interface GameCardProps {
   lockPickGrade?: string;
   isAuthenticated?: boolean;
   onClick?: () => void;
+  // Raw bookmakers data for odds comparison
+  rawBookmakers?: Array<{
+    key: string;
+    title: string;
+    markets: Array<{
+      key: string;
+      outcomes: Array<{
+        name: string;
+        price: number;
+        point?: number;
+      }>;
+    }>;
+    last_update: string;
+  }>;
 }
 
 // Color-schemed grade bubble component for Bet Bot picks
@@ -77,8 +94,24 @@ export function ActionStyleGameCard({
   lockPickTeam,
   lockPickGrade,
   isAuthenticated = false,
-  onClick
+  onClick,
+  rawBookmakers
 }: GameCardProps) {
+  const [oddsModalOpen, setOddsModalOpen] = useState(false);
+  const [selectedBet, setSelectedBet] = useState<{
+    market: 'moneyline' | 'spread' | 'total';
+    selection: string;
+    line?: number;
+  } | null>(null);
+
+  const handleMakePick = (event: React.MouseEvent, market: 'moneyline' | 'spread' | 'total', selection: string, line?: number) => {
+    // Prevent the card click event from firing
+    event.stopPropagation();
+    
+    setSelectedBet({ market, selection, line });
+    setOddsModalOpen(true);
+  };
+
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
@@ -141,7 +174,20 @@ export function ActionStyleGameCard({
             
             <div className="text-center">
               <div className="text-sm font-bold text-gray-900 dark:text-white">
-                {awayOdds ? formatOdds(awayOdds) : (
+                {awayOdds ? (
+                  <div className="flex items-center gap-2">
+                    <span>{formatOdds(awayOdds)}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
+                      className="text-xs px-2 py-1 h-6"
+                    >
+                      <Target className="w-3 h-3 mr-1" />
+                      Pick
+                    </Button>
+                  </div>
+                ) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
                   </span>
@@ -180,7 +226,20 @@ export function ActionStyleGameCard({
             
             <div className="text-center">
               <div className="text-sm font-bold text-gray-900 dark:text-white">
-                {homeOdds ? formatOdds(homeOdds) : (
+                {homeOdds ? (
+                  <div className="flex items-center gap-2">
+                    <span>{formatOdds(homeOdds)}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
+                      className="text-xs px-2 py-1 h-6"
+                    >
+                      <Target className="w-3 h-3 mr-1" />
+                      Pick
+                    </Button>
+                  </div>
+                ) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
                   </span>
@@ -212,20 +271,49 @@ export function ActionStyleGameCard({
         {(spread !== undefined || total !== undefined) && (
           <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             {spread !== undefined && (
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {spread > 0 ? `+${spread}` : spread}
                 </p>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'spread', homeTeam, spread)}
+                    className="text-xs px-2 py-1 h-6"
+                  >
+                    <Target className="w-3 h-3 mr-1" />
+                    Pick
+                  </Button>
+                </div>
               </div>
             )}
             
             {total !== undefined && (
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   O/U {total}
                 </p>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
+                    className="text-xs px-1 py-1 h-6"
+                  >
+                    O
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
+                    className="text-xs px-1 py-1 h-6"
+                  >
+                    U
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -279,6 +367,23 @@ export function ActionStyleGameCard({
           </div>
         )}
       </CardContent>
+      
+      {/* Odds Comparison Modal */}
+      {selectedBet && rawBookmakers && (
+        <OddsComparisonModal
+          open={oddsModalOpen}
+          onClose={() => setOddsModalOpen(false)}
+          gameInfo={{
+            homeTeam,
+            awayTeam,
+            gameId,
+            sport: 'baseball_mlb',
+            gameTime: startTime
+          }}
+          bookmakers={rawBookmakers}
+          selectedBet={selectedBet}
+        />
+      )}
     </Card>
   );
 }

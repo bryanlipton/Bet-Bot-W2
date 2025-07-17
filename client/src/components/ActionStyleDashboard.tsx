@@ -57,6 +57,19 @@ interface ProcessedGame {
     spread?: number;
     total?: number;
   }>;
+  rawBookmakers?: Array<{
+    key: string;
+    title: string;
+    markets: Array<{
+      key: string;
+      outcomes: Array<{
+        name: string;
+        price: number;
+        point?: number;
+      }>;
+    }>;
+    last_update: string;
+  }>;
 }
 
 import { GameDetailsModal } from "./GameDetailsModal";
@@ -192,6 +205,7 @@ export function ActionStyleDashboard() {
         }),
         sportKey: game.sport_key,
         bookmakers,
+        rawBookmakers: game.bookmakers, // Include raw bookmakers data for odds comparison
         gameId: game.gameId || game.id,
         probablePitchers: game.probablePitchers,
         venue: game.venue
@@ -359,6 +373,7 @@ export function ActionStyleDashboard() {
                   lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
                   lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
                   isAuthenticated={!!user}
+                  rawBookmakers={game.rawBookmakers}
                   onClick={() => {
                     setSelectedGame(game);
                     setIsModalOpen(true);

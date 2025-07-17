@@ -12,7 +12,7 @@ interface ActionStyleHeaderProps {
   onToggleDarkMode: () => void;
 }
 
-export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
+export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
   const [location, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
 
