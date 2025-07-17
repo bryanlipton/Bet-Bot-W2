@@ -485,12 +485,12 @@ export default function LoggedInLockPick() {
 
           {/* Right side - Factor scores in 2 columns x 3 rows */}
           <div className="w-80">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3 mt-1">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1">
               Analysis Factors
             </h5>
             
             {/* 2 columns x 3 rows grid of factor scores */}
-            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-2">
+            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-1">
               {factors.map(({ key, title, score, info }) => (
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
