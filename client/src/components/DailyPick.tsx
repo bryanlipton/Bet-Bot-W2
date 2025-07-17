@@ -124,9 +124,8 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
   };
 
   return (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex items-center gap-1 flex-1">
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
+    <div className="flex items-center justify-between py-1">
+      <div className="flex items-center gap-2">
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -142,8 +141,9 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
             </p>
           </DialogContent>
         </Dialog>
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
-      <div className={`${getScoreColor(score)} text-white text-xs font-bold px-2 py-1 rounded-full min-w-[32px] text-center`}>
+      <div className={`${getScoreColor(score)} text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center`}>
         {score}
       </div>
     </div>
@@ -384,7 +384,7 @@ export default function DailyPick() {
             </h5>
             
             {/* 3x2 Grid of factor scores */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-2">
               {factors.map(({ key, title, score, info }) => (
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
