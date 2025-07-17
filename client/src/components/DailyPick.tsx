@@ -360,7 +360,7 @@ export default function DailyPick() {
                   P: {dailyPick.probablePitchers.away || 'TBD'}
                 </p>
               </div>
-              <span className="font-mono text-lg text-gray-700 dark:text-gray-300 ml-auto">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent ml-auto">
                 {formatOdds(dailyPick.odds, dailyPick.pickType)}
               </span>
             </div>

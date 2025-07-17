@@ -400,7 +400,7 @@ export default function LoggedInLockPick() {
                   P: {lockPick.probablePitchers.away || 'TBD'}
                 </p>
               </div>
-              <span className="font-mono text-lg text-gray-700 dark:text-gray-300 ml-auto">
+              <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent ml-auto">
                 {formatOdds(lockPick.odds, lockPick.pickType)}
               </span>
             </div>
