@@ -1,14 +1,16 @@
 import { 
   users, games, odds, recommendations, chatMessages, modelMetrics,
   baseballGames, baseballPlayerStats, baseballGamePredictions, baseballModelTraining,
+  userBets,
   type User, type InsertUser, type UpsertUser, type Game, type InsertGame, 
   type Odds, type InsertOdds, type Recommendation, type InsertRecommendation,
   type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics,
   type BaseballGame, type InsertBaseballGame, type BaseballPlayerStats, type InsertBaseballPlayerStats,
-  type BaseballGamePrediction, type InsertBaseballGamePrediction, type BaseballModelTraining, type InsertBaseballModelTraining
+  type BaseballGamePrediction, type InsertBaseballGamePrediction, type BaseballModelTraining, type InsertBaseballModelTraining,
+  type UserBet, type InsertUserBet
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, or, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Users (Updated for Google OAuth and Stripe)
@@ -61,6 +63,25 @@ export interface IStorage {
   
   createBaseballTrainingRecord(training: InsertBaseballModelTraining): Promise<BaseballModelTraining>;
   getLatestTrainingRecord(): Promise<BaseballModelTraining | undefined>;
+
+  // User bet tracking methods
+  createUserBet(bet: InsertUserBet): Promise<UserBet>;
+  getUserBets(userId: string, limit?: number, offset?: number): Promise<UserBet[]>;
+  getUserBetsByTeam(userId: string, teamName: string): Promise<UserBet[]>;
+  getUserBetsByDateRange(userId: string, startDate: Date, endDate: Date): Promise<UserBet[]>;
+  getUserBetsByStatus(userId: string, status: string): Promise<UserBet[]>;
+  updateUserBet(betId: number, updates: Partial<UserBet>): Promise<UserBet>;
+  getUserBetStats(userId: string): Promise<{
+    totalBets: number;
+    totalWagered: number;
+    totalWon: number;
+    totalLost: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    pendingCount: number;
+    roi: number;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -544,6 +565,103 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  // User bet tracking methods
+  async createUserBet(insertBet: InsertUserBet): Promise<UserBet> {
+    const [bet] = await db.insert(userBets).values({
+      ...insertBet,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+    return bet;
+  }
+
+  async getUserBets(userId: string, limit: number = 100, offset: number = 0): Promise<UserBet[]> {
+    return await db.select().from(userBets)
+      .where(eq(userBets.userId, userId))
+      .orderBy(desc(userBets.placedAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getUserBetsByTeam(userId: string, teamName: string): Promise<UserBet[]> {
+    return await db.select().from(userBets)
+      .where(and(
+        eq(userBets.userId, userId),
+        or(
+          eq(userBets.homeTeam, teamName),
+          eq(userBets.awayTeam, teamName),
+          eq(userBets.teamBet, teamName)
+        )
+      ))
+      .orderBy(desc(userBets.placedAt));
+  }
+
+  async getUserBetsByDateRange(userId: string, startDate: Date, endDate: Date): Promise<UserBet[]> {
+    return await db.select().from(userBets)
+      .where(and(
+        eq(userBets.userId, userId),
+        gte(userBets.gameDate, startDate),
+        lte(userBets.gameDate, endDate)
+      ))
+      .orderBy(desc(userBets.placedAt));
+  }
+
+  async getUserBetsByStatus(userId: string, status: string): Promise<UserBet[]> {
+    return await db.select().from(userBets)
+      .where(and(
+        eq(userBets.userId, userId),
+        eq(userBets.status, status)
+      ))
+      .orderBy(desc(userBets.placedAt));
+  }
+
+  async updateUserBet(betId: number, updates: Partial<UserBet>): Promise<UserBet> {
+    const [bet] = await db.update(userBets)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(userBets.id, betId))
+      .returning();
+    return bet;
+  }
+
+  async getUserBetStats(userId: string): Promise<{
+    totalBets: number;
+    totalWagered: number;
+    totalWon: number;
+    totalLost: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    pendingCount: number;
+    roi: number;
+  }> {
+    const bets = await db.select().from(userBets)
+      .where(eq(userBets.userId, userId));
+
+    const totalBets = bets.length;
+    const totalWagered = bets.reduce((sum, bet) => sum + Number(bet.stake), 0);
+    const totalProfit = bets.reduce((sum, bet) => sum + Number(bet.profitLoss), 0);
+    const winCount = bets.filter(bet => bet.result === 'win').length;
+    const lossCount = bets.filter(bet => bet.result === 'loss').length;
+    const pushCount = bets.filter(bet => bet.result === 'push').length;
+    const pendingCount = bets.filter(bet => bet.status === 'pending').length;
+    const roi = totalWagered > 0 ? (totalProfit / totalWagered) * 100 : 0;
+
+    return {
+      totalBets,
+      totalWagered,
+      totalWon: bets.filter(bet => bet.result === 'win').reduce((sum, bet) => sum + Number(bet.toWin), 0),
+      totalLost: bets.filter(bet => bet.result === 'loss').reduce((sum, bet) => sum + Number(bet.stake), 0),
+      winCount,
+      lossCount,
+      pushCount,
+      pendingCount,
+      roi,
+    };
   }
 }
 

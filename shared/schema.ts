@@ -272,6 +272,31 @@ export const loggedInLockPicks = pgTable("logged_in_lock_picks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User bet tracking table
+export const userBets = pgTable("user_bets", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  gameId: text("game_id").notNull(),
+  homeTeam: text("home_team").notNull(),
+  awayTeam: text("away_team").notNull(),
+  teamBet: text("team_bet").notNull(), // Team name or "Over"/"Under"
+  betType: text("bet_type").notNull(), // "moneyline", "spread", "total", "over", "under"
+  odds: integer("odds").notNull(), // American odds format
+  stake: decimal("stake", { precision: 10, scale: 2 }).notNull(), // Amount wagered
+  toWin: decimal("to_win", { precision: 10, scale: 2 }).notNull(), // Potential winnings
+  status: text("status").notNull().default("pending"), // "pending", "won", "lost", "cancelled"
+  result: text("result"), // "win", "loss", "push"
+  profitLoss: decimal("profit_loss", { precision: 10, scale: 2 }).default("0.00"), // Net profit/loss
+  gameDate: timestamp("game_date").notNull(),
+  placedAt: timestamp("placed_at").defaultNow(),
+  settledAt: timestamp("settled_at"),
+  notes: text("notes"), // Optional user notes
+  venue: text("venue"), // Stadium/arena name
+  finalScore: text("final_score"), // e.g., "Yankees 7, Red Sox 4"
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const upsertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
@@ -290,6 +315,7 @@ export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrain
 export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
 export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });
+export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -321,3 +347,7 @@ export type BaseballUmpire = typeof baseballUmpires.$inferSelect;
 export type InsertBaseballUmpire = z.infer<typeof insertBaseballUmpireSchema>;
 export type DailyPick = typeof dailyPicks.$inferSelect;
 export type InsertDailyPick = z.infer<typeof insertDailyPickSchema>;
+export type LoggedInLockPick = typeof loggedInLockPicks.$inferSelect;
+export type InsertLoggedInLockPick = z.infer<typeof insertLoggedInLockPickSchema>;
+export type UserBet = typeof userBets.$inferSelect;
+export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
