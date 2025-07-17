@@ -178,17 +178,13 @@ export class DailyPickService {
                          analysis.recentForm + analysis.weatherConditions + analysis.bettingValue) / 6;
     
     if (averageScore >= 95) return 'A+';
-    if (averageScore >= 90) return 'A';
-    if (averageScore >= 87) return 'A-';
+    if (averageScore >= 88) return 'A';
     if (averageScore >= 83) return 'B+';
-    if (averageScore >= 80) return 'B';
-    if (averageScore >= 77) return 'B-';
+    if (averageScore >= 78) return 'B';
     if (averageScore >= 73) return 'C+';
-    if (averageScore >= 70) return 'C';
-    if (averageScore >= 67) return 'C-';
+    if (averageScore >= 68) return 'C';
     if (averageScore >= 63) return 'D+';
-    if (averageScore >= 60) return 'D';
-    return 'F';
+    return 'D';
   }
 
   private generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): string {

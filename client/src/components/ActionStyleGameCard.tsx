@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock } from "lucide-react";
-import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface GameCardProps {
   homeTeam: string;
@@ -35,6 +34,25 @@ interface GameCardProps {
   dailyPickTeam?: string;
   dailyPickGrade?: string;
   onClick?: () => void;
+}
+
+// Color-schemed grade bubble component for Bet Bot picks
+function GradeBubble({ grade }: { grade: string }) {
+  const getGradeColor = (grade: string) => {
+    if (grade.startsWith('A')) return 'bg-green-500';
+    if (grade.startsWith('B')) return 'bg-blue-500';
+    if (grade.startsWith('C')) return 'bg-yellow-500';
+    if (grade.startsWith('D')) return 'bg-orange-500';
+    return 'bg-gray-500';
+  };
+
+  return (
+    <div className={`${getGradeColor(grade)} w-8 h-8 rounded-full flex items-center justify-center`}>
+      <span className="text-white text-xs font-bold">
+        {grade}
+      </span>
+    </div>
+  );
 }
 
 export function ActionStyleGameCard({
@@ -127,15 +145,8 @@ export function ActionStyleGameCard({
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === awayTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <img 
-                    src={betbotLogo} 
-                    alt="Bet Bot Pick" 
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    {dailyPickGrade || "C+"}
-                  </span>
+                <div className="flex items-center justify-center">
+                  <GradeBubble grade={dailyPickGrade || "C+"} />
                 </div>
               ) : isDailyPick ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
@@ -169,15 +180,8 @@ export function ActionStyleGameCard({
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === homeTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <img 
-                    src={betbotLogo} 
-                    alt="Bet Bot Pick" 
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    {dailyPickGrade || "C+"}
-                  </span>
+                <div className="flex items-center justify-center">
+                  <GradeBubble grade={dailyPickGrade || "C+"} />
                 </div>
               ) : isDailyPick ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>

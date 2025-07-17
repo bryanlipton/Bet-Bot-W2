@@ -81,36 +81,23 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'bg-green-500';
-    if (grade.startsWith('B')) return 'bg-blue-500';
-    if (grade.startsWith('C')) return 'bg-yellow-500';
-    if (grade.startsWith('D')) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
-
   return (
-    <Badge className={`${getGradeColor(grade)} text-white font-bold px-3 py-1 text-lg`}>
+    <Badge className="bg-gray-500 text-white font-bold px-3 py-1 text-lg">
       {grade}
     </Badge>
   );
 }
 
-// Factor Grade Conversion
+// Factor Grade Conversion (No F grades)
 function scoreToGrade(score: number): string {
   if (score >= 95) return 'A+';
-  if (score >= 90) return 'A';
-  if (score >= 87) return 'A-';
-  if (score >= 84) return 'B+';
-  if (score >= 80) return 'B';
-  if (score >= 77) return 'B-';
-  if (score >= 74) return 'C+';
-  if (score >= 70) return 'C';
-  if (score >= 67) return 'C-';
-  if (score >= 64) return 'D+';
-  if (score >= 60) return 'D';
-  if (score >= 57) return 'D-';
-  return 'F';
+  if (score >= 88) return 'A';
+  if (score >= 83) return 'B+';
+  if (score >= 78) return 'B';
+  if (score >= 73) return 'C+';
+  if (score >= 68) return 'C';
+  if (score >= 63) return 'D+';
+  return 'D';
 }
 
 // Factor Score Component with Info

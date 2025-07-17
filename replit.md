@@ -12,6 +12,8 @@ Bet Bot is a sophisticated full-stack web application that provides AI-powered s
 
 **Homefield Advantage Model Update (July 17, 2025):** Recalculated the ballpark advantage factor to focus specifically on homefield advantage rather than including weather conditions. The new algorithm gives home teams a +12 point bonus and away teams a -8 point penalty, with additional ballpark-specific adjustments. Weather conditions remain as a separate factor. Updated frontend displays to show "Homefield Advantage" instead of "Ballpark Edge" with descriptions focusing on crowd support, familiarity, and last at-bat advantages rather than weather impacts.
 
+**UI and Grading System Overhaul (July 17, 2025):** Completed comprehensive UI updates for grade badges and bubbles. Removed color schemes from grade badges in both Pick of the Day and Lock Pick components (now neutral gray). Factor score bubbles now use theme colors: blue for Pick of the Day, amber for Lock Pick. For Bet Bot picks in game cards, implemented color-schemed grade bubbles with negative space letters and removed the logo. Updated grading system across frontend and backend to eliminate F grades, using only A+ through D scale with adjusted thresholds (A+: 95+, A: 88+, B+: 83+, B: 78+, C+: 73+, C: 68+, D+: 63+, D: below 63).
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
