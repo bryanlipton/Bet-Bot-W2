@@ -10,7 +10,6 @@ import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 
-
 // Analysis interfaces (simplified for ActionStyleGameCard)
 
 interface GameCardProps {
@@ -274,15 +273,17 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
 
 // Color-schemed grade bubble component for Bet Bot picks
 function GradeBubble({ grade }: { grade: string }) {
+  const getGradeColor = (grade: string) => {
+    if (grade.startsWith('A')) return 'bg-green-500';
+    if (grade.startsWith('B')) return 'bg-blue-500';
+    if (grade.startsWith('C')) return 'bg-yellow-500';
+    if (grade.startsWith('D')) return 'bg-orange-500';
+    return 'bg-gray-500';
+  };
+
   return (
-    <div 
-      className="w-8 h-8 rounded-xl flex items-center justify-center"
-      style={{
-        background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #fb923c 75%, #fdba74 100%)',
-        backgroundSize: 'cover'
-      }}
-    >
-      <span className="text-white text-xs font-bold drop-shadow-sm">
+    <div className={`${getGradeColor(grade)} w-8 h-8 rounded-lg flex items-center justify-center`}>
+      <span className="text-white text-xs font-bold">
         {grade}
       </span>
     </div>
