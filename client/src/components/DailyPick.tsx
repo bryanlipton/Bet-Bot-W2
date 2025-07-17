@@ -10,12 +10,12 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users } from "lucide-react";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface DailyPickAnalysis {
-  teamOffense: number;
-  pitchingMatchup: number;
-  ballparkFactor: number;
-  weatherImpact: number;
-  situationalEdge: number;
-  valueScore: number;
+  offensivePower: number;    // 60-100 normalized scale
+  pitchingEdge: number;      // 60-100 normalized scale  
+  ballparkAdvantage: number; // 60-100 normalized scale
+  recentForm: number;        // 60-100 normalized scale
+  weatherConditions: number; // 60-100 normalized scale
+  bettingValue: number;      // 60-100 normalized scale
   confidence: number;
 }
 
@@ -48,12 +48,12 @@ interface PickAnalysisDetails {
     reasoning: string;
   };
   factors: {
-    teamOffense: { score: number; description: string };
-    pitchingMatchup: { score: number; description: string };
-    ballparkFactor: { score: number; description: string };
-    weatherImpact: { score: number; description: string };
-    situationalEdge: { score: number; description: string };
-    valueScore: { score: number; description: string };
+    offensivePower: { score: number; description: string };
+    pitchingEdge: { score: number; description: string };
+    ballparkAdvantage: { score: number; description: string };
+    recentForm: { score: number; description: string };
+    weatherConditions: { score: number; description: string };
+    bettingValue: { score: number; description: string };
   };
   gameDetails: {
     matchup: string;
@@ -113,28 +113,45 @@ function scoreToGrade(score: number): string {
   return 'F';
 }
 
-// Factor Grade Component
-function FactorGrade({ title, score }: { title: string; score: number }) {
-  const grade = scoreToGrade(score);
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'text-green-600 dark:text-green-400';
-    if (grade.startsWith('B')) return 'text-blue-600 dark:text-blue-400';
-    if (grade.startsWith('C')) return 'text-yellow-600 dark:text-yellow-400';
-    if (grade.startsWith('D')) return 'text-orange-600 dark:text-orange-400';
+// Factor Score Component with Info
+function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
+  const getScoreColor = (score: number) => {
+    if (score >= 95) return 'text-green-600 dark:text-green-400';
+    if (score >= 87) return 'text-green-500 dark:text-green-300';
+    if (score >= 80) return 'text-blue-600 dark:text-blue-400';
+    if (score >= 77) return 'text-blue-500 dark:text-blue-300';
+    if (score >= 70) return 'text-yellow-600 dark:text-yellow-400';
+    if (score >= 67) return 'text-orange-600 dark:text-orange-400';
     return 'text-red-600 dark:text-red-400';
   };
 
   return (
-    <div className="flex items-center justify-between py-1">
-      <span className="text-sm text-gray-700 dark:text-gray-300">{title}</span>
-      <span className={`font-bold text-sm ${getGradeColor(grade)}`}>{grade}</span>
+    <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center gap-1">
+        <span className="text-gray-600 dark:text-gray-400 font-medium">{title}</span>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Info className="h-3 w-3 text-gray-400" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {info}
+            </p>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <span className={`font-bold ${getScoreColor(score)}`}>{score}</span>
     </div>
   );
 }
 
 export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
-  const [showMoreFactors, setShowMoreFactors] = useState(false);
   
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -204,26 +221,48 @@ export default function DailyPick() {
     return `${type} ${sign}`;
   };
 
-  // Get factors sorted by score (highest to lowest)
-  const getSortedFactors = (analysis: DailyPickAnalysis) => {
-    const factorTitles = {
-      teamOffense: 'Team Offense',
-      pitchingMatchup: 'Pitching Matchup',
-      ballparkFactor: 'Ballpark Factor',
-      weatherImpact: 'Weather Impact',
-      situationalEdge: 'Situational Edge',
-      valueScore: 'Value Score',
-      confidence: 'Confidence'
-    };
+  // Get all 6 factors with their info descriptions
+  const getFactors = (analysis: DailyPickAnalysis) => {
+    const factorData = [
+      {
+        key: 'offensivePower',
+        title: 'Offensive Power',
+        score: analysis.offensivePower,
+        info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
+      },
+      {
+        key: 'pitchingEdge',
+        title: 'Pitching Edge', 
+        score: analysis.pitchingEdge,
+        info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
+      },
+      {
+        key: 'ballparkAdvantage',
+        title: 'Ballpark Edge',
+        score: analysis.ballparkAdvantage,
+        info: 'Stadium factors including dimensions, weather conditions, and how they favor hitters or pitchers.'
+      },
+      {
+        key: 'recentForm',
+        title: 'Recent Form',
+        score: analysis.recentForm,
+        info: 'Team performance over last 10 games including wins, runs scored, and momentum indicators.'
+      },
+      {
+        key: 'weatherConditions',
+        title: 'Weather Impact',
+        score: analysis.weatherConditions,
+        info: 'Wind speed/direction, temperature, and humidity effects on ball flight and overall scoring.'
+      },
+      {
+        key: 'bettingValue',
+        title: 'Betting Value',
+        score: analysis.bettingValue,
+        info: 'Analysis of odds value comparing our probability model to available betting lines and market efficiency.'
+      }
+    ];
 
-    return Object.entries(analysis)
-      .filter(([key]) => key !== 'confidence') // Exclude confidence from factors
-      .map(([key, score]) => ({
-        key,
-        title: factorTitles[key as keyof typeof factorTitles] || key,
-        score: score as number
-      }))
-      .sort((a, b) => b.score - a.score);
+    return factorData.sort((a, b) => b.score - a.score);
   };
 
   // Determine if pick team is away or home, format matchup accordingly
@@ -245,9 +284,7 @@ export default function DailyPick() {
   };
 
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
-  const sortedFactors = getSortedFactors(dailyPick.analysis);
-  const topFactors = sortedFactors.slice(0, 2);
-  const additionalFactors = sortedFactors.slice(2);
+  const factors = getFactors(dailyPick.analysis);
 
   return (
     <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
@@ -301,13 +338,14 @@ export default function DailyPick() {
                   <div>
                     <h4 className="font-semibold mb-3">Analysis Factors</h4>
                     <div className="space-y-3">
-                      {sortedFactors.map(({ key, title, score }) => (
+                      {factors.map(({ key, title, score, info }) => (
                         <div key={key} className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span className="font-medium">{title}</span>
                             <span className="font-bold">{scoreToGrade(score)} ({score}/100)</span>
                           </div>
                           <Progress value={score} className="h-2" />
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
                         </div>
                       ))}
                     </div>
@@ -339,40 +377,18 @@ export default function DailyPick() {
             </div>
           </div>
 
-          {/* Right side - Factor grades */}
-          <div className="w-48 space-y-2">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Factor Grades
+          {/* Right side - Factor scores in 3x2 grid */}
+          <div className="w-64 space-y-2">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Analysis Factors
             </h5>
             
-            {/* Top 2 factors */}
-            <div className="space-y-1">
-              {topFactors.map(({ key, title, score }) => (
-                <FactorGrade key={key} title={title} score={score} />
+            {/* 3x2 Grid of factor scores */}
+            <div className="grid grid-cols-2 gap-3">
+              {factors.map(({ key, title, score, info }) => (
+                <FactorScore key={key} title={title} score={score} info={info} />
               ))}
             </div>
-
-            {/* Show more button and additional factors */}
-            {additionalFactors.length > 0 && (
-              <div className="space-y-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowMoreFactors(!showMoreFactors)}
-                  className="h-6 text-xs text-gray-500 dark:text-gray-400 p-0 hover:text-blue-600"
-                >
-                  {showMoreFactors ? 'Show less' : `Show ${additionalFactors.length} more`}
-                </Button>
-                
-                {showMoreFactors && (
-                  <div className="space-y-1">
-                    {additionalFactors.map(({ key, title, score }) => (
-                      <FactorGrade key={key} title={title} score={score} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 

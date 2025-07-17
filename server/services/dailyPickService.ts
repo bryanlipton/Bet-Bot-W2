@@ -4,13 +4,13 @@ import { dailyPicks, loggedInLockPicks } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export interface DailyPickAnalysis {
-  teamOffense: number;    // 0-100 scale
-  pitchingMatchup: number; // 0-100 scale
-  ballparkFactor: number;  // 0-100 scale
-  weatherImpact: number;   // 0-100 scale
-  situationalEdge: number; // 0-100 scale
-  valueScore: number;      // 0-100 scale
-  confidence: number;      // 0-100 scale
+  offensivePower: number;    // 60-100 normalized scale
+  pitchingEdge: number;      // 60-100 normalized scale  
+  ballparkAdvantage: number; // 60-100 normalized scale
+  recentForm: number;        // 60-100 normalized scale
+  weatherConditions: number; // 60-100 normalized scale
+  bettingValue: number;      // 60-100 normalized scale
+  confidence: number;        // 60-100 normalized scale
 }
 
 export interface DailyPick {
@@ -36,7 +36,15 @@ export interface DailyPick {
 }
 
 export class DailyPickService {
-  private async analyzeTeamOffense(team: string): Promise<number> {
+  private normalizeToGradingScale(score: number): number {
+    // Normalize 0-100 to 60-100 academic grading scale
+    const minScore = 60;
+    const maxScore = 100;
+    const normalizedScore = minScore + (score / 100) * (maxScore - minScore);
+    return Math.round(Math.max(minScore, Math.min(maxScore, normalizedScore)));
+  }
+
+  private async analyzeOffensivePower(team: string): Promise<number> {
     // Simulate Baseball Savant team metrics analysis
     const teamMetrics = {
       'Minnesota Twins': { xwOBA: 0.335, barrelPct: 8.2, exitVelo: 88.5 },
@@ -60,10 +68,11 @@ export class DailyPickService {
     const barrelScore = Math.min(100, ((metrics.barrelPct - 4.0) / 8.0) * 100);
     const exitVeloScore = Math.min(100, ((metrics.exitVelo - 85.0) / 8.0) * 100);
     
-    return Math.round((xwOBAScore + barrelScore + exitVeloScore) / 3);
+    const rawScore = (xwOBAScore + barrelScore + exitVeloScore) / 3;
+    return this.normalizeToGradingScale(rawScore);
   }
 
-  private async analyzePitchingMatchup(homeTeam: string, awayTeam: string, probablePitchers: any): Promise<number> {
+  private async analyzePitchingEdge(homeTeam: string, awayTeam: string, probablePitchers: any, pickTeam: string): Promise<number> {
     // Simulate pitcher analysis based on ERA, xERA, recent form
     const pitcherRatings = {
       'Lucas Giolito': { era: 4.15, xera: 3.95, recentForm: 72 },
@@ -81,11 +90,17 @@ export class DailyPickService {
     const homeRating = pitcherRatings[homePitcher as keyof typeof pitcherRatings]?.recentForm || 60;
     const awayRating = pitcherRatings[awayPitcher as keyof typeof pitcherRatings]?.recentForm || 60;
     
-    // Return differential advantage (positive = away team has pitching edge)
-    return Math.round(50 + ((awayRating - homeRating) / 2));
+    // Calculate advantage for the picked team
+    const isPickHome = pickTeam === homeTeam;
+    const pitchingAdvantage = isPickHome ? homeRating : awayRating;
+    const opponentPitching = isPickHome ? awayRating : homeRating;
+    
+    // Convert to differential score favoring picked team
+    const rawScore = 50 + ((opponentPitching - pitchingAdvantage) / 2);
+    return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
-  private getBallparkFactor(venue: string): number {
+  private getBallparkAdvantage(venue: string, pickTeam: string, homeTeam: string): number {
     const ballparkFactors = {
       'Coors Field': 28,           // Very hitter friendly
       'Fenway Park': 4,            // Slightly hitter friendly
@@ -107,72 +122,71 @@ export class DailyPickService {
     };
 
     const factor = ballparkFactors[venue as keyof typeof ballparkFactors] || 0;
-    // Convert to 0-100 scale (50 = neutral)
-    return Math.max(0, Math.min(100, 50 + factor));
+    const isPickHome = pickTeam === homeTeam;
+    
+    // Home teams get full ballpark advantage, away teams get neutral/slight disadvantage
+    const advantageMultiplier = isPickHome ? 1 : 0.3;
+    const adjustedFactor = factor * advantageMultiplier;
+    
+    // Convert to 60-100 scale (75 = neutral)
+    const rawScore = 50 + adjustedFactor;
+    return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
-  private getWeatherImpact(): number {
+  private getWeatherConditions(): number {
     // Simulate weather analysis - in real implementation would use weather API
-    // Return 0-100 scale (50 = neutral weather)
-    return Math.round(45 + Math.random() * 10); // Slight randomization for demo
+    // Return 60-100 scale (75 = neutral weather)
+    const rawScore = 45 + Math.random() * 10; // Slight randomization for demo
+    return this.normalizeToGradingScale(rawScore);
   }
 
-  private analyzeSituationalEdge(homeTeam: string, awayTeam: string): number {
-    // Simulate situational analysis: recent form, motivation, rest days
+  private analyzeRecentForm(pickTeam: string): number {
+    // Simulate recent form analysis: recent wins, runs scored, momentum
     const teamForm = {
       'Minnesota Twins': 72,      // Good recent form
       'Colorado Rockies': 35,     // Poor recent form
       'Boston Red Sox': 68,       // Decent recent form
-      'Chicago Cubs': 52,         // Average recent form
-      'Kansas City Royals': 65,   // Good recent form
-      'Miami Marlins': 42,        // Below average form
-      'New York Mets': 70,        // Good recent form
-      'Cincinnati Reds': 48,      // Below average form
-      'Baltimore Orioles': 75,    // Very good form
-      'Tampa Bay Rays': 67,       // Good form
-      'Detroit Tigers': 58,       // Average form
-      'Texas Rangers': 55         // Average form
+      'Chicago Cubs': 58,         // Average recent form
+      'Kansas City Royals': 62,   // Slightly above average
+      'Miami Marlins': 48,        // Below average
+      'New York Mets': 65,        // Good form
+      'Cincinnati Reds': 52,      // Average
+      'Baltimore Orioles': 78,    // Very good form
+      'Tampa Bay Rays': 70,       // Good form
+      'Detroit Tigers': 55,       // Average
+      'Texas Rangers': 60         // Average
     };
 
-    const awayForm = teamForm[awayTeam as keyof typeof teamForm] || 50;
-    const homeForm = teamForm[homeTeam as keyof typeof teamForm] || 50;
-    
-    // Factor in home field advantage (typically worth 3-5 points)
-    const homeAdvantage = 4;
-    const adjustedHomeForm = homeForm + homeAdvantage;
-    
-    return Math.round(50 + ((awayForm - adjustedHomeForm) / 2));
+    const form = teamForm[pickTeam as keyof typeof teamForm] || 60;
+    return this.normalizeToGradingScale(form);
   }
 
-  private calculateValueScore(impliedProb: number, trueProb: number): number {
-    // Calculate betting value based on probability differential
-    const edge = trueProb - impliedProb;
-    // Convert edge to 0-100 scale (50 = no edge, 70+ = good value)
-    return Math.max(0, Math.min(100, 50 + (edge * 200)));
-  }
-
-  private oddsToImpliedProbability(americanOdds: number): number {
-    if (americanOdds > 0) {
-      return 100 / (americanOdds + 100);
-    } else {
-      return Math.abs(americanOdds) / (Math.abs(americanOdds) + 100);
-    }
-  }
-
-  private calculateGrade(confidence: number, valueScore: number): DailyPick['grade'] {
-    const combinedScore = (confidence + valueScore) / 2;
+  private calculateBettingValue(odds: number, impliedProb: number): number {
+    // Calculate betting value based on odds vs our model probability
+    const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
+    const edge = impliedProb - bookmakerProb;
     
-    if (combinedScore >= 85) return 'A+';
-    if (combinedScore >= 80) return 'A';
-    if (combinedScore >= 75) return 'A-';
-    if (combinedScore >= 70) return 'B+';
-    if (combinedScore >= 65) return 'B';
-    if (combinedScore >= 60) return 'B-';
-    if (combinedScore >= 55) return 'C+';
-    if (combinedScore >= 50) return 'C';
-    if (combinedScore >= 45) return 'C-';
-    if (combinedScore >= 40) return 'D+';
-    if (combinedScore >= 35) return 'D';
+    // Convert edge to 0-100 scale (positive edge = good value)
+    const rawScore = 50 + (edge * 200); // Scale edge to score
+    return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
+  }
+
+  private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
+    // Calculate overall grade based on average of all factors
+    const averageScore = (analysis.offensivePower + analysis.pitchingEdge + analysis.ballparkAdvantage + 
+                         analysis.recentForm + analysis.weatherConditions + analysis.bettingValue) / 6;
+    
+    if (averageScore >= 95) return 'A+';
+    if (averageScore >= 90) return 'A';
+    if (averageScore >= 87) return 'A-';
+    if (averageScore >= 83) return 'B+';
+    if (averageScore >= 80) return 'B';
+    if (averageScore >= 77) return 'B-';
+    if (averageScore >= 73) return 'C+';
+    if (averageScore >= 70) return 'C';
+    if (averageScore >= 67) return 'C-';
+    if (averageScore >= 63) return 'D+';
+    if (averageScore >= 60) return 'D';
     return 'F';
   }
 
@@ -188,11 +202,11 @@ export class DailyPickService {
     
     // Add detailed analysis based on the strongest factors
     const factors = [
-      { name: 'offense', score: analysis.teamOffense, type: 'offensive' },
-      { name: 'pitching', score: analysis.pitchingMatchup, type: 'pitching' },
-      { name: 'ballpark', score: analysis.ballparkFactor, type: 'venue' },
-      { name: 'situational', score: analysis.situationalEdge, type: 'situational' },
-      { name: 'value', score: analysis.valueScore, type: 'betting' }
+      { name: 'offense', score: analysis.offensivePower, type: 'offensive' },
+      { name: 'pitching', score: analysis.pitchingEdge, type: 'pitching' },
+      { name: 'ballpark', score: analysis.ballparkAdvantage, type: 'venue' },
+      { name: 'form', score: analysis.recentForm, type: 'situational' },
+      { name: 'value', score: analysis.bettingValue, type: 'betting' }
     ];
     
     // Sort factors by strength and pick top 2-3 for explanation
@@ -275,45 +289,40 @@ export class DailyPickService {
         const pickTeam = outcome.name;
         const opposingTeam = isHomePick ? game.away_team : game.home_team;
         
-        // Calculate analysis scores
-        const teamOffense = await this.analyzeTeamOffense(pickTeam);
-        const pitchingMatchup = await this.analyzePitchingMatchup(
+        // Calculate new analysis scores using updated methods
+        const offensivePower = await this.analyzeOffensivePower(pickTeam);
+        const pitchingEdge = await this.analyzePitchingEdge(
           game.home_team, 
           game.away_team, 
-          game.probablePitchers
+          game.probablePitchers,
+          pickTeam
         );
         
-        const ballparkFactor = this.getBallparkFactor(game.venue || '');
-        const weatherImpact = this.getWeatherImpact();
-        const situationalEdge = this.analyzeSituationalEdge(game.home_team, game.away_team);
+        const ballparkAdvantage = this.getBallparkAdvantage(game.venue || '', pickTeam, game.home_team);
+        const weatherConditions = this.getWeatherConditions();
+        const recentForm = this.analyzeRecentForm(pickTeam);
         
-        // Adjust scores based on home/away
-        const adjustedPitching = isHomePick ? (100 - pitchingMatchup) : pitchingMatchup;
-        const adjustedSituational = isHomePick ? (100 - situationalEdge) : situationalEdge;
+        // Calculate implied probability for betting value
+        const impliedProb = (outcome.price > 0 ? 100 / (outcome.price + 100) : Math.abs(outcome.price) / (Math.abs(outcome.price) + 100));
+        const bettingValue = this.calculateBettingValue(outcome.price, impliedProb);
         
-        // Calculate implied probability and our true probability
-        const impliedProb = this.oddsToImpliedProbability(outcome.price);
-        const trueProbComponents = [teamOffense, adjustedPitching, ballparkFactor, weatherImpact, adjustedSituational];
-        const avgScore = trueProbComponents.reduce((a, b) => a + b, 0) / trueProbComponents.length;
-        const trueProb = Math.max(0.15, Math.min(0.85, avgScore / 100));
-        
-        const valueScore = this.calculateValueScore(impliedProb, trueProb);
-        const confidence = Math.round((avgScore + valueScore) / 2);
+        // Calculate confidence as average of all factors
+        const confidence = Math.round((offensivePower + pitchingEdge + ballparkAdvantage + recentForm + weatherConditions + bettingValue) / 6);
         
         const analysis: DailyPickAnalysis = {
-          teamOffense,
-          pitchingMatchup: adjustedPitching,
-          ballparkFactor,
-          weatherImpact,
-          situationalEdge: adjustedSituational,
-          valueScore,
+          offensivePower,
+          pitchingEdge,
+          ballparkAdvantage,
+          recentForm,
+          weatherConditions,
+          bettingValue,
           confidence
         };
 
-        const grade = this.calculateGrade(confidence, valueScore);
+        const grade = this.calculateGrade(analysis);
         const reasoning = this.generateReasoning(pickTeam, analysis, game.home_team, game.away_team, game.venue || '', outcome.price, game.probablePitchers);
         
-        const overallScore = confidence + valueScore;
+        const overallScore = confidence;
         
         if (overallScore > bestScore && confidence > 55) {
           bestScore = overallScore;
