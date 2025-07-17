@@ -200,26 +200,26 @@ export default function DailyPick() {
     return `${type} ${sign}`;
   };
 
-  // Get all 6 factors with their info descriptions
+  // Get all 6 factors with their info descriptions in permanent order
   const getFactors = (analysis: DailyPickAnalysis) => {
     const factorData = [
       {
-        key: 'offensiveEdge',
-        title: 'Offensive Edge',
-        score: analysis.offensiveEdge,
-        info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
-      },
-      {
-        key: 'pitchingEdge',
-        title: 'Pitching Edge', 
-        score: analysis.pitchingEdge,
-        info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
+        key: 'bettingValue',
+        title: 'Betting Value',
+        score: analysis.bettingValue,
+        info: 'Analysis of odds value comparing our probability model to available betting lines and market efficiency.'
       },
       {
         key: 'ballparkAdvantage',
         title: 'Ballpark Advantage',
         score: analysis.ballparkAdvantage,
         info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
+      },
+      {
+        key: 'pitchingEdge',
+        title: 'Pitching Edge', 
+        score: analysis.pitchingEdge,
+        info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
       },
       {
         key: 'recentForm',
@@ -234,14 +234,14 @@ export default function DailyPick() {
         info: 'Wind speed/direction, temperature, and humidity effects on ball flight and overall scoring.'
       },
       {
-        key: 'bettingValue',
-        title: 'Betting Value',
-        score: analysis.bettingValue,
-        info: 'Analysis of odds value comparing our probability model to available betting lines and market efficiency.'
+        key: 'offensiveEdge',
+        title: 'Offensive Edge',
+        score: analysis.offensiveEdge,
+        info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
       }
     ];
 
-    return factorData.sort((a, b) => b.score - a.score);
+    return factorData;
   };
 
   // Determine if pick team is away or home, format matchup accordingly
