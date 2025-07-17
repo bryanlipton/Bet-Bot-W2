@@ -313,26 +313,46 @@ export default function MyPicksPage() {
     
     const options = [];
     
+    // Helper function to get odds from the first available bookmaker
+    const getOddsForOutcome = (markets: any[], marketKey: string, outcomeName: string, point?: number) => {
+      const market = markets.find((m: any) => m.key === marketKey);
+      if (!market?.outcomes) return null;
+      
+      const outcome = market.outcomes.find((o: any) => {
+        if (point !== undefined) {
+          return o.name === outcomeName && o.point === point;
+        }
+        return o.name === outcomeName;
+      });
+      
+      return outcome?.price || null;
+    };
+    
+    // Get the first bookmaker's markets for odds
+    const firstBookmaker = selectedGame.bookmakers?.[0];
+    const markets = firstBookmaker?.markets || [];
+    
     // Moneyline options - Use unique values to avoid conflicts
+    const awayMoneylineOdds = getOddsForOutcome(markets, 'h2h', selectedGame.away_team);
+    const homeMoneylineOdds = getOddsForOutcome(markets, 'h2h', selectedGame.home_team);
+    
     options.push({
       value: `${selectedGame.away_team}_moneyline`,
       label: `${selectedGame.away_team} Moneyline`,
       market: 'moneyline',
-      selection: selectedGame.away_team
+      selection: selectedGame.away_team,
+      odds: awayMoneylineOdds
     });
     options.push({
       value: `${selectedGame.home_team}_moneyline`,
       label: `${selectedGame.home_team} Moneyline`, 
       market: 'moneyline',
-      selection: selectedGame.home_team
+      selection: selectedGame.home_team,
+      odds: homeMoneylineOdds
     });
     
     // Extract spread and total from bookmaker data
     if (selectedGame.bookmakers && selectedGame.bookmakers.length > 0) {
-      // Get the first bookmaker's markets to find spread and total values
-      const firstBookmaker = selectedGame.bookmakers[0];
-      const markets = firstBookmaker.markets || [];
-      
       // Find spread market
       const spreadMarket = markets.find((m: any) => m.key === 'spreads');
       if (spreadMarket && spreadMarket.outcomes) {
@@ -345,7 +365,8 @@ export default function MyPicksPage() {
               label: `${outcome.name} ${sign}${point}`,
               market: 'spread',
               line: point,
-              selection: outcome.name
+              selection: outcome.name,
+              odds: outcome.price
             });
           }
         });
@@ -362,7 +383,8 @@ export default function MyPicksPage() {
               label: `${outcome.name} ${point}`,
               market: 'total',
               line: point,
-              selection: outcome.name
+              selection: outcome.name,
+              odds: outcome.price
             });
           }
         });
@@ -783,6 +805,8 @@ export default function MyPicksPage() {
                         handleManualEntryChange('selection', value); // Store the unique value
                         handleManualEntryChange('market', option.market);
                         handleManualEntryChange('line', option.line?.toString() || '');
+                        // Pre-populate with API odds if available
+                        handleManualEntryChange('odds', option.odds ? option.odds.toString() : '');
                       }
                     }}>
                       <SelectTrigger>
@@ -791,7 +815,7 @@ export default function MyPicksPage() {
                       <SelectContent>
                         {getBettingOptions().map((option, index) => (
                           <SelectItem key={index} value={option.value}>
-                            {option.label}
+                            {option.label} {option.odds ? `(${option.odds > 0 ? '+' : ''}${option.odds})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -801,7 +825,7 @@ export default function MyPicksPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Odds (optional)
+                    Odds (adjustable)
                   </label>
                   <Input
                     value={manualEntry.odds}
@@ -898,6 +922,8 @@ export default function MyPicksPage() {
                         handleManualEntryChange('selection', value); // Store the unique value
                         handleManualEntryChange('market', option.market);
                         handleManualEntryChange('line', option.line?.toString() || '');
+                        // Pre-populate with API odds if available
+                        handleManualEntryChange('odds', option.odds ? option.odds.toString() : '');
                       }
                     }}>
                       <SelectTrigger>
@@ -906,11 +932,26 @@ export default function MyPicksPage() {
                       <SelectContent>
                         {getBettingOptions().map((option, index) => (
                           <SelectItem key={index} value={option.value}>
-                            {option.label}
+                            {option.label} {option.odds ? `(${option.odds > 0 ? '+' : ''}${option.odds})` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                )}
+
+                {/* Leg Odds Input */}
+                {selectedGame && manualEntry.selection && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Leg Odds (adjustable)
+                    </label>
+                    <Input
+                      value={manualEntry.odds}
+                      onChange={(e) => handleManualEntryChange('odds', e.target.value)}
+                      placeholder="e.g., -110, +150"
+                      className="w-full"
+                    />
                   </div>
                 )}
 
