@@ -124,11 +124,11 @@ function InfoButton({ info, title }: { info: string; title: string }) {
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
   return (
     <div className="flex items-center justify-between py-1">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <InfoButton info={info} title={title} />
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{title}</span>
       </div>
-      <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+      <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
         {score !== null ? score : 'NA'}
       </div>
     </div>
@@ -434,14 +434,14 @@ export default function DailyPick() {
             </p>
           </div>
 
-          {/* Right side - Factor scores in 3 columns x 2 rows */}
+          {/* Right side - Factor scores in 2 columns x 3 rows */}
           <div className="w-80">
             <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3">
               Analysis Factors
             </h5>
             
-            {/* 3 columns x 2 rows grid of factor scores */}
-            <div className="grid grid-cols-3 grid-rows-2 gap-x-3 gap-y-2">
+            {/* 2 columns x 3 rows grid of factor scores */}
+            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-2">
               {factors.map(({ key, title, score, info }) => (
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
