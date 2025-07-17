@@ -24,7 +24,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
     <TooltipProvider>
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between h-14 px-6">
+          <div className="flex items-center justify-between h-12 px-4">
             {/* Logo */}
             <div className="flex items-center">
               <Popover>
@@ -35,7 +35,7 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
                         <img 
                           src={betbotLogo} 
                           alt="BetBot Logo" 
-                          className="w-10 h-10 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
+                          className="w-8 h-8 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
                         />
                       </TooltipTrigger>
                       <TooltipContent 
