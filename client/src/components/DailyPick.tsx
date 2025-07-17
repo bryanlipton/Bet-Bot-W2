@@ -126,7 +126,7 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
     <div className="flex items-center py-1">
       <div className="flex items-center gap-1 flex-1 min-w-0 pr-3">
         <InfoButton info={info} title={title} />
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{title}</span>
+        <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
       <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-auto">
         {score !== null ? score : 'NA'}
