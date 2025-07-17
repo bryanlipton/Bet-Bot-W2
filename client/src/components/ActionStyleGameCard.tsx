@@ -300,7 +300,7 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center justify-between">
+              <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center justify-between">
                 <span className="flex-1">{awayOdds ? formatOdds(awayOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
@@ -358,7 +358,7 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center justify-between">
+              <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center justify-between">
                 <span className="flex-1">{homeOdds ? formatOdds(homeOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs">
                     Lines not posted
