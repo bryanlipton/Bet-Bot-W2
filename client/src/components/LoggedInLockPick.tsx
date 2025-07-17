@@ -270,7 +270,7 @@ export default function LoggedInLockPick() {
       },
       {
         key: 'ballparkAdvantage',
-        title: 'Ballpark Advantage',
+        title: 'Field Advantage',
         score: analysis.ballparkAdvantage,
         info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
       }
