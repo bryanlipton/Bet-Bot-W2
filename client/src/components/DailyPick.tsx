@@ -412,31 +412,33 @@ export default function DailyPick() {
                 P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
               </p>
             </div>
-            <div className="flex items-center space-x-2 flex-1 min-w-0 text-base text-gray-600 dark:text-gray-400">
-              <span>{matchup.separator}</span>
-              <span className="block">{matchup.bottomTeam}</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between mt-3">
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
-              </p>
-              <div className="flex-shrink-0">
-                {dailyPick.pickType === 'moneyline' && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 flex-1 min-w-0 text-base text-gray-600 dark:text-gray-400">
+                <span>{matchup.separator}</span>
+                <span className="block">{matchup.bottomTeam}</span>
+              </div>
+              <div className="flex-shrink-0 ml-4">
+                {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.bottomTeam && (
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                    onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
                     className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
                   >
                     Fade
                   </Button>
                 )}
               </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+              </p>
+            </div>
+            <div className="mt-3">
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
+              </p>
             </div>
           </div>
 
