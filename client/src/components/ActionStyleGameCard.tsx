@@ -163,7 +163,12 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return (
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Info className="h-3 w-3 text-black dark:text-white" />
           </Button>
         </PopoverTrigger>
@@ -179,7 +184,12 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return (
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Info className="h-3 w-3 text-black dark:text-white" />
           </Button>
         </PopoverTrigger>
@@ -206,7 +216,10 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
         variant="ghost" 
         size="sm" 
         className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-        onClick={() => setIsOpen(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
       >
         <Info className="h-3 w-3 text-black dark:text-white" />
       </Button>
