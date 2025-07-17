@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock } from "lucide-react";
+import { OddsComparisonModal } from "@/components/OddsComparisonModal";
+import { savePick } from "@/services/pickStorage";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -136,6 +138,8 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
 
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+  const [oddsModalOpen, setOddsModalOpen] = useState(false);
+  const [selectedBet, setSelectedBet] = useState<any>(null);
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
@@ -149,6 +153,22 @@ export default function LoggedInLockPick() {
     queryKey: [`/api/daily-pick/${lockPick?.id}/analysis`],
     enabled: !!lockPick?.id && analysisDialogOpen && isAuthenticated,
   });
+
+  const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
+    e.stopPropagation();
+    
+    if (!lockPick) return;
+    
+    const betInfo = {
+      market,
+      selection,
+      line,
+      odds: lockPick.odds
+    };
+    
+    setSelectedBet(betInfo);
+    setOddsModalOpen(true);
+  };
 
   // Show loading state during auth check
   if (authLoading) {
@@ -406,9 +426,31 @@ export default function LoggedInLockPick() {
                   P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
                 </p>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent ml-auto">
-                {formatOdds(lockPick.odds, lockPick.pickType)}
-              </span>
+              <div className="flex flex-col items-end space-y-2 ml-auto">
+                <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent">
+                  {formatOdds(lockPick.odds, lockPick.pickType)}
+                </span>
+                {lockPick.pickType === 'moneyline' && (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam)}
+                      className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
+                      className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                    >
+                      Fade
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
               <span>{matchup.separator}</span>
@@ -438,10 +480,24 @@ export default function LoggedInLockPick() {
             </div>
           </div>
         </div>
-
-
-        </div>
       </CardContent>
+      
+      {/* Odds Comparison Modal */}
+      {selectedBet && (
+        <OddsComparisonModal
+          open={oddsModalOpen}
+          onClose={() => setOddsModalOpen(false)}
+          gameInfo={{
+            homeTeam: lockPick.homeTeam,
+            awayTeam: lockPick.awayTeam,
+            gameId: lockPick.gameId,
+            sport: 'baseball_mlb',
+            gameTime: lockPick.gameTime
+          }}
+          bookmakers={[]} // This will need to be populated with actual odds data
+          selectedBet={selectedBet}
+        />
+      )}
     </Card>
   );
 }

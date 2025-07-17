@@ -8,6 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Info, TrendingUp, Target, MapPin, Clock, Users } from "lucide-react";
+import { OddsComparisonModal } from "@/components/OddsComparisonModal";
+import { savePick } from "@/services/pickStorage";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface DailyPickAnalysis {
@@ -135,6 +137,8 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
 
 export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
+  const [oddsModalOpen, setOddsModalOpen] = useState(false);
+  const [selectedBet, setSelectedBet] = useState<any>(null);
   
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -145,6 +149,27 @@ export default function DailyPick() {
     queryKey: [`/api/daily-pick/${dailyPick?.id}/analysis`],
     enabled: !!dailyPick?.id && analysisDialogOpen,
   });
+
+  const { data: gamesData } = useQuery({
+    queryKey: ['/api/mlb/complete-schedule'],
+    enabled: !!dailyPick?.gameId,
+  });
+
+  const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
+    e.stopPropagation();
+    
+    if (!dailyPick) return;
+    
+    const betInfo = {
+      market,
+      selection,
+      line,
+      odds: dailyPick.odds
+    };
+    
+    setSelectedBet(betInfo);
+    setOddsModalOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -363,9 +388,31 @@ export default function DailyPick() {
                   P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
                 </p>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent ml-auto">
-                {formatOdds(dailyPick.odds, dailyPick.pickType)}
-              </span>
+              <div className="flex flex-col items-end space-y-2 ml-auto">
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
+                  {formatOdds(dailyPick.odds, dailyPick.pickType)}
+                </span>
+                {dailyPick.pickType === 'moneyline' && (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
+                      className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                      className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                    >
+                      Fade
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
               <span>{matchup.separator}</span>
@@ -395,9 +442,24 @@ export default function DailyPick() {
             </div>
           </div>
         </div>
-
-
       </CardContent>
+      
+      {/* Odds Comparison Modal */}
+      {selectedBet && (
+        <OddsComparisonModal
+          open={oddsModalOpen}
+          onClose={() => setOddsModalOpen(false)}
+          gameInfo={{
+            homeTeam: dailyPick.homeTeam,
+            awayTeam: dailyPick.awayTeam,
+            gameId: dailyPick.gameId,
+            sport: 'baseball_mlb',
+            gameTime: dailyPick.gameTime
+          }}
+          bookmakers={[]} // This will need to be populated with actual odds data
+          selectedBet={selectedBet}
+        />
+      )}
     </Card>
   );
 }
