@@ -64,12 +64,14 @@ import { GameDetailsModal } from "./GameDetailsModal";
 import { ArticleModal } from "./ArticleModal";
 import DailyPick from "./DailyPick";
 import LoggedInLockPick from "./LoggedInLockPick";
+import { useAuth } from "@/hooks/useAuth";
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const { isAuthenticated } = useAuth();
   
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
@@ -249,9 +251,19 @@ export function ActionStyleDashboard() {
       {/* Pick of the Day Section - Always visible above sports */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white underline">
-            Bet Bot Sports Genie AI Picks
-          </h2>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white underline">
+              Bet Bot Sports Genie AI Picks
+            </h2>
+            {!isAuthenticated && (
+              <div className="mt-2 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
+                <h4 className="font-semibold text-white">Tired of guessing?</h4>
+                <p className="text-sm text-blue-100 leading-relaxed">
+                  Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
+                </p>
+              </div>
+            )}
+          </div>
           <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
             Free Users
           </Badge>

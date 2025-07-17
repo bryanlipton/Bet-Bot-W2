@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Moon, Sun, BarChart3, TrendingUp, Zap } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
+import { useAuth } from "@/hooks/useAuth";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface ActionStyleHeaderProps {
@@ -12,7 +13,8 @@ interface ActionStyleHeaderProps {
 }
 
 export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
 
   const navigationTabs = [
     { path: "/", name: "Odds", active: location === "/" },
@@ -27,43 +29,22 @@ export default function ActionStyleHeader({ darkMode, onToggleDarkMode }: Action
           <div className="flex items-center justify-between h-16 px-4">
             {/* Logo */}
             <div className="flex items-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <img 
-                          src={betbotLogo} 
-                          alt="BetBot Logo" 
-                          className="w-9 h-9 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent 
-                        side="bottom" 
-                        className="max-w-xs p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg"
-                      >
-                        <div className="space-y-2">
-                          <h4 className="font-semibold text-white">Tired of guessing?</h4>
-                          <p className="text-sm text-blue-100 leading-relaxed">
-                            Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
-                          </p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent 
-                  side="bottom" 
-                  className="max-w-xs p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg"
-                >
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-white">Tired of guessing?</h4>
-                    <p className="text-sm text-blue-100 leading-relaxed">
-                      Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
-                    </p>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              {isAuthenticated ? (
+                // For logged-in users: simple clickable logo that navigates to odds
+                <img 
+                  src={betbotLogo} 
+                  alt="BetBot Logo" 
+                  className="w-9 h-9 object-contain cursor-pointer hover:opacity-90 active:scale-95 transition-all duration-150"
+                  onClick={() => navigate("/")}
+                />
+              ) : (
+                // For non-logged-in users: no tooltip or popover on logo
+                <img 
+                  src={betbotLogo} 
+                  alt="BetBot Logo" 
+                  className="w-9 h-9 object-contain"
+                />
+              )}
             </div>
 
           {/* Navigation */}
