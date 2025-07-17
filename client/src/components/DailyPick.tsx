@@ -284,8 +284,8 @@ export default function DailyPick() {
             <GradeBadge grade={dailyPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 w-9 p-0 border-blue-200 hover:bg-blue-50 dark:border-blue-700 dark:hover:bg-blue-950">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Button variant="outline" size="sm" className="h-9 w-9 p-0 border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800">
+                  <Info className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
