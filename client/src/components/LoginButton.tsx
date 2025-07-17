@@ -14,7 +14,7 @@ export function LoginButton() {
 
   if (isLoading) {
     return (
-      <Button variant="outline" disabled>
+      <Button variant="outline" size="sm" disabled>
         <div className="w-4 h-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </Button>
     );
@@ -23,7 +23,8 @@ export function LoginButton() {
   if (!isAuthenticated) {
     return (
       <Button 
-        variant="outline" 
+        variant="outline"
+        size="sm"
         onClick={() => {
           window.location.href = '/api/login';
         }}
@@ -38,7 +39,7 @@ export function LoginButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+        <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
           <Avatar className="w-6 h-6">
             <AvatarImage src={user?.profileImageUrl} alt={user?.firstName || 'User'} />
             <AvatarFallback>
