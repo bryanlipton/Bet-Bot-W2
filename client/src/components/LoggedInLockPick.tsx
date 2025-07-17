@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock } from "lucide-react";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -143,10 +144,10 @@ export default function LoggedInLockPick() {
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
+  // Always fetch daily pick for display, even if not authenticated
   const { data: lockPick, isLoading } = useQuery<DailyPick | null>({
-    queryKey: ['/api/daily-pick/lock'],
+    queryKey: ['/api/daily-pick'],
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    enabled: isAuthenticated, // Only fetch if authenticated
   });
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
@@ -154,9 +155,21 @@ export default function LoggedInLockPick() {
     enabled: !!lockPick?.id && analysisDialogOpen && isAuthenticated,
   });
 
-  // Don't show anything if not authenticated
-  if (authLoading || !isAuthenticated) {
-    return null;
+  // Show loading state during auth check
+  if (authLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (isLoading) {
@@ -287,7 +300,26 @@ export default function LoggedInLockPick() {
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
-      <CardContent className="p-6">
+      <CardContent className="p-6 relative">
+        {/* Blur overlay for non-authenticated users */}
+        {!isAuthenticated && (
+          <div 
+            className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
+            onClick={() => window.location.href = '/api/login'}
+          >
+            <div className="text-center">
+              <Lock className="w-12 h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
+              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">
+                Log in for another free pick
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Click here to access your exclusive lock pick
+              </p>
+            </div>
+          </div>
+        )}
+        
+        <div className={!isAuthenticated ? 'blur-sm' : ''}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <BetBotIcon className="w-12 h-12" />
