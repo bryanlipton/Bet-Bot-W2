@@ -24,7 +24,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   fanduel: {
     bookmaker: 'fanduel',
     displayName: 'FanDuel',
-    affiliateUrl: 'https://account.sportsbook.fanduel.com/login?ref=betbot123', // Login page with dummy affiliate
+    affiliateUrl: 'https://sportsbook.fanduel.com/navigation/mlb?ref=betbot123', // MLB page with dummy affiliate
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: false, // FanDuel doesn't have public bet slip API
     deepLinkTemplate: 'https://sportsbook.fanduel.com/navigation/mlb' // Takes to MLB section only

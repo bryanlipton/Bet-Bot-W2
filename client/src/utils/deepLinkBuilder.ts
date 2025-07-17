@@ -62,8 +62,8 @@ function buildManualDeepLink(
       return `https://sportsbook.draftkings.com/leagues/baseball/mlb${affiliate}`;
 
     case 'fanduel':
-      // Game-specific URLs using team slugs and date
-      return `https://www.fanduel.com/sportsbook/mlb/${team1}-vs-${team2}/${gameDate}${affiliate}`;
+      // FanDuel main page - use www domain which should work better
+      return `https://www.fanduel.com/sportsbook${affiliate}`;
 
     case 'betmgm':
       // League-level deep linking
@@ -120,9 +120,40 @@ export function buildDeepLink(
     outcomeLink?: string;
   }
 ): { url: string; hasDeepLink: boolean; linkType: string } {
-  // Priority hierarchy: outcome > market > bookmaker > manual pattern
+  // Special handling for FanDuel - prioritize their API links since manual links are blocked
+  if (bookmakerKey.toLowerCase() === 'fanduel') {
+    if (oddsApiLinks?.outcomeLink) {
+      return {
+        url: oddsApiLinks.outcomeLink,
+        hasDeepLink: true,
+        linkType: 'bet-slip'
+      };
+    }
+    if (oddsApiLinks?.marketLink) {
+      return {
+        url: oddsApiLinks.marketLink,
+        hasDeepLink: true,
+        linkType: 'market'
+      };
+    }
+    if (oddsApiLinks?.bookmakerLink) {
+      return {
+        url: oddsApiLinks.bookmakerLink,
+        hasDeepLink: true,
+        linkType: 'game'
+      };
+    }
+    // FanDuel fallback - direct to main site since they block specific URLs
+    return {
+      url: 'https://www.fanduel.com/?ref=betbot123',
+      hasDeepLink: false,
+      linkType: 'manual'
+    };
+  }
+
+  // Priority hierarchy for other bookmakers: outcome > market > bookmaker > manual pattern
   if (oddsApiLinks?.outcomeLink) {
-    // Best case: Direct bet slip link (FanDuel style)
+    // Best case: Direct bet slip link
     const affiliate = affiliateParams[bookmakerKey as keyof typeof affiliateParams] || '';
     const connector = oddsApiLinks.outcomeLink.includes('?') ? '&' : '?';
     return {
@@ -168,7 +199,7 @@ export function getLoginUrl(bookmakerKey: string): string {
   
   const loginUrls: Record<string, string> = {
     draftkings: `https://sportsbook.draftkings.com/login${affiliate}`,
-    fanduel: `https://account.fanduel.com/login${affiliate}`,
+    fanduel: `https://www.fanduel.com/sportsbook/login?ref=betbot123`,
     betmgm: `https://sports.nj.betmgm.com/login${affiliate}`,
     caesars: `https://www.caesars.com/sportsbook/login${affiliate}`,
     espnbet: `https://www.espnbet.com/login${affiliate}`,
