@@ -278,7 +278,7 @@ function GradeBubble({ grade }: { grade: string }) {
     <div 
       className="w-8 h-8 rounded-xl flex items-center justify-center"
       style={{
-        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 25%, #92400e 50%, #1e40af 75%, #1e3a8a 100%)',
+        background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 25%, #3b82f6 50%, #fb923c 75%, #fdba74 100%)',
         backgroundSize: 'cover'
       }}
     >
