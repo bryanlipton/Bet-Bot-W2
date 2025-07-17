@@ -82,7 +82,7 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
   return (
-    <Badge className="bg-gray-500 text-white font-bold px-3 py-1 text-lg">
+    <Badge className="bg-blue-500 text-white font-bold px-3 py-1 text-lg">
       {grade}
     </Badge>
   );
