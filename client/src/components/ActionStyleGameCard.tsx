@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getTeamColor } from "@/utils/teamLogos";
-import { Clock, TrendingUp, TrendingDown, Users, Lock, Target } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 
 interface GameCardProps {
@@ -54,6 +55,23 @@ interface GameCardProps {
     }>;
     last_update: string;
   }>;
+}
+
+// Info Button Component for Bet Bot picks
+function InfoButton({ info, title }: { info: string; title: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center">
+          <Info className="h-3 w-3 text-black dark:text-white" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3 text-xs" side="top">
+        <div className="font-medium mb-1">{title}</div>
+        <div>{info}</div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 // Color-schemed grade bubble component for Bet Bot picks
@@ -208,12 +226,20 @@ export function ActionStyleGameCard({
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === awayTeam ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
+                  <InfoButton 
+                    info="This is Bet Bot's AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
+                    title="Bet Bot AI Pick" 
+                  />
                 </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
+                  <InfoButton 
+                    info="This is Bet Bot's premium AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
+                    title="Bet Bot Lock Pick" 
+                  />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
@@ -260,12 +286,20 @@ export function ActionStyleGameCard({
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === homeTeam ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={dailyPickGrade || "C+"} />
+                  <InfoButton 
+                    info="This is Bet Bot's AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
+                    title="Bet Bot AI Pick" 
+                  />
                 </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center gap-1">
                   <GradeBubble grade={lockPickGrade || "C+"} />
+                  <InfoButton 
+                    info="This is Bet Bot's premium AI-powered pick based on comprehensive analysis of team performance, pitching matchups, ballpark factors, weather conditions, and betting value. The grade reflects our confidence level in this recommendation."
+                    title="Bet Bot Lock Pick" 
+                  />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
