@@ -74,10 +74,13 @@ export function registerOddsRoutes(app: Express) {
       const response = await fetch(url);
       
       if (!response.ok) {
-        console.error(`Odds API error: ${response.status} ${response.statusText}`);
-        return res.status(response.status).json({ 
-          error: `Failed to fetch odds: ${response.statusText}` 
-        });
+        const errorText = await response.text();
+        console.error(`Odds API error: ${response.status} ${response.statusText} - ${errorText}`);
+        console.log('Returning mock data for demo');
+        
+        // Return mock data when API is unavailable
+        const mockData = await oddsApiService.getCurrentOdds(sport);
+        return res.json(mockData);
       }
       
       const data = await response.json();

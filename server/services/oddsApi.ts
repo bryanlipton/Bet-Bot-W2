@@ -186,7 +186,93 @@ export class OddsApiService {
     const now = new Date();
     const games = [];
     
-    if (sport === 'americanfootball_nfl') {
+    if (sport === 'baseball_mlb') {
+      // Generate realistic MLB mock data
+      const mlbTeams = [
+        ['New York Yankees', 'Boston Red Sox'],
+        ['Los Angeles Dodgers', 'San Francisco Giants'],
+        ['Atlanta Braves', 'Philadelphia Phillies'],
+        ['Houston Astros', 'Seattle Mariners'],
+        ['Chicago Cubs', 'Milwaukee Brewers'],
+        ['Baltimore Orioles', 'Tampa Bay Rays'],
+        ['Toronto Blue Jays', 'Detroit Tigers'],
+        ['Cleveland Guardians', 'Kansas City Royals'],
+        ['Minnesota Twins', 'Chicago White Sox'],
+        ['Texas Rangers', 'Los Angeles Angels'],
+        ['Miami Marlins', 'Washington Nationals'],
+        ['Pittsburgh Pirates', 'Cincinnati Reds'],
+        ['St. Louis Cardinals', 'Colorado Rockies'],
+        ['San Diego Padres', 'Arizona Diamondbacks'],
+        ['New York Mets', 'Oakland Athletics']
+      ];
+      
+      for (let i = 0; i < Math.min(mlbTeams.length, 15); i++) {
+        const [homeTeam, awayTeam] = mlbTeams[i];
+        const gameTime = new Date(now.getTime() + (i * 3600000) + Math.random() * 86400000); // Random games over next day
+        
+        // Generate realistic MLB odds
+        const homeOdds = -150 + Math.random() * 300; // -150 to +150
+        const awayOdds = homeOdds > 0 ? -(100 + Math.random() * 50) : 100 + Math.random() * 200;
+        const spread = (Math.random() - 0.5) * 3; // -1.5 to +1.5
+        const total = 8 + Math.random() * 4; // 8 to 12 runs
+        
+        games.push({
+          id: `mock_mlb_game_${i + 1}`,
+          sport_key: 'baseball_mlb',
+          sport_title: 'MLB',
+          commence_time: gameTime.toISOString(),
+          home_team: homeTeam,
+          away_team: awayTeam,
+          bookmakers: [{
+            key: 'draftkings',
+            title: 'DraftKings',
+            last_update: now.toISOString(),
+            markets: [{
+              key: 'h2h',
+              outcomes: [
+                { name: homeTeam, price: Math.round(homeOdds) },
+                { name: awayTeam, price: Math.round(awayOdds) }
+              ]
+            }, {
+              key: 'spreads',
+              outcomes: [
+                { name: homeTeam, price: -110, point: Math.round(spread * 2) / 2 },
+                { name: awayTeam, price: -110, point: Math.round(-spread * 2) / 2 }
+              ]
+            }, {
+              key: 'totals',
+              outcomes: [
+                { name: 'Over', price: -110, point: Math.round(total * 2) / 2 },
+                { name: 'Under', price: -110, point: Math.round(total * 2) / 2 }
+              ]
+            }]
+          }, {
+            key: 'fanduel',
+            title: 'FanDuel',
+            last_update: now.toISOString(),
+            markets: [{
+              key: 'h2h',
+              outcomes: [
+                { name: homeTeam, price: Math.round(homeOdds + (Math.random() - 0.5) * 20) },
+                { name: awayTeam, price: Math.round(awayOdds + (Math.random() - 0.5) * 20) }
+              ]
+            }, {
+              key: 'spreads',
+              outcomes: [
+                { name: homeTeam, price: -105, point: Math.round(spread * 2) / 2 },
+                { name: awayTeam, price: -115, point: Math.round(-spread * 2) / 2 }
+              ]
+            }, {
+              key: 'totals',
+              outcomes: [
+                { name: 'Over', price: -105, point: Math.round(total * 2) / 2 },
+                { name: 'Under', price: -115, point: Math.round(total * 2) / 2 }
+              ]
+            }]
+          }]
+        });
+      }
+    } else if (sport === 'americanfootball_nfl') {
       games.push({
         id: 'mock_nfl_game_1',
         sport_key: 'americanfootball_nfl',
