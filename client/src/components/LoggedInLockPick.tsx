@@ -171,8 +171,14 @@ export default function LoggedInLockPick() {
       odds: lockPick.odds
     };
     
-    setSelectedBet(betInfo);
-    setOddsModalOpen(true);
+    // Close any existing modal first to prevent overlap
+    setOddsModalOpen(false);
+    
+    // Small delay to ensure old modal is closed before opening new one
+    setTimeout(() => {
+      setSelectedBet(betInfo);
+      setOddsModalOpen(true);
+    }, 50);
   };
 
   // Show loading state during auth check
@@ -492,7 +498,10 @@ export default function LoggedInLockPick() {
       {selectedBet && (
         <OddsComparisonModal
           open={oddsModalOpen}
-          onClose={() => setOddsModalOpen(false)}
+          onClose={() => {
+            setOddsModalOpen(false);
+            setSelectedBet(null);
+          }}
           gameInfo={{
             homeTeam: lockPick.homeTeam,
             awayTeam: lockPick.awayTeam,

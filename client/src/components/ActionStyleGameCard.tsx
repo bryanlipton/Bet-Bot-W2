@@ -108,8 +108,19 @@ export function ActionStyleGameCard({
     // Prevent the card click event from firing
     event.stopPropagation();
     
-    setSelectedBet({ market, selection, line });
-    setOddsModalOpen(true);
+    if (!rawBookmakers || rawBookmakers.length === 0) {
+      console.warn('No bookmakers data available for odds comparison');
+      return;
+    }
+
+    // Close any existing modal first to prevent overlap
+    setOddsModalOpen(false);
+    
+    // Small delay to ensure old modal is closed before opening new one
+    setTimeout(() => {
+      setSelectedBet({ market, selection, line });
+      setOddsModalOpen(true);
+    }, 50);
   };
 
   const formatOdds = (odds: number) => {
@@ -390,7 +401,10 @@ export function ActionStyleGameCard({
       {selectedBet && rawBookmakers && (
         <OddsComparisonModal
           open={oddsModalOpen}
-          onClose={() => setOddsModalOpen(false)}
+          onClose={() => {
+            setOddsModalOpen(false);
+            setSelectedBet(null);
+          }}
           gameInfo={{
             homeTeam,
             awayTeam,

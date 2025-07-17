@@ -167,8 +167,14 @@ export default function DailyPick() {
       odds: dailyPick.odds
     };
     
-    setSelectedBet(betInfo);
-    setOddsModalOpen(true);
+    // Close any existing modal first to prevent overlap
+    setOddsModalOpen(false);
+    
+    // Small delay to ensure old modal is closed before opening new one
+    setTimeout(() => {
+      setSelectedBet(betInfo);
+      setOddsModalOpen(true);
+    }, 50);
   };
 
   if (isLoading) {
@@ -448,7 +454,10 @@ export default function DailyPick() {
       {selectedBet && (
         <OddsComparisonModal
           open={oddsModalOpen}
-          onClose={() => setOddsModalOpen(false)}
+          onClose={() => {
+            setOddsModalOpen(false);
+            setSelectedBet(null);
+          }}
           gameInfo={{
             homeTeam: dailyPick.homeTeam,
             awayTeam: dailyPick.awayTeam,

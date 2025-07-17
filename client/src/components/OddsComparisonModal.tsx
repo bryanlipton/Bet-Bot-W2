@@ -56,6 +56,12 @@ export function OddsComparisonModal({
 }: OddsComparisonModalProps) {
   const [isPlacingBet, setIsPlacingBet] = useState(false);
 
+  // Reset state when modal opens/closes
+  const handleClose = () => {
+    setIsPlacingBet(false);
+    onClose();
+  };
+
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
     const market = bookmaker.markets.find(m => {
@@ -161,11 +167,9 @@ export function OddsComparisonModal({
     // Open bookmaker in new tab
     window.open(bookmakerData.url, '_blank');
 
-    // Reset state and close modal
-    setTimeout(() => {
-      setIsPlacingBet(false);
-      onClose();
-    }, 1000);
+    // Immediately close modal and reset state
+    setIsPlacingBet(false);
+    handleClose();
   };
 
   const formatOdds = (odds: number) => {
@@ -187,7 +191,7 @@ export function OddsComparisonModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
