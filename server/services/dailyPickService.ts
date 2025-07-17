@@ -4,7 +4,7 @@ import { dailyPicks, loggedInLockPicks } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export interface DailyPickAnalysis {
-  offensivePower: number;    // 60-100 normalized scale
+  offensiveEdge: number;     // 60-100 normalized scale
   pitchingEdge: number;      // 60-100 normalized scale  
   ballparkAdvantage: number; // 60-100 normalized scale
   recentForm: number;        // 60-100 normalized scale
@@ -44,7 +44,7 @@ export class DailyPickService {
     return Math.round(Math.max(minScore, Math.min(maxScore, normalizedScore)));
   }
 
-  private async analyzeOffensivePower(team: string): Promise<number> {
+  private async analyzeOffensiveEdge(team: string): Promise<number> {
     // Simulate Baseball Savant team metrics analysis
     const teamMetrics = {
       'Minnesota Twins': { xwOBA: 0.335, barrelPct: 8.2, exitVelo: 88.5 },
@@ -290,7 +290,7 @@ export class DailyPickService {
         const opposingTeam = isHomePick ? game.away_team : game.home_team;
         
         // Calculate new analysis scores using updated methods
-        const offensivePower = await this.analyzeOffensivePower(pickTeam);
+        const offensiveEdge = await this.analyzeOffensiveEdge(pickTeam);
         const pitchingEdge = await this.analyzePitchingEdge(
           game.home_team, 
           game.away_team, 
@@ -307,10 +307,10 @@ export class DailyPickService {
         const bettingValue = this.calculateBettingValue(outcome.price, impliedProb);
         
         // Calculate confidence as average of all factors
-        const confidence = Math.round((offensivePower + pitchingEdge + ballparkAdvantage + recentForm + weatherConditions + bettingValue) / 6);
+        const confidence = Math.round((offensiveEdge + pitchingEdge + ballparkAdvantage + recentForm + weatherConditions + bettingValue) / 6);
         
         const analysis: DailyPickAnalysis = {
-          offensivePower,
+          offensiveEdge,
           pitchingEdge,
           ballparkAdvantage,
           recentForm,

@@ -95,11 +95,11 @@ export function registerDailyPickRoutes(app: Express) {
           reasoning: pick.reasoning
         },
         factors: {
-          teamOffense: {
-            score: pick.analysis.teamOffense,
-            description: pick.analysis.teamOffense > 65 
-              ? "Strong offensive metrics with above-average contact quality"
-              : pick.analysis.teamOffense < 45 
+          offensiveEdge: {
+            score: pick.analysis.offensiveEdge,
+            description: pick.analysis.offensiveEdge > 65 
+              ? "Strong offensive edge with above-average contact quality"
+              : pick.analysis.offensiveEdge < 45 
               ? "Below-average offensive production and contact quality"
               : "Average offensive capabilities"
           },

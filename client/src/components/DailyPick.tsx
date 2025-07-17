@@ -217,9 +217,9 @@ export default function DailyPick() {
   const getFactors = (analysis: DailyPickAnalysis) => {
     const factorData = [
       {
-        key: 'offensivePower',
-        title: 'Offensive Power',
-        score: analysis.offensivePower,
+        key: 'offensiveEdge',
+        title: 'Offensive Edge',
+        score: analysis.offensiveEdge,
         info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
       },
       {
