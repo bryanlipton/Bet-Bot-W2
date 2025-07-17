@@ -1,5 +1,4 @@
 import { Express } from "express";
-import { oddsApiService } from "./services/oddsApi.js";
 
 const ODDS_API_KEY = process.env.THE_ODDS_API_KEY;
 const ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4";
@@ -64,8 +63,24 @@ export function registerOddsRoutes(app: Express) {
     try {
       const { sport } = req.params;
       
-      // Use the OddsApiService which handles fallback to mock data when API fails
-      const data = await oddsApiService.getCurrentOdds(sport);
+      if (!ODDS_API_KEY) {
+        return res.status(500).json({ error: 'The Odds API key not configured' });
+      }
+
+      const url = `${ODDS_API_BASE_URL}/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&includeLinks=true&includeSids=true`;
+      
+      console.log(`Fetching live odds for ${sport} from: ${url.replace(ODDS_API_KEY, 'xxx...')}`);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`Odds API error: ${response.status} ${response.statusText}`);
+        return res.status(response.status).json({ 
+          error: `Failed to fetch odds: ${response.statusText}` 
+        });
+      }
+      
+      const data = await response.json();
       
       console.log(`Successfully fetched ${data.length} games for ${sport}`);
       

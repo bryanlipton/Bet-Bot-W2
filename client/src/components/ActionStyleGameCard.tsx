@@ -279,55 +279,49 @@ export function ActionStyleGameCard({
         </div>
 
         {/* Betting Lines */}
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-          {/* Spread Section */}
-          <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
-            {spread !== undefined ? (
-              (() => {
-                // Determine which team is favored (negative spread = favored)
-                const isFavoredHome = spread < 0;
-                const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
-                const favoredSpread = Math.abs(spread);
-                
-                return (
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {favoredTeam} -{favoredSpread}
-                    </p>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
-                        className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
-                      >
-                        Pick
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
-                        className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
-                      >
-                        Fade
-                      </Button>
+        {(spread !== undefined || total !== undefined) && (
+          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+            {spread !== undefined && (
+              <div className="text-center space-y-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+                {(() => {
+                  // Determine which team is favored (negative spread = favored)
+                  const isFavoredHome = spread < 0;
+                  const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                  const favoredSpread = Math.abs(spread);
+                  
+                  return (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {favoredTeam} -{favoredSpread}
+                      </p>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                          className="text-xs px-2 py-1 h-6 bg-green-50 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300"
+                        >
+                          Pick
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                          className="text-xs px-2 py-1 h-6 bg-red-50 hover:bg-red-100 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300"
+                        >
+                          Fade
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })()
-            ) : (
-              <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
-                Spread TBD
-              </p>
+                  );
+                })()}
+              </div>
             )}
-          </div>
-          
-          {/* Total Section */}
-          <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-            {total !== undefined ? (
-              <div className="space-y-1">
+            
+            {total !== undefined && (
+              <div className="text-center space-y-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   O/U {total}
                 </p>
@@ -350,13 +344,9 @@ export function ActionStyleGameCard({
                   </Button>
                 </div>
               </div>
-            ) : (
-              <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
-                OU TBD
-              </p>
             )}
           </div>
-        </div>
+        )}
 
         {/* Recommendation */}
         {recommendation && (
