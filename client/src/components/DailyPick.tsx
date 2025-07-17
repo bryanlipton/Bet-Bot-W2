@@ -127,7 +127,7 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
         <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
       <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-        {score}
+        {score !== null ? score : 'NA'}
       </div>
     </div>
   );
@@ -221,18 +221,16 @@ export default function DailyPick() {
       }
     ];
 
-    // Only include Pitching Edge if both pitchers are known (not TBD)
+    // Always include Pitching Edge, show NA if either pitcher is TBD
     const homePitcher = probablePitchers.home || 'TBD';
     const awayPitcher = probablePitchers.away || 'TBD';
     
-    if (homePitcher !== 'TBD' && awayPitcher !== 'TBD') {
-      factorData.push({
-        key: 'pitchingEdge',
-        title: 'Pitching Edge', 
-        score: analysis.pitchingEdge,
-        info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
-      });
-    }
+    factorData.push({
+      key: 'pitchingEdge',
+      title: 'Pitching Edge', 
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? analysis.pitchingEdge : null,
+      info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
+    });
 
     factorData.push(
       {
