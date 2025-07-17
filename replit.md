@@ -8,6 +8,8 @@ Bet Bot is a sophisticated full-stack web application that provides AI-powered s
 
 **Recent UI and Authentication Fixes (July 17, 2025):** Fixed critical issue where logged-in users were seeing the same pick as the daily pick. The LoggedInLockPick component now correctly fetches from `/api/daily-pick/lock` endpoint, ensuring authenticated users receive a different game/bet than the free daily pick. Enhanced the analysis endpoint to support both daily picks and lock picks. Navigation buttons are now consistently sized, and pitcher displays maintain proper alignment with ml-6 indentation.
 
+**Model Grading System Fix (July 17, 2025):** Resolved critical bug in the grading algorithm where picks were incorrectly receiving "F" grades despite high confidence scores. The issue was caused by outdated field references (`offensivePower` instead of `offensiveEdge`) in both the `calculateGrade` and `generateReasoning` methods. Updated the entire system to use the new "Offensive Edge" terminology consistently. Picks now display correct grades based on their confidence scores (82 confidence = B grade, as expected).
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

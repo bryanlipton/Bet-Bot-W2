@@ -173,7 +173,7 @@ export class DailyPickService {
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
     // Calculate overall grade based on average of all factors
-    const averageScore = (analysis.offensivePower + analysis.pitchingEdge + analysis.ballparkAdvantage + 
+    const averageScore = (analysis.offensiveEdge + analysis.pitchingEdge + analysis.ballparkAdvantage + 
                          analysis.recentForm + analysis.weatherConditions + analysis.bettingValue) / 6;
     
     if (averageScore >= 95) return 'A+';
@@ -202,7 +202,7 @@ export class DailyPickService {
     
     // Add detailed analysis based on the strongest factors
     const factors = [
-      { name: 'offense', score: analysis.offensivePower, type: 'offensive' },
+      { name: 'offense', score: analysis.offensiveEdge, type: 'offensive' },
       { name: 'pitching', score: analysis.pitchingEdge, type: 'pitching' },
       { name: 'ballpark', score: analysis.ballparkAdvantage, type: 'venue' },
       { name: 'form', score: analysis.recentForm, type: 'situational' },
