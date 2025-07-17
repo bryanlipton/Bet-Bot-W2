@@ -385,17 +385,17 @@ export default function DailyPick() {
         <div className="flex items-start justify-between space-x-6">
           {/* Left side - Team matchup and odds (scorebug) */}
           <div className="flex-1 space-y-1">
-            <div className="flex items-start space-x-2">
-              <div className="flex flex-col">
-                <h4 className="font-bold text-xl text-blue-600 dark:text-blue-400">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-lg text-blue-600 dark:text-blue-400 truncate">
                   {matchup.topTeam}
                 </h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
+                <p className="text-xs text-gray-500 dark:text-gray-400 ml-4">
                   P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
                 </p>
               </div>
-              <div className="flex flex-col items-end space-y-2 ml-auto">
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
+              <div className="flex items-center space-x-3 flex-shrink-0">
+                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent">
                   {formatOdds(dailyPick.odds, dailyPick.pickType)}
                 </span>
                 {dailyPick.pickType === 'moneyline' && (
@@ -420,10 +420,10 @@ export default function DailyPick() {
                 )}
               </div>
             </div>
-            <div className="text-lg text-gray-600 dark:text-gray-400 flex items-start space-x-2">
+            <div className="flex items-center space-x-2 text-base text-gray-600 dark:text-gray-400">
               <span>{matchup.separator}</span>
-              <div className="flex flex-col">
-                <span>{matchup.bottomTeam}</span>
+              <div className="flex-1 min-w-0">
+                <span className="truncate block">{matchup.bottomTeam}</span>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
                 </p>
