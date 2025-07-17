@@ -300,10 +300,14 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-bold text-gray-900 dark:text-white">
-                {awayOdds ? (
-                  <div className="flex items-center gap-2">
-                    <span>{formatOdds(awayOdds)}</span>
+              <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center justify-between">
+                <span className="flex-1">{awayOdds ? formatOdds(awayOdds) : (
+                  <span className="text-gray-400 dark:text-gray-500 text-xs">
+                    Lines not posted
+                  </span>
+                )}</span>
+                <div className="w-16 flex justify-end">
+                  {awayOdds && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -313,24 +317,24 @@ export function ActionStyleGameCard({
                       <Target className="w-3 h-3 mr-1" />
                       Pick
                     </Button>
-                  </div>
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500 text-xs">
-                    Lines not posted
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === awayTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <GradeBubble grade={dailyPickGrade || "C+"} />
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-8 flex justify-center">
+                    <GradeBubble grade={dailyPickGrade || "C+"} />
+                  </div>
                   <InfoButton pickId={dailyPickId} pickType="daily" />
                 </div>
               ) : isAuthenticated && lockPickTeam === awayTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <GradeBubble grade={lockPickGrade || "C+"} />
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-8 flex justify-center">
+                    <GradeBubble grade={lockPickGrade || "C+"} />
+                  </div>
                   <InfoButton pickId={lockPickId} pickType="lock" />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
@@ -354,10 +358,14 @@ export function ActionStyleGameCard({
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-bold text-gray-900 dark:text-white">
-                {homeOdds ? (
-                  <div className="flex items-center gap-2">
-                    <span>{formatOdds(homeOdds)}</span>
+              <div className="text-sm font-bold text-gray-900 dark:text-white flex items-center justify-between">
+                <span className="flex-1">{homeOdds ? formatOdds(homeOdds) : (
+                  <span className="text-gray-400 dark:text-gray-500 text-xs">
+                    Lines not posted
+                  </span>
+                )}</span>
+                <div className="w-16 flex justify-end">
+                  {homeOdds && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -367,24 +375,24 @@ export function ActionStyleGameCard({
                       <Target className="w-3 h-3 mr-1" />
                       Pick
                     </Button>
-                  </div>
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500 text-xs">
-                    Lines not posted
-                  </span>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="text-center">
               {isDailyPick && dailyPickTeam === homeTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <GradeBubble grade={dailyPickGrade || "C+"} />
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-8 flex justify-center">
+                    <GradeBubble grade={dailyPickGrade || "C+"} />
+                  </div>
                   <InfoButton pickId={dailyPickId} pickType="daily" />
                 </div>
               ) : isAuthenticated && lockPickTeam === homeTeam ? (
-                <div className="flex items-center justify-center gap-1">
-                  <GradeBubble grade={lockPickGrade || "C+"} />
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-8 flex justify-center">
+                    <GradeBubble grade={lockPickGrade || "C+"} />
+                  </div>
                   <InfoButton pickId={lockPickId} pickType="lock" />
                 </div>
               ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
