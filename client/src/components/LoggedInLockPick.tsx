@@ -239,7 +239,7 @@ export default function LoggedInLockPick() {
         key: 'ballparkAdvantage',
         title: 'Ballpark Advantage',
         score: analysis.ballparkAdvantage,
-        info: 'Stadium factors including dimensions, weather conditions, and how they favor hitters or pitchers.'
+        info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
       },
       {
         key: 'recentForm',
@@ -310,7 +310,6 @@ export default function LoggedInLockPick() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
             <BetBotIcon className="w-12 h-12" />
-            <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             <div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
                 Logged in Lock of the Day
@@ -332,7 +331,6 @@ export default function LoggedInLockPick() {
                 <DialogHeader>
                   <DialogTitle className="flex items-center space-x-2">
                     <BetBotIcon className="w-6 h-6" />
-                    <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                     <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
                   </DialogTitle>
                 </DialogHeader>

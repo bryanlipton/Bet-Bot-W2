@@ -219,7 +219,7 @@ export default function DailyPick() {
         key: 'ballparkAdvantage',
         title: 'Ballpark Advantage',
         score: analysis.ballparkAdvantage,
-        info: 'Stadium factors including dimensions, weather conditions, and how they favor hitters or pitchers.'
+        info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
       },
       {
         key: 'recentForm',

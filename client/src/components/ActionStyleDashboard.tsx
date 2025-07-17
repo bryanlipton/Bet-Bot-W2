@@ -95,10 +95,28 @@ export function ActionStyleDashboard() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
+  // Fetch lock pick data
+  const { data: lockPick } = useQuery({
+    queryKey: ['/api/daily-pick/lock'],
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+  });
+
+  // Fetch user auth status
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    refetchInterval: 60 * 1000, // Refresh every minute
+  });
+
   // Helper function to check if a game matches the daily pick
   const isGameDailyPick = (game: any) => {
     if (!dailyPick) return false;
     return game.homeTeam === dailyPick.homeTeam && game.awayTeam === dailyPick.awayTeam;
+  };
+
+  // Helper function to check if a game matches the lock pick
+  const isGameLockPick = (game: any) => {
+    if (!lockPick) return false;
+    return game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam;
   };
 
   // Process live odds data into game format
@@ -330,6 +348,9 @@ export function ActionStyleDashboard() {
                   isDailyPick={isGameDailyPick(game)}
                   dailyPickTeam={dailyPick?.pickTeam}
                   dailyPickGrade={dailyPick?.grade}
+                  lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
+                  lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
+                  isAuthenticated={!!user}
                   onClick={() => {
                     setSelectedGame(game);
                     setIsModalOpen(true);

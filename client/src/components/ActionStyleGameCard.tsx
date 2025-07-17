@@ -33,6 +33,9 @@ interface GameCardProps {
   isDailyPick?: boolean;
   dailyPickTeam?: string;
   dailyPickGrade?: string;
+  lockPickTeam?: string;
+  lockPickGrade?: string;
+  isAuthenticated?: boolean;
   onClick?: () => void;
 }
 
@@ -47,7 +50,7 @@ function GradeBubble({ grade }: { grade: string }) {
   };
 
   return (
-    <div className={`${getGradeColor(grade)} w-8 h-8 rounded-full flex items-center justify-center`}>
+    <div className={`${getGradeColor(grade)} w-8 h-8 rounded-lg flex items-center justify-center`}>
       <span className="text-white text-xs font-bold">
         {grade}
       </span>
@@ -71,6 +74,9 @@ export function ActionStyleGameCard({
   isDailyPick = false,
   dailyPickTeam,
   dailyPickGrade,
+  lockPickTeam,
+  lockPickGrade,
+  isAuthenticated = false,
   onClick
 }: GameCardProps) {
   const formatOdds = (odds: number) => {
@@ -150,6 +156,12 @@ export function ActionStyleGameCard({
                 </div>
               ) : isDailyPick ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : isAuthenticated && lockPickTeam === awayTeam ? (
+                <div className="flex items-center justify-center">
+                  <GradeBubble grade={lockPickGrade || "C+"} />
+                </div>
+              ) : isAuthenticated ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">
                   <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -184,6 +196,12 @@ export function ActionStyleGameCard({
                   <GradeBubble grade={dailyPickGrade || "C+"} />
                 </div>
               ) : isDailyPick ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : isAuthenticated && lockPickTeam === homeTeam ? (
+                <div className="flex items-center justify-center">
+                  <GradeBubble grade={lockPickGrade || "C+"} />
+                </div>
+              ) : isAuthenticated ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               ) : (
                 <div className="flex items-center justify-center">
