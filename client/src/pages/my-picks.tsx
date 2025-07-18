@@ -1054,15 +1054,6 @@ export default function MyPicksPage() {
                       <p className="font-medium text-gray-900 dark:text-white">
                         {pick.bookmaker.displayName}
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(pick.bookmaker.url, '_blank')}
-                        className="mt-1 text-xs"
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        Visit Book
-                      </Button>
                     </div>
 
                     {/* Result */}
