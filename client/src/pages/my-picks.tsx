@@ -724,7 +724,7 @@ export default function MyPicksPage() {
                             </div>
                           ))}
                           {/* Parlay Wager and Payout Display */}
-                          {pick.betInfo.odds > 0 && (
+                          {pick.betInfo.odds !== 0 && (
                             <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                               <div className="flex justify-between items-center text-sm">
                                 <div>
@@ -749,7 +749,8 @@ export default function MyPicksPage() {
                         </div>
                       )}
                       {/* Single bet wager and payout display */}
-                      {pick.betInfo.market !== 'parlay' && pick.betInfo.odds > 0 && (
+                      {console.log('Pick Debug:', pick.betInfo.selection, 'Market:', pick.betInfo.market, 'Odds:', pick.betInfo.odds, 'Show wager?', pick.betInfo.market !== 'parlay' && pick.betInfo.odds !== 0)}
+                      {pick.betInfo.market !== 'parlay' && pick.betInfo.odds !== 0 && (
                         <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                           <div className="flex justify-between items-center text-sm">
                             <div>
