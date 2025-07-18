@@ -484,11 +484,13 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
         {/* Status Badge positioned higher - aligned with first team's score */}
         <div className="absolute top-2 right-3 flex flex-col items-end gap-1">
           {getStatusBadge(game.status)}
-          {/* Show inning only for live/finished games, not scheduled */}
+          {/* Show appropriate info based on game status */}
           {isFinished ? (
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
           ) : isLive && game.inning ? (
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{game.inning}</span>
+          ) : !isFinished && !isLive ? (
+            <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
           ) : null}
         </div>
 
@@ -546,12 +548,7 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
             )}
           </div>
           
-          {/* Scheduled Game Time or Live Details */}
-          {!isFinished && game.awayScore === undefined && game.homeScore === undefined && (
-            <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {formatTime(game.startTime)}
-            </div>
-          )}
+
           
           {/* Live game details */}
           {game.liveDetails && (
