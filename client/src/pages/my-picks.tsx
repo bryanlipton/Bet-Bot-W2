@@ -56,7 +56,7 @@ export default function MyPicksPage() {
   }>>([]);
   const [parlayUnits, setParlayUnits] = useState(1);
   const [parlayOdds, setParlayOdds] = useState('');
-  const [betUnit, setBetUnit] = useState(50);
+  const [betUnit, setBetUnit] = useState(10);
   const [editingBetUnit, setEditingBetUnit] = useState(false);
   const [tempBetUnit, setTempBetUnit] = useState('');
 
@@ -990,63 +990,65 @@ export default function MyPicksPage() {
                           </div>
                         </div>
                       )}
-                      {/* Manual odds entry interface */}
-                      {pick.betInfo.odds === 0 && pick.bookmaker.key === 'manual' ? (
-                        <div className="mt-2">
-                          {editingOdds === pick.id ? (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                value={tempOdds}
-                                onChange={(e) => setTempOdds(e.target.value)}
-                                placeholder="Enter odds (e.g., -110)"
-                                className="w-24 h-8 text-xs"
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => handleSaveOdds(pick.id)}
-                                className="h-8 px-2"
-                              >
-                                <Save className="w-3 h-3" />
-                              </Button>
+                      {/* Odds display */}
+                      <div className="flex items-center gap-2">
+                        {pick.betInfo.odds === 0 && pick.bookmaker.key === 'manual' ? (
+                          <div className="mt-2">
+                            {editingOdds === pick.id ? (
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  value={tempOdds}
+                                  onChange={(e) => setTempOdds(e.target.value)}
+                                  placeholder="Enter odds (e.g., -110)"
+                                  className="w-24 h-8 text-xs"
+                                />
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveOdds(pick.id)}
+                                  className="h-8 px-2"
+                                >
+                                  <Save className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEdit}
+                                  className="h-8 px-2"
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ) : (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={handleCancelEdit}
-                                className="h-8 px-2"
+                                onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
+                                className="text-xs h-8 px-2"
                               >
-                                <X className="w-3 h-3" />
+                                <Edit3 className="w-3 h-3 mr-1" />
+                                Enter Odds
                               </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
-                              className="text-xs h-8 px-2"
-                            >
-                              <Edit3 className="w-3 h-3 mr-1" />
-                              Enter Odds
-                            </Button>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatOdds(pick.betInfo.odds)}
-                          </p>
-                          {pick.bookmaker.key === 'manual' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
-                              className="h-6 px-1 text-xs"
-                            >
-                              <Edit3 className="w-3 h-3" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {formatOdds(pick.betInfo.odds)}
+                            </p>
+                            {pick.bookmaker.key === 'manual' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
+                                className="h-6 px-1 text-xs"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Bookmaker */}

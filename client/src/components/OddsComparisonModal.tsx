@@ -141,6 +141,9 @@ export function OddsComparisonModal({
 
     setIsPlacingBet(true);
 
+    // Get current bet unit from storage
+    const currentBetUnit = pickStorage.getBetUnit();
+
     // Save pick to localStorage
     const pickData: Omit<Pick, 'id' | 'timestamp'> = {
       gameInfo: {
@@ -156,7 +159,8 @@ export function OddsComparisonModal({
           selectedBet.market,
         selection: selectedBet.selection,
         odds: bookmakerData.odds,
-        line: selectedBet.line || bookmakerData.line
+        line: selectedBet.line || bookmakerData.line,
+        units: 1 // Default to 1 unit
       },
       bookmaker: {
         key: bookmakerData.bookmaker,
