@@ -372,7 +372,7 @@ export default function ScoresPage() {
           {/* Live Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
-            return (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) && 
+            return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
                    !status.includes('final') && !status.includes('completed');
           }).length > 0 && (
             <div>
@@ -383,7 +383,7 @@ export default function ScoresPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
-                  return (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) && 
+                  return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
                          !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} />
@@ -396,7 +396,7 @@ export default function ScoresPage() {
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
             return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
-                   !game.inning && !status.includes('final') && !status.includes('completed');
+                   !status.includes('final') && !status.includes('completed');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -407,7 +407,7 @@ export default function ScoresPage() {
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
                   return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
-                         !game.inning && !status.includes('final') && !status.includes('completed');
+                         !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} />
                 ))}
