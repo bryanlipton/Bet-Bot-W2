@@ -268,18 +268,18 @@ export function ActionStyleDashboard() {
             </p>
           </div>
         )}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
           <div className="flex-1">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white underline">
+            <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
               Bet Bot Sports Genie AI Picks
             </h2>
           </div>
-          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto">
+          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
             Free Users
           </Badge>
         </div>
-        {/* Side-by-side layout for picks */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Responsive layout for picks - stack vertically at md, side-by-side at lg+ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-4 lg:gap-6">
           <DailyPick />
           <LoggedInLockPick />
         </div>

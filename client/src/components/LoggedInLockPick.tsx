@@ -496,14 +496,14 @@ export default function LoggedInLockPick() {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden md:flex md:items-start md:justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <BetBotIcon className="w-14 h-14 flex-shrink-0" />
+          <div className="hidden md:flex md:items-start md:justify-between mb-3 md:mb-4">
+            <div className="flex items-center space-x-2 md:space-x-3">
+              <BetBotIcon className="w-12 md:w-14 h-12 md:h-14 flex-shrink-0" />
               <div>
-                <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+                <h3 className="font-bold text-xl md:text-2xl text-gray-900 dark:text-gray-100">
                   Logged in Lock of the Day
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium">
                   Exclusive pick for authenticated users
                 </p>
               </div>
@@ -655,8 +655,9 @@ export default function LoggedInLockPick() {
             </div>
           </div>
 
-          {/* Right side - Factor scores (desktop) or Show Analysis button (mobile) */}
-          <div className="w-80 hidden md:block">
+          {/* Right side - Analysis Factors with responsive behavior */}
+          {/* Show full analysis on larger screens (1280px+) */}
+          <div className="w-80 hidden xl:block">
             <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
               Analysis Factors
             </h5>
@@ -667,6 +668,35 @@ export default function LoggedInLockPick() {
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
             </div>
+          </div>
+
+          {/* Show analysis button on mid-size screens (768px-1279px) */}
+          <div className="hidden md:block xl:hidden">
+            <button
+              className="flex items-center text-xs text-amber-600 dark:text-amber-400 ml-4"
+              onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+            >
+              Show Analysis
+              {mobileAnalysisOpen ? (
+                <ChevronUp className="w-3 h-3 ml-1" />
+              ) : (
+                <ChevronDown className="w-3 h-3 ml-1" />
+              )}
+            </button>
+            
+            {/* Mid-size analysis factors dropdown */}
+            {mobileAnalysisOpen && (
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+                  Analysis Factors
+                </h5>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                  {factors.map(({ key, title, score, info }) => (
+                    <FactorScore key={key} title={title} score={score} info={info} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
 
