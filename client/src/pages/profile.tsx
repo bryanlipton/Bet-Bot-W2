@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   User, 
   Users, 
@@ -20,7 +27,12 @@ import {
   Target,
   Trophy,
   Clock,
-  DollarSign
+  Edit,
+  Settings,
+  Eye,
+  EyeOff,
+  Camera,
+  Flame
 } from "lucide-react";
 
 interface UserProfile {
@@ -35,6 +47,12 @@ interface UserProfile {
   totalUnits: number;
   joinDate: string;
   bio?: string;
+  // Privacy settings
+  totalPicksPublic: boolean;
+  pendingPicksPublic: boolean;
+  winRatePublic: boolean;
+  winStreakPublic: boolean;
+  profilePublic: boolean;
 }
 
 interface PublicFeedItem {
@@ -49,6 +67,22 @@ export default function ProfilePage() {
   const [darkMode, setDarkMode] = useState(true);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [publicFeed, setPublicFeed] = useState<PublicFeedItem[]>([]);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editForm, setEditForm] = useState({
+    username: '',
+    bio: '',
+    profileImage: ''
+  });
+  const [privacySettings, setPrivacySettings] = useState({
+    totalPicksPublic: true,
+    pendingPicksPublic: true,
+    winRatePublic: true,
+    winStreakPublic: true,
+    profilePublic: true
+  });
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -132,7 +166,7 @@ export default function ProfilePage() {
     loadPicks();
   }, []);
 
-  // Calculate profile stats
+  // Calculate profile stats including win streak
   const profileStats = {
     totalPicks: picks.length,
     pendingPicks: picks.filter(p => p.status === 'pending').length,
@@ -140,26 +174,95 @@ export default function ProfilePage() {
     lostPicks: picks.filter(p => p.status === 'lost').length,
     winRate: picks.length > 0 ? (picks.filter(p => p.status === 'won').length / picks.filter(p => p.status !== 'pending').length) * 100 : 0,
     totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0),
-    profitLoss: picks.reduce((sum, pick) => {
-      if (pick.status === 'won') return sum + (pick.betInfo?.units || 1);
-      if (pick.status === 'lost') return sum - (pick.betInfo?.units || 1);
-      return sum;
-    }, 0)
+    winStreak: calculateWinStreak(picks)
   };
 
-  // Mock user profile data (in production, this would come from API)
+  // Calculate current win streak
+  function calculateWinStreak(picks: Pick[]): number {
+    const sortedPicks = picks
+      .filter(p => p.status === 'won' || p.status === 'lost')
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    let streak = 0;
+    for (const pick of sortedPicks) {
+      if (pick.status === 'won') {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  // Enhanced user profile data with privacy settings
   const userProfile: UserProfile = {
     id: user?.id || '1',
-    username: user?.username || user?.email?.split('@')[0] || 'BetBot User',
-    email: user?.email || 'user@example.com',
-    profileImage: user?.profileImage,
-    followers: 127, // Mock data
-    following: 89,  // Mock data
+    username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
+    email: user?.email || 'user@example.com', 
+    profileImage: user?.profileImageUrl,
+    followers: user?.followers || 0,
+    following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
     winRate: profileStats.winRate,
     totalUnits: profileStats.totalUnits,
-    joinDate: '2024-01-15', // Mock data
-    bio: 'Sharp sports bettor focused on MLB and NFL. Follow for winning picks! 📈🏆'
+    joinDate: user?.createdAt || '2024-01-15',
+    bio: user?.bio || '',
+    // Privacy settings
+    totalPicksPublic: user?.totalPicksPublic ?? true,
+    pendingPicksPublic: user?.pendingPicksPublic ?? true,
+    winRatePublic: user?.winRatePublic ?? true,
+    winStreakPublic: user?.winStreakPublic ?? true,
+    profilePublic: user?.profilePublic ?? true
+  };
+
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: any) => {
+      return await apiRequest('/api/user/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(profileData)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      setIsEditingProfile(false);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Initialize edit form when user data loads
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        username: user.username || user.firstName || user.email?.split('@')[0] || '',
+        bio: user.bio || '',
+        profileImage: user.profileImageUrl || ''
+      });
+      setPrivacySettings({
+        totalPicksPublic: user.totalPicksPublic ?? true,
+        pendingPicksPublic: user.pendingPicksPublic ?? true,
+        winRatePublic: user.winRatePublic ?? true,
+        winStreakPublic: user.winStreakPublic ?? true,
+        profilePublic: user.profilePublic ?? true
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate({
+      ...editForm,
+      ...privacySettings
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -201,17 +304,28 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Profile Info Card */}
+        {/* Profile Info Card - Instagram/Twitter Style */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-6">
             <div className="flex items-start gap-6">
-              {/* Profile Picture */}
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={userProfile.profileImage} alt={userProfile.username} />
-                <AvatarFallback className="text-2xl font-bold bg-blue-600 text-white">
-                  {userProfile.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {/* Profile Picture with Edit Button */}
+              <div className="relative">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={userProfile.profileImage} alt={userProfile.username} />
+                  <AvatarFallback className="text-2xl font-bold bg-blue-600 text-white">
+                    {userProfile.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {isEditingProfile && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
 
               {/* Profile Details */}
               <div className="flex-1">
@@ -219,16 +333,150 @@ export default function ProfilePage() {
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {userProfile.username}
                   </h2>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Follow
-                  </Button>
+                  
+                  {/* Edit Profile Button */}
+                  <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <Edit className="w-4 h-4" />
+                        Edit Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Edit Profile</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-6">
+                        {/* Profile Picture URL */}
+                        <div className="space-y-2">
+                          <Label htmlFor="profileImage">Profile Picture URL</Label>
+                          <Input
+                            id="profileImage"
+                            value={editForm.profileImage}
+                            onChange={(e) => setEditForm({...editForm, profileImage: e.target.value})}
+                            placeholder="Enter image URL"
+                          />
+                        </div>
+                        
+                        {/* Username */}
+                        <div className="space-y-2">
+                          <Label htmlFor="username">Username</Label>
+                          <Input
+                            id="username"
+                            value={editForm.username}
+                            onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                            placeholder="Enter username"
+                          />
+                        </div>
+                        
+                        {/* Bio */}
+                        <div className="space-y-2">
+                          <Label htmlFor="bio">Bio</Label>
+                          <Textarea
+                            id="bio"
+                            value={editForm.bio}
+                            onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                            placeholder="Tell everyone about yourself..."
+                            rows={3}
+                          />
+                        </div>
+                        
+                        {/* Privacy Settings */}
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Privacy Settings</h3>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="totalPicksPublic">Total Picks</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="totalPicksPublic"
+                                checked={privacySettings.totalPicksPublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, totalPicksPublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="pendingPicksPublic">Pending Picks</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="pendingPicksPublic"
+                                checked={privacySettings.pendingPicksPublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, pendingPicksPublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="winRatePublic">Win Rate</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="winRatePublic"
+                                checked={privacySettings.winRatePublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, winRatePublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="winStreakPublic">Win Streak</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="winStreakPublic"
+                                checked={privacySettings.winStreakPublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, winStreakPublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="profilePublic">Public Profile</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="profilePublic"
+                                checked={privacySettings.profilePublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, profilePublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Save Button */}
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
+                            {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {userProfile.email}
-                </p>
-                
+                {/* Bio - Only show if exists */}
                 {userProfile.bio && (
                   <p className="text-gray-700 dark:text-gray-300 mb-4">
                     {userProfile.bio}
@@ -263,63 +511,76 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
+        {/* Stats Cards with Privacy Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Target className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.totalPicks}
+          {/* Total Picks */}
+          {userProfile.totalPicksPublic && (
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Target className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {profileStats.totalPicks}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Picks</div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Picks</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.pendingPicks}
+          {/* Pending Picks */}
+          {userProfile.pendingPicksPublic && (
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {profileStats.pendingPicks}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Pending</div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Pending</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.winRate.toFixed(1)}%
+          {/* Win Rate */}
+          {userProfile.winRatePublic && (
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
+                  <div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {profileStats.winRate.toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Win Rate</div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Win Rate</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <DollarSign className={`w-8 h-8 ${profileStats.profitLoss >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
-                <div>
-                  <div className={`text-2xl font-bold ${profileStats.profitLoss >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {profileStats.profitLoss >= 0 ? '+' : ''}{profileStats.profitLoss.toFixed(1)}u
+          {/* Win Streak with Fire Emoji */}
+          {userProfile.winStreakPublic && (
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Flame className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                  <div>
+                    <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
+                      {profileStats.winStreak}
+                      {profileStats.winStreak > 0 && <span>🔥</span>}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Win Streak</div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Profit/Loss</div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Public Feed */}
@@ -327,7 +588,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              Public Feed
+              Public Profile
             </CardTitle>
           </CardHeader>
           <CardContent>

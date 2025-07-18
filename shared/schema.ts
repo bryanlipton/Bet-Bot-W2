@@ -21,6 +21,17 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
   googleId: text("google_id").unique(), // For backwards compatibility
+  // Social profile features
+  username: text("username").unique(),
+  bio: text("bio"),
+  followers: integer("followers").default(0),
+  following: integer("following").default(0),
+  // Privacy settings for stats
+  totalPicksPublic: boolean("total_picks_public").default(true),
+  pendingPicksPublic: boolean("pending_picks_public").default(true), 
+  winRatePublic: boolean("win_rate_public").default(true),
+  winStreakPublic: boolean("win_streak_public").default(true),
+  profilePublic: boolean("profile_public").default(true),
   // Stripe subscription fields
   stripeCustomerId: text("stripe_customer_id").unique(),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
@@ -357,6 +368,18 @@ export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true,
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
+
+// Add profile update type for social features
+export type UpdateUserProfile = {
+  username?: string;
+  bio?: string;
+  profileImageUrl?: string;
+  totalPicksPublic?: boolean;
+  pendingPicksPublic?: boolean;
+  winRatePublic?: boolean;
+  winStreakPublic?: boolean;
+  profilePublic?: boolean;
+};
 export type Game = typeof games.$inferSelect;
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Odds = typeof odds.$inferSelect;
