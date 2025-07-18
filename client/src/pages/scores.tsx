@@ -480,12 +480,26 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
 
   const formatInning = (inning: string | undefined) => {
     if (!inning) return undefined;
-    // Convert formats like "7T" to "T7" or "7B" to "B7"
+    
+    // Handle different inning formats
     if (inning.includes('T') || inning.includes('B')) {
       const number = inning.replace(/[TB]/g, '');
       const half = inning.includes('T') ? 'T' : 'B';
       return `${half}${number}`;
     }
+    
+    // Handle End of inning format: "7E" should become "E7"
+    if (inning.includes('E')) {
+      const number = inning.replace(/E/g, '');
+      return `E${number}`;
+    }
+    
+    // Handle Middle of inning format: "7M" should become "M7"
+    if (inning.includes('M')) {
+      const number = inning.replace(/M/g, '');
+      return `M${number}`;
+    }
+    
     return inning;
   };
 
