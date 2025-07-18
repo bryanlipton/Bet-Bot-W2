@@ -104,40 +104,40 @@ export function registerDailyPickRoutes(app: Express) {
               : "Average offensive capabilities"
           },
           pitchingMatchup: {
-            score: pick.analysis.pitchingMatchup,
-            description: pick.analysis.pitchingMatchup > 60
+            score: pick.analysis.pitchingEdge,
+            description: pick.analysis.pitchingEdge > 60
               ? "Favorable pitching matchup with recent form advantage"
-              : pick.analysis.pitchingMatchup < 40
+              : pick.analysis.pitchingEdge < 40
               ? "Challenging pitching matchup against quality starter"
               : "Neutral pitching matchup"
           },
           ballparkFactor: {
-            score: pick.analysis.ballparkFactor,
+            score: pick.analysis.ballparkAdvantage,
             description: pick.venue === 'Coors Field'
               ? "Coors Field environment favors teams that can handle offensive conditions"
-              : pick.analysis.ballparkFactor > 55
+              : pick.analysis.ballparkAdvantage > 55
               ? "Hitter-friendly ballpark environment"
-              : pick.analysis.ballparkFactor < 45
+              : pick.analysis.ballparkAdvantage < 45
               ? "Pitcher-friendly ballpark environment"
               : "Neutral ballpark environment"
           },
           weatherImpact: {
-            score: pick.analysis.weatherImpact,
+            score: pick.analysis.weatherConditions,
             description: "Weather conditions factored into analysis"
           },
           situationalEdge: {
-            score: pick.analysis.situationalEdge,
-            description: pick.analysis.situationalEdge > 60
+            score: pick.analysis.recentForm,
+            description: pick.analysis.recentForm > 60
               ? "Strong recent form and situational advantages"
-              : pick.analysis.situationalEdge < 40
+              : pick.analysis.recentForm < 40
               ? "Recent struggles or situational disadvantages"
               : "Neutral recent form and situation"
           },
           valueScore: {
-            score: pick.analysis.valueScore,
-            description: pick.analysis.valueScore > 65
+            score: pick.analysis.bettingValue,
+            description: pick.analysis.bettingValue > 65
               ? "Excellent betting value - market appears to undervalue this team"
-              : pick.analysis.valueScore > 55
+              : pick.analysis.bettingValue > 55
               ? "Good betting value identified"
               : "Fair market pricing"
           }
