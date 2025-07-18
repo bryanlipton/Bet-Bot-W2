@@ -21,6 +21,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
     { path: "/", name: "Odds", active: location === "/" },
     { path: "/scores", name: "Scores", active: location === "/scores" },
     { path: "/my-picks", name: "My Picks", active: location === "/my-picks" },
+    { path: "/profile", name: "My Profile", active: location === "/profile" },
   ];
 
   return (

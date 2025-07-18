@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Dashboard from "@/pages/dashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks";
+import ProfilePage from "@/pages/profile";
 import ScoresPage from "@/pages/scores";
 import GetPro from "@/pages/GetPro";
 import Subscribe from "@/pages/Subscribe";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/articles" component={ArticlesPage} />
       <Route path="/my-picks" component={MyPicksPage} />
+      <Route path="/profile" component={ProfilePage} />
       <Route path="/scores" component={ScoresPage} />
       <Route path="/get-pro" component={GetPro} />
       <Route path="/subscribe" component={Subscribe} />
