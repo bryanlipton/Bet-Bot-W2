@@ -69,6 +69,7 @@ export default function ProfilePage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [publicFeed, setPublicFeed] = useState<PublicFeedItem[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     username: '',
     bio: '',
@@ -261,9 +262,15 @@ export default function ProfilePage() {
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
-      ...editForm,
+      username: editForm.username,
+      bio: editForm.bio,
+      profileImageUrl: editForm.profileImage,
       ...privacySettings
     });
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    setEditForm({...editForm, profileImage: imageUrl});
   };
 
   const formatDate = (dateString: string) => {
@@ -349,15 +356,26 @@ export default function ProfilePage() {
                       </DialogHeader>
                       
                       <div className="space-y-6">
-                        {/* Profile Picture URL */}
+                        {/* Profile Picture */}
                         <div className="space-y-2">
-                          <Label htmlFor="profileImage">Profile Picture URL</Label>
-                          <Input
-                            id="profileImage"
-                            value={editForm.profileImage}
-                            onChange={(e) => setEditForm({...editForm, profileImage: e.target.value})}
-                            placeholder="Enter image URL"
-                          />
+                          <Label>Profile Picture</Label>
+                          <div className="flex items-center gap-4">
+                            <Avatar className="w-16 h-16">
+                              <AvatarImage src={editForm.profileImage} alt="Preview" />
+                              <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
+                                {editForm.username.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setIsImagePickerOpen(true)}
+                              className="flex items-center gap-2"
+                            >
+                              <Camera className="w-4 h-4" />
+                              Choose Picture
+                            </Button>
+                          </div>
                         </div>
                         
                         {/* Username */}
@@ -652,6 +670,15 @@ export default function ProfilePage() {
 
       </div>
       <Footer />
+      
+      {/* Profile Image Picker Modal */}
+      <ProfileImagePicker
+        isOpen={isImagePickerOpen}
+        onClose={() => setIsImagePickerOpen(false)}
+        currentImage={editForm.profileImage}
+        onImageSelect={handleImageSelect}
+        username={editForm.username}
+      />
     </div>
   );
 }
