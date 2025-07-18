@@ -179,11 +179,11 @@ export default function MyPicksPage() {
   const calculatePayout = (wager: number, odds: number): number => {
     if (odds === 0) return 0;
     if (odds > 0) {
-      // Positive odds: payout = wager * (odds/100)
+      // Positive odds: payout = wager + (wager * (odds/100))
       return wager + (wager * (odds / 100));
     } else {
-      // Negative odds: payout = wager + (wager / (Math.abs(odds)/100))
-      return wager + (wager / (Math.abs(odds) / 100));
+      // Negative odds: payout = wager + (wager * (100/Math.abs(odds)))
+      return wager + (wager * (100 / Math.abs(odds)));
     }
   };
 
