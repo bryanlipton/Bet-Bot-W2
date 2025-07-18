@@ -129,14 +129,20 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
 
   const calculateOverallGrade = () => {
     if (!analysisData) return 'C+';
+    
+    // Handle different data structures
+    if (analysisData.overall?.grade) {
+      return analysisData.overall.grade;
+    }
+    
     const scores = [
-      analysisData.bettingValue,
-      analysisData.fieldValue,
-      analysisData.pitchingEdge,
-      analysisData.recentForm,
-      analysisData.weatherImpact,
-      analysisData.offensiveEdge
-    ].filter(score => score > 0);
+      analysisData.bettingValue || analysisData.factors?.bettingValue?.score,
+      analysisData.fieldValue || analysisData.factors?.ballparkAdvantage?.score,
+      analysisData.pitchingEdge || analysisData.factors?.pitchingEdge?.score,
+      analysisData.recentForm || analysisData.factors?.recentForm?.score,
+      analysisData.weatherImpact || analysisData.factors?.weatherConditions?.score,
+      analysisData.offensiveEdge || analysisData.factors?.offensivePower?.score
+    ].filter(score => score !== null && score !== undefined && !isNaN(score) && score > 0);
     
     if (scores.length === 0) return 'C+';
     const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
@@ -202,12 +208,12 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   }
 
   const factors = [
-    { key: 'bettingValue', score: analysisData.bettingValue },
-    { key: 'fieldValue', score: analysisData.fieldValue },
-    { key: 'pitchingEdge', score: analysisData.pitchingEdge },
-    { key: 'recentForm', score: analysisData.recentForm },
-    { key: 'weatherImpact', score: analysisData.weatherImpact },
-    { key: 'offensiveEdge', score: analysisData.offensiveEdge }
+    { key: 'bettingValue', score: analysisData.bettingValue || analysisData.factors?.bettingValue?.score },
+    { key: 'fieldValue', score: analysisData.fieldValue || analysisData.factors?.ballparkAdvantage?.score },
+    { key: 'pitchingEdge', score: analysisData.pitchingEdge || analysisData.factors?.pitchingEdge?.score },
+    { key: 'recentForm', score: analysisData.recentForm || analysisData.factors?.recentForm?.score },
+    { key: 'weatherImpact', score: analysisData.weatherImpact || analysisData.factors?.weatherConditions?.score },
+    { key: 'offensiveEdge', score: analysisData.offensiveEdge || analysisData.factors?.offensivePower?.score }
   ];
 
   return (
@@ -235,17 +241,17 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
             <div>
               <h3 className="text-lg font-semibold mb-3">Pick Details</h3>
               <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Game:</span> {pickData.awayTeam} @ {pickData.homeTeam}</p>
-                <p><span className="font-medium">Pick:</span> {pickData.pickTeam} ML {formatOdds(pickData.odds)}</p>
-                <p><span className="font-medium">Venue:</span> {pickData.venue}</p>
-                <p><span className="font-medium">Time:</span> {formatGameTime(pickData.gameTime)}</p>
+                <p><span className="font-medium">Game:</span> {pickData.awayTeam || analysisData.gameDetails?.matchup?.split(' @ ')[0]} @ {pickData.homeTeam || analysisData.gameDetails?.matchup?.split(' @ ')[1]}</p>
+                <p><span className="font-medium">Pick:</span> {pickData.pickTeam || analysisData.gameDetails?.pickTeam} ML {formatOdds(pickData.odds || analysisData.gameDetails?.odds)}</p>
+                <p><span className="font-medium">Venue:</span> {pickData.venue || analysisData.gameDetails?.venue || 'TBD'}</p>
+                <p><span className="font-medium">Time:</span> {pickData.gameTime ? formatGameTime(pickData.gameTime) : (analysisData.gameDetails?.gameTime ? formatGameTime(analysisData.gameDetails.gameTime) : 'TBD')}</p>
               </div>
             </div>
 
             {/* Reasoning */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Reasoning</h3>
-              <p className="text-sm leading-relaxed">{analysisData.reasoning || "Analysis reasoning not available."}</p>
+              <p className="text-sm leading-relaxed">{analysisData.reasoning || analysisData.overall?.reasoning || "Analysis reasoning not available."}</p>
             </div>
 
             {/* Analysis Factors */}
@@ -256,7 +262,7 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{getFactorTitle(key)}</span>
-                      <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                      <span className="font-bold">{score !== null && score !== undefined && !isNaN(score) ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                     </div>
                     <Progress value={score || 0} className="h-2" />
                     <p className="text-xs text-gray-600 dark:text-gray-400">{getFactorInfo(key)}</p>
