@@ -2,6 +2,13 @@ import { Express } from "express";
 
 const MLB_API_BASE_URL = "https://statsapi.mlb.com/api/v1";
 
+// Manual pitcher overrides for when MLB API doesn't have the information yet
+const PITCHER_OVERRIDES: { [gameId: string]: { home?: string; away?: string } } = {
+  // July 18, 2025 - Mets games
+  "777087": { home: "Sean Manaea" }, // Cincinnati Reds @ New York Mets
+  "777061": { home: "Sean Manaea" }, // Los Angeles Angels @ New York Mets
+};
+
 interface MLBGame {
   gamePk: number;
   gameDate: string;
@@ -69,6 +76,8 @@ export function registerMLBRoutes(app: Express) {
       
       const url = `${MLB_API_BASE_URL}/schedule?sportId=1&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&hydrate=team,linescore,probablePitcher`;
       
+
+      
       console.log(`Fetching MLB schedule from: ${url}`);
       
       const response = await fetch(url);
@@ -83,7 +92,23 @@ export function registerMLBRoutes(app: Express) {
       const data: MLBScheduleResponse = await response.json();
       
       const games = data.dates.flatMap(date => 
-        date.games.map(game => ({
+        date.games.map(game => {
+          // Apply pitcher overrides for Mets games if needed
+          const homePitcher = game.teams.home.probablePitcher?.fullName || PITCHER_OVERRIDES[game.gamePk]?.home || null;
+          const awayPitcher = game.teams.away.probablePitcher?.fullName || PITCHER_OVERRIDES[game.gamePk]?.away || null;
+          
+          // Log when we use manual overrides
+          if (PITCHER_OVERRIDES[game.gamePk]) {
+            console.log(`Using manual pitcher override for game ${game.gamePk}: ${game.teams.away.team.name} @ ${game.teams.home.team.name}`);
+            if (PITCHER_OVERRIDES[game.gamePk].home) {
+              console.log(`  Home pitcher override: ${PITCHER_OVERRIDES[game.gamePk].home}`);
+            }
+            if (PITCHER_OVERRIDES[game.gamePk].away) {
+              console.log(`  Away pitcher override: ${PITCHER_OVERRIDES[game.gamePk].away}`);
+            }
+          }
+          
+          return ({
           id: `mlb_${game.gamePk}`,
           gameId: game.gamePk,
           sport_key: "baseball_mlb",
@@ -98,11 +123,13 @@ export function registerMLBRoutes(app: Express) {
           awayScore: game.teams.away.score || game.linescore?.teams?.away?.runs,
           linescore: game.linescore,
           probablePitchers: {
-            home: game.teams.home.probablePitcher?.fullName || null,
-            away: game.teams.away.probablePitcher?.fullName || null
+            home: homePitcher,
+            away: awayPitcher
           },
+
           bookmakers: [] // Will be filled by odds data
-        }))
+        });
+      })
       );
       
       console.log(`Successfully fetched ${games.length} MLB games for date range`);
