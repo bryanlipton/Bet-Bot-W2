@@ -333,12 +333,20 @@ export default function ProfilePage() {
             <div className="flex items-start gap-6">
               {/* Profile Picture with Edit Button */}
               <div className="relative">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={getAvatarUrl(userProfile.profileImage)} alt={userProfile.username} />
-                  <AvatarFallback className="text-2xl font-bold bg-blue-600 text-white">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                  <img 
+                    src={getAvatarUrl(userProfile.profileImage)} 
+                    alt={userProfile.username}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <div className="hidden w-full h-full flex items-center justify-center bg-blue-600 text-white text-2xl font-bold">
                     {userProfile.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                  </div>
+                </div>
                 {isEditingProfile && (
                   <Button
                     size="sm"

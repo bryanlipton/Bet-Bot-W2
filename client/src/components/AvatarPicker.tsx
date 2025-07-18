@@ -44,12 +44,20 @@ export default function AvatarPicker({ isOpen, onClose, onSelect, currentAvatar 
         <div className="space-y-6">
           {/* Preview */}
           <div className="flex justify-center">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={selectedAvatar} alt="Preview" />
-              <AvatarFallback className="text-2xl font-bold bg-blue-600 text-white">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+              <img 
+                src={selectedAvatar} 
+                alt="Preview"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-full flex items-center justify-center bg-blue-600 text-white text-2xl font-bold">
                 U
-              </AvatarFallback>
-            </Avatar>
+              </div>
+            </div>
           </div>
 
           {/* Animal Avatars */}
@@ -66,12 +74,20 @@ export default function AvatarPicker({ isOpen, onClose, onSelect, currentAvatar 
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                 >
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={avatar} alt={`Animal ${index + 1}`} />
-                    <AvatarFallback className="text-xs font-bold bg-gray-200 dark:bg-gray-700">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
+                    <img 
+                      src={avatar} 
+                      alt={`Animal ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-xs font-bold">
                       {index + 1}
-                    </AvatarFallback>
-                  </Avatar>
+                    </div>
+                  </div>
                   {selectedAvatar === avatar && (
                     <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
                       <Check className="w-3 h-3 text-white" />
