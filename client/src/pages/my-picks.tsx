@@ -697,10 +697,7 @@ export default function MyPicksPage() {
                         {pick.gameInfo.awayTeam} @ {pick.gameInfo.homeTeam}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {pick.gameInfo.gameTime ? 
-                          new Date(pick.gameInfo.gameTime).toLocaleString() : 
-                          'Game time TBD'
-                        }
+                        Placed: {new Date(pick.timestamp).toLocaleString()}
                       </p>
                     </div>
 
