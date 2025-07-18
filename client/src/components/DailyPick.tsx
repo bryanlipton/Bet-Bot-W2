@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Info, TrendingUp, Target, MapPin, Clock, Users } from "lucide-react";
+import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 import { savePick } from "@/services/pickStorage";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
@@ -201,6 +201,7 @@ export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
+  const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -518,9 +519,37 @@ export default function DailyPick() {
               </p>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500 dark:text-gray-500">
+                  {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
+                </p>
+                {/* Mobile dropdown toggle */}
+                <button
+                  className="md:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+                >
+                  Analysis
+                  {mobileAnalysisOpen ? (
+                    <ChevronUp className="w-3 h-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
+              </div>
+
+              {/* Mobile analysis factors dropdown */}
+              {mobileAnalysisOpen && (
+                <div className="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+                    Analysis Factors
+                  </h5>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    {factors.map(({ key, title, score, info }) => (
+                      <FactorScore key={key} title={title} score={score} info={info} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -538,20 +567,7 @@ export default function DailyPick() {
             </div>
           </div>
 
-          {/* Mobile Show Analysis Button */}
-          <div className="md:hidden flex-shrink-0">
-            <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-xs px-3 py-2 h-auto bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900 dark:border-blue-800 dark:text-blue-300"
-                >
-                  Show Analysis
-                </Button>
-              </DialogTrigger>
-            </Dialog>
-          </div>
+
         </div>
       </CardContent>
       
