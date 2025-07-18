@@ -14,22 +14,32 @@ import GetPro from "@/pages/GetPro";
 import Subscribe from "@/pages/Subscribe";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import Feed from "@/pages/feed";
+import MobileBottomNavigation from "@/components/MobileBottomNavigation";
 
 
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/articles" component={ArticlesPage} />
-      <Route path="/my-picks" component={MyPicksPage} />
-      <Route path="/my-feed" component={MyFeedPage} />
-      <Route path="/profile" component={ProfilePage} />
-      <Route path="/scores" component={ScoresPage} />
-      <Route path="/get-pro" component={GetPro} />
-      <Route path="/subscribe" component={Subscribe} />
-      <Route component={NotFound} />
-    </Switch>
+    <div className="min-h-screen">
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/odds" component={Dashboard} />
+        <Route path="/articles" component={ArticlesPage} />
+        <Route path="/my-picks" component={MyPicksPage} />
+        <Route path="/my-feed" component={MyFeedPage} />
+        <Route path="/feed" component={Feed} />
+        <Route path="/profile" component={ProfilePage} />
+        <Route path="/scores" component={ScoresPage} />
+        <Route path="/get-pro" component={GetPro} />
+        <Route path="/subscribe" component={Subscribe} />
+        <Route component={NotFound} />
+      </Switch>
+      <MobileBottomNavigation />
+      {/* Add bottom padding for mobile to account for bottom nav */}
+      <div className="md:hidden h-16"></div>
+    </div>
   );
 }
 

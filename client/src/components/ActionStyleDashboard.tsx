@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
 import { getTeamColor } from "@/utils/teamLogos";
+import MobileHeader from "@/components/MobileHeader";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -253,7 +254,9 @@ export function ActionStyleDashboard() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+    <>
+      <MobileHeader />
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
 
       {/* Pick of the Day Section - Always visible above sports */}
       <div className="space-y-4">
@@ -402,6 +405,7 @@ export function ActionStyleDashboard() {
 
 
 
-    </div>
+      </div>
+    </>
   );
 }
