@@ -113,10 +113,13 @@ export default function ProfilePage() {
     }
   };
 
-  // Fetch user data
-  const { data: user } = useQuery({
+  // Fetch user data and authentication status
+  const { data: user, isLoading: authLoading } = useQuery({
     queryKey: ['/api/auth/user'],
+    retry: false,
   });
+
+  const isAuthenticated = !!user;
 
   // Load picks data
   useEffect(() => {
@@ -313,6 +316,64 @@ export default function ProfilePage() {
     if (result === 'push') return <Badge className="bg-gray-600 text-white">Push</Badge>;
     return <Badge className="bg-blue-600 text-white">Pending</Badge>;
   };
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show locked state for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          <Card className="bg-white dark:bg-gray-800 border-dashed">
+            <CardContent className="p-12 text-center">
+              <div className="flex flex-col items-center space-y-6">
+                <div className="flex items-center space-x-3">
+                  <User className="w-16 h-16 text-gray-400 opacity-50" />
+                  <Lock className="w-8 h-8 text-gray-400" />
+                </div>
+                <div className="space-y-3">
+                  <h2 className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                    Profile Access Locked
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-500 max-w-md">
+                    You need to be logged in to view and manage your profile. Sign in to access your betting history, statistics, and preferences.
+                  </p>
+                </div>
+                <Button 
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                  onClick={() => window.location.href = '/api/login'}
+                >
+                  Sign In to View Profile
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
