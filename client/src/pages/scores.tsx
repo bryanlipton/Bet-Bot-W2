@@ -469,6 +469,10 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
 
+  const isLive = game.status.toLowerCase().includes('live') || 
+                 game.status.toLowerCase().includes('progress') || 
+                 game.status.toLowerCase().includes('in progress');
+
   // Determine winner/loser for finished games
   const awayWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore > game.homeScore;
   const homeWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.homeScore > game.awayScore;
@@ -477,19 +481,19 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
   return (
     <Card className="bg-white dark:bg-gray-800 relative">
       <CardContent className="p-4">
-        {/* Status Badge in top-right corner */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+        {/* Status Badge positioned higher - aligned with first team's score */}
+        <div className="absolute top-2 right-3 flex flex-col items-end gap-1">
           {getStatusBadge(game.status)}
-          {/* Show inning or "F" for finished games */}
+          {/* Show inning only for live/finished games, not scheduled */}
           {isFinished ? (
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
-          ) : game.inning ? (
+          ) : isLive && game.inning ? (
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{game.inning}</span>
           ) : null}
         </div>
 
         {/* Teams and Scores */}
-        <div className="pr-20 space-y-3">
+        <div className="pr-16 space-y-3">
           {/* Away Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
