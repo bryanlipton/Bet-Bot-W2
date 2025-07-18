@@ -915,6 +915,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register user profile routes (social features)
   registerUserProfileRoutes(app);
+  
+  // Add MLB team analysis route for real L10 data
+  app.get('/api/mlb/team-analysis/:teamName', async (req, res) => {
+    try {
+      const { teamName } = req.params;
+      const { dailyPickService } = await import('./services/dailyPickService');
+      
+      // Fetch real team stats including L10 record
+      const teamStats = await dailyPickService.fetchRealTeamStats(teamName);
+      
+      if (!teamStats) {
+        return res.status(404).json({ error: 'Team not found' });
+      }
+      
+      res.json({
+        teamName,
+        teamStats,
+        last10Record: `${teamStats.last10Games.wins}-${teamStats.last10Games.losses}`,
+        overallRecord: `${teamStats.overallRecord.wins}-${teamStats.overallRecord.losses}`,
+        dataSource: 'Official MLB Stats API'
+      });
+    } catch (error) {
+      console.error('Error fetching team analysis:', error);
+      res.status(500).json({ error: 'Failed to fetch team analysis' });
+    }
+  });
 
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');

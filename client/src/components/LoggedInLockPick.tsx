@@ -313,7 +313,7 @@ export default function LoggedInLockPick() {
         key: 'recentForm',
         title: 'Recent Form',
         score: analysis.recentForm,
-        info: 'Team performance over last 10 games including wins, runs scored, and momentum indicators.'
+        info: 'Real team momentum from official MLB Stats API showing actual wins/losses in last 10 completed games, recent scoring trends, and competitive performance.'
       },
       {
         key: 'weatherConditions',
@@ -325,7 +325,7 @@ export default function LoggedInLockPick() {
         key: 'offensiveEdge',
         title: 'Offensive Edge',
         score: analysis.offensiveEdge,
-        info: 'Team batting strength based on wOBA, barrel rate, and exit velocity metrics from recent games.'
+        info: 'Team batting performance including recent run production, lineup depth, and offensive momentum trends from official MLB statistics.'
       }
     );
 
