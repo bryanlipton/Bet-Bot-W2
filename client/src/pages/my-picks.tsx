@@ -724,20 +724,20 @@ export default function MyPicksPage() {
                             </div>
                           ))}
                           {/* Parlay Wager and Payout Display */}
-                          {pick.betInfo.units && pick.betInfo.odds > 0 && (
+                          {pick.betInfo.odds > 0 && (
                             <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                               <div className="flex justify-between items-center text-sm">
                                 <div>
                                   <span className="font-medium text-blue-900 dark:text-blue-100">
-                                    Wager: ${calculateWagerAmount(pick.betInfo.units).toFixed(2)}
+                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
                                   </span>
                                   <span className="text-xs text-blue-700 dark:text-blue-300 ml-1">
-                                    ({pick.betInfo.units} units)
+                                    ({pick.betInfo.units || 1} units)
                                   </span>
                                 </div>
                                 <div>
                                   <span className="font-medium text-green-900 dark:text-green-100">
-                                    Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units), pick.betInfo.odds).toFixed(2)}
+                                    Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)}
                                   </span>
                                   <span className="text-xs text-green-700 dark:text-green-300 ml-1">
                                     ({formatOdds(pick.betInfo.odds)})
@@ -749,20 +749,20 @@ export default function MyPicksPage() {
                         </div>
                       )}
                       {/* Single bet wager and payout display */}
-                      {pick.betInfo.market !== 'parlay' && pick.betInfo.units && pick.betInfo.odds > 0 && (
+                      {pick.betInfo.market !== 'parlay' && pick.betInfo.odds > 0 && (
                         <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                           <div className="flex justify-between items-center text-sm">
                             <div>
                               <span className="font-medium text-green-900 dark:text-green-100">
-                                Wager: ${calculateWagerAmount(pick.betInfo.units).toFixed(2)}
+                                Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
                               </span>
                               <span className="text-xs text-green-700 dark:text-green-300 ml-1">
-                                ({pick.betInfo.units} units)
+                                ({pick.betInfo.units || 1} units)
                               </span>
                             </div>
                             <div>
                               <span className="font-medium text-blue-900 dark:text-blue-100">
-                                Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units), pick.betInfo.odds).toFixed(2)}
+                                Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)}
                               </span>
                               <span className="text-xs text-blue-700 dark:text-blue-300 ml-1">
                                 ({formatOdds(pick.betInfo.odds)})
