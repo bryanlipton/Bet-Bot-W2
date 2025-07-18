@@ -26,13 +26,7 @@ class DatabasePickStorageService implements PickStorageService {
         parlayLegs: pickData.parlayLegs ? JSON.stringify(pickData.parlayLegs) : null
       };
 
-      await apiRequest('/api/user/picks', {
-        method: 'POST',
-        body: JSON.stringify(dbPickData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      await apiRequest('POST', '/api/user/picks', dbPickData);
 
       // Trigger custom event for pick tracking
       const pick: Pick = {
@@ -50,9 +44,7 @@ class DatabasePickStorageService implements PickStorageService {
 
   async getPicks(): Promise<Pick[]> {
     try {
-      const response = await apiRequest('/api/user/picks', {
-        method: 'GET'
-      });
+      const response = await apiRequest('GET', '/api/user/picks');
       const dbPicks = await response.json();
       
       // Convert database picks to frontend Pick format
@@ -109,9 +101,7 @@ class DatabasePickStorageService implements PickStorageService {
 
   async deletePick(id: string): Promise<void> {
     try {
-      const response = await apiRequest(`/api/user/picks/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await apiRequest('DELETE', `/api/user/picks/${id}`);
     } catch (error) {
       console.error('Error deleting pick:', error);
       throw error;
@@ -127,9 +117,7 @@ class DatabasePickStorageService implements PickStorageService {
   // User preferences methods
   async getBetUnit(): Promise<number> {
     try {
-      const response = await apiRequest('/api/user/preferences', {
-        method: 'GET'
-      });
+      const response = await apiRequest('GET', '/api/user/preferences');
       const data = await response.json();
       return data.betUnit || 10.00;
     } catch (error) {

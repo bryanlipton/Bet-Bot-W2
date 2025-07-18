@@ -86,21 +86,62 @@ export default function MyPicksPage() {
     enabled: showManualEntry,
   });
 
-  // Load picks from database
+  // Load picks from database with migration from localStorage
   useEffect(() => {
-    const loadPicks = async () => {
+    const loadPicksWithMigration = async () => {
       try {
-        const storedPicks = await databasePickStorage.getPicks();
-        setPicks(storedPicks);
+        // First try to load from database
+        const databasePicks = await databasePickStorage.getPicks();
+        
+        // If database is empty but localStorage has picks, migrate them
+        if (databasePicks.length === 0) {
+          const localStoragePicks = pickStorage.getAllPicks();
+          if (localStoragePicks.length > 0) {
+            console.log('Found picks in localStorage, migrating to database...');
+            
+            // Migrate each pick
+            for (const pick of localStoragePicks) {
+              try {
+                await databasePickStorage.savePick({
+                  gameId: pick.gameInfo?.gameId?.toString() || pick.id,
+                  homeTeam: pick.gameInfo?.homeTeam || 'Unknown',
+                  awayTeam: pick.gameInfo?.awayTeam || 'Unknown',
+                  selection: pick.betInfo?.selection || 'Unknown',
+                  market: pick.betInfo?.market || 'moneyline',
+                  line: pick.betInfo?.line?.toString() || null,
+                  units: pick.betInfo?.units || 1,
+                  bookmaker: pick.bookmaker?.key || 'manual',
+                  bookmakerDisplayName: pick.bookmaker?.displayName || pick.bookmaker?.title || 'Manual Entry',
+                  gameDate: pick.gameInfo?.gameTime?.split('T')[0] || new Date().toISOString().split('T')[0],
+                  gameTime: pick.gameInfo?.gameTime || new Date().toISOString(),
+                  odds: pick.betInfo?.odds?.toString() || '0',
+                  parlayLegs: pick.betInfo?.parlayLegs
+                });
+                console.log('✓ Migrated pick:', pick.id);
+              } catch (error) {
+                console.error('✗ Error migrating pick:', pick.id, error);
+              }
+            }
+            
+            // Reload from database after migration
+            const migratedPicks = await databasePickStorage.getPicks();
+            setPicks(migratedPicks);
+            console.log(`Successfully migrated ${migratedPicks.length} picks to database`);
+          } else {
+            setPicks(databasePicks);
+          }
+        } else {
+          setPicks(databasePicks);
+        }
       } catch (error) {
         console.error('Error loading picks:', error);
         // Fallback to localStorage if database fails
-        const localPicks = pickStorage.getPicks();
+        const localPicks = pickStorage.getAllPicks();
         setPicks(localPicks);
       }
     };
 
-    loadPicks();
+    loadPicksWithMigration();
 
     // Listen for pick updates
     const handlePickUpdate = () => loadPicks();
@@ -117,23 +158,34 @@ export default function MyPicksPage() {
     };
   }, []);
 
-  // Load bet unit from database
+  // Load bet unit from database with migration from localStorage
   useEffect(() => {
-    const loadBetUnit = async () => {
+    const loadBetUnitWithMigration = async () => {
       try {
         const dbBetUnit = await databasePickStorage.getBetUnit();
-        setBetUnit(dbBetUnit);
+        
+        // If database has default bet unit (10) but localStorage has different value, migrate it
+        if (dbBetUnit === 10) {
+          const localBetUnit = pickStorage.getBetUnit();
+          if (localBetUnit !== 10) {
+            console.log('Migrating bet unit from localStorage:', localBetUnit);
+            await databasePickStorage.setBetUnit(localBetUnit);
+            setBetUnit(localBetUnit);
+          } else {
+            setBetUnit(dbBetUnit);
+          }
+        } else {
+          setBetUnit(dbBetUnit);
+        }
       } catch (error) {
         console.error('Error loading bet unit:', error);
         // Fallback to localStorage if database fails
-        const savedBetUnit = localStorage.getItem('betUnit');
-        if (savedBetUnit) {
-          setBetUnit(parseFloat(savedBetUnit));
-        }
+        const localBetUnit = pickStorage.getBetUnit();
+        setBetUnit(localBetUnit);
       }
     };
 
-    loadBetUnit();
+    loadBetUnitWithMigration();
   }, []);
 
   // Save bet unit to database
