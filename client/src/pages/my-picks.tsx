@@ -32,6 +32,8 @@ export default function MyPicksPage() {
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'won' | 'lost'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
+  const [editingUnits, setEditingUnits] = useState<string | null>(null);
+  const [tempUnits, setTempUnits] = useState<string>('');
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [availableGames, setAvailableGames] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState<any>(null);
@@ -313,6 +315,52 @@ export default function MyPicksPage() {
   const handleCancelEdit = () => {
     setEditingOdds(null);
     setTempOdds('');
+  };
+
+  const handleEditUnits = (pickId: string, currentUnits: number) => {
+    setEditingUnits(pickId);
+    setTempUnits(currentUnits.toString());
+  };
+
+  const handleSaveUnits = async (pickId: string) => {
+    const units = parseFloat(tempUnits);
+    if (isNaN(units) || units <= 0) {
+      alert('Please enter a valid wager amount greater than 0');
+      return;
+    }
+
+    try {
+      // For localStorage, update the pick directly
+      const updatedPicks = picks.map(pick => {
+        if (pick.id === pickId) {
+          return {
+            ...pick,
+            betInfo: {
+              ...pick.betInfo,
+              units: units
+            }
+          };
+        }
+        return pick;
+      });
+
+      setPicks(updatedPicks);
+      pickStorage.updatePick(pickId, { 
+        betInfo: { 
+          ...picks.find(p => p.id === pickId)?.betInfo,
+          units: units 
+        } 
+      });
+      setEditingUnits(null);
+      setTempUnits('');
+    } catch (error) {
+      console.error('Error updating units:', error);
+    }
+  };
+
+  const handleCancelUnitsEdit = () => {
+    setEditingUnits(null);
+    setTempUnits('');
   };
 
   const handleManualEntry = () => {
@@ -829,12 +877,47 @@ export default function MyPicksPage() {
                             <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
                               <div className="flex justify-between items-center text-sm">
                                 <div>
-                                  <span className="font-medium text-blue-900 dark:text-blue-100">
-                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
-                                  </span>
-                                  <span className="text-xs text-blue-700 dark:text-blue-300 ml-1">
-                                    ({pick.betInfo.units || 1} units)
-                                  </span>
+                                  {editingUnits === pick.id ? (
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium text-blue-900 dark:text-blue-100">Wager: $</span>
+                                      <Input
+                                        type="number"
+                                        value={tempUnits}
+                                        onChange={(e) => setTempUnits(e.target.value)}
+                                        className="w-16 h-6 text-xs p-1"
+                                        step="0.5"
+                                        min="0"
+                                      />
+                                      <span className="text-xs text-blue-700 dark:text-blue-300">units</span>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleSaveUnits(pick.id)}
+                                        className="h-6 w-6 p-0 ml-1"
+                                      >
+                                        <Save className="w-3 h-3" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleCancelUnitsEdit}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.betInfo.units || 1)}>
+                                      <span className="font-medium text-blue-900 dark:text-blue-100">
+                                        Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
+                                      </span>
+                                      <span className="text-xs text-blue-700 dark:text-blue-300">
+                                        ({pick.betInfo.units || 1} units)
+                                      </span>
+                                      {pick.status === 'pending' && (
+                                        <Edit3 className="w-3 h-3 text-blue-600 ml-1" />
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                                 <div>
                                   <span className="font-medium text-green-900 dark:text-green-100">
@@ -854,12 +937,47 @@ export default function MyPicksPage() {
                         <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
                           <div className="flex justify-between items-center text-sm">
                             <div>
-                              <span className="font-medium text-green-900 dark:text-green-100">
-                                Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
-                              </span>
-                              <span className="text-xs text-green-700 dark:text-green-300 ml-1">
-                                ({pick.betInfo.units || 1} units)
-                              </span>
+                              {editingUnits === pick.id ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium text-green-900 dark:text-green-100">Wager: $</span>
+                                  <Input
+                                    type="number"
+                                    value={tempUnits}
+                                    onChange={(e) => setTempUnits(e.target.value)}
+                                    className="w-16 h-6 text-xs p-1"
+                                    step="0.5"
+                                    min="0"
+                                  />
+                                  <span className="text-xs text-green-700 dark:text-green-300">units</span>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSaveUnits(pick.id)}
+                                    className="h-6 w-6 p-0 ml-1"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleCancelUnitsEdit}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.betInfo.units || 1)}>
+                                  <span className="font-medium text-green-900 dark:text-green-100">
+                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
+                                  </span>
+                                  <span className="text-xs text-green-700 dark:text-green-300">
+                                    ({pick.betInfo.units || 1} units)
+                                  </span>
+                                  {pick.status === 'pending' && (
+                                    <Edit3 className="w-3 h-3 text-green-600 ml-1" />
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <span className="font-medium text-blue-900 dark:text-blue-100">
