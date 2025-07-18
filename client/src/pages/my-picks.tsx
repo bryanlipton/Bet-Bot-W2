@@ -145,6 +145,15 @@ export default function MyPicksPage() {
     loadBetUnit();
   }, []);
 
+  // Also update bet unit when modal opens
+  useEffect(() => {
+    if (showManualEntry) {
+      const currentBetUnit = pickStorage.getBetUnit();
+      setBetUnit(currentBetUnit);
+      console.log('Updated bet unit for modal:', currentBetUnit);
+    }
+  }, [showManualEntry]);
+
   // Save bet unit to database
   const saveBetUnit = async (newBetUnit: number) => {
     try {
