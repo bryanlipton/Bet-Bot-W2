@@ -72,7 +72,7 @@ interface ProcessedGame {
   }>;
 }
 
-import { GameDetailsModal } from "./GameDetailsModal";
+
 
 import DailyPick from "./DailyPick";
 import LoggedInLockPick from "./LoggedInLockPick";
@@ -80,8 +80,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
-  const [selectedGame, setSelectedGame] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
@@ -379,10 +377,6 @@ export function ActionStyleDashboard() {
                   lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
                   isAuthenticated={!!user}
                   rawBookmakers={game.rawBookmakers}
-                  onClick={() => {
-                    setSelectedGame(game);
-                    setIsModalOpen(true);
-                  }}
                 />
               ))}
             </div>
@@ -403,22 +397,7 @@ export function ActionStyleDashboard() {
         )}
       </div>
 
-      {/* Game Details Modal */}
-      {selectedGame && (
-        <GameDetailsModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedGame(null);
-          }}
-          gameId={selectedGame.gameId}
-          homeTeam={selectedGame.homeTeam}
-          awayTeam={selectedGame.awayTeam}
-          startTime={selectedGame.startTime}
-          venue={selectedGame.venue}
-          probablePitchers={selectedGame.probablePitchers}
-        />
-      )}
+
 
 
 

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
+import { GameDetailsModal } from "./GameDetailsModal";
 
 // Analysis interfaces (simplified for ActionStyleGameCard)
 
@@ -364,6 +365,7 @@ export function ActionStyleGameCard({
   rawBookmakers
 }: GameCardProps) {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
+  const [gameDetailsOpen, setGameDetailsOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<{
     market: 'moneyline' | 'spread' | 'total';
     selection: string;
@@ -410,8 +412,7 @@ export function ActionStyleGameCard({
 
   return (
     <Card 
-      className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer"
-      onClick={onClick}
+      className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
@@ -427,7 +428,23 @@ export function ActionStyleGameCard({
             </span>
           </div>
           
-
+          {/* Game Info Button */}
+          <div className="flex-1 flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setGameDetailsOpen(true);
+              }}
+              className="text-xs px-3 py-1 h-7 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <Info className="w-3 h-3 mr-1" />
+              Game Info
+            </Button>
+          </div>
+          
+          <div className="w-20"></div> {/* Spacer for balance */}
         </div>
 
         {/* Header with Pick Column */}
@@ -711,6 +728,17 @@ export function ActionStyleGameCard({
           selectedBet={selectedBet}
         />
       )}
+
+      {/* Game Details Modal */}
+      <GameDetailsModal
+        isOpen={gameDetailsOpen}
+        onClose={() => setGameDetailsOpen(false)}
+        gameId={gameId || ''}
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
+        startTime={startTime}
+        probablePitchers={probablePitchers}
+      />
     </Card>
   );
 }
