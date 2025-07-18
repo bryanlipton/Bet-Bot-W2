@@ -419,75 +419,153 @@ export default function LoggedInLockPick() {
         )}
         
         <div className={!isAuthenticated ? 'blur-sm' : ''}>
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3 sm:gap-0">
-          <div className="flex items-center space-x-3">
-            <BetBotIcon className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0" />
-            <div>
-              <h3 className="font-bold text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
-                Logged in Lock of the Day
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                Exclusive pick for authenticated users
-              </p>
+        <div className="relative">
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center space-x-3">
+                <BetBotIcon className="w-10 h-10 flex-shrink-0" />
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                    Logged in Lock of the Day
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                    Exclusive pick for authenticated users
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <GradeBadge grade={lockPick.grade} />
+                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Info className="h-2.5 w-2.5 text-black dark:text-white" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center space-x-2">
+                        <BetBotIcon className="w-6 h-6" />
+                        <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-3">Pick Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                          <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                          <div><strong>Venue:</strong> {lockPick.venue}</div>
+                          <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                        <h4 className="font-semibold mb-3">Reasoning</h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                          {lockPick.reasoning}
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                        <div className="space-y-3">
+                          {factors.map(({ key, title, score, info }) => (
+                            <div key={key} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium">{title}</span>
+                                <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                              </div>
+                              <Progress value={score} className="h-2" />
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <GradeBadge grade={lockPick.grade} />
-            <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Info className="h-3 w-3 text-black dark:text-white" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center space-x-2">
-                    <BetBotIcon className="w-6 h-6" />
-                    <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
-                  </DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-3">Pick Details</h4>
-                    <div className="space-y-2 text-sm">
-                      <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
-                      <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
-                      <div><strong>Venue:</strong> {lockPick.venue}</div>
-                      <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                    <h4 className="font-semibold mb-3">Reasoning</h4>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {lockPick.reasoning}
-                    </p>
-                  </div>
 
-                  <div>
-                    <h4 className="font-semibold mb-3">Analysis Factors</h4>
-                    <div className="space-y-3">
-                      {factors.map(({ key, title, score, info }) => (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="font-medium">{title}</span>
-                            <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+          {/* Desktop Layout */}
+          <div className="hidden md:flex md:items-start md:justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <BetBotIcon className="w-14 h-14 flex-shrink-0" />
+              <div>
+                <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+                  Logged in Lock of the Day
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Exclusive pick for authenticated users
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <GradeBadge grade={lockPick.grade} />
+              <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Info className="h-3 w-3 text-black dark:text-white" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <BetBotIcon className="w-6 h-6" />
+                      <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
+                    </DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-3">Pick Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                        <div><strong>Venue:</strong> {lockPick.venue}</div>
+                        <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                      <h4 className="font-semibold mb-3">Reasoning</h4>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {lockPick.reasoning}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                      <div className="space-y-3">
+                        {factors.map(({ key, title, score, info }) => (
+                          <div key={key} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">{title}</span>
+                              <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                            </div>
+                            <Progress value={score} className="h-2" />
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
                           </div>
-                          <Progress value={score} className="h-2" />
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
 
@@ -496,10 +574,10 @@ export default function LoggedInLockPick() {
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <h4 className="font-bold text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                <h4 className="font-bold text-sm md:text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <span className="font-bold text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
+                <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
               </div>
@@ -508,7 +586,7 @@ export default function LoggedInLockPick() {
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam)}
-                    className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    className="text-xs px-2 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
                   </Button>
@@ -521,7 +599,7 @@ export default function LoggedInLockPick() {
               </p>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 flex-1 min-w-0 text-base text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-2 flex-1 min-w-0 text-sm md:text-base text-gray-600 dark:text-gray-400">
                 <span>{matchup.separator}</span>
                 <span className="block">{matchup.bottomTeam}</span>
               </div>
@@ -530,7 +608,7 @@ export default function LoggedInLockPick() {
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
-                    className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    className="text-xs px-2 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
                   </Button>
