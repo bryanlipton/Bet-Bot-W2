@@ -284,42 +284,48 @@ export default function ScoresPage() {
         </div>
 
         {/* Date Navigation */}
-        <div className="flex items-center justify-center gap-4 mb-6">
-          <Button
-            onClick={goToPreviousDay}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
-          
-          <div className="text-center">
-            <div className="text-lg font-semibold text-gray-900 dark:text-white">
-              {formatDateDisplay(selectedDate)}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {selectedDate.toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric' 
-              })}
+        <div className="relative mb-6">
+          {/* Main navigation group - centered */}
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={goToPreviousDay}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <div className="text-center mx-8">
+                <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {formatDateDisplay(selectedDate)}
+                </div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedDate.toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                  })}
+                </div>
+              </div>
+              
+              <Button
+                onClick={goToNextDay}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
           </div>
           
-          <Button
-            onClick={goToNextDay}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-          
-          <div className="w-24 flex justify-center">
-            {selectedDate.toDateString() !== new Date().toDateString() && (
+          {/* Go to Today button - positioned below and centered */}
+          {selectedDate.toDateString() !== new Date().toDateString() && (
+            <div className="flex justify-center mt-3">
               <Button
                 onClick={goToToday}
                 variant="outline"
@@ -328,8 +334,8 @@ export default function ScoresPage() {
               >
                 Go to Today
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Sport Selection */}
