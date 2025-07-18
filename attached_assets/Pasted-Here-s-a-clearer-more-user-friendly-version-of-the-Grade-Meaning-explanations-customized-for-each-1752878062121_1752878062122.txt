@@ -1,0 +1,95 @@
+Here’s a clearer, more user-friendly version of the Grade Meaning explanations — customized for each Analysis Factor based on the descriptions you provided. The goal is to make the grading intuitive for users while preserving the sophistication of your model.
+
+🔍 Rewritten Grade Meaning Explanations
+🟩 Betting Value
+Definition: Compares our win probability model vs. current odds to find value.
+
+Grade Meaning:
+
+90+ → Exceptional edge; line is mispriced in our favor
+
+80–89 → Solid value; odds slightly undervalue our side
+
+75 baseline → Market-efficient or neutral
+
+Below 75 → Little or no edge vs. market
+
+🏟 Field Value
+Definition: Measures how the stadium setup (e.g. dimensions, altitude, home field advantage) affects the game.
+
+Grade Meaning:
+
+85+ → Strong field factor benefiting this team
+
+75–84 → Slight to moderate favorable conditions
+
+75 baseline → Neutral ballpark effect
+
+Below 75 → Stadium may favor opponent or suppress performance
+
+⚾ Pitching Edge
+Definition: Evaluates starting pitcher matchup based on ERA, strikeouts, and recent form.
+
+Grade Meaning:
+
+85+ → Clear pitching advantage
+
+75–84 → Above average edge
+
+75 baseline → Even matchup or average starter
+
+Below 75 → Possible disadvantage on the mound
+
+🔥 Recent Form
+Definition: Tracks team momentum over the last 10 games, including wins and runs scored.
+
+Grade Meaning:
+
+90+ → Team is red-hot
+
+80–89 → Consistently strong recent play
+
+75 baseline → Neutral form or .500 record
+
+Below 75 → Cold streak or downward trend
+
+☁️ Weather Impact
+Definition: Quantifies how weather (wind, temp, humidity) could affect scoring or pitching.
+
+Grade Meaning:
+
+85+ → Conditions significantly favor our side (e.g., wind out for hitters)
+
+75–84 → Slightly favorable weather
+
+75 baseline → Neutral conditions
+
+Below 75 → Weather may hurt our team’s strengths
+
+🥎 Offensive Edge
+Definition: Compares team hitting strength using wOBA, exit velocity, and barrel rate.
+
+Grade Meaning:
+
+85+ → Elite recent batting metrics
+
+75–84 → Slight offensive edge
+
+75 baseline → Even matchup
+
+Below 75 → Opponent may have better bats
+
+🧠 Optional Tooltip (for quick reference)
+You could also show this inline when hovering over a grade:
+
+What do the numbers mean?
+
+90+ = Elite
+
+80–89 = Strong
+
+75 = Neutral baseline
+
+<75 = Disadvantage
+
+Would you like me to convert these into a styled panel or component design mockup for your UI?
