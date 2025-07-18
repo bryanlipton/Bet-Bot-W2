@@ -562,7 +562,7 @@ export default function DailyPick() {
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
-                    className="text-xs px-2 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
                   </Button>
@@ -584,7 +584,7 @@ export default function DailyPick() {
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
-                    className="text-xs px-2 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
                   </Button>
@@ -646,36 +646,38 @@ export default function DailyPick() {
             </div>
           </div>
 
-          {/* Show analysis button on mid-size screens (768px-1279px) */}
-          <div className="hidden md:block xl:hidden">
-            <button
-              className="flex items-center text-xs text-blue-600 dark:text-blue-400 ml-4"
-              onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
-            >
-              Show Analysis
-              {mobileAnalysisOpen ? (
-                <ChevronUp className="w-3 h-3 ml-1" />
-              ) : (
-                <ChevronDown className="w-3 h-3 ml-1" />
-              )}
-            </button>
-            
-            {/* Mid-size analysis factors dropdown */}
-            {mobileAnalysisOpen && (
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
-                  Analysis Factors
-                </h5>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                  {factors.map(({ key, title, score, info }) => (
-                    <FactorScore key={key} title={title} score={score} info={info} />
-                  ))}
-                </div>
-              </div>
+
+
+
+        </div>
+
+        {/* Show Analysis button at bottom for medium screens (768px-1279px) */}
+        <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
+            onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+          >
+            Show Analysis
+            {mobileAnalysisOpen ? (
+              <ChevronUp className="w-3 h-3 ml-1" />
+            ) : (
+              <ChevronDown className="w-3 h-3 ml-1" />
             )}
-          </div>
-
-
+          </button>
+          
+          {/* Medium-size analysis factors dropdown */}
+          {mobileAnalysisOpen && (
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+                Analysis Factors
+              </h5>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                {factors.map(({ key, title, score, info }) => (
+                  <FactorScore key={key} title={title} score={score} info={info} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
       
