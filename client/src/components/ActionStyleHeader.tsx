@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Moon, Sun, BarChart3, TrendingUp, Zap, Info, Target, Brain, Shield, Clock } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
+import AboutBetBotModal from "@/components/AboutBetBotModal";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 interface ActionStyleHeaderProps {
