@@ -19,16 +19,28 @@ export function registerUserProfileRoutes(app: Express) {
   // Update user profile
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Profile update request received");
+      console.log("User:", req.user?.claims?.sub);
+      console.log("Request body:", req.body);
+      
       const userId = req.user.claims.sub;
       const updateData = updateProfileSchema.parse(req.body);
+      
+      console.log("Parsed update data:", updateData);
       
       // Update the user profile
       const updatedUser = await storage.updateUserProfile(userId, updateData);
       
+      console.log("Profile updated successfully:", updatedUser?.id);
       res.json(updatedUser);
     } catch (error) {
       console.error("Error updating user profile:", error);
-      res.status(500).json({ message: "Failed to update profile" });
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        res.status(400).json({ message: "Invalid data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update profile" });
+      }
     }
   });
 

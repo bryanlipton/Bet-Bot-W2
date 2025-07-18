@@ -220,12 +220,14 @@ export default function ProfilePage() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
+      console.log("Sending profile update:", profileData);
       return await apiRequest('/api/user/profile', {
         method: 'PATCH',
         body: JSON.stringify(profileData)
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Profile update successful:", data);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       setIsEditingProfile(false);
       toast({
@@ -233,10 +235,11 @@ export default function ProfilePage() {
         description: "Your profile has been successfully updated.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Profile update error:", error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error?.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     },
@@ -406,7 +409,7 @@ export default function ProfilePage() {
                           <h3 className="text-lg font-semibold">Privacy Settings</h3>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="totalPicksPublic">Total Picks</Label>
+                            <Label htmlFor="totalPicksPublic">Do you want to share total picks on profile</Label>
                             <div className="flex items-center gap-2">
                               <EyeOff className="w-4 h-4" />
                               <Switch
@@ -421,7 +424,7 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="pendingPicksPublic">Pending Picks</Label>
+                            <Label htmlFor="pendingPicksPublic">Do you want to share pending picks on profile</Label>
                             <div className="flex items-center gap-2">
                               <EyeOff className="w-4 h-4" />
                               <Switch
@@ -436,7 +439,7 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="winRatePublic">Win Rate</Label>
+                            <Label htmlFor="winRatePublic">Do you want to share win rate on profile</Label>
                             <div className="flex items-center gap-2">
                               <EyeOff className="w-4 h-4" />
                               <Switch
@@ -451,7 +454,7 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="winStreakPublic">Win Streak</Label>
+                            <Label htmlFor="winStreakPublic">Do you want to share win streak on profile</Label>
                             <div className="flex items-center gap-2">
                               <EyeOff className="w-4 h-4" />
                               <Switch
