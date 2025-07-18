@@ -1,13 +1,14 @@
 import { 
   users, games, odds, recommendations, chatMessages, modelMetrics,
   baseballGames, baseballPlayerStats, baseballGamePredictions, baseballModelTraining,
-  userBets,
+  userBets, userPicks, userPreferences,
   type User, type InsertUser, type UpsertUser, type Game, type InsertGame, 
   type Odds, type InsertOdds, type Recommendation, type InsertRecommendation,
   type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics,
   type BaseballGame, type InsertBaseballGame, type BaseballPlayerStats, type InsertBaseballPlayerStats,
   type BaseballGamePrediction, type InsertBaseballGamePrediction, type BaseballModelTraining, type InsertBaseballModelTraining,
-  type UserBet, type InsertUserBet
+  type UserBet, type InsertUserBet, type UserPick, type InsertUserPick, 
+  type UserPreferences, type InsertUserPreferences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, gte, lte } from "drizzle-orm";
@@ -82,6 +83,26 @@ export interface IStorage {
     pendingCount: number;
     roi: number;
   }>;
+
+  // User picks persistence methods
+  createUserPick(pick: InsertUserPick): Promise<UserPick>;
+  getUserPicks(userId: string, limit?: number, offset?: number): Promise<UserPick[]>;
+  getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]>;
+  updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick>;
+  deleteUserPick(pickId: string): Promise<void>;
+  getUserPickStats(userId: string): Promise<{
+    totalPicks: number;
+    pendingPicks: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    totalUnits: number;
+    totalWinnings: number;
+  }>;
+
+  // User preferences methods
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  upsertUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
 }
 
 export class MemStorage implements IStorage {
@@ -788,6 +809,110 @@ export class DatabaseStorage implements IStorage {
       pendingCount,
       roi,
     };
+  }
+
+  // User picks persistence methods
+  async createUserPick(insertPick: InsertUserPick): Promise<UserPick> {
+    const [pick] = await db.insert(userPicks).values({
+      ...insertPick,
+      createdAt: new Date(),
+    }).returning();
+    return pick;
+  }
+
+  async getUserPicks(userId: string, limit: number = 100, offset: number = 0): Promise<UserPick[]> {
+    return await db.select().from(userPicks)
+      .where(eq(userPicks.userId, userId))
+      .orderBy(desc(userPicks.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]> {
+    return await db.select().from(userPicks)
+      .where(and(
+        eq(userPicks.userId, userId),
+        eq(userPicks.status, status)
+      ))
+      .orderBy(desc(userPicks.createdAt));
+  }
+
+  async updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick> {
+    const [pick] = await db.update(userPicks)
+      .set({
+        ...updates,
+        gradedAt: updates.status && updates.status !== 'pending' ? new Date() : undefined,
+      })
+      .where(eq(userPicks.id, pickId))
+      .returning();
+    return pick;
+  }
+
+  async deleteUserPick(pickId: string): Promise<void> {
+    await db.delete(userPicks).where(eq(userPicks.id, pickId));
+  }
+
+  async getUserPickStats(userId: string): Promise<{
+    totalPicks: number;
+    pendingPicks: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    totalUnits: number;
+    totalWinnings: number;
+  }> {
+    const picks = await db.select().from(userPicks)
+      .where(eq(userPicks.userId, userId));
+
+    const totalPicks = picks.length;
+    const pendingPicks = picks.filter(pick => pick.status === 'pending').length;
+    const winCount = picks.filter(pick => pick.status === 'win').length;
+    const lossCount = picks.filter(pick => pick.status === 'loss').length;
+    const pushCount = picks.filter(pick => pick.status === 'push').length;
+    const totalUnits = picks.reduce((sum, pick) => sum + (pick.units || 0), 0);
+    const totalWinnings = picks
+      .filter(pick => pick.status === 'win')
+      .reduce((sum, pick) => sum + (pick.winAmount || 0), 0);
+
+    return {
+      totalPicks,
+      pendingPicks,
+      winCount,
+      lossCount,
+      pushCount,
+      totalUnits,
+      totalWinnings,
+    };
+  }
+
+  // User preferences methods
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [preferences] = await db.select().from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+    return preferences || undefined;
+  }
+
+  async upsertUserPreferences(insertPreferences: InsertUserPreferences): Promise<UserPreferences> {
+    const existing = await this.getUserPreferences(insertPreferences.userId);
+    
+    if (existing) {
+      const [updated] = await db.update(userPreferences)
+        .set({
+          ...insertPreferences,
+          updatedAt: new Date(),
+        })
+        .where(eq(userPreferences.userId, insertPreferences.userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(userPreferences)
+        .values({
+          ...insertPreferences,
+          updatedAt: new Date(),
+        })
+        .returning();
+      return created;
+    }
   }
 }
 

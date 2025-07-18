@@ -1,0 +1,196 @@
+import type { Express } from "express";
+import { storage } from "./storage";
+import { isAuthenticated } from "./replitAuth";
+import { z } from "zod";
+import { insertUserPickSchema, insertUserPreferencesSchema } from "@shared/schema";
+
+export function registerUserPicksRoutes(app: Express) {
+  // Get user picks with pagination
+  app.get('/api/user/picks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const picks = await storage.getUserPicks(userId, limit, offset);
+      res.json(picks);
+    } catch (error) {
+      console.error("Error fetching user picks:", error);
+      res.status(500).json({ message: "Failed to fetch picks" });
+    }
+  });
+
+  // Get user picks by status
+  app.get('/api/user/picks/status/:status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { status } = req.params;
+      
+      const picks = await storage.getUserPicksByStatus(userId, status);
+      res.json(picks);
+    } catch (error) {
+      console.error("Error fetching picks by status:", error);
+      res.status(500).json({ message: "Failed to fetch picks" });
+    }
+  });
+
+  // Create a new user pick
+  app.post('/api/user/picks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Validate request body
+      const pickData = insertUserPickSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const pick = await storage.createUserPick(pickData);
+      res.json(pick);
+    } catch (error) {
+      console.error("Error creating user pick:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid pick data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create pick" });
+      }
+    }
+  });
+
+  // Update a user pick (for grading or editing odds)
+  app.patch('/api/user/picks/:pickId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      
+      // Ensure user owns the pick by checking first
+      const existingPicks = await storage.getUserPicks(userId);
+      const userOwnsPick = existingPicks.some(pick => pick.id === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to update this pick" });
+      }
+      
+      const updatedPick = await storage.updateUserPick(pickId, req.body);
+      res.json(updatedPick);
+    } catch (error) {
+      console.error("Error updating user pick:", error);
+      res.status(500).json({ message: "Failed to update pick" });
+    }
+  });
+
+  // Delete a user pick
+  app.delete('/api/user/picks/:pickId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      
+      // Ensure user owns the pick
+      const existingPicks = await storage.getUserPicks(userId);
+      const userOwnsPick = existingPicks.some(pick => pick.id === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to delete this pick" });
+      }
+      
+      await storage.deleteUserPick(pickId);
+      res.json({ message: "Pick deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user pick:", error);
+      res.status(500).json({ message: "Failed to delete pick" });
+    }
+  });
+
+  // Get user pick statistics
+  app.get('/api/user/picks/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getUserPickStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching pick stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Get user preferences (including bet unit)
+  app.get('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      let preferences = await storage.getUserPreferences(userId);
+      
+      // Create default preferences if none exist
+      if (!preferences) {
+        preferences = await storage.upsertUserPreferences({
+          userId,
+          betUnit: 50, // Default $50 unit
+          currency: 'USD',
+        });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching user preferences:", error);
+      res.status(500).json({ message: "Failed to fetch preferences" });
+    }
+  });
+
+  // Update user preferences
+  app.put('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const preferencesData = insertUserPreferencesSchema.parse({
+        ...req.body,
+        userId,
+      });
+      
+      const preferences = await storage.upsertUserPreferences(preferencesData);
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error updating user preferences:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update preferences" });
+      }
+    }
+  });
+
+  // Sync picks from localStorage to database
+  app.post('/api/user/picks/sync', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { picks } = req.body;
+      
+      if (!Array.isArray(picks)) {
+        return res.status(400).json({ message: "Picks must be an array" });
+      }
+      
+      const syncedPicks = [];
+      
+      for (const pick of picks) {
+        try {
+          const pickData = insertUserPickSchema.parse({
+            ...pick,
+            userId,
+          });
+          
+          const syncedPick = await storage.createUserPick(pickData);
+          syncedPicks.push(syncedPick);
+        } catch (error) {
+          console.error("Error syncing individual pick:", error);
+          // Continue with other picks even if one fails
+        }
+      }
+      
+      res.json({ 
+        message: `Synced ${syncedPicks.length} picks successfully`,
+        syncedPicks 
+      });
+    } catch (error) {
+      console.error("Error syncing picks:", error);
+      res.status(500).json({ message: "Failed to sync picks" });
+    }
+  });
+}

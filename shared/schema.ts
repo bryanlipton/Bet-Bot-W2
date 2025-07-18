@@ -88,37 +88,7 @@ export const modelMetrics = pgTable("model_metrics", {
   lastUpdate: timestamp("last_update").notNull(),
 });
 
-// User picks/bets table
-export const userPicks = pgTable("user_picks", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => users.id).notNull(),
-  gameId: text("game_id").notNull(), // External game ID
-  awayTeam: text("away_team").notNull(),
-  homeTeam: text("home_team").notNull(),
-  market: text("market").notNull(), // moneyline, spread, total
-  selection: text("selection").notNull(), // team name or over/under
-  line: text("line"), // for spread/total bets
-  odds: decimal("odds", { precision: 8, scale: 2 }), // American odds
-  units: decimal("units", { precision: 5, scale: 2 }).notNull().default("1.00"),
-  bookmaker: text("bookmaker").notNull().default("manual"),
-  bookmakerDisplayName: text("bookmaker_display_name").notNull().default("Manual Entry"),
-  status: text("status").notNull().default("pending"), // pending, won, lost, push
-  betAmount: decimal("bet_amount", { precision: 10, scale: 2 }), // calculated from units * betUnit
-  potentialWinnings: decimal("potential_winnings", { precision: 10, scale: 2 }),
-  actualWinnings: decimal("actual_winnings", { precision: 10, scale: 2 }),
-  gameDate: text("game_date").notNull(),
-  gameTime: text("game_time"),
-  venue: text("venue"),
-  // Parlay support
-  isParlay: boolean("is_parlay").default(false),
-  parlayId: text("parlay_id"), // Group parlay legs together
-  parlayLegs: json("parlay_legs"), // Store parlay leg details as JSON
-  // Pick source tracking
-  pickSource: text("pick_source").default("manual"), // manual, daily_pick, lock_pick, game_card
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Removed duplicate userPicks table - comprehensive version defined below
 
 // Baseball-specific tables for AI training
 export const baseballGames = pgTable("baseball_games", {
@@ -306,6 +276,36 @@ export const loggedInLockPicks = pgTable("logged_in_lock_picks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// User picks storage table - persistent across sessions with grading
+export const userPicks = pgTable("user_picks", {
+  id: text("id").primaryKey().notNull(),
+  userId: text("user_id").notNull().references(() => users.id),
+  gameId: text("game_id").notNull(),
+  selection: text("selection").notNull(), // Team or outcome selected
+  game: text("game").notNull(), // "Team A @ Team B" format
+  market: text("market").notNull(), // "moneyline", "spread", "total", "parlay"
+  line: text("line"), // Point spread or total line (e.g., "-1.5", "8.5")
+  odds: integer("odds").default(0), // American odds format
+  units: real("units").notNull().default(1), // Number of units bet
+  bookmaker: text("bookmaker").notNull().default("manual"), // Bookmaker key or "manual"
+  bookmakerDisplayName: text("bookmaker_display_name").notNull().default("Manual Entry"),
+  status: text("status").notNull().default("pending"), // "pending", "win", "loss", "push"
+  result: text("result"), // Game result details when graded
+  winAmount: real("win_amount"), // Calculated win amount when graded
+  parlayLegs: json("parlay_legs"), // Array of parlay legs if market is "parlay"
+  createdAt: timestamp("created_at").defaultNow(),
+  gameDate: timestamp("game_date"), // When the game is/was played
+  gradedAt: timestamp("graded_at"), // When the pick was graded
+});
+
+// User preferences table - stores betting unit size and other preferences
+export const userPreferences = pgTable("user_preferences", {
+  userId: text("user_id").primaryKey().notNull().references(() => users.id),
+  betUnit: real("bet_unit").notNull().default(50), // Default $50 unit size
+  currency: text("currency").notNull().default("USD"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User bet tracking table
 export const userBets = pgTable("user_bets", {
   id: serial("id").primaryKey(),
@@ -349,8 +349,9 @@ export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrain
 export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
 export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });
+export const insertUserPickSchema = createInsertSchema(userPicks).omit({ createdAt: true, gradedAt: true });
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ updatedAt: true });
 export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertUserPickSchema = createInsertSchema(userPicks).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -384,7 +385,9 @@ export type DailyPick = typeof dailyPicks.$inferSelect;
 export type InsertDailyPick = z.infer<typeof insertDailyPickSchema>;
 export type LoggedInLockPick = typeof loggedInLockPicks.$inferSelect;
 export type InsertLoggedInLockPick = z.infer<typeof insertLoggedInLockPickSchema>;
-export type UserBet = typeof userBets.$inferSelect;
-export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
 export type UserPick = typeof userPicks.$inferSelect;
 export type InsertUserPick = z.infer<typeof insertUserPickSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UserBet = typeof userBets.$inferSelect;
+export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
