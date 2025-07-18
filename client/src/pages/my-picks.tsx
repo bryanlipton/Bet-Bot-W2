@@ -877,7 +877,6 @@ export default function MyPicksPage() {
                                 {leg.selection} {leg.market === 'spread' && leg.line ? `${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
                                 {leg.market === 'total' && leg.line ? `${leg.line}` : ''}
                                 {leg.market === 'moneyline' ? 'ML' : ''}
-                                {leg.odds > 0 && ` (${formatOdds(leg.odds)})`}
                               </div>
                             </div>
                           ))}
@@ -931,9 +930,6 @@ export default function MyPicksPage() {
                                 <div>
                                   <span className="font-medium text-green-900 dark:text-green-100">
                                     Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)}
-                                  </span>
-                                  <span className="text-xs text-green-700 dark:text-green-300 ml-1">
-                                    ({formatOdds(pick.betInfo.odds)})
                                   </span>
                                 </div>
                               </div>
@@ -992,72 +988,10 @@ export default function MyPicksPage() {
                               <span className="font-medium text-blue-900 dark:text-blue-100">
                                 Payout: ${calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)}
                               </span>
-                              <span className="text-xs text-blue-700 dark:text-blue-300 ml-1">
-                                ({formatOdds(pick.betInfo.odds)})
-                              </span>
                             </div>
                           </div>
                         </div>
                       )}
-                      {/* Odds display */}
-                      <div className="flex items-center gap-2">
-                        {pick.betInfo.odds === 0 && pick.bookmaker.key === 'manual' ? (
-                          <div className="mt-2">
-                            {editingOdds === pick.id ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="number"
-                                  value={tempOdds}
-                                  onChange={(e) => setTempOdds(e.target.value)}
-                                  placeholder="Enter odds (e.g., -110)"
-                                  className="w-24 h-8 text-xs"
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleSaveOdds(pick.id)}
-                                  className="h-8 px-2"
-                                >
-                                  <Save className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={handleCancelEdit}
-                                  className="h-8 px-2"
-                                >
-                                  <X className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
-                                className="text-xs h-8 px-2"
-                              >
-                                <Edit3 className="w-3 h-3 mr-1" />
-                                Enter Odds
-                              </Button>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {formatOdds(pick.betInfo.odds)}
-                            </p>
-                            {pick.bookmaker.key === 'manual' && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEditOdds(pick.id, pick.betInfo.odds)}
-                                className="h-6 px-1 text-xs"
-                              >
-                                <Edit3 className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
                     </div>
 
                     {/* Bookmaker */}
