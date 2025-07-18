@@ -110,48 +110,50 @@ function scoreToGrade(score: number): string {
 // Unified Info Button Component with Dark Background
 function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
   const getGradeExplanation = (score: number, factorTitle: string): string => {
-    const grade = scoreToGrade(score);
-    
-    // Customized explanations based on factor type
+    // Customized explanations based on factor type matching user specifications
     switch (factorTitle) {
       case 'Betting Value':
-        if (score >= 90) return `${grade} (${score}) = Exceptional edge; line is mispriced in our favor`;
-        if (score >= 80) return `${grade} (${score}) = Solid value; odds slightly undervalue our side`;
-        if (score >= 75) return `${grade} (${score}) = Market-efficient or neutral`;
-        return `${grade} (${score}) = Little or no edge vs. market`;
+        if (score >= 90) return 'Exceptional edge; line is mispriced in our favor';
+        if (score >= 80) return 'Solid value; odds slightly undervalue our side';
+        if (score >= 75) return 'Market-efficient or neutral';
+        return 'Little or no edge vs. market';
         
       case 'Field Value':
-        if (score >= 85) return `${grade} (${score}) = Strong field factor benefiting this team`;
-        if (score >= 75) return `${grade} (${score}) = Slight to moderate favorable conditions`;
-        return `${grade} (${score}) = Stadium may favor opponent or suppress performance`;
+        if (score >= 85) return 'Strong field factor benefiting this team';
+        if (score >= 75) return 'Slight to moderate favorable conditions';
+        if (score === 75) return 'Neutral ballpark effect';
+        return 'Stadium may favor opponent or suppress performance';
         
       case 'Pitching Edge':
-        if (score >= 85) return `${grade} (${score}) = Clear pitching advantage`;
-        if (score >= 75) return `${grade} (${score}) = Above average edge`;
-        return `${grade} (${score}) = Possible disadvantage on the mound`;
+        if (score >= 85) return 'Clear pitching advantage';
+        if (score >= 75) return 'Above average edge';
+        if (score === 75) return 'Even matchup or average starter';
+        return 'Possible disadvantage on the mound';
         
       case 'Recent Form':
-        if (score >= 90) return `${grade} (${score}) = Team is red-hot`;
-        if (score >= 80) return `${grade} (${score}) = Consistently strong recent play`;
-        if (score >= 75) return `${grade} (${score}) = Neutral form or .500 record`;
-        return `${grade} (${score}) = Cold streak or downward trend`;
+        if (score >= 90) return 'Team is red-hot';
+        if (score >= 80) return 'Consistently strong recent play';
+        if (score >= 75) return 'Neutral form or .500 record';
+        return 'Cold streak or downward trend';
         
       case 'Weather Impact':
-        if (score >= 85) return `${grade} (${score}) = Conditions significantly favor our side`;
-        if (score >= 75) return `${grade} (${score}) = Slightly favorable weather`;
-        return `${grade} (${score}) = Weather may hurt our team's strengths`;
+        if (score >= 85) return 'Conditions significantly favor our side (e.g., wind out for hitters)';
+        if (score >= 75) return 'Slightly favorable weather';
+        if (score === 75) return 'Neutral conditions';
+        return 'Weather may hurt our team\'s strengths';
         
       case 'Offensive Edge':
-        if (score >= 85) return `${grade} (${score}) = Elite recent batting metrics`;
-        if (score >= 75) return `${grade} (${score}) = Slight offensive edge`;
-        return `${grade} (${score}) = Opponent may have better bats`;
+        if (score >= 85) return 'Elite recent batting metrics';
+        if (score >= 75) return 'Slight offensive edge';
+        if (score === 75) return 'Even matchup';
+        return 'Opponent may have better bats';
         
       default:
         // Fallback to generic explanation
-        if (score >= 90) return `${grade} (${score}) = Elite performance`;
-        if (score >= 80) return `${grade} (${score}) = Strong performance`;
-        if (score >= 75) return `${grade} (${score}) = Neutral baseline`;
-        return `${grade} (${score}) = Disadvantage`;
+        if (score >= 90) return 'Elite performance';
+        if (score >= 80) return 'Strong performance';
+        if (score >= 75) return 'Neutral baseline';
+        return 'Disadvantage';
     }
   };
 
