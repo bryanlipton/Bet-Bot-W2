@@ -509,13 +509,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    // Animal avatar options for server-side assignment - using Dicebear API
+    const animalAvatars = [
+      'https://api.dicebear.com/7.x/animals/svg?seed=bear&backgroundColor=c0aede',
+      'https://api.dicebear.com/7.x/animals/svg?seed=fox&backgroundColor=ffdfbf',
+      'https://api.dicebear.com/7.x/animals/svg?seed=owl&backgroundColor=d1d4f9',
+      'https://api.dicebear.com/7.x/animals/svg?seed=cat&backgroundColor=ffd5dc',
+      'https://api.dicebear.com/7.x/animals/svg?seed=dog&backgroundColor=c0aede',
+      'https://api.dicebear.com/7.x/animals/svg?seed=rabbit&backgroundColor=ffdfbf',
+      'https://api.dicebear.com/7.x/animals/svg?seed=penguin&backgroundColor=d1d4f9',
+      'https://api.dicebear.com/7.x/animals/svg?seed=panda&backgroundColor=ffd5dc',
+      'https://api.dicebear.com/7.x/animals/svg?seed=lion&backgroundColor=c0aede',
+      'https://api.dicebear.com/7.x/animals/svg?seed=tiger&backgroundColor=ffdfbf',
+      'https://api.dicebear.com/7.x/animals/svg?seed=elephant&backgroundColor=d1d4f9',
+      'https://api.dicebear.com/7.x/animals/svg?seed=koala&backgroundColor=ffd5dc',
+      'https://api.dicebear.com/7.x/animals/svg?seed=monkey&backgroundColor=c0aede',
+      'https://api.dicebear.com/7.x/animals/svg?seed=deer&backgroundColor=ffdfbf',
+      'https://api.dicebear.com/7.x/animals/svg?seed=wolf&backgroundColor=d1d4f9',
+      'https://api.dicebear.com/7.x/animals/svg?seed=sheep&backgroundColor=ffd5dc'
+    ];
+    
+    // If no profile image URL is provided, assign a random animal avatar
+    const getRandomAnimalAvatar = () => {
+      const randomIndex = Math.floor(Math.random() * animalAvatars.length);
+      return animalAvatars[randomIndex];
+    };
+    
+    const userDataWithAvatar = {
+      ...userData,
+      profileImageUrl: userData.profileImageUrl || getRandomAnimalAvatar()
+    };
+    
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values(userDataWithAvatar)
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          ...userData,
+          ...userDataWithAvatar,
           updatedAt: new Date(),
         },
       })

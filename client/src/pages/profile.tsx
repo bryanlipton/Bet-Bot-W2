@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
-import { ProfileImagePicker } from "@/components/ProfileImagePicker";
+import AvatarPicker from "@/components/AvatarPicker";
+import { getAvatarUrl, getRandomAnimalAvatar } from '@/data/avatars';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
@@ -221,10 +222,21 @@ export default function ProfilePage() {
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
       console.log("Sending profile update:", profileData);
-      return await apiRequest('/api/user/profile', {
+      const response = await fetch('/api/user/profile', {
         method: 'PATCH',
-        body: JSON.stringify(profileData)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       console.log("Profile update successful:", data);
@@ -322,7 +334,7 @@ export default function ProfilePage() {
               {/* Profile Picture with Edit Button */}
               <div className="relative">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={userProfile.profileImage} alt={userProfile.username} />
+                  <AvatarImage src={getAvatarUrl(userProfile.profileImage)} alt={userProfile.username} />
                   <AvatarFallback className="text-2xl font-bold bg-blue-600 text-white">
                     {userProfile.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -364,7 +376,7 @@ export default function ProfilePage() {
                           <Label>Profile Picture</Label>
                           <div className="flex items-center gap-4">
                             <Avatar className="w-16 h-16">
-                              <AvatarImage src={editForm.profileImage} alt="Preview" />
+                              <AvatarImage src={getAvatarUrl(editForm.profileImage)} alt="Preview" />
                               <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
                                 {editForm.username.charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -674,13 +686,12 @@ export default function ProfilePage() {
       </div>
       <Footer />
       
-      {/* Profile Image Picker Modal */}
-      <ProfileImagePicker
+      {/* Avatar Picker Modal */}
+      <AvatarPicker
         isOpen={isImagePickerOpen}
         onClose={() => setIsImagePickerOpen(false)}
-        currentImage={editForm.profileImage}
-        onImageSelect={handleImageSelect}
-        username={editForm.username}
+        currentAvatar={editForm.profileImage}
+        onSelect={handleImageSelect}
       />
     </div>
   );
