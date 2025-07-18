@@ -61,9 +61,9 @@ export function registerScoresRoutes(app: Express) {
       const data: MLBScoresResponse = await response.json();
       
       const scores = data.dates.flatMap(date => 
-        date.games.map(game => ({
-          id: `mlb_${game.gameId}`,
-          gameId: game.gameId,
+        date.games.map((game, index) => ({
+          id: `mlb_${game.gameId || `${date}_${index}`}`,
+          gameId: game.gameId || `${date}_${index}`,
           homeTeam: game.teams.home.team.name,
           awayTeam: game.teams.away.team.name,
           homeScore: game.teams.home.score,
