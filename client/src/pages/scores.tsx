@@ -392,7 +392,7 @@ export default function ScoresPage() {
             </div>
           )}
 
-          {/* Upcoming Games Section */}
+          {/* Scheduled Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
             return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
@@ -400,8 +400,8 @@ export default function ScoresPage() {
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-500" />
-                Upcoming Games
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                Scheduled Games
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
@@ -415,15 +415,15 @@ export default function ScoresPage() {
             </div>
           )}
 
-          {/* Final Games Section */}
+          {/* Finished Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
             return status.includes('final') || status.includes('completed') || status.includes('game over');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-blue-500" />
-                Final Games
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                Finished Games
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
@@ -555,7 +555,7 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
               {/* Status indicator */}
               <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 {isFinished ? (
-                  <span className="text-red-600 dark:text-red-400 font-bold">Final</span>
+                  <span className="text-red-600 dark:text-red-400 font-bold">F</span>
                 ) : isLive && game.inning ? (
                   <span className="text-orange-600 dark:text-orange-400 font-bold">
                     {formatInning(game.inning)}
