@@ -481,21 +481,48 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
   return (
     <Card className="bg-white dark:bg-gray-800 relative">
       <CardContent className="p-4">
-        {/* Status Badge positioned higher - aligned with first team's score */}
-        <div className="absolute top-2 right-3 flex flex-col items-end gap-1">
+        {/* Status Badge positioned at very top */}
+        <div className="absolute top-2 right-3">
           {getStatusBadge(game.status)}
-          {/* Show appropriate info based on game status */}
-          {isFinished ? (
-            <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
-          ) : isLive && game.inning ? (
-            <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{game.inning}</span>
-          ) : !isFinished && !isLive ? (
-            <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
-          ) : null}
         </div>
 
         {/* Teams and Scores */}
         <div className="pr-16 space-y-3">
+          {/* Away Team with time/inning aligned */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-4 h-4 rounded-full shadow-sm" 
+                style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+              />
+              <span className={`font-medium ${
+                isFinished && homeWon && !isTied 
+                  ? "text-gray-400 dark:text-gray-500" 
+                  : "text-gray-900 dark:text-white"
+              }`}>
+                {game.awayTeam}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {game.awayScore !== undefined && (
+                <span className={`text-xl font-bold ${
+                  isFinished && homeWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.awayScore}
+                </span>
+              )}
+              {/* Time/Inning aligned with away team */}
+              {isFinished ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400 w-12 text-center">F</span>
+              ) : isLive && game.inning ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400 w-12 text-center">{game.inning}</span>
+              ) : !isFinished && !isLive ? (
+                <span className="text-xs text-gray-500 dark:text-gray-400 w-12 text-center">{formatTime(game.startTime)}</span>
+              ) : null}
+            </div>
+          </div>
           {/* Away Team */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -537,15 +564,19 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {game.homeTeam}
               </span>
             </div>
-            {game.homeScore !== undefined && (
-              <span className={`text-xl font-bold ${
-                isFinished && awayWon && !isTied 
-                  ? "text-gray-400 dark:text-gray-500" 
-                  : "text-gray-900 dark:text-white"
-              }`}>
-                {game.homeScore}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {game.homeScore !== undefined && (
+                <span className={`text-xl font-bold ${
+                  isFinished && awayWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.homeScore}
+                </span>
+              )}
+              {/* Empty space to align with away team layout */}
+              <span className="w-12"></span>
+            </div>
           </div>
           
 
