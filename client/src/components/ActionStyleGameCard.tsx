@@ -130,18 +130,24 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   const calculateOverallGrade = () => {
     if (!analysisData) return 'C+';
     
-    // Handle different data structures
+    // Use the grade from the API if available
     if (analysisData.overall?.grade) {
       return analysisData.overall.grade;
     }
     
+    // Use confidence score if available
+    if (analysisData.overall?.confidence) {
+      return scoreToGrade(analysisData.overall.confidence);
+    }
+    
+    // Fallback to calculating from individual factor scores
     const scores = [
-      analysisData.bettingValue || analysisData.factors?.bettingValue?.score,
-      analysisData.fieldValue || analysisData.factors?.ballparkAdvantage?.score,
-      analysisData.pitchingEdge || analysisData.factors?.pitchingEdge?.score,
-      analysisData.recentForm || analysisData.factors?.recentForm?.score,
-      analysisData.weatherImpact || analysisData.factors?.weatherConditions?.score,
-      analysisData.offensiveEdge || analysisData.factors?.offensivePower?.score
+      analysisData.factors?.valueScore?.score,
+      analysisData.factors?.ballparkFactor?.score,
+      analysisData.factors?.pitchingMatchup?.score,
+      analysisData.factors?.situationalEdge?.score,
+      analysisData.factors?.weatherImpact?.score,
+      analysisData.factors?.offensiveEdge?.score
     ].filter(score => score !== null && score !== undefined && !isNaN(score) && score > 0);
     
     if (scores.length === 0) return 'C+';
@@ -208,12 +214,36 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   }
 
   const factors = [
-    { key: 'bettingValue', score: analysisData.bettingValue || analysisData.factors?.bettingValue?.score },
-    { key: 'fieldValue', score: analysisData.fieldValue || analysisData.factors?.ballparkAdvantage?.score },
-    { key: 'pitchingEdge', score: analysisData.pitchingEdge || analysisData.factors?.pitchingEdge?.score },
-    { key: 'recentForm', score: analysisData.recentForm || analysisData.factors?.recentForm?.score },
-    { key: 'weatherImpact', score: analysisData.weatherImpact || analysisData.factors?.weatherConditions?.score },
-    { key: 'offensiveEdge', score: analysisData.offensiveEdge || analysisData.factors?.offensivePower?.score }
+    { 
+      key: 'bettingValue', 
+      score: analysisData.bettingValue || analysisData.factors?.valueScore?.score,
+      description: analysisData.factors?.valueScore?.description
+    },
+    { 
+      key: 'fieldValue', 
+      score: analysisData.fieldValue || analysisData.factors?.ballparkFactor?.score,
+      description: analysisData.factors?.ballparkFactor?.description
+    },
+    { 
+      key: 'pitchingEdge', 
+      score: analysisData.pitchingEdge || analysisData.factors?.pitchingMatchup?.score,
+      description: analysisData.factors?.pitchingMatchup?.description
+    },
+    { 
+      key: 'recentForm', 
+      score: analysisData.recentForm || analysisData.factors?.situationalEdge?.score,
+      description: analysisData.factors?.situationalEdge?.description
+    },
+    { 
+      key: 'weatherImpact', 
+      score: analysisData.weatherImpact || analysisData.factors?.weatherImpact?.score,
+      description: analysisData.factors?.weatherImpact?.description
+    },
+    { 
+      key: 'offensiveEdge', 
+      score: analysisData.offensiveEdge || analysisData.factors?.offensiveEdge?.score,
+      description: analysisData.factors?.offensiveEdge?.description
+    }
   ];
 
   return (
@@ -258,14 +288,24 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
             <div>
               <h3 className="text-lg font-semibold mb-3">Analysis Factors</h3>
               <div className="space-y-4">
-                {factors.map(({ key, score }) => (
+                {factors.map(({ key, score, description }) => (
                   <div key={key} className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{getFactorTitle(key)}</span>
-                      <span className="font-bold">{score !== null && score !== undefined && !isNaN(score) ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                      <span className="font-bold">{
+                        score !== null && score !== undefined && !isNaN(score) && score > 0 
+                          ? `${scoreToGrade(score)} (${score}/100)` 
+                          : 'Analyzed'
+                      }</span>
                     </div>
-                    <Progress value={score || 0} className="h-2" />
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{getFactorInfo(key)}</p>
+                    {score !== null && score !== undefined && !isNaN(score) && score > 0 ? (
+                      <Progress value={score} className="h-2" />
+                    ) : (
+                      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                    )}
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {description || getFactorInfo(key)}
+                    </p>
                   </div>
                 ))}
               </div>
