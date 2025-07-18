@@ -46,7 +46,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
                 />
               )}
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium hidden lg:block">
-                the AI-driven sports analysis company optimized for you
+                AI-powered sports insights, personalized for you
               </p>
             </div>
 
