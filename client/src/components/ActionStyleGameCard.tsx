@@ -559,8 +559,8 @@ export function ActionStyleGameCard({
     <Card 
       className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
     >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
           <div className="flex items-center gap-2">
             {isLive && (
               <Badge variant="destructive" className="text-xs px-2">
@@ -577,29 +577,29 @@ export function ActionStyleGameCard({
         </div>
 
         {/* Header with Pick Column */}
-        <div className="grid grid-cols-5 gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
-          <div className="col-span-2">Teams</div>
-          <div className="text-center">Odds</div>
-          <div className="text-center">Pick</div>
-          <div className="text-center">Bet Bot Pick</div>
+        <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="col-span-2 text-xs sm:text-sm">Teams</div>
+          <div className="text-center text-xs sm:text-sm">Odds</div>
+          <div className="text-center text-xs sm:text-sm">Pick</div>
+          <div className="text-center text-xs sm:text-sm">Bet Bot Pick</div>
         </div>
 
         {/* Teams and Odds */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {/* Away Team */}
-          <div className="grid grid-cols-5 gap-2 items-center">
-            <div className="col-span-2 flex items-center gap-3">
+          <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-2 sm:gap-3">
               <div 
-                className="w-4 h-4 rounded-full shadow-sm" 
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
                 style={{ backgroundColor: getTeamColor(awayTeam) }}
               />
-              <p className="font-medium text-sm text-gray-900 dark:text-white">{awayTeam}</p>
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{awayTeam}</p>
             </div>
             
             <div className="flex items-center justify-center">
-              <span className="text-sm font-bold text-gray-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 {awayOdds ? formatOdds(awayOdds) : (
-                  <span className="text-gray-400 dark:text-gray-500 text-sm">
+                  <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
                     Lines not posted
                   </span>
                 )}
@@ -611,7 +611,7 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
-                  className="text-xs px-3 py-1 h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
                   style={{ backgroundColor: getTeamColor(awayTeam) }}
                 >
                   Pick
@@ -643,19 +643,19 @@ export function ActionStyleGameCard({
           </div>
 
           {/* Home Team */}
-          <div className="grid grid-cols-5 gap-2 items-center">
-            <div className="col-span-2 flex items-center gap-3">
+          <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-2 sm:gap-3">
               <div 
-                className="w-4 h-4 rounded-full shadow-sm" 
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
                 style={{ backgroundColor: getTeamColor(homeTeam) }}
               />
-              <p className="font-medium text-sm text-gray-900 dark:text-white">{homeTeam}</p>
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{homeTeam}</p>
             </div>
             
             <div className="flex items-center justify-center">
-              <span className="text-sm font-bold text-gray-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 {homeOdds ? formatOdds(homeOdds) : (
-                  <span className="text-gray-400 dark:text-gray-500 text-sm">
+                  <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
                     Lines not posted
                   </span>
                 )}
@@ -667,7 +667,7 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
-                  className="text-xs px-3 py-1 h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
                   style={{ backgroundColor: getTeamColor(homeTeam) }}
                 >
                   Pick
@@ -700,7 +700,7 @@ export function ActionStyleGameCard({
         </div>
 
         {/* Betting Lines */}
-        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 gap-3 sm:gap-0">
           {/* Spread Section */}
           <div className="text-center space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
@@ -714,10 +714,10 @@ export function ActionStyleGameCard({
                   
                   return (
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                         {favoredTeam} -{favoredSpread}
                       </p>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 justify-center">
                         <Button
                           size="sm"
                           onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
@@ -739,10 +739,10 @@ export function ActionStyleGameCard({
               </>
             ) : (
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500">
                   Spread TBD
                 </p>
-                <div className="flex gap-1">
+                <div className="flex gap-1 justify-center">
                   <Button
                     size="sm"
                     disabled
@@ -767,10 +767,10 @@ export function ActionStyleGameCard({
             <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
             {total !== undefined && total !== null ? (
               <>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                   O/U {total}
                 </p>
-                <div className="flex gap-1">
+                <div className="flex gap-1 justify-center">
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
@@ -789,10 +789,10 @@ export function ActionStyleGameCard({
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500">
                   O/U TBD
                 </p>
-                <div className="flex gap-1">
+                <div className="flex gap-1 justify-center">
                   <Button
                     size="sm"
                     variant="outline"

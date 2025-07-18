@@ -253,42 +253,42 @@ export function ActionStyleDashboard() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
 
       {/* Pick of the Day Section - Always visible above sports */}
       <div className="space-y-4">
         {!authLoading && !isAuthenticated && (
           <div className="mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
-            <h4 className="font-semibold text-white">Tired of guessing?</h4>
-            <p className="text-sm text-blue-100 leading-relaxed">
+            <h4 className="font-semibold text-white text-sm sm:text-base">Tired of guessing?</h4>
+            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
               Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
             </p>
           </div>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white underline">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white underline">
               Bet Bot Sports Genie AI Picks
             </h2>
           </div>
-          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none">
+          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto">
             Free Users
           </Badge>
         </div>
         {/* Side-by-side layout for picks */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <DailyPick />
           <LoggedInLockPick />
         </div>
       </div>
 
       {/* Sports Navigation */}
-      <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-2 sm:gap-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {sports.map((sport) => (
           <button
             key={sport.key}
             onClick={() => setSelectedSport(sport.key)}
-            className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors ${
+            className={`py-3 px-2 sm:px-4 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${
               selectedSport === sport.key
                 ? "border-blue-500 text-blue-600 dark:text-blue-400"
                 : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -301,46 +301,46 @@ export function ActionStyleDashboard() {
 
       {/* Featured Games */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+          <div className="flex-1">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               {selectedSport === 'baseball_mlb' ? 'MLB Game Odds' : 
                selectedSport === 'americanfootball_nfl' ? 'NFL Game Odds' :
                selectedSport === 'basketball_nba' ? 'NBA Game Odds' : 
                `${sports.find(s => s.key === selectedSport)?.name} Game Odds`}
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
               Showing {featuredGames.length} upcoming games
               {featuredGames.length < 10 && (
-                <span className="ml-1">
+                <span className="hidden sm:inline ml-1">
                   • Some games may not have betting lines posted yet • Started games automatically removed
                 </span>
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetchOdds()}
               disabled={oddsLoading}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 text-xs sm:text-sm"
             >
               <RefreshCw className={`w-3 h-3 ${oddsLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Badge variant="outline" className="flex items-center gap-1">
+            <Badge variant="outline" className="flex items-center gap-1 text-xs">
               <Star className="w-3 h-3" />
-              Live Odds
+              <span className="hidden sm:inline">Live</span> Odds
             </Badge>
           </div>
         </div>
 
         {oddsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="space-y-3">
                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -353,7 +353,7 @@ export function ActionStyleDashboard() {
         ) : featuredGames.length > 0 ? (
           <div className="space-y-4">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {featuredGames.map((game) => (
                 <ActionStyleGameCard
                   key={game.id}

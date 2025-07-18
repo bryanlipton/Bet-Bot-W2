@@ -393,20 +393,20 @@ export default function DailyPick() {
 
   return (
     <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <BetBotIcon className="w-14 h-14" />
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <BetBotIcon className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0" />
             <div>
-              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+              <h3 className="font-bold text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
                 Pick of the Day
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
                 AI-based Data Analysis
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 self-start sm:self-auto">
             <GradeBadge grade={dailyPick.grade} />
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>

@@ -398,7 +398,7 @@ export default function LoggedInLockPick() {
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
-      <CardContent className="p-6 relative">
+      <CardContent className="p-4 sm:p-6 relative">
         {/* Blur overlay for non-authenticated users */}
         {!isAuthenticated && (
           <div 
@@ -406,11 +406,11 @@ export default function LoggedInLockPick() {
             onClick={() => window.location.href = '/api/login'}
           >
             <div className="text-center">
-              <Lock className="w-12 h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
-              <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100 mb-1">
+              <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
+              <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
                 Login for a Lock
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Click here to access your exclusive lock pick
               </p>
             </div>
@@ -418,11 +418,11 @@ export default function LoggedInLockPick() {
         )}
         
         <div className={!isAuthenticated ? 'blur-sm' : ''}>
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3 sm:gap-0">
           <div className="flex items-center space-x-3">
-            <BetBotIcon className="w-14 h-14" />
+            <BetBotIcon className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0" />
             <div>
-              <h3 className="font-bold text-2xl text-gray-900 dark:text-gray-100">
+              <h3 className="font-bold text-xl sm:text-2xl text-gray-900 dark:text-gray-100">
                 Logged in Lock of the Day
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
