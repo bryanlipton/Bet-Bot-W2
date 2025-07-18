@@ -478,20 +478,23 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
   const homeWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.homeScore > game.awayScore;
   const isTied = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore === game.homeScore;
 
+  const formatInning = (inning: string | undefined) => {
+    if (!inning) return undefined;
+    // Convert formats like "7T" to "T7" or "7B" to "B7"
+    if (inning.includes('T') || inning.includes('B')) {
+      const number = inning.replace(/[TB]/g, '');
+      const half = inning.includes('T') ? 'T' : 'B';
+      return `${half}${number}`;
+    }
+    return inning;
+  };
+
   return (
     <Card className="bg-white dark:bg-gray-800 relative">
-      <CardContent className="p-4">
-        {/* Status Badge positioned higher - aligned with first team's score */}
-        <div className="absolute top-2 right-3 flex flex-col items-end gap-1">
+      <CardContent className="p-4 pt-6">
+        {/* Status Badge positioned at top with more room */}
+        <div className="absolute top-2 right-3">
           {getStatusBadge(game.status)}
-          {/* Show appropriate info based on game status */}
-          {isFinished ? (
-            <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
-          ) : isLive && game.inning ? (
-            <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{game.inning}</span>
-          ) : !isFinished && !isLive ? (
-            <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
-          ) : null}
         </div>
 
         {/* Teams and Scores */}
@@ -511,15 +514,25 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {game.awayTeam}
               </span>
             </div>
-            {game.awayScore !== undefined && (
-              <span className={`text-xl font-bold ${
-                isFinished && homeWon && !isTied 
-                  ? "text-gray-400 dark:text-gray-500" 
-                  : "text-gray-900 dark:text-white"
-              }`}>
-                {game.awayScore}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {/* Inning/Time aligned with top team */}
+              {isFinished ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
+              ) : isLive && game.inning ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{formatInning(game.inning)}</span>
+              ) : !isFinished && !isLive ? (
+                <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
+              ) : null}
+              {game.awayScore !== undefined && (
+                <span className={`text-xl font-bold ${
+                  isFinished && homeWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.awayScore}
+                </span>
+              )}
+            </div>
           </div>
           
           {/* Home Team */}
@@ -537,18 +550,20 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {game.homeTeam}
               </span>
             </div>
-            {game.homeScore !== undefined && (
-              <span className={`text-xl font-bold ${
-                isFinished && awayWon && !isTied 
-                  ? "text-gray-400 dark:text-gray-500" 
-                  : "text-gray-900 dark:text-white"
-              }`}>
-                {game.homeScore}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {/* Empty space to maintain alignment with top row */}
+              <div className="w-12"></div>
+              {game.homeScore !== undefined && (
+                <span className={`text-xl font-bold ${
+                  isFinished && awayWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.homeScore}
+                </span>
+              )}
+            </div>
           </div>
-          
-
           
           {/* Live game details */}
           {game.liveDetails && (
