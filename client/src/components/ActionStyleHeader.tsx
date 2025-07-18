@@ -90,7 +90,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
                       Our Mission
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      At Bet Bot, we believe in empowering sports bettors with intelligent, data-driven insights that transform casual betting into strategic decision-making. Our mission is to democratize access to professional-grade sports analytics, making advanced betting intelligence accessible to everyone.
+                      At Bet Bot Sports Genie AI, we believe in empowering sports bettors with intelligent, data-driven insights that transform casual betting into strategic decision-making. Our mission is to make sports betting easy and data-backed with the power of AI-analysis.
                     </p>
                   </section>
 
