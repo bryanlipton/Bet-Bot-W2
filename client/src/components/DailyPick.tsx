@@ -528,7 +528,7 @@ export default function DailyPick() {
                   className="md:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
-                  Analysis
+                  Show Analysis
                   {mobileAnalysisOpen ? (
                     <ChevronUp className="w-3 h-3 ml-1" />
                   ) : (

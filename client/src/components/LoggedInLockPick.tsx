@@ -552,7 +552,7 @@ export default function LoggedInLockPick() {
                   className="md:hidden flex items-center text-xs text-amber-600 dark:text-amber-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
-                  Analysis
+                  Show Analysis
                   {mobileAnalysisOpen ? (
                     <ChevronUp className="w-3 h-3 ml-1" />
                   ) : (
