@@ -380,7 +380,7 @@ export default function ScoresPage() {
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 Live Games
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
                   return (status.includes('live') || status.includes('progress') || status.includes('in progress') || game.inning) && 
@@ -403,7 +403,7 @@ export default function ScoresPage() {
                 <Clock className="w-5 h-5 text-blue-500" />
                 Upcoming Games
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
                   return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
@@ -425,7 +425,7 @@ export default function ScoresPage() {
                 <Trophy className="w-5 h-5 text-blue-500" />
                 Final Games
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
                   return status.includes('final') || status.includes('completed') || status.includes('game over');
@@ -490,23 +490,19 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
   };
 
   return (
-    <Card className="bg-white dark:bg-gray-800 relative">
-      <CardContent className="p-4 pt-8">
-        {/* Status Badge positioned higher at very top */}
-        <div className="absolute top-1 right-3">
-          {getStatusBadge(game.status)}
-        </div>
-
-        {/* Teams and Scores */}
-        <div className="pr-16 space-y-3">
-          {/* Away Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+    <Card className="bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        {/* Horizontal layout inspired by the image */}
+        <div className="flex items-center justify-between">
+          {/* Left side - Teams */}
+          <div className="flex-1 space-y-2">
+            {/* Away Team */}
+            <div className="flex items-center gap-2">
               <div 
-                className="w-4 h-4 rounded-full shadow-sm" 
+                className="w-3 h-3 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(game.awayTeam) }}
               />
-              <span className={`font-medium ${
+              <span className={`text-sm font-medium ${
                 isFinished && homeWon && !isTied 
                   ? "text-gray-400 dark:text-gray-500" 
                   : "text-gray-900 dark:text-white"
@@ -514,35 +510,14 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {game.awayTeam}
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              {game.awayScore !== undefined && (
-                <span className={`text-xl font-bold ${
-                  isFinished && homeWon && !isTied 
-                    ? "text-gray-400 dark:text-gray-500" 
-                    : "text-gray-900 dark:text-white"
-                }`}>
-                  {game.awayScore}
-                </span>
-              )}
-              {/* Inning/Time to the right of score */}
-              {isFinished ? (
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
-              ) : isLive && game.inning ? (
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{formatInning(game.inning)}</span>
-              ) : !isFinished && !isLive ? (
-                <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
-              ) : null}
-            </div>
-          </div>
-          
-          {/* Home Team */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            
+            {/* Home Team */}
+            <div className="flex items-center gap-2">
               <div 
-                className="w-4 h-4 rounded-full shadow-sm" 
+                className="w-3 h-3 rounded-full shadow-sm" 
                 style={{ backgroundColor: getTeamColor(game.homeTeam) }}
               />
-              <span className={`font-medium ${
+              <span className={`text-sm font-medium ${
                 isFinished && awayWon && !isTied 
                   ? "text-gray-400 dark:text-gray-500" 
                   : "text-gray-900 dark:text-white"
@@ -550,31 +525,60 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {game.homeTeam}
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              {game.homeScore !== undefined && (
-                <span className={`text-xl font-bold ${
-                  isFinished && awayWon && !isTied 
-                    ? "text-gray-400 dark:text-gray-500" 
-                    : "text-gray-900 dark:text-white"
-                }`}>
-                  {game.homeScore}
-                </span>
+          </div>
+
+          {/* Right side - Scores and Status */}
+          <div className="flex items-center gap-4">
+            {/* Scores */}
+            <div className="text-right space-y-2">
+              {/* Away Score */}
+              <div className={`text-lg font-bold ${
+                isFinished && homeWon && !isTied 
+                  ? "text-gray-400 dark:text-gray-500" 
+                  : "text-gray-900 dark:text-white"
+              }`}>
+                {game.awayScore !== undefined ? game.awayScore : '-'}
+              </div>
+              
+              {/* Home Score */}
+              <div className={`text-lg font-bold ${
+                isFinished && awayWon && !isTied 
+                  ? "text-gray-400 dark:text-gray-500" 
+                  : "text-gray-900 dark:text-white"
+              }`}>
+                {game.homeScore !== undefined ? game.homeScore : '-'}
+              </div>
+            </div>
+
+            {/* Game Status */}
+            <div className="text-right space-y-1">
+              {/* Status indicator */}
+              <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                {isFinished ? (
+                  <span className="text-red-600 dark:text-red-400 font-bold">Final</span>
+                ) : isLive && game.inning ? (
+                  <span className="text-orange-600 dark:text-orange-400 font-bold">
+                    {formatInning(game.inning)}
+                  </span>
+                ) : !isFinished && !isLive ? (
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {formatTime(game.startTime)}
+                  </span>
+                ) : null}
+              </div>
+              
+              {/* Live details */}
+              {game.liveDetails && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {game.liveDetails.balls !== undefined && game.liveDetails.strikes !== undefined && game.liveDetails.outs !== undefined && (
+                    <span>
+                      {game.liveDetails.balls}-{game.liveDetails.strikes}, {game.liveDetails.outs} out
+                    </span>
+                  )}
+                </div>
               )}
-              {/* Empty space to maintain alignment with inning/time above */}
-              <div className="w-12"></div>
             </div>
           </div>
-          
-          {/* Live game details */}
-          {game.liveDetails && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              {game.liveDetails.balls !== undefined && game.liveDetails.strikes !== undefined && game.liveDetails.outs !== undefined && (
-                <span>
-                  {game.liveDetails.balls}-{game.liveDetails.strikes}, {game.liveDetails.outs} out
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
