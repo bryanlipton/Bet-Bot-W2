@@ -20,6 +20,8 @@ export function registerUserProfileRoutes(app: Express) {
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       console.log("Profile update request received");
+      console.log("req.isAuthenticated():", req.isAuthenticated());
+      console.log("req.user:", req.user);
       console.log("User:", req.user?.claims?.sub);
       console.log("Request body:", req.body);
       

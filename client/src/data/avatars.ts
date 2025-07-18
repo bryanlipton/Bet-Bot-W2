@@ -24,10 +24,14 @@ export function getRandomAnimalAvatar(): string {
   return animalAvatars[randomIndex];
 }
 
-// Function to get avatar URL with fallback
-export function getAvatarUrl(profileImageUrl?: string | null): string {
+// Function to get avatar URL with fallback (consistent seed for new users)
+export function getAvatarUrl(profileImageUrl?: string | null, userId?: string): string {
   if (profileImageUrl && profileImageUrl !== '') {
     return profileImageUrl;
+  }
+  // Use user ID as seed for consistent avatar generation
+  if (userId) {
+    return `https://api.dicebear.com/9.x/adventurer/svg?seed=${userId}&backgroundColor=c0aede`;
   }
   return getRandomAnimalAvatar();
 }

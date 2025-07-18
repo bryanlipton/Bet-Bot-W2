@@ -202,7 +202,7 @@ export default function ProfilePage() {
     id: user?.id || '1',
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
-    profileImage: user?.profileImageUrl,
+    profileImage: getAvatarUrl(user?.profileImageUrl, user?.id),
     followers: user?.followers || 0,
     following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
@@ -263,7 +263,7 @@ export default function ProfilePage() {
       setEditForm({
         username: user.username || user.firstName || user.email?.split('@')[0] || '',
         bio: user.bio || '',
-        profileImage: user.profileImageUrl || ''
+        profileImage: user.profileImageUrl || getAvatarUrl(user.profileImageUrl, user.id)
       });
       setPrivacySettings({
         totalPicksPublic: user.totalPicksPublic ?? true,
