@@ -34,7 +34,8 @@ import {
   Eye,
   EyeOff,
   Camera,
-  Flame
+  Flame,
+  Lock
 } from "lucide-react";
 
 interface UserProfile {

@@ -201,6 +201,7 @@ export default function LoggedInLockPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
+  const [mediumAnalysisOpen, setMediumAnalysisOpen] = useState(false);
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
@@ -679,10 +680,10 @@ export default function LoggedInLockPick() {
         <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             className="flex items-center justify-center w-full text-xs text-amber-600 dark:text-amber-400 py-2"
-            onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+            onClick={() => setMediumAnalysisOpen(!mediumAnalysisOpen)}
           >
             Show Analysis
-            {mobileAnalysisOpen ? (
+            {mediumAnalysisOpen ? (
               <ChevronUp className="w-3 h-3 ml-1" />
             ) : (
               <ChevronDown className="w-3 h-3 ml-1" />
@@ -690,7 +691,7 @@ export default function LoggedInLockPick() {
           </button>
           
           {/* Medium-size analysis factors dropdown */}
-          {mobileAnalysisOpen && (
+          {mediumAnalysisOpen && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
               <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
                 Analysis Factors
