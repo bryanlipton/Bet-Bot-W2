@@ -524,9 +524,9 @@ export default function DailyPick() {
             </div>
           </div>
 
-          {/* Right side - Factor scores in 2 columns x 3 rows */}
-          <div className="w-80">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1">
+          {/* Right side - Factor scores (desktop) or Show Analysis button (mobile) */}
+          <div className="w-80 hidden md:block">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
               Analysis Factors
             </h5>
             
@@ -536,6 +536,21 @@ export default function DailyPick() {
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
             </div>
+          </div>
+
+          {/* Mobile Show Analysis Button */}
+          <div className="md:hidden flex-shrink-0">
+            <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs px-3 py-2 h-auto bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900 dark:border-blue-800 dark:text-blue-300"
+                >
+                  Show Analysis
+                </Button>
+              </DialogTrigger>
+            </Dialog>
           </div>
         </div>
       </CardContent>

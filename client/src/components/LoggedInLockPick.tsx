@@ -548,9 +548,9 @@ export default function LoggedInLockPick() {
             </div>
           </div>
 
-          {/* Right side - Factor scores in 2 columns x 3 rows */}
-          <div className="w-80">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1">
+          {/* Right side - Factor scores (desktop) or Show Analysis button (mobile) */}
+          <div className="w-80 hidden md:block">
+            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
               Analysis Factors
             </h5>
             
@@ -560,6 +560,21 @@ export default function LoggedInLockPick() {
                 <FactorScore key={key} title={title} score={score} info={info} />
               ))}
             </div>
+          </div>
+
+          {/* Mobile Show Analysis Button */}
+          <div className="md:hidden flex-shrink-0">
+            <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs px-3 py-2 h-auto bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700 dark:bg-amber-950 dark:hover:bg-amber-900 dark:border-amber-800 dark:text-amber-300"
+                >
+                  Show Analysis
+                </Button>
+              </DialogTrigger>
+            </Dialog>
           </div>
         </div>
         </div>
