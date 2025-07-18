@@ -323,7 +323,7 @@ export default function DailyPick() {
                 Pick of the Day
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                AI-Powered Baseball Analysis
+                AI-Powered Backed Analysis
               </p>
             </div>
           </div>
