@@ -491,9 +491,9 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
 
   return (
     <Card className="bg-white dark:bg-gray-800 relative">
-      <CardContent className="p-4 pt-6">
-        {/* Status Badge positioned at top with more room */}
-        <div className="absolute top-2 right-3">
+      <CardContent className="p-4 pt-8">
+        {/* Status Badge positioned higher at very top */}
+        <div className="absolute top-1 right-3">
           {getStatusBadge(game.status)}
         </div>
 
@@ -515,14 +515,6 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              {/* Inning/Time aligned with top team */}
-              {isFinished ? (
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
-              ) : isLive && game.inning ? (
-                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{formatInning(game.inning)}</span>
-              ) : !isFinished && !isLive ? (
-                <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
-              ) : null}
               {game.awayScore !== undefined && (
                 <span className={`text-xl font-bold ${
                   isFinished && homeWon && !isTied 
@@ -532,6 +524,14 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   {game.awayScore}
                 </span>
               )}
+              {/* Inning/Time to the right of score */}
+              {isFinished ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">F</span>
+              ) : isLive && game.inning ? (
+                <span className="text-sm font-bold text-gray-600 dark:text-gray-400">{formatInning(game.inning)}</span>
+              ) : !isFinished && !isLive ? (
+                <span className="text-xs text-gray-500 dark:text-gray-400">{formatTime(game.startTime)}</span>
+              ) : null}
             </div>
           </div>
           
@@ -551,8 +551,6 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
               </span>
             </div>
             <div className="flex items-center gap-3">
-              {/* Empty space to maintain alignment with top row */}
-              <div className="w-12"></div>
               {game.homeScore !== undefined && (
                 <span className={`text-xl font-bold ${
                   isFinished && awayWon && !isTied 
@@ -562,6 +560,8 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                   {game.homeScore}
                 </span>
               )}
+              {/* Empty space to maintain alignment with inning/time above */}
+              <div className="w-12"></div>
             </div>
           </div>
           
