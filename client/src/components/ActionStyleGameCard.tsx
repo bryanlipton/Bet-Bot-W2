@@ -700,118 +700,239 @@ export function ActionStyleGameCard({
         </div>
 
         {/* Betting Lines */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 gap-3 sm:gap-0">
-          {/* Spread Section */}
-          <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
-            {spread !== undefined && spread !== null ? (
-              <>
-                {(() => {
-                  // Determine which team is favored (negative spread = favored)
-                  const isFavoredHome = spread < 0;
-                  const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
-                  const favoredSpread = Math.abs(spread);
-                  
-                  return (
-                    <div className="space-y-1">
-                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                        {favoredTeam} -{favoredSpread}
-                      </p>
-                      <div className="flex gap-1 justify-center">
-                        <Button
-                          size="sm"
-                          onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
-                          className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
-                        >
-                          Pick
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
-                          className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
-                        >
-                          Fade
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </>
-            ) : (
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500">
-                  Spread TBD
-                </p>
-                <div className="flex gap-1 justify-center">
-                  <Button
-                    size="sm"
-                    disabled
-                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
-                  >
-                    Pick
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled
-                    className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
-                  >
-                    Fade
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          {/* Mobile: Side-by-side Spread and Total, Desktop: Separated */}
           
-          {/* Total Section */}
-          <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
-            {total !== undefined && total !== null ? (
-              <>
-                <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                  O/U {total}
-                </p>
-                <div className="flex gap-1 justify-center">
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
-                    className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    O
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
-                    className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    U
-                  </Button>
+          {/* Mobile Layout: Spread and Total side by side */}
+          <div className="flex sm:hidden gap-1">
+            {/* Spread Section - Left Half */}
+            <div className="flex-1 text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+              {spread !== undefined && spread !== null ? (
+                <>
+                  {(() => {
+                    // Determine which team is favored (negative spread = favored)
+                    const isFavoredHome = spread < 0;
+                    const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                    const favoredSpread = Math.abs(spread);
+                    
+                    return (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-gray-900 dark:text-white">
+                          {favoredTeam} -{favoredSpread}
+                        </p>
+                        <div className="flex gap-1 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                            className="text-xs px-1.5 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Pick
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                            className="text-xs px-1.5 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Fade
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                    Spread TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-1.5 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-1.5 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Fade
+                    </Button>
+                  </div>
                 </div>
-              </>
-            ) : (
-              <>
-                <p className="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500">
-                  O/U TBD
-                </p>
-                <div className="flex gap-1 justify-center">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled
-                    className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
-                  >
-                    O
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled
-                    className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
-                  >
-                    U
-                  </Button>
+              )}
+            </div>
+
+            {/* Total Section - Right Half */}
+            <div className="flex-1 text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              {total !== undefined && total !== null ? (
+                <>
+                  <p className="text-xs font-medium text-gray-900 dark:text-white">
+                    O/U {total}
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
+                      className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
+                      className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                    O/U TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Layout: Spread and Total separated */}
+          <div className="hidden sm:flex sm:justify-between sm:items-center gap-3">
+            {/* Spread Section */}
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+              {spread !== undefined && spread !== null ? (
+                <>
+                  {(() => {
+                    // Determine which team is favored (negative spread = favored)
+                    const isFavoredHome = spread < 0;
+                    const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                    const favoredSpread = Math.abs(spread);
+                    
+                    return (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {favoredTeam} -{favoredSpread}
+                        </p>
+                        <div className="flex gap-1 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                            className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Pick
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                            className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Fade
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                    Spread TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Fade
+                    </Button>
+                  </div>
                 </div>
-              </>
-            )}
+              )}
+            </div>
+
+            {/* Total Section */}
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              {total !== undefined && total !== null ? (
+                <>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    O/U {total}
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
+                      className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
+                      className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                    O/U TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
