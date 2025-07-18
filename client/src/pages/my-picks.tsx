@@ -91,7 +91,7 @@ export default function MyPicksPage() {
     const loadPicks = () => {
       try {
         // Load from localStorage for now
-        const localPicks = pickStorage.getAllPicks();
+        const localPicks = pickStorage.getPicks();
         setPicks(localPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
         

@@ -2,7 +2,7 @@
 
 import { Pick, PickStorageService } from '@/types/picks';
 
-const STORAGE_KEY = 'betbot_user_picks';
+const STORAGE_KEY = 'bet-bot-picks';
 
 class LocalPickStorageService implements PickStorageService {
   private generateId(): string {
@@ -115,6 +115,25 @@ class LocalPickStorageService implements PickStorageService {
 
   getRecentPicks(limit: number = 10): Pick[] {
     return this.getStoredPicks().slice(0, limit);
+  }
+
+  // Bet unit methods
+  getBetUnit(): number {
+    try {
+      const saved = localStorage.getItem('bet-bot-bet-unit');
+      return saved ? parseFloat(saved) : 10;
+    } catch (error) {
+      console.error('Error reading bet unit from localStorage:', error);
+      return 10;
+    }
+  }
+
+  setBetUnit(amount: number): void {
+    try {
+      localStorage.setItem('bet-bot-bet-unit', amount.toString());
+    } catch (error) {
+      console.error('Error saving bet unit to localStorage:', error);
+    }
   }
 }
 
