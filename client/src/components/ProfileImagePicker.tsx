@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Camera } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SPORTS_ICONS } from '@/assets/sports-icons';
+import baseballImage from "@assets/image_1752879761087.jpg";
 
 interface ProfileImagePickerProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ const SPORTS_IMAGES = [
   {
     id: 'baseball',
     name: 'Baseball',
-    url: SPORTS_ICONS.baseball
+    url: baseballImage
   },
   {
     id: 'football',
