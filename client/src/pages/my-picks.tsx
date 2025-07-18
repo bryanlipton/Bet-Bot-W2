@@ -511,17 +511,6 @@ export default function MyPicksPage() {
             <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
           </div>
-          {picks.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={clearAllPicks}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear All
-            </Button>
-          )}
         </div>
 
         {/* Stats Cards */}
