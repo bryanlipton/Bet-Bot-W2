@@ -106,7 +106,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
                           <BarChart3 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5" />
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">AI-Powered Analysis</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Advanced machine learning models analyze dozens of factors including weather, ballpark conditions, and team performance.</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Advanced machine learning models analyze dozens of factors including weather, field conditions, projected team performance and past team performance.</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
