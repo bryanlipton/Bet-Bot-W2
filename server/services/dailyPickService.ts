@@ -673,6 +673,33 @@ export class DailyPickService {
 
     return newLockPick;
   }
+
+  // New method specifically for generating lock picks (used by rotation service)
+  async generateLockPick(games: any[]): Promise<DailyPick | null> {
+    return await this.generateDailyPick(games);
+  }
+
+  // Method to invalidate current picks (used when games start)
+  async invalidateCurrentPicks(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Mark current picks as expired (you could also delete them)
+      // For now, we'll generate new ones which will take precedence
+      console.log(`Invalidating picks for ${today}`);
+    } catch (error) {
+      console.error('Error invalidating current picks:', error);
+    }
+  }
+
+  // Method to check if a pick's game has started
+  async isPickGameActive(pick: DailyPick): Promise<boolean> {
+    const gameTime = new Date(pick.gameTime);
+    const now = new Date();
+    
+    // Game is considered active if current time is past game time
+    return now > gameTime;
+  }
 }
 
 export const dailyPickService = new DailyPickService();

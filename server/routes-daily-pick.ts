@@ -1,5 +1,6 @@
 import { Express, Request, Response } from "express";
 import { dailyPickService } from "./services/dailyPickService";
+import { pickRotationService } from "./services/pickRotationService";
 import { isAuthenticated } from "./replitAuth";
 
 export function registerDailyPickRoutes(app: Express) {
@@ -219,6 +220,73 @@ export function registerDailyPickRoutes(app: Express) {
     } catch (error) {
       console.error("Failed to generate lock pick:", error);
       res.status(500).json({ error: "Failed to generate lock pick" });
+    }
+  });
+
+  // Manual rotation endpoint for testing/admin use
+  app.post("/api/daily-pick/rotate", async (req: Request, res: Response) => {
+    try {
+      console.log('🔧 Manual pick rotation triggered via API');
+      await pickRotationService.manualRotation();
+      res.json({ 
+        success: true, 
+        message: "Pick rotation completed successfully",
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Failed to rotate picks:", error);
+      res.status(500).json({ error: "Failed to rotate picks" });
+    }
+  });
+
+  // Get rotation status endpoint
+  app.get("/api/daily-pick/status", async (req: Request, res: Response) => {
+    try {
+      const dailyPick = await dailyPickService.getTodaysPick();
+      const lockPick = await dailyPickService.getTodaysLockPick();
+      
+      let dailyPickStatus = 'none';
+      let lockPickStatus = 'none';
+      
+      if (dailyPick) {
+        const gameTime = new Date(dailyPick.gameTime);
+        const now = new Date();
+        if (now > gameTime) {
+          dailyPickStatus = 'game_started';
+        } else {
+          dailyPickStatus = 'active';
+        }
+      }
+      
+      if (lockPick) {
+        const gameTime = new Date(lockPick.gameTime);
+        const now = new Date();
+        if (now > gameTime) {
+          lockPickStatus = 'game_started';
+        } else {
+          lockPickStatus = 'active';
+        }
+      }
+      
+      res.json({
+        dailyPick: {
+          status: dailyPickStatus,
+          gameId: dailyPick?.gameId || null,
+          gameTime: dailyPick?.gameTime || null,
+          pickTeam: dailyPick?.pickTeam || null
+        },
+        lockPick: {
+          status: lockPickStatus,
+          gameId: lockPick?.gameId || null,
+          gameTime: lockPick?.gameTime || null,
+          pickTeam: lockPick?.pickTeam || null
+        },
+        nextRotationCheck: "Every 5 minutes",
+        next2AMRotation: "2:00 AM EST daily"
+      });
+    } catch (error) {
+      console.error("Failed to get rotation status:", error);
+      res.status(500).json({ error: "Failed to get rotation status" });
     }
   });
 }
