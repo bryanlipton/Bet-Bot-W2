@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
+import { ProfileImagePicker } from "@/components/ProfileImagePicker";
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';

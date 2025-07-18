@@ -17,6 +17,7 @@ export interface IStorage {
   // Users (Updated for Google OAuth and Stripe)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserProfile(id: string, profileData: any): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
