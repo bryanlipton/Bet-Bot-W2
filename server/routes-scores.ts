@@ -35,6 +35,55 @@ interface MLBScoresResponse {
 }
 
 export function registerScoresRoutes(app: Express) {
+  console.log('Registering scores routes...');
+  
+  // Get scores for specific date and sport
+  app.get("/api/mlb/scores/:date", async (req: Request, res: Response) => {
+    try {
+      const { date } = req.params;
+      
+      console.log(`MLB scores route called for date: ${date}`);
+      
+      // Set JSON response header
+      res.setHeader('Content-Type', 'application/json');
+      
+      console.log(`Fetching MLB scores for date: ${date}`);
+      
+      // Use MLB Stats API for scores
+      const response = await fetch(
+        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team,linescore`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`MLB API error: ${response.status}`);
+      }
+      
+      const data: MLBScoresResponse = await response.json();
+      
+      const scores = data.dates.flatMap(date => 
+        date.games.map(game => ({
+          id: `mlb_${game.gameId}`,
+          gameId: game.gameId,
+          homeTeam: game.teams.home.team.name,
+          awayTeam: game.teams.away.team.name,
+          homeScore: game.teams.home.score,
+          awayScore: game.teams.away.score,
+          status: game.status.detailedState,
+          abstractGameState: game.status.abstractGameState,
+          startTime: game.gameDate,
+          inning: game.linescore?.currentInning ? `${game.linescore.currentInning}${game.linescore.inningState?.charAt(0) || ''}` : undefined,
+          sportKey: 'baseball_mlb'
+        }))
+      );
+      
+      console.log(`Found ${scores.length} games for ${date}`);
+      res.json(scores);
+    } catch (error) {
+      console.error(`Error fetching scores for ${req.params.date}:`, error);
+      res.status(500).json({ error: "Failed to fetch scores" });
+    }
+  });
+
   // Get scores for different sports
   app.get("/api/scores/:sport", async (req: Request, res: Response) => {
     try {

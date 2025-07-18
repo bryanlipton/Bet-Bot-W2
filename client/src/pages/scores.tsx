@@ -110,7 +110,7 @@ export default function ScoresPage() {
 
   // Fetch real scores data based on selected sport
   const { data: scoresData, isLoading, refetch } = useQuery({
-    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/complete-schedule'] : ['/api/scores', selectedSport],
+    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]] : ['/api/scores', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
