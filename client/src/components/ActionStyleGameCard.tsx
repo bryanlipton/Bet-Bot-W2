@@ -133,15 +133,50 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return 'D';
   };
 
-  const getGradeExplanation = (score: number): string => {
-    if (score >= 95) return `An A+ grade of ${score} means exceptional performance - significantly above average (75 baseline).`;
-    if (score >= 88) return `An A grade of ${score} means excellent performance - well above average (75 baseline).`;
-    if (score >= 83) return `A B+ grade of ${score} means good performance - above average (75 baseline).`;
-    if (score >= 78) return `A B grade of ${score} means solid performance - slightly above average (75 baseline).`;
-    if (score >= 73) return `A C+ grade of ${score} means average performance - near the 75 baseline.`;
-    if (score >= 68) return `A C grade of ${score} means below average performance - under the 75 baseline.`;
-    if (score >= 63) return `A D+ grade of ${score} means poor performance - well below the 75 baseline.`;
-    return `A D grade of ${score} means very poor performance - significantly below the 75 baseline.`;
+  const getGradeExplanation = (score: number, factorTitle: string): string => {
+    const grade = scoreToGrade(score);
+    
+    // Customized explanations based on factor type
+    switch (factorTitle) {
+      case 'Betting Value':
+        if (score >= 90) return `${grade} (${score}) = Exceptional edge; line is mispriced in our favor`;
+        if (score >= 80) return `${grade} (${score}) = Solid value; odds slightly undervalue our side`;
+        if (score >= 75) return `${grade} (${score}) = Market-efficient or neutral`;
+        return `${grade} (${score}) = Little or no edge vs. market`;
+        
+      case 'Field Value':
+        if (score >= 85) return `${grade} (${score}) = Strong field factor benefiting this team`;
+        if (score >= 75) return `${grade} (${score}) = Slight to moderate favorable conditions`;
+        return `${grade} (${score}) = Stadium may favor opponent or suppress performance`;
+        
+      case 'Pitching Edge':
+        if (score >= 85) return `${grade} (${score}) = Clear pitching advantage`;
+        if (score >= 75) return `${grade} (${score}) = Above average edge`;
+        return `${grade} (${score}) = Possible disadvantage on the mound`;
+        
+      case 'Recent Form':
+        if (score >= 90) return `${grade} (${score}) = Team is red-hot`;
+        if (score >= 80) return `${grade} (${score}) = Consistently strong recent play`;
+        if (score >= 75) return `${grade} (${score}) = Neutral form or .500 record`;
+        return `${grade} (${score}) = Cold streak or downward trend`;
+        
+      case 'Weather Impact':
+        if (score >= 85) return `${grade} (${score}) = Conditions significantly favor our side`;
+        if (score >= 75) return `${grade} (${score}) = Slightly favorable weather`;
+        return `${grade} (${score}) = Weather may hurt our team's strengths`;
+        
+      case 'Offensive Edge':
+        if (score >= 85) return `${grade} (${score}) = Elite recent batting metrics`;
+        if (score >= 75) return `${grade} (${score}) = Slight offensive edge`;
+        return `${grade} (${score}) = Opponent may have better bats`;
+        
+      default:
+        // Fallback to generic explanation
+        if (score >= 90) return `${grade} (${score}) = Elite performance`;
+        if (score >= 80) return `${grade} (${score}) = Strong performance`;
+        if (score >= 75) return `${grade} (${score}) = Neutral baseline`;
+        return `${grade} (${score}) = Disadvantage`;
+    }
   };
 
   const calculateOverallGrade = () => {
@@ -326,7 +361,10 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                     {score !== null && score !== undefined && !isNaN(score) && score > 0 && (
                       <div className="border-t pt-2 mt-2 text-xs text-gray-500 dark:text-gray-500">
                         <div className="font-medium mb-1">Grade Meaning:</div>
-                        <div>{getGradeExplanation(score)}</div>
+                        <div>{getGradeExplanation(score, getFactorTitle(key))}</div>
+                        <div className="mt-2 text-[10px] text-gray-400 dark:text-gray-400">
+                          90+ = Elite | 80-89 = Strong | 75 = Neutral baseline | &lt;75 = Disadvantage
+                        </div>
                       </div>
                     )}
                   </div>
