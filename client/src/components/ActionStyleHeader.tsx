@@ -28,7 +28,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between h-16 px-4">
             {/* Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 // For logged-in users: simple clickable logo that navigates to odds
                 <img 
@@ -45,6 +45,9 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
                   className="w-9 h-9 object-contain"
                 />
               )}
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium hidden lg:block">
+                the AI-driven sports analysis company optimized for you
+              </p>
             </div>
 
           {/* Navigation */}
