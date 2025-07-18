@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import { pickStorage } from '@/services/pickStorage';
+import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
 import { 
   Target, 
@@ -85,11 +86,18 @@ export default function MyPicksPage() {
     enabled: showManualEntry,
   });
 
-  // Load picks from localStorage
+  // Load picks from database
   useEffect(() => {
-    const loadPicks = () => {
-      const storedPicks = pickStorage.getPicks();
-      setPicks(storedPicks);
+    const loadPicks = async () => {
+      try {
+        const storedPicks = await databasePickStorage.getPicks();
+        setPicks(storedPicks);
+      } catch (error) {
+        console.error('Error loading picks:', error);
+        // Fallback to localStorage if database fails
+        const localPicks = pickStorage.getPicks();
+        setPicks(localPicks);
+      }
     };
 
     loadPicks();
@@ -109,18 +117,36 @@ export default function MyPicksPage() {
     };
   }, []);
 
-  // Load bet unit from localStorage
+  // Load bet unit from database
   useEffect(() => {
-    const savedBetUnit = localStorage.getItem('betUnit');
-    if (savedBetUnit) {
-      setBetUnit(parseFloat(savedBetUnit));
-    }
+    const loadBetUnit = async () => {
+      try {
+        const dbBetUnit = await databasePickStorage.getBetUnit();
+        setBetUnit(dbBetUnit);
+      } catch (error) {
+        console.error('Error loading bet unit:', error);
+        // Fallback to localStorage if database fails
+        const savedBetUnit = localStorage.getItem('betUnit');
+        if (savedBetUnit) {
+          setBetUnit(parseFloat(savedBetUnit));
+        }
+      }
+    };
+
+    loadBetUnit();
   }, []);
 
-  // Save bet unit to localStorage
-  const saveBetUnit = (newBetUnit: number) => {
-    setBetUnit(newBetUnit);
-    localStorage.setItem('betUnit', newBetUnit.toString());
+  // Save bet unit to database
+  const saveBetUnit = async (newBetUnit: number) => {
+    try {
+      await databasePickStorage.setBetUnit(newBetUnit);
+      setBetUnit(newBetUnit);
+    } catch (error) {
+      console.error('Error saving bet unit:', error);
+      // Fallback to localStorage if database fails
+      setBetUnit(newBetUnit);
+      localStorage.setItem('betUnit', newBetUnit.toString());
+    }
   };
 
   const handleEditBetUnit = () => {
@@ -205,9 +231,17 @@ export default function MyPicksPage() {
     return `${betInfo.selection} ${betInfo.market}`;
   };
 
-  const deletePick = (pickId: string) => {
+  const deletePick = async (pickId: string) => {
     if (confirm('Are you sure you want to delete this pick?')) {
-      pickStorage.deletePick(pickId);
+      try {
+        await databasePickStorage.deletePick(pickId);
+        // Remove from local state immediately
+        setPicks(picks.filter(pick => pick.id !== pickId));
+      } catch (error) {
+        console.error('Error deleting pick:', error);
+        // Fallback to localStorage
+        pickStorage.deletePick(pickId);
+      }
     }
   };
 
@@ -222,31 +256,51 @@ export default function MyPicksPage() {
     setTempOdds(currentOdds === 0 ? '' : currentOdds.toString());
   };
 
-  const handleSaveOdds = (pickId: string) => {
+  const handleSaveOdds = async (pickId: string) => {
     const odds = parseFloat(tempOdds);
     if (isNaN(odds) || odds === 0) {
       alert('Please enter valid odds (e.g., -110, +150)');
       return;
     }
 
-    // Update the pick with new odds
-    const updatedPicks = picks.map(pick => {
-      if (pick.id === pickId) {
-        return {
-          ...pick,
-          betInfo: {
-            ...pick.betInfo,
-            odds: odds
-          }
-        };
-      }
-      return pick;
-    });
+    try {
+      await databasePickStorage.updatePickOdds(pickId, tempOdds);
+      
+      // Update local state
+      const updatedPicks = picks.map(pick => {
+        if (pick.id === pickId) {
+          return {
+            ...pick,
+            odds: tempOdds
+          };
+        }
+        return pick;
+      });
 
-    setPicks(updatedPicks);
-    pickStorage.updatePick(pickId, { betInfo: { odds } });
-    setEditingOdds(null);
-    setTempOdds('');
+      setPicks(updatedPicks);
+      setEditingOdds(null);
+      setTempOdds('');
+    } catch (error) {
+      console.error('Error updating odds:', error);
+      // Fallback to localStorage
+      const updatedPicks = picks.map(pick => {
+        if (pick.id === pickId) {
+          return {
+            ...pick,
+            betInfo: {
+              ...pick.betInfo,
+              odds: odds
+            }
+          };
+        }
+        return pick;
+      });
+
+      setPicks(updatedPicks);
+      pickStorage.updatePick(pickId, { betInfo: { odds } });
+      setEditingOdds(null);
+      setTempOdds('');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -292,7 +346,25 @@ export default function MyPicksPage() {
         status: 'pending'
       };
 
-      pickStorage.savePick(pick);
+      // Save to database
+      databasePickStorage.savePick({
+        gameId: selectedGame.id,
+        homeTeam: selectedGame.home_team,
+        awayTeam: selectedGame.away_team,
+        selection: actualSelection,
+        market: manualEntry.market,
+        line: manualEntry.line || null,
+        units: manualEntry.units,
+        bookmaker: 'manual',
+        bookmakerDisplayName: 'Manual Entry',
+        gameDate: selectedGame.commence_time?.split('T')[0] || new Date().toISOString().split('T')[0],
+        gameTime: selectedGame.commence_time || new Date().toISOString(),
+        odds: manualEntry.odds || '0'
+      }).catch(error => {
+        console.error('Error saving pick to database:', error);
+        // Fallback to localStorage
+        pickStorage.savePick(pick);
+      });
       
     } else if (entryType === 'parlay') {
       // Parlay bet handling
@@ -340,7 +412,32 @@ export default function MyPicksPage() {
         status: 'pending'
       };
 
-      pickStorage.savePick(parlayPick);
+      // Save parlay to database
+      databasePickStorage.savePick({
+        gameId: `parlay_${Date.now()}`,
+        homeTeam: 'Multiple Games',
+        awayTeam: `${parlayLegs.length}-Leg Parlay`,
+        selection: `${parlayLegs.length} Legs`,
+        market: 'parlay',
+        line: null,
+        units: parlayUnits,
+        bookmaker: 'manual',
+        bookmakerDisplayName: 'Manual Entry',
+        gameDate: new Date().toISOString().split('T')[0],
+        gameTime: new Date().toISOString(),
+        odds: parlayOdds,
+        parlayLegs: parlayLegs.map(leg => ({
+          game: `${leg.game?.away_team} @ ${leg.game?.home_team}`,
+          market: leg.market,
+          selection: leg.selection,
+          line: leg.line ? parseFloat(leg.line) : undefined,
+          odds: leg.odds ? parseFloat(leg.odds) : 0
+        }))
+      }).catch(error => {
+        console.error('Error saving parlay to database:', error);
+        // Fallback to localStorage
+        pickStorage.savePick(parlayPick);
+      });
     }
     
     // Reset form and close modal

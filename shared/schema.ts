@@ -27,6 +27,8 @@ export const users = pgTable("users", {
   subscriptionStatus: text("subscription_status").default("inactive"), // active, inactive, canceled, past_due
   subscriptionPlan: text("subscription_plan").default("free"), // free, monthly, annual
   subscriptionEndsAt: timestamp("subscription_ends_at"),
+  // User preferences
+  betUnit: decimal("bet_unit", { precision: 10, scale: 2 }).default("10.00"), // Default $10 bet unit
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -84,6 +86,38 @@ export const modelMetrics = pgTable("model_metrics", {
   profitMargin: decimal("profit_margin", { precision: 5, scale: 2 }).notNull(),
   gamesAnalyzed: integer("games_analyzed").notNull(),
   lastUpdate: timestamp("last_update").notNull(),
+});
+
+// User picks/bets table
+export const userPicks = pgTable("user_picks", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  gameId: text("game_id").notNull(), // External game ID
+  awayTeam: text("away_team").notNull(),
+  homeTeam: text("home_team").notNull(),
+  market: text("market").notNull(), // moneyline, spread, total
+  selection: text("selection").notNull(), // team name or over/under
+  line: text("line"), // for spread/total bets
+  odds: decimal("odds", { precision: 8, scale: 2 }), // American odds
+  units: decimal("units", { precision: 5, scale: 2 }).notNull().default("1.00"),
+  bookmaker: text("bookmaker").notNull().default("manual"),
+  bookmakerDisplayName: text("bookmaker_display_name").notNull().default("Manual Entry"),
+  status: text("status").notNull().default("pending"), // pending, won, lost, push
+  betAmount: decimal("bet_amount", { precision: 10, scale: 2 }), // calculated from units * betUnit
+  potentialWinnings: decimal("potential_winnings", { precision: 10, scale: 2 }),
+  actualWinnings: decimal("actual_winnings", { precision: 10, scale: 2 }),
+  gameDate: text("game_date").notNull(),
+  gameTime: text("game_time"),
+  venue: text("venue"),
+  // Parlay support
+  isParlay: boolean("is_parlay").default(false),
+  parlayId: text("parlay_id"), // Group parlay legs together
+  parlayLegs: json("parlay_legs"), // Store parlay leg details as JSON
+  // Pick source tracking
+  pickSource: text("pick_source").default("manual"), // manual, daily_pick, lock_pick, game_card
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Baseball-specific tables for AI training
@@ -316,6 +350,7 @@ export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).om
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
 export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });
 export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserPickSchema = createInsertSchema(userPicks).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -351,3 +386,5 @@ export type LoggedInLockPick = typeof loggedInLockPicks.$inferSelect;
 export type InsertLoggedInLockPick = z.infer<typeof insertLoggedInLockPickSchema>;
 export type UserBet = typeof userBets.$inferSelect;
 export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
+export type UserPick = typeof userPicks.$inferSelect;
+export type InsertUserPick = z.infer<typeof insertUserPickSchema>;

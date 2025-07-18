@@ -159,6 +159,7 @@ export class MemStorage implements IStorage {
       subscriptionStatus: insertUser.subscriptionStatus ?? null,
       subscriptionPlan: insertUser.subscriptionPlan ?? null,
       subscriptionEndsAt: insertUser.subscriptionEndsAt ?? null,
+      betUnit: insertUser.betUnit ?? null,
       createdAt: new Date(), 
       updatedAt: new Date() 
     };

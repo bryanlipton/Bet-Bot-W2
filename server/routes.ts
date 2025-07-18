@@ -16,6 +16,7 @@ import { umpireService } from "./services/umpireService";
 import { continuousTrainingService } from "./services/continuousTrainingService";
 import { overUnderPredictor } from "./services/overUnderPredictor";
 import { registerBetRoutes } from "./routes-bets";
+import userPreferencesRoutes from "./routes-user-preferences";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -903,6 +904,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register bet tracking routes
   registerBetRoutes(app);
+
+  // Register user preferences routes (bet unit & picks database persistence)
+  app.use('/api/user', isAuthenticated, userPreferencesRoutes);
 
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');

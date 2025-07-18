@@ -8,6 +8,7 @@ import { Link } from 'wouter';
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
+import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
 
 interface BookmakerOdds {
@@ -173,33 +174,54 @@ export function OddsComparisonModal({
     handleClose();
   };
 
-  const handleEnterManually = () => {
-    // Save pick to localStorage with manual entry flag
-    const pickData: Omit<Pick, 'id' | 'timestamp'> = {
-      gameInfo: {
+  const handleEnterManually = async () => {
+    try {
+      // Save pick to database with manual entry flag
+      await databasePickStorage.savePick({
+        gameId: gameInfo.gameId?.toString() || `manual_${Date.now()}`,
         homeTeam: gameInfo.homeTeam,
         awayTeam: gameInfo.awayTeam,
-        gameId: gameInfo.gameId,
-        sport: gameInfo.sport || 'baseball_mlb',
-        gameTime: gameInfo.gameTime
-      },
-      betInfo: {
+        selection: selectedBet.selection,
         market: selectedBet.market === 'total' ? 
           (selectedBet.selection === 'Over' ? 'over' : 'under') : 
           selectedBet.market,
-        selection: selectedBet.selection,
-        odds: 0, // Will be entered manually
-        line: selectedBet.line
-      },
-      bookmaker: {
-        key: 'manual',
-        displayName: 'Manual Entry',
-        url: '#'
-      },
-      status: 'pending'
-    };
+        line: selectedBet.line?.toString() || null,
+        units: 1,
+        bookmaker: 'manual',
+        bookmakerDisplayName: 'Manual Entry',
+        gameDate: gameInfo.gameTime?.split('T')[0] || new Date().toISOString().split('T')[0],
+        gameTime: gameInfo.gameTime || new Date().toISOString(),
+        odds: '0' // Will be entered manually
+      });
+    } catch (error) {
+      console.error('Error saving manual pick to database:', error);
+      // Fallback to localStorage
+      const pickData: Omit<Pick, 'id' | 'timestamp'> = {
+        gameInfo: {
+          homeTeam: gameInfo.homeTeam,
+          awayTeam: gameInfo.awayTeam,
+          gameId: gameInfo.gameId,
+          sport: gameInfo.sport || 'baseball_mlb',
+          gameTime: gameInfo.gameTime
+        },
+        betInfo: {
+          market: selectedBet.market === 'total' ? 
+            (selectedBet.selection === 'Over' ? 'over' : 'under') : 
+            selectedBet.market,
+          selection: selectedBet.selection,
+          odds: 0, // Will be entered manually
+          line: selectedBet.line
+        },
+        bookmaker: {
+          key: 'manual',
+          displayName: 'Manual Entry',
+          url: '#'
+        },
+        status: 'pending'
+      };
 
-    pickStorage.savePick(pickData);
+      pickStorage.savePick(pickData);
+    }
 
     // Close modal and redirect to My Picks
     handleClose();
