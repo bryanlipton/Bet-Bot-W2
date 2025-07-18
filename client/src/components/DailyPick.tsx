@@ -107,7 +107,19 @@ function scoreToGrade(score: number): string {
 }
 
 // Unified Info Button Component with Dark Background
-function InfoButton({ info, title }: { info: string; title: string }) {
+function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
+  const getGradeExplanation = (score: number): string => {
+    const grade = scoreToGrade(score);
+    if (score >= 95) return `An A+ grade of ${score} means exceptional performance - significantly above average (75 baseline).`;
+    if (score >= 88) return `An A grade of ${score} means excellent performance - well above average (75 baseline).`;
+    if (score >= 83) return `A B+ grade of ${score} means good performance - above average (75 baseline).`;
+    if (score >= 78) return `A B grade of ${score} means solid performance - slightly above average (75 baseline).`;
+    if (score >= 73) return `A C+ grade of ${score} means average performance - near the 75 baseline.`;
+    if (score >= 68) return `A C grade of ${score} means below average performance - under the 75 baseline.`;
+    if (score >= 63) return `A D+ grade of ${score} means poor performance - well below the 75 baseline.`;
+    return `A D grade of ${score} means very poor performance - significantly below the 75 baseline.`;
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -117,7 +129,13 @@ function InfoButton({ info, title }: { info: string; title: string }) {
       </PopoverTrigger>
       <PopoverContent className="w-64 p-3 text-xs" side="top">
         <div className="font-medium mb-1">{title}</div>
-        <div>{info}</div>
+        <div className="mb-2">{info}</div>
+        {score !== undefined && score > 0 && (
+          <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <div className="font-medium mb-1">Grade Meaning:</div>
+            <div>{getGradeExplanation(score)}</div>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -128,7 +146,7 @@ function FactorScore({ title, score, info }: { title: string; score: number; inf
   return (
     <div className="flex items-center py-1">
       <div className="flex items-center gap-1 flex-1 min-w-0 pr-3">
-        <InfoButton info={info} title={title} />
+        <InfoButton info={info} title={title} score={score} />
         <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
       <div className="bg-blue-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-auto">

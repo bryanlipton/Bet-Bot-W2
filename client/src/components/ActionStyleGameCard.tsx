@@ -133,6 +133,17 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return 'D';
   };
 
+  const getGradeExplanation = (score: number): string => {
+    if (score >= 95) return `An A+ grade of ${score} means exceptional performance - significantly above average (75 baseline).`;
+    if (score >= 88) return `An A grade of ${score} means excellent performance - well above average (75 baseline).`;
+    if (score >= 83) return `A B+ grade of ${score} means good performance - above average (75 baseline).`;
+    if (score >= 78) return `A B grade of ${score} means solid performance - slightly above average (75 baseline).`;
+    if (score >= 73) return `A C+ grade of ${score} means average performance - near the 75 baseline.`;
+    if (score >= 68) return `A C grade of ${score} means below average performance - under the 75 baseline.`;
+    if (score >= 63) return `A D+ grade of ${score} means poor performance - well below the 75 baseline.`;
+    return `A D grade of ${score} means very poor performance - significantly below the 75 baseline.`;
+  };
+
   const calculateOverallGrade = () => {
     if (!analysisData) return 'C+';
     
@@ -312,6 +323,12 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                     <p className="text-xs text-gray-600 dark:text-gray-400">
                       {description || getFactorInfo(key)}
                     </p>
+                    {score !== null && score !== undefined && !isNaN(score) && score > 0 && (
+                      <div className="border-t pt-2 mt-2 text-xs text-gray-500 dark:text-gray-500">
+                        <div className="font-medium mb-1">Grade Meaning:</div>
+                        <div>{getGradeExplanation(score)}</div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
