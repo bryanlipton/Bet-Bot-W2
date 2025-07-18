@@ -328,7 +328,10 @@ function GradeBubble({ grade }: { grade: string }) {
   };
 
   return (
-    <div className={`${getGradeColor(grade)} w-8 h-8 rounded-lg flex items-center justify-center`}>
+    <div 
+      className={`${getGradeColor(grade)} w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer`}
+      onClick={(e) => e.stopPropagation()}
+    >
       <span className="text-white text-xs font-bold">
         {grade}
       </span>
