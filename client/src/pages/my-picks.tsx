@@ -40,7 +40,8 @@ export default function MyPicksPage() {
     market: 'moneyline' as 'moneyline' | 'spread' | 'total',
     selection: '',
     line: '',
-    odds: ''
+    odds: '',
+    units: 1
   });
   const [parlayLegs, setParlayLegs] = useState<Array<{
     gameId: string;
@@ -50,6 +51,7 @@ export default function MyPicksPage() {
     odds: string;
     game?: any;
   }>>([]);
+  const [parlayUnits, setParlayUnits] = useState(1);
   const [parlayOdds, setParlayOdds] = useState('');
   const [betUnit, setBetUnit] = useState(50);
   const [editingBetUnit, setEditingBetUnit] = useState(false);
@@ -261,7 +263,8 @@ export default function MyPicksPage() {
           market: manualEntry.market,
           selection: actualSelection,
           line: manualEntry.line ? parseFloat(manualEntry.line) : undefined,
-          odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0
+          odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0,
+          units: manualEntry.units
         },
         bookmaker: {
           key: 'manual',
@@ -302,6 +305,7 @@ export default function MyPicksPage() {
           selection: `${parlayLegs.length} Legs`,
           line: undefined,
           odds: parseFloat(parlayOdds) || 0,
+          units: parlayUnits,
           parlayLegs: parlayLegs.map(leg => ({
             game: `${leg.game?.away_team} @ ${leg.game?.home_team}`,
             market: leg.market,
@@ -327,7 +331,7 @@ export default function MyPicksPage() {
     setShowManualEntry(false);
   };
 
-  const handleManualEntryChange = (field: string, value: string) => {
+  const handleManualEntryChange = (field: string, value: string | number) => {
     setManualEntry(prev => ({
       ...prev,
       [field]: value
@@ -461,7 +465,8 @@ export default function MyPicksPage() {
       market: 'moneyline',
       selection: '',
       line: '',
-      odds: ''
+      odds: '',
+      units: 1
     });
   };
 
@@ -476,10 +481,12 @@ export default function MyPicksPage() {
       market: 'moneyline',
       selection: '',
       line: '',
-      odds: ''
+      odds: '',
+      units: 1
     });
     setParlayLegs([]);
     setParlayOdds('');
+    setParlayUnits(1);
     setEntryType('single');
   };
 
@@ -899,6 +906,46 @@ export default function MyPicksPage() {
                     </Select>
                   </div>
                 )}
+
+                {/* Units Selection */}
+                {selectedGame && manualEntry.selection && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Number of Units
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManualEntryChange('units', Math.max(0.5, manualEntry.units - 0.5))}
+                        className="h-8 w-8 p-0"
+                      >
+                        -
+                      </Button>
+                      <Input
+                        value={manualEntry.units}
+                        onChange={(e) => handleManualEntryChange('units', parseFloat(e.target.value) || 1)}
+                        className="w-20 text-center"
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManualEntryChange('units', manualEntry.units + 0.5)}
+                        className="h-8 w-8 p-0"
+                      >
+                        +
+                      </Button>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                        (${(manualEntry.units * betUnit).toFixed(0)} bet)
+                      </span>
+                    </div>
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1044,6 +1091,46 @@ export default function MyPicksPage() {
                     Add Leg
                   </Button>
                 </div>
+
+                {/* Parlay Units Selection */}
+                {parlayLegs.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Number of Units
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setParlayUnits(Math.max(0.5, parlayUnits - 0.5))}
+                        className="h-8 w-8 p-0"
+                      >
+                        -
+                      </Button>
+                      <Input
+                        value={parlayUnits}
+                        onChange={(e) => setParlayUnits(parseFloat(e.target.value) || 1)}
+                        className="w-20 text-center"
+                        type="number"
+                        step="0.5"
+                        min="0.5"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setParlayUnits(parlayUnits + 0.5)}
+                        className="h-8 w-8 p-0"
+                      >
+                        +
+                      </Button>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                        (${(parlayUnits * betUnit).toFixed(0)} bet)
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Parlay Odds */}
                 {parlayLegs.length > 0 && (

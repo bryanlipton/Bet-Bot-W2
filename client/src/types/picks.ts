@@ -15,6 +15,7 @@ export interface Pick {
     selection: string; // Team name or "Over"/"Under"
     odds: number;
     line?: number; // For spread/total bets
+    units?: number; // Number of units wagered
     parlayLegs?: Array<{
       game: string;
       market: 'moneyline' | 'spread' | 'total' | 'over' | 'under';
