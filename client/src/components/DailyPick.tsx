@@ -158,6 +158,22 @@ export default function DailyPick() {
     enabled: !!dailyPick?.gameId,
   });
 
+  // Get current pitcher information from the latest game data
+  const getCurrentPitchers = () => {
+    if (!dailyPick || !gamesData) {
+      return dailyPick?.probablePitchers || { home: null, away: null };
+    }
+    
+    // Find the current game in the latest games data
+    const currentGame = gamesData.find((game: any) => game.id === dailyPick.gameId);
+    if (currentGame && currentGame.probablePitchers) {
+      return currentGame.probablePitchers;
+    }
+    
+    // Fallback to stored pitcher data if game not found
+    return dailyPick.probablePitchers;
+  };
+
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
@@ -312,8 +328,9 @@ export default function DailyPick() {
     }
   };
 
+  const currentPitchers = getCurrentPitchers();
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
-  const factors = getFactors(dailyPick.analysis, dailyPick.probablePitchers);
+  const factors = getFactors(dailyPick.analysis, currentPitchers);
 
   return (
     <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
@@ -416,7 +433,7 @@ export default function DailyPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {dailyPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
+                P: {currentPitchers[matchup.topTeamPitcher] || 'TBD'}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -438,7 +455,7 @@ export default function DailyPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {dailyPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+                P: {currentPitchers[matchup.bottomTeamPitcher] || 'TBD'}
               </p>
             </div>
             <div className="mt-3">
