@@ -148,40 +148,175 @@ export function registerMLBRoutes(app: Express) {
   app.get('/api/mlb/game/:gameId/lineups', async (req, res) => {
     try {
       const { gameId } = req.params;
-      const url = `${MLB_API_BASE_URL}/game/${gameId}/boxscore`;
       
-      console.log(`Fetching lineups for game ${gameId} from: ${url}`);
+      // Try multiple endpoints to get lineup data
+      const endpoints = [
+        `${MLB_API_BASE_URL}/game/${gameId}/linescore`,
+        `${MLB_API_BASE_URL}/game/${gameId}/boxscore`,
+        `${MLB_API_BASE_URL}/game/${gameId}/content`
+      ];
       
-      const response = await fetch(url);
+      let lineups = { home: [], away: [] };
+      let dataFound = false;
       
-      if (!response.ok) {
-        console.error(`MLB Lineups API error: ${response.status} ${response.statusText}`);
-        return res.status(response.status).json({ 
-          error: `Failed to fetch lineups: ${response.statusText}` 
-        });
+      for (const url of endpoints) {
+        try {
+          console.log(`Fetching lineups for game ${gameId} from: ${url}`);
+          
+          const response = await fetch(url);
+          
+          if (!response.ok) {
+            console.log(`Endpoint ${url} failed: ${response.status} ${response.statusText}`);
+            continue;
+          }
+          
+          const data = await response.json();
+          
+          // Try different data structures based on endpoint
+          let homeLineup = [];
+          let awayLineup = [];
+          
+          if (data.teams?.home?.batters) {
+            // Boxscore format
+            homeLineup = data.teams.home.batters;
+            awayLineup = data.teams.away.batters;
+            console.log(`Found lineup data in boxscore format: ${homeLineup.length} home, ${awayLineup.length} away`);
+            console.log(`Sample home player:`, homeLineup[0] ? JSON.stringify(homeLineup[0]) : 'None');
+            console.log(`Sample away player:`, awayLineup[0] ? JSON.stringify(awayLineup[0]) : 'None');
+          } else if (data.teams?.home?.players) {
+            // Game content format - extract batters from players
+            const homePlayers = data.teams.home.players;
+            const awayPlayers = data.teams.away.players;
+            
+            homeLineup = Object.values(homePlayers).filter((player: any) => 
+              player.stats?.batting && player.gameStatus?.isCurrentBatter !== undefined
+            );
+            awayLineup = Object.values(awayPlayers).filter((player: any) => 
+              player.stats?.batting && player.gameStatus?.isCurrentBatter !== undefined
+            );
+            console.log(`Found lineup data in players format: ${homeLineup.length} home, ${awayLineup.length} away`);
+          }
+          
+          if (homeLineup.length > 0 || awayLineup.length > 0) {
+            const processedHomeLineup = homeLineup.map((player: any) => ({
+              id: player.person?.id || player.id,
+              name: player.person?.fullName || player.fullName || 'TBD',
+              position: player.position?.abbreviation || player.primaryPosition?.abbreviation || '',
+              battingOrder: player.battingOrder || player.stats?.batting?.battingOrder || null
+            })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
+            
+            const processedAwayLineup = awayLineup.map((player: any) => ({
+              id: player.person?.id || player.id,
+              name: player.person?.fullName || player.fullName || 'TBD',
+              position: player.position?.abbreviation || player.primaryPosition?.abbreviation || '',
+              battingOrder: player.battingOrder || player.stats?.batting?.battingOrder || null
+            })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
+            
+            // Only mark as found if we actually have players with batting orders
+            if (processedHomeLineup.length > 0 || processedAwayLineup.length > 0) {
+              lineups = {
+                home: processedHomeLineup,
+                away: processedAwayLineup
+              };
+              dataFound = true;
+              break;
+            }
+          }
+        } catch (endpointError) {
+          console.log(`Error with endpoint ${url}:`, endpointError);
+          continue;
+        }
       }
       
-      const data = await response.json();
+      if (!dataFound) {
+        console.log(`No lineup data found for game ${gameId} from any endpoint - trying roster fallback`);
+        
+        // Fallback: Get roster data and create probable lineup from real MLB data
+        try {
+          // First get team IDs from the schedule API
+          const scheduleUrl = `${MLB_API_BASE_URL}/schedule?sportId=1&gamePk=${gameId}&hydrate=team`;
+          console.log(`Roster fallback: fetching game data from: ${scheduleUrl}`);
+          const gameResponse = await fetch(scheduleUrl);
+          
+          if (gameResponse.ok) {
+            const scheduleData = await gameResponse.json();
+            const gameData = scheduleData.dates?.[0]?.games?.[0];
+            const homeTeamId = gameData?.teams?.home?.team?.id;
+            const awayTeamId = gameData?.teams?.away?.team?.id;
+            console.log(`Found team IDs from schedule - Home: ${homeTeamId}, Away: ${awayTeamId}`);
+            
+            if (homeTeamId && awayTeamId) {
+              // Get roster data for both teams
+              const homeRosterUrl = `${MLB_API_BASE_URL}/teams/${homeTeamId}/roster`;
+              const awayRosterUrl = `${MLB_API_BASE_URL}/teams/${awayTeamId}/roster`;
+              console.log(`Fetching rosters - Home: ${homeRosterUrl}, Away: ${awayRosterUrl}`);
+              
+              const [homeRosterResp, awayRosterResp] = await Promise.all([
+                fetch(homeRosterUrl),
+                fetch(awayRosterUrl)
+              ]);
+              
+              console.log(`Roster responses - Home: ${homeRosterResp.status}, Away: ${awayRosterResp.status}`);
+              
+              if (homeRosterResp.ok && awayRosterResp.ok) {
+                const homeRosterData = await homeRosterResp.json();
+                const awayRosterData = await awayRosterResp.json();
+                
+                console.log(`Roster data received - Home: ${homeRosterData.roster?.length || 0} players, Away: ${awayRosterData.roster?.length || 0} players`);
+                
+                // Create probable lineup from active players (simplified approach)
+                const createProbableLineup = (rosterData: any) => {
+                  if (!rosterData.roster) return [];
+                  
+                  // Get all active players that aren't pitchers
+                  const activeNonPitchers = rosterData.roster.filter((player: any) => {
+                    return player.status?.code === 'A' && 
+                           player.position?.abbreviation !== 'P';
+                  });
+                  
+                  console.log(`Found ${activeNonPitchers.length} active non-pitchers from ${rosterData.roster.length} total players`);
+                  
+                  return activeNonPitchers
+                    .slice(0, 9) // Take first 9 position players
+                    .map((player: any, index: number) => ({
+                      id: player.person.id,
+                      name: player.person.fullName,
+                      position: player.position.abbreviation,
+                      battingOrder: index + 1
+                    }));
+                };
+                
+                console.log(`About to create lineups from roster data`);
+                const homeLineup = createProbableLineup(homeRosterData);
+                console.log(`Home lineup created: ${homeLineup.length} players`);
+                const awayLineup = createProbableLineup(awayRosterData);
+                console.log(`Away lineup created: ${awayLineup.length} players`);
+                
+                if (homeLineup.length > 0 || awayLineup.length > 0) {
+                  lineups = {
+                    home: homeLineup,
+                    away: awayLineup
+                  };
+                  console.log(`Created probable lineups from rosters: ${lineups.home.length} home, ${lineups.away.length} away`);
+                  dataFound = true;
+                } else {
+                  console.log('No position players found in roster data');
+                }
+              } else {
+                console.log(`Roster API calls failed - Home: ${homeRosterResp.status}, Away: ${awayRosterResp.status}`);
+              }
+            } else {
+              console.log(`Missing team IDs in schedule data - Home: ${homeTeamId}, Away: ${awayTeamId}`);
+            }
+          } else {
+            console.log(`Schedule API failed: ${gameResponse.status}`);
+          }
+        } catch (rosterError) {
+          console.error('Roster fallback failed:', rosterError);
+        }
+      }
       
-      const homeLineup = data.teams?.home?.batters || [];
-      const awayLineup = data.teams?.away?.batters || [];
-      
-      const lineups = {
-        home: homeLineup.map((player: any) => ({
-          id: player.person?.id,
-          name: player.person?.fullName || 'TBD',
-          position: player.position?.abbreviation || '',
-          battingOrder: player.battingOrder || null
-        })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0)),
-        away: awayLineup.map((player: any) => ({
-          id: player.person?.id,
-          name: player.person?.fullName || 'TBD',
-          position: player.position?.abbreviation || '',
-          battingOrder: player.battingOrder || null
-        })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0))
-      };
-      
-      console.log(`Successfully fetched lineups for game ${gameId}`);
+      console.log(`Successfully processed lineups for game ${gameId}: ${lineups.home.length} home, ${lineups.away.length} away`);
       
       res.json(lineups);
     } catch (error) {
