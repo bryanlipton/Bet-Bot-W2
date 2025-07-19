@@ -34,25 +34,20 @@ export function getFactorColor(normalizedScore: number): string {
  * @returns Object with text and background color classes
  */
 export function getFactorColorClasses(normalizedScore: number): { text: string; bg: string; border: string } {
-  if (normalizedScore >= 95) {
-    return { text: 'text-green-900', bg: 'bg-green-400', border: 'border-green-500' };
-  }
+  // Blue (90-100): Excellent/Elite performance
   if (normalizedScore >= 90) {
-    return { text: 'text-green-800', bg: 'bg-green-300', border: 'border-green-400' };
+    return { text: 'text-white', bg: 'bg-blue-500', border: 'border-blue-600' };
   }
-  if (normalizedScore >= 85) {
-    return { text: 'text-green-700', bg: 'bg-green-200', border: 'border-green-300' };
-  }
-  if (normalizedScore >= 80) {
-    return { text: 'text-gray-700', bg: 'bg-gray-200', border: 'border-gray-300' };
-  }
+  // Green (75-89): Good performance  
   if (normalizedScore >= 75) {
-    return { text: 'text-red-700', bg: 'bg-red-200', border: 'border-red-300' };
+    return { text: 'text-white', bg: 'bg-green-500', border: 'border-green-600' };
   }
-  if (normalizedScore >= 70) {
-    return { text: 'text-red-800', bg: 'bg-red-300', border: 'border-red-400' };
+  // Yellow (65-74): Average/Below average performance
+  if (normalizedScore >= 65) {
+    return { text: 'text-black', bg: 'bg-yellow-400', border: 'border-yellow-500' };
   }
-  return { text: 'text-red-900', bg: 'bg-red-400', border: 'border-red-500' };
+  // Red (60-64): Poor performance
+  return { text: 'text-white', bg: 'bg-red-500', border: 'border-red-600' };
 }
 
 /**

@@ -39,9 +39,10 @@ export interface DailyPick {
 
 export class DailyPickService {
   private normalizeToGradingScale(score: number): number {
-    // Use raw 0-100 scale for more varied grades
-    // This allows for better grade distribution (A+ through D)
-    return Math.round(Math.max(0, Math.min(100, score)));
+    // Normalize 0-100 raw score to 60-100 grading scale
+    // This ensures proper letter grade distribution (A+ through D)
+    const clampedScore = Math.max(0, Math.min(100, score));
+    return Math.round(60 + (clampedScore * 0.4));
   }
 
   private async analyzeOffensiveProduction(team: string): Promise<number> {
