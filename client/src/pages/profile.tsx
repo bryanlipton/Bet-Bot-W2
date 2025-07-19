@@ -740,10 +740,10 @@ export default function ProfilePage() {
 
         {/* Profile Info Card - Instagram/Twitter Style */}
         <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Profile Picture with Edit Button */}
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 {(() => {
                   // Parse avatar data (emoji|background format)
                   const avatarString = userProfile.profileImage;
@@ -752,19 +752,19 @@ export default function ProfilePage() {
                     // New format: emoji|background
                     const [emoji, backgroundClass] = avatarString.split('|');
                     return (
-                      <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                        <span className="text-5xl">{emoji}</span>
+                      <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                        <span className="text-4xl sm:text-5xl">{emoji}</span>
                       </div>
                     );
                   } else if (avatarString?.startsWith('http')) {
                     // Regular image URL
                     return (
-                      <Avatar className="w-24 h-24">
+                      <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
                         <AvatarImage 
                           src={avatarString} 
                           alt={userProfile.username}
                         />
-                        <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
+                        <AvatarFallback className="bg-blue-600 text-white text-xl sm:text-2xl font-bold">
                           {userProfile.username.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -773,8 +773,8 @@ export default function ProfilePage() {
                     // Legacy emoji format - use default background
                     const emoji = avatarString || '🐱';
                     return (
-                      <div className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
-                        <span className="text-5xl">{emoji}</span>
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
+                        <span className="text-4xl sm:text-5xl">{emoji}</span>
                       </div>
                     );
                   }
@@ -792,18 +792,19 @@ export default function ProfilePage() {
               </div>
 
               {/* Profile Details */}
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex-1 min-w-0 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                     {userProfile.username}
                   </h2>
                   
                   {/* Edit Profile Button */}
                   <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" className="flex items-center gap-2 flex-shrink-0">
                         <Edit className="w-4 h-4" />
-                        Edit Profile
+                        <span className="hidden sm:inline">Edit Profile</span>
+                        <span className="sm:hidden">Edit</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -971,36 +972,38 @@ export default function ProfilePage() {
                 
                 {/* Bio - Only show if exists */}
                 {userProfile.bio && (
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
+                  <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 mb-3 sm:mb-4 break-words">
                     {userProfile.bio}
                   </p>
                 )}
 
-                {/* Social Stats */}
-                <div className="flex items-center gap-6 mb-4">
-                  <button 
-                    onClick={() => setShowFollowersModal(true)}
-                    className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
-                  >
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {userProfile.followers}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">followers</span>
-                  </button>
-                  <button 
-                    onClick={() => setShowFollowingModal(true)}
-                    className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
-                  >
-                    <UserPlus className="w-4 h-4 text-gray-500" />
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {userProfile.following}
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">following</span>
-                  </button>
+                {/* Social Stats - Mobile friendly layout */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mb-4">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setShowFollowersModal(true)}
+                      className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                    >
+                      <Users className="w-4 h-4 text-gray-500" />
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {userProfile.followers}
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">followers</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowFollowingModal(true)}
+                      className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4 text-gray-500" />
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {userProfile.following}
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">following</span>
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-600 dark:text-gray-400">
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       Joined {formatDate(userProfile.joinDate)}
                     </span>
                   </div>
