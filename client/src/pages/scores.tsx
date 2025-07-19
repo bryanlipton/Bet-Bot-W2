@@ -277,7 +277,7 @@ export default function ScoresPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Trophy className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Live Scores</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Scores</h1>
           </div>
           <Button
             variant="outline"
