@@ -64,28 +64,23 @@ export default function AvatarPicker({ isOpen, onClose, onSelect, currentAvatar 
           <div className="space-y-3">
             <Label className="text-base font-medium">Choose an avatar</Label>
             <div className="grid grid-cols-3 gap-4">
-              {animalAvatars.slice(1).map((avatar, index) => (
+              {animalAvatars.map((avatar, index) => (
                 <button
-                  key={index}
-                  onClick={() => handleAnimalSelect(avatar)}
-                  className={`relative w-16 h-16 rounded-full border-2 transition-all hover:scale-105 flex items-center justify-center text-2xl ${
-                    selectedAvatar === avatar 
+                  key={avatar.id}
+                  onClick={() => handleAnimalSelect(avatar.id)}
+                  className={`relative w-16 h-16 rounded-full border-2 transition-all hover:scale-105 overflow-hidden ${
+                    selectedAvatar === avatar.id 
                       ? 'border-blue-500 ring-2 ring-blue-500 ring-offset-2' 
                       : 'border-gray-300 dark:border-gray-600'
-                  } ${
-                    index === 0 ? 'bg-pink-400' :
-                    index === 1 ? 'bg-blue-400' :
-                    index === 2 ? 'bg-green-400' :
-                    index === 3 ? 'bg-yellow-400' :
-                    index === 4 ? 'bg-slate-600' :
-                    index === 5 ? 'bg-red-400' :
-                    index === 6 ? 'bg-cyan-400' :
-                    index === 7 ? 'bg-orange-400' :
-                    'bg-teal-400'
                   }`}
+                  style={{ backgroundColor: avatar.background }}
                 >
-                  {avatar}
-                  {selectedAvatar === avatar && (
+                  <img 
+                    src={avatar.url}
+                    alt={avatar.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {selectedAvatar === avatar.id && (
                     <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
                       <Check className="w-3 h-3 text-white" />
                     </div>
