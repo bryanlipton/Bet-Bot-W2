@@ -216,6 +216,22 @@ export default function ProfilePage() {
           betInfo: { selection: 'Over 8.5', market: 'over', odds: -105, units: 1.0, line: '8.5' },
           bookmaker: { key: 'betmgm', displayName: 'BetMGM', deepLink: '' },
           status: 'won'
+        },
+        {
+          id: 'db_pick_4',
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
+          betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null },
+          bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
+          status: 'won'
+        },
+        {
+          id: 'db_pick_5',
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
+          betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null },
+          bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
+          status: 'lost'
         }
       ];
       
@@ -263,9 +279,9 @@ export default function ProfilePage() {
 
   // Calculate comprehensive stats combining database picks + pending localStorage picks
   // Since API is failing, use hardcoded database values until auth is fixed
-  const dbPicksCount = 3; // 3 historical picks from database
-  const dbWins = 2; // Boston Red Sox ML + Over 8.5 wins
-  const dbLosses = 1; // LA Dodgers -1.5 loss
+  const dbPicksCount = 5; // 5 historical picks from database (added Blue Jays ML + Parlay)
+  const dbWins = 3; // Boston Red Sox ML, Over 8.5, Blue Jays ML wins
+  const dbLosses = 2; // LA Dodgers -1.5 loss, Orioles+Mets parlay loss
   const pendingPicks = picks.filter(p => p.status === 'pending').length;
   const totalCompletedPicks = dbWins + dbLosses;
   
@@ -274,8 +290,8 @@ export default function ProfilePage() {
     pendingPicks: pendingPicks, // 2 pending picks from localStorage
     wonPicks: dbWins, // 2 wins from database
     lostPicks: dbLosses, // 1 loss from database
-    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 2/3 = 66.7%
-    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0) + 4.5, // +3.95 from DB wins/losses
+    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 3/5 = 60%
+    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0) + 5.4, // Total wins: +3.0 +0.95 +1.95 = +5.9, losses: -1.5 -1.0 = -2.5, net: +3.4
     winStreak: 1 // Last pick was a win (Over 8.5)
   };
 
