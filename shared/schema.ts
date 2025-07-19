@@ -300,7 +300,7 @@ export const loggedInLockPicks = pgTable("logged_in_lock_picks", {
 
 // User picks storage table - persistent across sessions with grading
 export const userPicks = pgTable("user_picks", {
-  id: text("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
   gameId: text("game_id").notNull(),
   selection: text("selection").notNull(), // Team or outcome selected
@@ -373,7 +373,7 @@ export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrain
 export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
 export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });
-export const insertUserPickSchema = createInsertSchema(userPicks).omit({ createdAt: true, gradedAt: true });
+export const insertUserPickSchema = createInsertSchema(userPicks).omit({ id: true, createdAt: true, gradedAt: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ updatedAt: true });
 export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertUserFollowSchema = createInsertSchema(userFollows).omit({ id: true, createdAt: true });

@@ -95,7 +95,6 @@ export function registerPickGradingRoutes(app: Express) {
       
       const sampleHistoricalPicks = [
         {
-          id: `pick_${Date.now()}_historical_1`,
           userId: userId,
           gameId: 'mlb_777001', 
           selection: 'Boston Red Sox',
@@ -116,7 +115,6 @@ export function registerPickGradingRoutes(app: Express) {
           gradedAt: new Date(Date.now() - 43200000), // 12 hours ago
         },
         {
-          id: `pick_${Date.now()}_historical_2`,
           userId: userId,
           gameId: 'mlb_777002',
           selection: 'Los Angeles Dodgers -1.5',
@@ -137,7 +135,6 @@ export function registerPickGradingRoutes(app: Express) {
           gradedAt: new Date(Date.now() - 43200000),
         },
         {
-          id: `pick_${Date.now()}_historical_3`,
           userId: userId,
           gameId: 'mlb_777003',
           selection: 'Over 8.5',
@@ -159,7 +156,7 @@ export function registerPickGradingRoutes(app: Express) {
         }
       ];
 
-      // Insert each pick
+      // Insert each pick without id (let auto-increment handle it)
       const insertedPicks = [];
       for (const pickData of sampleHistoricalPicks) {
         const pick = await storage.createUserPick(pickData);

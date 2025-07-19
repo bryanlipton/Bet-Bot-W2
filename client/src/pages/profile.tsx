@@ -146,59 +146,100 @@ export default function ProfilePage() {
     retry: false,
   });
 
+  // Fetch user pick statistics from API
+  const { data: pickStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/user/picks/stats'],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // Fetch user picks from API
+  const { data: userPicks = [], isLoading: picksLoading } = useQuery({
+    queryKey: ['/api/user/picks'],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
   // Load picks data
   useEffect(() => {
-    const loadPicks = async () => {
-      try {
-        const databasePicks = await databasePickStorage.getPicks();
-        const localPicks = pickStorage.getPicks();
+    if (userPicks.length > 0) {
+      setPicks(userPicks);
+      
+      // Generate public feed from API picks
+      const feedItems: PublicFeedItem[] = userPicks
+        .sort((a, b) => new Date(b.createdAt || b.timestamp).getTime() - new Date(a.createdAt || a.timestamp).getTime())
+        .slice(0, 20) // Show latest 20 items
+        .map(pick => ({
+          id: pick.id,
+          type: 'pick' as const,
+          pick,
+          timestamp: pick.createdAt || pick.timestamp,
+          result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
+        }));
+      
+      setPublicFeed(feedItems);
+    } else {
+      // Fallback to localStorage picks if no API picks
+      const loadPicks = async () => {
+        try {
+          const databasePicks = await databasePickStorage.getPicks();
+          const localPicks = pickStorage.getPicks();
+          
+          // Combine and deduplicate picks
+          const combinedPicks = [...databasePicks, ...localPicks];
+          const uniquePicks = combinedPicks.filter((pick, index, self) => 
+            index === self.findIndex(p => p.id === pick.id)
+          );
+          
+          setPicks(uniquePicks);
         
-        // Combine and deduplicate picks
-        const combinedPicks = [...databasePicks, ...localPicks];
-        const uniquePicks = combinedPicks.filter((pick, index, self) => 
-          index === self.findIndex(p => p.id === pick.id)
-        );
-        
-        setPicks(uniquePicks);
-        
-        // Generate public feed from picks
-        const feedItems: PublicFeedItem[] = uniquePicks
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .slice(0, 20) // Show latest 20 items
-          .map(pick => ({
-            id: pick.id,
-            type: 'pick' as const,
-            pick,
-            timestamp: pick.timestamp,
-            result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
-          }));
-        
-        setPublicFeed(feedItems);
-      } catch (error) {
-        console.error('Error loading picks:', error);
-        const localPicks = pickStorage.getPicks();
-        setPicks(localPicks);
-        
-        const feedItems: PublicFeedItem[] = localPicks
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          .slice(0, 20)
-          .map(pick => ({
-            id: pick.id,
-            type: 'pick' as const,
-            pick,
-            timestamp: pick.timestamp,
-            result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
-          }));
-        
-        setPublicFeed(feedItems);
-      }
-    };
+          // Generate public feed from picks
+          const feedItems: PublicFeedItem[] = uniquePicks
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 20) // Show latest 20 items
+            .map(pick => ({
+              id: pick.id,
+              type: 'pick' as const,
+              pick,
+              timestamp: pick.timestamp,
+              result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
+            }));
+          
+          setPublicFeed(feedItems);
+        } catch (error) {
+          console.error('Error loading picks:', error);
+          const localPicks = pickStorage.getPicks();
+          setPicks(localPicks);
+          
+          const feedItems: PublicFeedItem[] = localPicks
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 20)
+            .map(pick => ({
+              id: pick.id,
+              type: 'pick' as const,
+              pick,
+              timestamp: pick.timestamp,
+              result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
+            }));
+          
+          setPublicFeed(feedItems);
+        }
+      };
 
-    loadPicks();
-  }, []);
+      loadPicks();
+    }
+  }, [userPicks]);
 
-  // Calculate profile stats including win streak
-  const profileStats = {
+  // Calculate profile stats from API data or fallback to localStorage
+  const profileStats = pickStats ? {
+    totalPicks: pickStats.totalPicks,
+    pendingPicks: pickStats.pendingPicks,
+    wonPicks: pickStats.winCount,
+    lostPicks: pickStats.lossCount,
+    winRate: pickStats.totalPicks > 0 ? (pickStats.winCount / (pickStats.winCount + pickStats.lossCount)) * 100 : 0,
+    totalUnits: pickStats.totalUnits,
+    winStreak: calculateWinStreak(userPicks)
+  } : {
     totalPicks: picks.length,
     pendingPicks: picks.filter(p => p.status === 'pending').length,
     wonPicks: picks.filter(p => p.status === 'won').length,
@@ -209,14 +250,18 @@ export default function ProfilePage() {
   };
 
   // Calculate current win streak
-  function calculateWinStreak(picks: Pick[]): number {
+  function calculateWinStreak(picks: any[]): number {
     const sortedPicks = picks
-      .filter(p => p.status === 'won' || p.status === 'lost')
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      .filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost')
+      .sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.timestamp).getTime();
+        const timeB = new Date(b.createdAt || b.timestamp).getTime();
+        return timeB - timeA;
+      });
     
     let streak = 0;
     for (const pick of sortedPicks) {
-      if (pick.status === 'won') {
+      if (pick.status === 'won' || pick.status === 'win') {
         streak++;
       } else {
         break;

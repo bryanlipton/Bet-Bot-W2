@@ -89,7 +89,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
   // Fetch user's public picks feed
   const { data: publicFeed, isLoading: feedLoading } = useQuery({
     queryKey: ['/api/user/public-feed', userId],
-    enabled: !!userId && profileData, // Only fetch if profile exists
+    enabled: !!userId && !!profileData, // Only fetch if profile exists
   });
 
   // Check if current user is following this user

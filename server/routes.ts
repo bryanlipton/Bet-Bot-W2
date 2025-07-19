@@ -950,6 +950,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User picks routes  
+  app.get('/api/user/picks', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const picks = await storage.getUserPicks(userId);
+      res.json(picks);
+    } catch (error) {
+      console.error("Error fetching user picks:", error);
+      res.status(500).json({ message: "Failed to fetch user picks" });
+    }
+  });
+
+  // User picks statistics
+  app.get('/api/user/picks/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await storage.getUserPickStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user pick stats:", error);
+      res.status(500).json({ message: "Failed to fetch user pick stats" });
+    }
+  });
+
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');
   setupCustomGPTEndpoint(app);
