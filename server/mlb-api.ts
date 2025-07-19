@@ -99,23 +99,62 @@ export function registerMLBRoutes(app: Express) {
               const linescore = game.linescore;
               const gameData = game;
               
-              // Use context-aware information instead of trying to fetch unavailable player data
+              // Extract actual live player information from enhanced hydration
               const battingTeam = linescore.inningState === 'Top' ? gameData.teams.away.team : gameData.teams.home.team;
               const pitchingTeam = linescore.inningState === 'Top' ? gameData.teams.home.team : gameData.teams.away.team;
               
-              const currentBatter = {
+              // Get current batter from linescore offense data
+              let currentBatter = {
                 id: null,
                 name: `${battingTeam.abbreviation || battingTeam.name} Batter`,
                 team: battingTeam.abbreviation || battingTeam.name.split(' ').pop()?.toUpperCase() || 'N/A'
               };
               
-              const currentPitcher = {
+              if (linescore.offense?.batter) {
+                currentBatter = {
+                  id: linescore.offense.batter.id,
+                  name: linescore.offense.batter.fullName || linescore.offense.batter.nameFirstLast,
+                  team: battingTeam.abbreviation || battingTeam.name.split(' ').pop()?.toUpperCase() || 'N/A'
+                };
+              }
+              
+              // Get current pitcher from linescore defense data
+              let currentPitcher = {
                 id: null,
                 name: `${pitchingTeam.abbreviation || pitchingTeam.name} Pitcher`,
                 pitchCount: 0
               };
               
-              const baseRunners = { first: null, second: null, third: null };
+              if (linescore.defense?.pitcher) {
+                currentPitcher = {
+                  id: linescore.defense.pitcher.id,
+                  name: linescore.defense.pitcher.fullName || linescore.defense.pitcher.nameFirstLast,
+                  pitchCount: 0
+                };
+              }
+              
+              // Extract base runners if available
+              let baseRunners = { first: null, second: null, third: null };
+              if (linescore.offense) {
+                if (linescore.offense.first) {
+                  baseRunners.first = {
+                    id: linescore.offense.first.id,
+                    name: linescore.offense.first.fullName || linescore.offense.first.nameFirstLast
+                  };
+                }
+                if (linescore.offense.second) {
+                  baseRunners.second = {
+                    id: linescore.offense.second.id,
+                    name: linescore.offense.second.fullName || linescore.offense.second.nameFirstLast
+                  };
+                }
+                if (linescore.offense.third) {
+                  baseRunners.third = {
+                    id: linescore.offense.third.id,
+                    name: linescore.offense.third.fullName || linescore.offense.third.nameFirstLast
+                  };
+                }
+              }
               
               const liveGameData = {
                 gameId: gameId,
