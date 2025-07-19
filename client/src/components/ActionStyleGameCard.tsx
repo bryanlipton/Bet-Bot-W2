@@ -479,8 +479,13 @@ export function ActionStyleGameCard({
     // Prevent the card click event from firing
     event.stopPropagation();
     
+    console.log('Pick button clicked:', { market, selection, line });
+    console.log('rawBookmakers available:', rawBookmakers?.length || 0);
+    console.log('rawBookmakers data:', rawBookmakers);
+    
     if (!rawBookmakers || rawBookmakers.length === 0) {
       console.warn('No bookmakers data available for odds comparison');
+      alert('No betting odds available for this game yet. Please try again later.');
       return;
     }
 
@@ -489,6 +494,7 @@ export function ActionStyleGameCard({
     
     // Small delay to ensure old modal is closed before opening new one
     setTimeout(() => {
+      console.log('Opening odds modal with:', { market, selection, line });
       setSelectedBet({ market, selection, line });
       setOddsModalOpen(true);
     }, 50);
