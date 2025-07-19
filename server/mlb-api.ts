@@ -70,6 +70,7 @@ export function registerMLBRoutes(app: Express) {
       const { gameId } = req.params;
       const { homeTeam, awayTeam } = req.query;
       console.log(`Fetching live data for game ${gameId}`);
+      console.log(`Team names from query: home='${homeTeam}', away='${awayTeam}'`);
       
       let data;
       let isLiveFeed = false;

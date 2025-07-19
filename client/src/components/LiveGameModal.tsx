@@ -229,77 +229,23 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
 
 
 
-          {/* Base Runners with Batter and Pitcher */}
+          {/* Current At-Bat Information */}
           {liveData.status.inProgress && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-4 h-4 bg-yellow-600 rounded-full" />
-                  <span className="font-semibold">Game Situation</span>
-                </div>
-                
-                <div className="relative mx-auto w-80 h-64">
-                  {/* Batter (Left side) */}
-                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-20">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-2 w-8 h-8 flex items-center justify-center">
-                        <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">Batting</div>
-                      <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
-                        {liveData.currentBatter.name}
-                      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Current Batter */}
+              <Card className="border-blue-200 dark:border-blue-800">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                      <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
+                    <span className="text-lg font-semibold text-blue-700 dark:text-blue-400">At Bat</span>
                   </div>
-
-                  {/* Pitcher (Right side) */}
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-20">
-                    <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg text-center">
-                      <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-2 w-8 h-8 flex items-center justify-center">
-                        <Target className="w-4 h-4 text-green-600 dark:text-green-400" />
-                      </div>
-                      <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Pitching</div>
-                      <div className="text-sm font-bold text-gray-900 dark:text-white leading-tight">
-                        {liveData.currentPitcher.name}
-                      </div>
-                    </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {liveData.currentBatter.name}
                   </div>
-                  
-                  {/* Compact Baseball Diamond */}
-                  <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32">
-                    {/* Diamond background */}
-                    <div className="absolute inset-0 transform rotate-45">
-                      <div className="w-full h-full border-2 border-gray-400 dark:border-gray-600 bg-green-100 dark:bg-green-900 opacity-20"></div>
-                    </div>
-                    
-                    {/* Home plate */}
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gray-800 dark:bg-gray-300 rounded-full border border-gray-600"></div>
-                    
-                    {/* First base */}
-                    <div className={`absolute right-1 bottom-1/2 transform translate-y-1/2 w-5 h-5 border border-gray-400 rounded rotate-45 ${hasRunnerOnBase(liveData.baseRunners.first) ? 'bg-yellow-400 border-yellow-500' : 'bg-white dark:bg-gray-800'}`}>
-                      {hasRunnerOnBase(liveData.baseRunners.first) && (
-                        <div className="text-[7px] text-black text-center leading-5 font-bold transform -rotate-45">1</div>
-                      )}
-                    </div>
-                    
-                    {/* Second base */}
-                    <div className={`absolute top-1 left-1/2 transform -translate-x-1/2 w-5 h-5 border border-gray-400 rounded rotate-45 ${hasRunnerOnBase(liveData.baseRunners.second) ? 'bg-yellow-400 border-yellow-500' : 'bg-white dark:bg-gray-800'}`}>
-                      {hasRunnerOnBase(liveData.baseRunners.second) && (
-                        <div className="text-[7px] text-black text-center leading-5 font-bold transform -rotate-45">2</div>
-                      )}
-                    </div>
-                    
-                    {/* Third base */}
-                    <div className={`absolute left-1 bottom-1/2 transform translate-y-1/2 w-5 h-5 border border-gray-400 rounded rotate-45 ${hasRunnerOnBase(liveData.baseRunners.third) ? 'bg-yellow-400 border-yellow-500' : 'bg-white dark:bg-gray-800'}`}>
-                      {hasRunnerOnBase(liveData.baseRunners.third) && (
-                        <div className="text-[7px] text-black text-center leading-5 font-bold transform -rotate-45">3</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Count Display (below diamond) */}
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg text-center">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <div className="text-center">
                       <div className="text-lg font-bold text-gray-900 dark:text-white">
                         {formatCount(liveData.count.balls, liveData.count.strikes)}
                       </div>
@@ -308,41 +254,91 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
                       </div>
                     </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                {/* Base Runner Names */}
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                  <div className="text-center">
+              {/* Current Pitcher */}
+              <Card className="border-green-200 dark:border-green-800">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                      <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <span className="text-lg font-semibold text-green-700 dark:text-green-400">Pitching</span>
+                  </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {liveData.currentPitcher.name}
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {liveData.currentPitcher.pitchCount}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Pitches Thrown
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Base Runners */}
+          {liveData.status.inProgress && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-4 h-4 bg-yellow-600 rounded-full" />
+                  <span className="font-semibold">Base Runners</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
                     {hasRunnerOnBase(liveData.baseRunners.third) ? (
-                      <div>
-                        <span className="font-medium text-yellow-600">3rd:</span>
-                        <br />
-                        {liveData.baseRunners.third.fullName}
+                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
+                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">3rd Base</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {liveData.baseRunners.third.fullName}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-gray-400">3rd: Empty</div>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm">3rd Base</div>
+                        <div className="text-gray-400 text-sm">Empty</div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-center">
+                  
+                  <div>
                     {hasRunnerOnBase(liveData.baseRunners.second) ? (
-                      <div>
-                        <span className="font-medium text-yellow-600">2nd:</span>
-                        <br />
-                        {liveData.baseRunners.second.fullName}
+                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
+                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">2nd Base</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {liveData.baseRunners.second.fullName}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-gray-400">2nd: Empty</div>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm">2nd Base</div>
+                        <div className="text-gray-400 text-sm">Empty</div>
+                      </div>
                     )}
                   </div>
-                  <div className="text-center">
+                  
+                  <div>
                     {hasRunnerOnBase(liveData.baseRunners.first) ? (
-                      <div>
-                        <span className="font-medium text-yellow-600">1st:</span>
-                        <br />
-                        {liveData.baseRunners.first.fullName}
+                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
+                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">1st Base</div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {liveData.baseRunners.first.fullName}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-gray-400">1st: Empty</div>
+                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                        <div className="text-gray-500 dark:text-gray-400 text-sm">1st Base</div>
+                        <div className="text-gray-400 text-sm">Empty</div>
+                      </div>
                     )}
                   </div>
                 </div>
