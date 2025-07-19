@@ -392,24 +392,23 @@ export default function ProfilePage() {
               {/* Profile Picture with Edit Button */}
               <div className="relative">
                 {(() => {
-                  const avatarData = getAnimalAvatarByEmoji(userProfile.profileImage);
+                  // Parse avatar data (emoji|background format)
+                  const avatarString = userProfile.profileImage;
                   
-                  if (avatarData) {
-                    // Display emoji avatar with background
+                  if (avatarString?.includes('|')) {
+                    // New format: emoji|background
+                    const [emoji, backgroundClass] = avatarString.split('|');
                     return (
-                      <div 
-                        className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600"
-                        style={{ backgroundColor: avatarData.background }}
-                      >
-                        <span className="text-4xl">{avatarData.emoji}</span>
+                      <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                        <span className="text-5xl">{emoji}</span>
                       </div>
                     );
-                  } else if (userProfile.profileImage.startsWith('http')) {
-                    // Display regular image avatar
+                  } else if (avatarString?.startsWith('http')) {
+                    // Regular image URL
                     return (
                       <Avatar className="w-24 h-24">
                         <AvatarImage 
-                          src={userProfile.profileImage} 
+                          src={avatarString} 
                           alt={userProfile.username}
                         />
                         <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
@@ -418,12 +417,11 @@ export default function ProfilePage() {
                       </Avatar>
                     );
                   } else {
-                    // Display emoji directly if it's not in our animal list
+                    // Legacy emoji format - use default background
+                    const emoji = avatarString || '🐱';
                     return (
-                      <div 
-                        className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-gray-300"
-                      >
-                        <span className="text-4xl">{userProfile.profileImage}</span>
+                      <div className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
+                        <span className="text-5xl">{emoji}</span>
                       </div>
                     );
                   }
@@ -465,12 +463,37 @@ export default function ProfilePage() {
                         <div className="space-y-2">
                           <Label>Profile Picture</Label>
                           <div className="flex items-center gap-4">
-                            <Avatar className="w-16 h-16">
-                              <AvatarImage src={getAvatarUrl(editForm.profileImage)} alt="Preview" />
-                              <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
-                                {editForm.username.charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            {(() => {
+                              const avatarString = editForm.profileImage;
+                              
+                              if (avatarString?.includes('|')) {
+                                // New format: emoji|background
+                                const [emoji, backgroundClass] = avatarString.split('|');
+                                return (
+                                  <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                                    <span className="text-3xl">{emoji}</span>
+                                  </div>
+                                );
+                              } else if (avatarString?.startsWith('http')) {
+                                // Regular image URL
+                                return (
+                                  <Avatar className="w-16 h-16">
+                                    <AvatarImage src={avatarString} alt="Preview" />
+                                    <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
+                                      {editForm.username.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                );
+                              } else {
+                                // Legacy emoji format
+                                const emoji = avatarString || '🐱';
+                                return (
+                                  <div className="w-16 h-16 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
+                                    <span className="text-3xl">{emoji}</span>
+                                  </div>
+                                );
+                              }
+                            })()}
                             <Button
                               type="button"
                               variant="outline"

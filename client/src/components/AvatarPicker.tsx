@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Check, Upload } from 'lucide-react';
-import { animalAvatars } from '@/data/avatars';
 
 interface AvatarPickerProps {
   isOpen: boolean;
@@ -13,32 +10,78 @@ interface AvatarPickerProps {
   onAvatarChange: (avatarUrl: string) => void;
 }
 
-export default function AvatarPicker({ isOpen, onClose, currentAvatar, onAvatarChange }: AvatarPickerProps) {
-  const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar);
-  const [customUrl, setCustomUrl] = useState('');
+const ANIMALS = [
+  { emoji: '🐱', name: 'Cat' },
+  { emoji: '🐶', name: 'Dog' },
+  { emoji: '🦊', name: 'Fox' },
+  { emoji: '🐻', name: 'Bear' },
+  { emoji: '🐼', name: 'Panda' },
+  { emoji: '🐨', name: 'Koala' },
+  { emoji: '🐯', name: 'Tiger' },
+  { emoji: '🦁', name: 'Lion' },
+  { emoji: '🐺', name: 'Wolf' },
+  { emoji: '🐵', name: 'Monkey' },
+  { emoji: '🐰', name: 'Rabbit' },
+  { emoji: '🐹', name: 'Hamster' },
+  { emoji: '🐭', name: 'Mouse' },
+  { emoji: '🐷', name: 'Pig' },
+  { emoji: '🐸', name: 'Frog' },
+  { emoji: '🐥', name: 'Chicken' },
+  { emoji: '🐧', name: 'Penguin' },
+  { emoji: '🦉', name: 'Owl' },
+  { emoji: '🦄', name: 'Unicorn' },
+  { emoji: '🐲', name: 'Dragon' },
+  { emoji: '🐙', name: 'Octopus' },
+  { emoji: '🦅', name: 'Eagle' },
+  { emoji: '🐢', name: 'Turtle' },
+  { emoji: '🦋', name: 'Butterfly' },
+  { emoji: '🐝', name: 'Bee' },
+  { emoji: '🦈', name: 'Shark' },
+  { emoji: '🐬', name: 'Dolphin' },
+  { emoji: '🦕', name: 'Dinosaur' },
+];
 
-  const handleAnimalSelect = (emoji: string) => {
-    setSelectedAvatar(emoji);
-    setCustomUrl('');
+const BACKGROUND_COLORS = [
+  { name: 'Pink', class: 'bg-pink-200 dark:bg-pink-300' },
+  { name: 'Red', class: 'bg-red-200 dark:bg-red-300' },
+  { name: 'Orange', class: 'bg-orange-200 dark:bg-orange-300' },
+  { name: 'Yellow', class: 'bg-yellow-200 dark:bg-yellow-300' },
+  { name: 'Green', class: 'bg-green-200 dark:bg-green-300' },
+  { name: 'Blue', class: 'bg-blue-200 dark:bg-blue-300' },
+  { name: 'Purple', class: 'bg-purple-200 dark:bg-purple-300' },
+  { name: 'Gray', class: 'bg-gray-200 dark:bg-gray-300' },
+];
+
+export default function AvatarPicker({ isOpen, onClose, currentAvatar, onAvatarChange }: AvatarPickerProps) {
+  // Parse current avatar (emoji|background format) or default to first options
+  const currentAvatarData = currentAvatar?.includes('|') ? {
+    animal: currentAvatar.split('|')[0],
+    background: currentAvatar.split('|')[1]
+  } : { 
+    animal: currentAvatar || ANIMALS[0].emoji, 
+    background: BACKGROUND_COLORS[0].class 
   };
 
-  const handleCustomUrl = () => {
-    if (customUrl.trim()) {
-      setSelectedAvatar(customUrl.trim());
-    }
+  const [selectedAnimal, setSelectedAnimal] = useState(currentAvatarData.animal);
+  const [selectedBackground, setSelectedBackground] = useState(currentAvatarData.background);
+
+  const handleAnimalSelect = (emoji: string) => {
+    setSelectedAnimal(emoji);
+  };
+
+  const handleBackgroundSelect = (bgClass: string) => {
+    setSelectedBackground(bgClass);
   };
 
   const handleSave = () => {
-    onAvatarChange(selectedAvatar);
+    const avatarData = `${selectedAnimal}|${selectedBackground}`;
+    onAvatarChange(avatarData);
     onClose();
   };
 
-  // Get current avatar data for preview
-  const currentAvatarData = animalAvatars.find(a => a.emoji === selectedAvatar);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Choose Profile Picture</DialogTitle>
         </DialogHeader>
@@ -46,79 +89,53 @@ export default function AvatarPicker({ isOpen, onClose, currentAvatar, onAvatarC
         <div className="space-y-6">
           {/* Preview */}
           <div className="flex justify-center">
-            <div 
-              className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600"
-              style={{ backgroundColor: currentAvatarData?.background || '#9CA3AF' }}
-            >
-              {currentAvatarData ? (
-                <span className="text-4xl">{selectedAvatar}</span>
-              ) : selectedAvatar.startsWith('http') ? (
-                <img 
-                  src={selectedAvatar} 
-                  alt="Preview"
-                  className="w-full h-full object-cover rounded-full"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.parentElement!.innerHTML = '<span class="text-2xl text-white font-bold">?</span>';
-                  }}
-                />
-              ) : (
-                <span className="text-4xl">{selectedAvatar}</span>
-              )}
+            <div className={`w-32 h-32 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 ${selectedBackground}`}>
+              <span className="text-6xl">{selectedAnimal}</span>
             </div>
           </div>
 
-          {/* Animal Avatars */}
+          {/* Animal Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Choose an animal</Label>
-            <div className="grid grid-cols-7 gap-3">
-              {animalAvatars.map((avatar) => (
+            <Label className="text-base font-medium">Choose Animal</Label>
+            <div className="grid grid-cols-6 gap-3">
+              {ANIMALS.map((animal) => (
                 <button
-                  key={avatar.id}
+                  key={animal.emoji}
                   type="button"
-                  onClick={() => handleAnimalSelect(avatar.emoji)}
-                  className={`relative w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all ${
-                    selectedAvatar === avatar.emoji
+                  onClick={() => handleAnimalSelect(animal.emoji)}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl hover:scale-110 transition-transform border-2 bg-gray-100 dark:bg-gray-700 ${
+                    selectedAnimal === animal.emoji
                       ? 'border-blue-500 ring-2 ring-blue-200'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
-                  style={{ backgroundColor: avatar.background }}
-                  title={avatar.name}
+                  title={animal.name}
                 >
-                  <span className="text-2xl">{avatar.emoji}</span>
-                  {selectedAvatar === avatar.emoji && (
-                    <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  )}
+                  {animal.emoji}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Custom URL */}
+          {/* Background Color Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Or Use Custom Image URL</Label>
-            <div className="flex gap-2">
-              <Input
-                value={customUrl}
-                onChange={(e) => setCustomUrl(e.target.value)}
-                placeholder="https://example.com/your-image.jpg"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCustomUrl}
-                disabled={!customUrl.trim()}
-              >
-                <Upload className="w-4 h-4" />
-              </Button>
+            <Label className="text-base font-medium">Choose Background Color</Label>
+            <div className="grid grid-cols-4 gap-3">
+              {BACKGROUND_COLORS.map((bg) => (
+                <button
+                  key={bg.name}
+                  type="button"
+                  onClick={() => handleBackgroundSelect(bg.class)}
+                  className={`w-20 h-16 rounded-lg flex items-center justify-center text-sm font-medium transition-transform hover:scale-105 border-2 ${bg.class} ${
+                    selectedBackground === bg.class
+                      ? 'border-blue-500 ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  title={bg.name}
+                >
+                  {bg.name}
+                </button>
+              ))}
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Paste a direct link to your image
-            </p>
           </div>
 
           {/* Action Buttons */}
