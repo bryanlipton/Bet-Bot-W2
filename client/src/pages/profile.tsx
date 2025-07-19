@@ -517,11 +517,8 @@ export default function ProfilePage() {
           if (pick.id === pickId) {
             return {
               ...pick,
-              pick: {
-                ...pick.pick,
-                showOnProfile,
-                showOnFeed
-              }
+              showOnProfile,
+              showOnFeed
             };
           }
           return pick;
