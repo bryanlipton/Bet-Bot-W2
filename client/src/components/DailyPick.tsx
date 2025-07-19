@@ -656,20 +656,22 @@ export default function DailyPick() {
                 </div>
               )}
               
-              {/* Medium size analysis factors dropdown (md-lg when stacked) */}
-              {dailyPickMediumOpen && (
-                <div className="hidden sm:block lg:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
-                    Analysis Factors
-                  </h5>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                    {factors.map(({ key, title, score, info }) => (
-                      <FactorScore key={key} title={title} score={score} info={info} />
-                    ))}
-                  </div>
-                </div>
-              )}
+
             </div>
+
+            {/* Medium size analysis factors dropdown (md-lg when stacked) - Below buttons */}
+            {dailyPickMediumOpen && (
+              <div className="hidden sm:block lg:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3 text-center">
+                  Analysis Factors
+                </h5>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {factors.map(({ key, title, score, info }) => (
+                    <FactorScore key={key} title={title} score={score} info={info} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right side - Analysis Factors (large screens side-by-side) */}
