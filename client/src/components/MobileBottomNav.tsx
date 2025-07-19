@@ -45,12 +45,12 @@ const navItems: NavItem[] = [
 
 export default function MobileBottomNav() {
   const [location] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   
   // Filter nav items based on authentication status
   const filteredNavItems = navItems.filter(item => {
-    // Hide "My Picks" tab for non-authenticated users
-    if (item.id === "picks" && !isAuthenticated) {
+    // Hide "My Picks" tab for non-authenticated users (only if auth is loaded and explicitly false)
+    if (item.id === "picks" && !isLoading && isAuthenticated === false) {
       return false;
     }
     return true;
