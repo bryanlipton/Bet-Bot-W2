@@ -600,7 +600,7 @@ export function ActionStyleGameCard({
               <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 {awayOdds ? formatOdds(awayOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
-                    Lines not posted
+                    TBD
                   </span>
                 )}
               </span>
@@ -656,7 +656,7 @@ export function ActionStyleGameCard({
               <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 {homeOdds ? formatOdds(homeOdds) : (
                   <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
-                    Lines not posted
+                    TBD
                   </span>
                 )}
               </span>

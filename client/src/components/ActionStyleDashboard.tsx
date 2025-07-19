@@ -316,7 +316,7 @@ export function ActionStyleDashboard() {
               Showing {featuredGames.length} upcoming games
               {featuredGames.length < 10 && (
                 <span className="hidden sm:inline ml-1">
-                  • Some games may not have betting lines posted yet • Started games automatically removed
+                  • Some games may have TBD betting lines • Started games automatically removed
                 </span>
               )}
             </p>
