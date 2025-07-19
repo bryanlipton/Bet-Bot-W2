@@ -1,0 +1,73 @@
+Here's a full explanation you can **copy-paste to your Replit developer or engineering collaborator** to implement the normalized scoring and color-coded visual system:
+
+---
+
+### 📘 **Task Summary for Replit Dev: Normalize Analysis Factors & Apply Color Coding**
+
+We need to update our **Bet Bot analysis factor display system** with a normalized and intuitive design that uses **score normalization and dynamic color gradients**.
+
+---
+
+### ✅ **Step 1: Normalize All Factor Scores to a 60–100 Range**
+
+All 6 analysis factors (currently using raw scores like 44, 62, 80, etc.) should be rescaled to fall **between 60 and 100**, where:
+
+* 80 is the new **neutral baseline**
+* 100 is **best-case factor signal**
+* 60 is **worst-case factor signal**
+
+> ℹ️ Use min-max normalization or custom clamping logic to scale existing factor values into the 60–100 range while preserving spread and relative ordering.
+
+---
+
+### ✅ **Step 2: Apply Color Coding System Based on Factor Score**
+
+Use a **gradient from red → gray → green**, based on these conceptual tiers:
+
+| Normalized Score | Suggested Color        | Meaning                |
+| ---------------- | ---------------------- | ---------------------- |
+| **95–100**       | Bright Green (#00FF00) | Very strong signal     |
+| **90–94**        | Medium Green (#33CC33) | Strong signal          |
+| **85–89**        | Light Green (#66FF66)  | Slight positive signal |
+| **80–84**        | Gray (#CCCCCC)         | Neutral                |
+| **75–79**        | Light Red (#FF9999)    | Mild negative signal   |
+| **70–74**        | Medium Red (#FF6666)   | Moderate negative      |
+| **60–69**        | Bright Red (#FF3333)   | Strong negative signal |
+
+> 🔁 You can implement this using HSL interpolation, CSS utility classes, or a centralized color mapping function.
+
+---
+
+### ✅ **Step 3: Letter Grade System for Overall Pick**
+
+Each pick already gets an overall letter grade. Update the grading scale as follows:
+
+| Grade | Confidence Range |
+| ----- | ---------------- |
+| A+    | 95–100%          |
+| A     | 90–94%           |
+| B+    | 85–89%           |
+| B     | 80–84%           |
+| C+    | 75–79%           |
+| C     | 70–74%           |
+| D     | 60–69%           |
+| F     | Below 60%        |
+
+Make sure this grade is displayed **prominently and consistently** across the UI, and consider adding:
+
+* Color-coded badges or borders (e.g., gold for A+, green for A, orange for C, red for D/F)
+* Tooltip explanation for what each grade means
+
+---
+
+### ✅ **Step 4: Optional (Recommended) – Add Hover Tooltips**
+
+Each factor (e.g., “Team Momentum: 72”) should have a hover tooltip like:
+
+> **72 – Moderate weakness. Team form is slightly trailing recent averages.**
+
+You can dynamically generate these with logic based on the score band.
+
+---
+
+Let me know if you want me to **write the actual normalization function, color utility, or React component update logic** for this in TypeScript/React!

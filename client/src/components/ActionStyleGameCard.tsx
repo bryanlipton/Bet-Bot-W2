@@ -12,6 +12,7 @@ import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info, Plus } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 import { GameDetailsModal } from "./GameDetailsModal";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses } from "@/lib/factorUtils";
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
@@ -70,18 +71,27 @@ interface GameCardProps {
   }>;
 }
 
+// Color-coded Progress Component
+function ColoredProgress({ value, className }: { value: number | null; className?: string }) {
+  if (value === null || value === undefined) {
+    return <div className={`bg-gray-200 dark:bg-gray-700 rounded-full ${className}`}></div>;
+  }
+
+  const colorClasses = getFactorColorClasses(value);
+  
+  return (
+    <div className={`bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden ${className}`}>
+      <div 
+        className={`h-full ${colorClasses.bg} transition-all duration-300`}
+        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+      />
+    </div>
+  );
+}
+
 // Helper functions for analysis
 
-function scoreToGrade(score: number): string {
-  if (score >= 95) return 'A+';
-  if (score >= 88) return 'A';
-  if (score >= 83) return 'B+';
-  if (score >= 78) return 'B';
-  if (score >= 73) return 'C+';
-  if (score >= 68) return 'C';
-  if (score >= 63) return 'D+';
-  return 'D';
-}
+
 
 // Info Button Component for Bet Bot picks - opens detailed analysis dialog
 function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' | 'lock' }) {
@@ -124,13 +134,13 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
 
   const scoreToGrade = (score: number): string => {
     if (score >= 95) return 'A+';
-    if (score >= 88) return 'A';
-    if (score >= 83) return 'B+';
-    if (score >= 78) return 'B';
-    if (score >= 73) return 'C+';
-    if (score >= 68) return 'C';
-    if (score >= 63) return 'D+';
-    return 'D';
+    if (score >= 90) return 'A';
+    if (score >= 85) return 'B+';
+    if (score >= 80) return 'B';
+    if (score >= 75) return 'C+';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
   };
 
   const getGradeExplanation = (score: number, factorTitle: string): string => {
@@ -353,7 +363,7 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                       }</span>
                     </div>
                     {score !== null && score !== undefined && !isNaN(score) && score > 0 ? (
-                      <Progress value={score} className="h-2" />
+                      <ColoredProgress value={score} className="h-2" />
                     ) : (
                       <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                     )}
@@ -382,20 +392,14 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
 
 // Color-schemed grade bubble component for Bet Bot picks
 function GradeBubble({ grade }: { grade: string }) {
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'bg-green-500';
-    if (grade.startsWith('B')) return 'bg-blue-500';
-    if (grade.startsWith('C')) return 'bg-yellow-500';
-    if (grade.startsWith('D')) return 'bg-orange-500';
-    return 'bg-gray-500';
-  };
-
+  const colorClasses = getGradeColorClasses(grade);
+  
   return (
     <div 
-      className={`${getGradeColor(grade)} w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer`}
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border`}
       onClick={(e) => e.stopPropagation()}
     >
-      <span className="text-white text-xs font-bold">
+      <span className="text-xs font-bold">
         {grade}
       </span>
     </div>

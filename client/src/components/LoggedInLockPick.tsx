@@ -11,6 +11,7 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, Chev
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 import { savePick } from "@/services/pickStorage";
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -78,9 +79,11 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
+  const colorClasses = getGradeColorClasses(grade);
+  
   return (
     <Badge 
-      className="bg-amber-500 text-white font-bold px-3 py-1 text-lg cursor-pointer" 
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-3 py-1 text-lg cursor-pointer border`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -91,13 +94,13 @@ function GradeBadge({ grade }: { grade: string }) {
 // Factor Grade Conversion (No F grades)
 function scoreToGrade(score: number): string {
   if (score >= 95) return 'A+';
-  if (score >= 88) return 'A';
-  if (score >= 83) return 'B+';
-  if (score >= 78) return 'B';
-  if (score >= 73) return 'C+';
-  if (score >= 68) return 'C';
-  if (score >= 63) return 'D+';
-  return 'D';
+  if (score >= 90) return 'A';
+  if (score >= 85) return 'B+';
+  if (score >= 80) return 'B';
+  if (score >= 75) return 'C+';
+  if (score >= 70) return 'C';
+  if (score >= 60) return 'D';
+  return 'F';
 }
 
 // Unified Info Button Component with Dark Background
@@ -174,15 +177,36 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
   );
 }
 
+// Color-coded Progress Component
+function ColoredProgress({ value, className }: { value: number | null; className?: string }) {
+  if (value === null || value === undefined) {
+    return <div className={`bg-gray-200 dark:bg-gray-700 rounded-full ${className}`}></div>;
+  }
+
+  const colorClasses = getFactorColorClasses(value);
+  
+  return (
+    <div className={`bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden ${className}`}>
+      <div 
+        className={`h-full ${colorClasses.bg} transition-all duration-300`}
+        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+      />
+    </div>
+  );
+}
+
 // Factor Score Component with Info Button
 function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
+  const colorClasses = getFactorColorClasses(score);
+  const tooltip = getFactorTooltip(score, title);
+
   return (
     <div className="flex items-center py-1">
       <div className="flex items-center gap-1 flex-1 min-w-0 pr-3">
-        <InfoButton info={info} title={title} score={score} />
+        <InfoButton info={tooltip} title={title} score={score} />
         <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{title}</span>
       </div>
-      <div className="bg-orange-400 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-auto">
+      <div className={`${colorClasses.bg} ${colorClasses.text} text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-auto border ${colorClasses.border}`}>
         {score !== null ? score : 'NA'}
       </div>
     </div>
@@ -607,7 +631,7 @@ export default function LoggedInLockPick() {
                                 <span className="font-medium">{title}</span>
                                 <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                               </div>
-                              <Progress value={score} className="h-2" />
+                              <ColoredProgress value={score} className="h-2" />
                               <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
                             </div>
                           ))}
@@ -691,7 +715,7 @@ export default function LoggedInLockPick() {
                               <span className="font-medium">{title}</span>
                               <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                             </div>
-                            <Progress value={score} className="h-2" />
+                            <ColoredProgress value={score} className="h-2" />
                             <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
                           </div>
                         ))}

@@ -597,24 +597,17 @@ export class DailyPickService {
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
-    // Calculate overall grade based on weighted average of all factors
-    const weightedScore = (
-      analysis.offensiveProduction * 0.20 +     // 20% - Run scoring capability
-      analysis.pitchingMatchup * 0.25 +         // 25% - Starting pitcher advantage
-      analysis.situationalEdge * 0.15 +        // 15% - Venue and context
-      analysis.teamMomentum * 0.20 +            // 20% - Recent form and trends
-      analysis.marketInefficiency * 0.15 +     // 15% - Betting value
-      analysis.systemConfidence * 0.05         // 5% - Model certainty bonus
-    );
+    // Calculate overall grade based on confidence score (which is already normalized to 60-100)
+    const confidence = analysis.confidence;
     
-    if (weightedScore >= 95) return 'A+';
-    if (weightedScore >= 88) return 'A';
-    if (weightedScore >= 83) return 'B+';
-    if (weightedScore >= 78) return 'B';
-    if (weightedScore >= 73) return 'C+';
-    if (weightedScore >= 68) return 'C';
-    if (weightedScore >= 63) return 'D+';
-    return 'D';
+    if (confidence >= 95) return 'A+';
+    if (confidence >= 90) return 'A';
+    if (confidence >= 85) return 'B+';
+    if (confidence >= 80) return 'B';
+    if (confidence >= 75) return 'C+';
+    if (confidence >= 70) return 'C';
+    if (confidence >= 60) return 'D';
+    return 'F';
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
@@ -745,14 +738,17 @@ export class DailyPickService {
         
 
         
+        // Normalize all factors to 60-100 range
+        const normalizeScore = (score: number) => Math.round(60 + (Math.max(0, Math.min(100, score)) * 0.4));
+        
         const analysis: DailyPickAnalysis = {
-          offensiveProduction,
-          pitchingMatchup,
-          situationalEdge,
-          teamMomentum,
-          marketInefficiency,
-          systemConfidence,
-          confidence: Math.round((offensiveProduction + pitchingMatchup + situationalEdge + teamMomentum + marketInefficiency + systemConfidence) / 6)
+          offensiveProduction: normalizeScore(offensiveProduction),
+          pitchingMatchup: normalizeScore(pitchingMatchup),
+          situationalEdge: normalizeScore(situationalEdge),
+          teamMomentum: normalizeScore(teamMomentum),
+          marketInefficiency: normalizeScore(marketInefficiency),
+          systemConfidence: normalizeScore(systemConfidence),
+          confidence: Math.round((normalizeScore(offensiveProduction) + normalizeScore(pitchingMatchup) + normalizeScore(situationalEdge) + normalizeScore(teamMomentum) + normalizeScore(marketInefficiency) + normalizeScore(systemConfidence)) / 6)
         };
 
         const grade = this.calculateGrade(analysis);
@@ -822,14 +818,17 @@ export class DailyPickService {
     };
     const systemConfidence = this.calculateSystemConfidence(dataQuality);
     
+    // Normalize all factors to 60-100 range
+    const normalizeScore = (score: number) => Math.round(60 + (Math.max(0, Math.min(100, score)) * 0.4));
+    
     const analysis: DailyPickAnalysis = {
-      offensiveProduction,
-      pitchingMatchup,
-      situationalEdge,
-      teamMomentum,
-      marketInefficiency,
-      systemConfidence,
-      confidence: Math.round((offensiveProduction + pitchingMatchup + situationalEdge + teamMomentum + marketInefficiency + systemConfidence) / 6)
+      offensiveProduction: normalizeScore(offensiveProduction),
+      pitchingMatchup: normalizeScore(pitchingMatchup),
+      situationalEdge: normalizeScore(situationalEdge),
+      teamMomentum: normalizeScore(teamMomentum),
+      marketInefficiency: normalizeScore(marketInefficiency),
+      systemConfidence: normalizeScore(systemConfidence),
+      confidence: Math.round((normalizeScore(offensiveProduction) + normalizeScore(pitchingMatchup) + normalizeScore(situationalEdge) + normalizeScore(teamMomentum) + normalizeScore(marketInefficiency) + normalizeScore(systemConfidence)) / 6)
     };
 
     const grade = this.calculateGrade(analysis);
