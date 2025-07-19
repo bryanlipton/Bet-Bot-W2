@@ -71,25 +71,25 @@ export function getFactorColorClasses(normalizedScore: number): { text: string; 
 export function getFactorExplanation(factorName: string): string {
   switch (factorName) {
     case 'Offensive Production':
-      return 'Combines advanced hitting metrics (xwOBA, barrel rate, exit velocity) with team run-scoring efficiency from 2025 season data. Evaluates batting lineup strength relative to league averages and recent offensive trends.';
+      return 'CALCULATION: Combines Baseball Savant xwOBA (expected weighted on-base average), barrel percentage (optimal launch angle + exit velocity), and average exit velocity from 2025 season data.\n\nMETRICS USED:\n• Expected wOBA (xwOBA): Quality of contact metric\n• Barrel Rate: % of batted balls with ideal launch conditions\n• Exit Velocity: Average mph off the bat\n• Team Win Percentage: 2025 season wins/total games\n• Run Production Efficiency: Runs scored per quality contact\n\nSCORING: Raw metrics compared to league percentiles, normalized to 60-100 scale using formula: 60 + (percentile × 0.4). Elite teams (top 10%) score 90+, while bottom teams score 60-70.';
     
     case 'Pitching Matchup':
-      return 'Analyzes starting pitcher effectiveness using ERA, WHIP, strikeout rates, and recent performance trends. Compares pitcher strength against opposing team\'s offensive capabilities and historical matchup data.';
+      return 'CALCULATION: Analyzes probable starting pitcher performance using current season ERA, WHIP (walks + hits per inning), K/9 (strikeouts per 9 innings), and recent form.\n\nMETRICS USED:\n• ERA: Earned runs allowed per 9 innings (2025 season)\n• WHIP: Base runners allowed per inning pitched\n• Strikeout Rate: K/9 innings pitched\n• Opponent Batting Average Against\n• Recent Performance: Last 5 starts trend\n• Matchup History: Head-to-head results vs opposing team\n\nSCORING: Pitcher quality ranked against league averages. Sub-3.00 ERA + low WHIP + high K-rate = 90+ score. Poor matchups with ERA 5.00+ score 60-70.';
     
     case 'Situational Edge':
-      return 'Evaluates ballpark dimensions, home field advantage, travel fatigue, and game timing effects. Includes stadium-specific run environments and how conditions favor each team\'s style of play.';
+      return 'CALCULATION: Multi-factor ballpark and situational advantage analysis using verified stadium data and game conditions.\n\nFACTORS ANALYZED:\n• Home Field Advantage: +12 points (home), -8 points (away)\n• Ballpark Factors: Hitter/pitcher friendly ratings (-3 to +3)\n  - Fenway Park: +3 (hitter friendly)\n  - Petco Park: -2 (pitcher friendly)\n  - Coors Field: +3 (altitude advantage)\n• Game Timing: Day vs night game effects\n• Travel Schedule: Rest days and travel fatigue\n• Weather Conditions: Wind, temperature impact\n\nSCORING: Base 50, adjusted by situational factors. Home teams in hitter-friendly parks can reach 90+, while road teams in pitcher parks score 60-70.';
     
     case 'Team Momentum':
-      return 'Multi-layered analysis using official MLB Stats API comparing recent performance (L10 games) vs season form, directional trends, and momentum shifts. Tracks wins/losses in last 10 completed games.';
+      return 'CALCULATION: Three-layer momentum analysis using official MLB Stats API with weighted recent performance metrics.\n\nCOMPONENTS (weighted %):\n• Recent Record (40%): Last 10 games win percentage\n• Trend Direction (30%): L5 games vs previous 5 games\n• Performance vs Season (30%): L10 rate vs overall season rate\n\nMETRICS TRACKED:\n• L10 Record: Wins-losses in last 10 completed games\n• Momentum Trend: Recent 5 vs previous 5 comparison\n• Context: Recent form relative to season expectation\n• Hot/Cold Streaks: Current win/loss streaks\n\nSCORING: Teams 9-1 or 8-2 in L10 score 90+. Teams 3-7 or worse score 60-70. Normalized using real MLB game results, not projections.';
     
     case 'Market Inefficiency':
-      return 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators. Identifies profitable opportunities by comparing our projected win probability against implied odds probability.';
+      return 'CALCULATION: Advanced betting value analysis comparing our model probability vs market-implied probability using Kelly Criterion optimization.\n\nMETRICS CALCULATED:\n• Model Win Probability: Our projected team win chance\n• Implied Probability: Calculated from betting odds\n• Edge Percentage: Difference between model and market\n• Kelly Fraction: Optimal bet size based on edge\n• Expected Value: Long-term profit expectation\n• Market Efficiency Score: How accurate oddsmakers are\n\nFORMULA: Edge = (Model Prob × Odds) - 1\nKelly = (Edge × Model Prob - (1 - Model Prob)) / Edge\n\nSCORING: Significant positive edges (5%+) score 90+. Fair market pricing scores 75. Negative edges score 60-70.';
     
     case 'System Confidence':
-      return 'Model certainty based on data quality, factor consensus, and information completeness. Higher scores indicate stronger analytical foundation with reliable data from all sources.';
+      return 'CALCULATION: Data quality assessment and analytical consensus measurement across all factors with variance analysis.\n\nDATA QUALITY WEIGHTS:\n• Offensive Data Quality (20%): Availability of advanced metrics\n• Pitching Data Quality (25%): Starter information completeness\n• Situational Data (15%): Venue and contextual factors\n• Momentum Data (25%): Depth of recent performance data\n• Market Data (15%): Odds reliability and market depth\n\nCONFIDENCE FACTORS:\n• Factor Consensus: Agreement between analytical components\n• Data Variance: Lower variance = higher confidence\n• Information Completeness: Missing vs available data points\n• Historical Accuracy: Model performance in similar situations\n\nSCORING: Base 75 + weighted adjustments. Low variance with complete data = 95+. High uncertainty or missing data = 60-70.';
     
     default:
-      return 'This factor analyzes various statistical and situational elements to determine team advantages.';
+      return 'This factor analyzes various statistical and situational elements to determine team advantages using comprehensive data analysis.';
   }
 }
 
