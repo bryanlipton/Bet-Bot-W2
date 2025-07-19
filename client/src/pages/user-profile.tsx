@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Users, UserPlus, UserMinus, Calendar, TrendingUp, Award, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from "@/lib/queryClient";
 import { ActionStyleHeader } from '@/components/ActionStyleHeader';
 import Footer from '@/components/Footer';
 
@@ -33,6 +34,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
   const [darkMode, setDarkMode] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -66,40 +68,42 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
     retry: false,
   });
 
-  const handleFollowToggle = async () => {
-    try {
+  // Follow mutation with real-time updates
+  const followMutation = useMutation({
+    mutationFn: async () => {
       const method = isFollowing ? 'DELETE' : 'POST';
-      const response = await fetch('/api/users/follow', {
+      const response = await apiRequest('/api/users/follow', {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ userId }),
-        credentials: 'include'
       });
+      return response;
+    },
+    onSuccess: () => {
+      const newFollowStatus = !isFollowing;
+      setIsFollowing(newFollowStatus);
       
-      if (response.ok) {
-        setIsFollowing(!isFollowing);
-        toast({
-          title: "Success",
-          description: isFollowing ? "Unfollowed user" : "Followed user",
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.message || "Failed to update follow status",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Follow toggle error:', error);
+      // Invalidate current user data to update their following count
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Invalidate the viewed user's profile to update their follower count
+      queryClient.invalidateQueries({ queryKey: [`/api/user/profile/${userId}`] });
+      
+      toast({
+        title: "Success", 
+        description: newFollowStatus ? "User followed successfully!" : "User unfollowed successfully!",
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update follow status. Please try again.",
+        description: error.message || "Failed to update follow status",
         variant: "destructive",
       });
     }
+  });
+
+  const handleFollowToggle = () => {
+    followMutation.mutate();
   };
 
   const formatDate = (dateString: string) => {

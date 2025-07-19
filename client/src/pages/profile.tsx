@@ -330,42 +330,73 @@ export default function ProfilePage() {
     }, 500); // 500ms debounce
   };
 
-  // Follow a user
-  const handleFollowUser = async (userId: string) => {
-    try {
-      const response = await fetch('/api/users/follow', {
+  // Follow a user with real-time updates
+  const followUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest('/api/users/follow', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ userId }),
-        credentials: 'include'
       });
+      return response;
+    },
+    onSuccess: (data, userId) => {
+      // Invalidate and refetch user data to update follower/following counts
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "User followed successfully!",
-        });
-        
-        // Remove from search results or update to show "Following"
-        setSearchResults(prev => prev.filter(user => user.id !== userId));
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.message || "Failed to follow user.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Follow error:', error);
+      // Remove from search results
+      setSearchResults(prev => prev.filter(user => user.id !== userId));
+      
+      toast({
+        title: "Success",
+        description: "User followed successfully!",
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to follow user. Please try again.",
+        description: error.message || "Failed to follow user.",
         variant: "destructive",
       });
     }
+  });
+
+  const handleFollowUser = (userId: string) => {
+    followUserMutation.mutate(userId);
+  };
+
+  // Unfollow a user with real-time updates
+  const unfollowUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiRequest('/api/users/follow', {
+        method: 'DELETE',
+        body: JSON.stringify({ userId }),
+      });
+      return response;
+    },
+    onSuccess: (data, userId) => {
+      // Invalidate and refetch user data to update follower/following counts
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Also invalidate followers/following lists if they're open
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/followers`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${user?.id}/following`] });
+      
+      toast({
+        title: "Success",
+        description: "User unfollowed successfully!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to unfollow user.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleUnfollowUser = (userId: string) => {
+    unfollowUserMutation.mutate(userId);
   };
 
   const updateProfileMutation = useMutation({
@@ -1138,18 +1169,19 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      // Navigate to follower's profile
-                      window.open(`/user/${follower.id}`, '_blank');
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    <User className="w-3 h-3" />
-                    View Profile
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        window.open(`/user/${follower.id}`, '_blank');
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <User className="w-3 h-3" />
+                      View Profile
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -1220,18 +1252,29 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      // Navigate to followed user's profile
-                      window.open(`/user/${followedUser.id}`, '_blank');
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    <User className="w-3 h-3" />
-                    View Profile
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        window.open(`/user/${followedUser.id}`, '_blank');
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <User className="w-3 h-3" />
+                      View Profile
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleUnfollowUser(followedUser.id)}
+                      disabled={unfollowUserMutation.isPending}
+                      className="flex items-center gap-1"
+                    >
+                      <UserMinus className="w-3 h-3" />
+                      Unfollow
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (
