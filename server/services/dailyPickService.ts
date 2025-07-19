@@ -790,6 +790,59 @@ export class DailyPickService {
     return bestPick;
   }
 
+  async generateGameAnalysis(homeTeam: string, awayTeam: string, pickTeam: string, odds: number, gameTime: string, venue: string): Promise<{
+    grade: string;
+    confidence: number;
+    reasoning: string;
+    analysis: DailyPickAnalysis;
+  }> {
+    // Calculate enhanced analysis scores using new methodology
+    const offensiveProduction = await this.analyzeOffensiveProduction(pickTeam);
+    const pitchingMatchup = await this.analyzePitchingMatchup(
+      homeTeam, 
+      awayTeam, 
+      { home: null, away: null }, // Simplified for analysis
+      pickTeam
+    );
+    
+    const situationalEdge = this.getSituationalEdge(venue, pickTeam, homeTeam, gameTime);
+    const teamMomentum = await this.analyzeTeamMomentum(pickTeam);
+    
+    // Calculate model probability and market inefficiency
+    const modelProb = (offensiveProduction + pitchingMatchup + situationalEdge + teamMomentum) / 400; // Normalize to 0-1
+    const marketInefficiency = this.calculateMarketInefficiency(odds, modelProb);
+    
+    // Calculate system confidence based on data quality
+    const dataQuality = {
+      offensiveData: offensiveProduction > 0 ? 85 : 50,
+      pitchingData: pitchingMatchup > 60 ? 90 : 60,
+      situationalData: 80, // Always available
+      momentumData: teamMomentum > 0 ? 85 : 50,
+      marketData: odds ? 95 : 30
+    };
+    const systemConfidence = this.calculateSystemConfidence(dataQuality);
+    
+    const analysis: DailyPickAnalysis = {
+      offensiveProduction,
+      pitchingMatchup,
+      situationalEdge,
+      teamMomentum,
+      marketInefficiency,
+      systemConfidence,
+      confidence: Math.round((offensiveProduction + pitchingMatchup + situationalEdge + teamMomentum + marketInefficiency + systemConfidence) / 6)
+    };
+
+    const grade = this.calculateGrade(analysis);
+    const reasoning = await this.generateReasoning(pickTeam, analysis, homeTeam, awayTeam, venue, odds, { home: null, away: null });
+    
+    return {
+      grade,
+      confidence: analysis.confidence,
+      reasoning,
+      analysis
+    };
+  }
+
   async saveDailyPick(pick: DailyPick): Promise<void> {
     try {
       await db.insert(dailyPicks).values({

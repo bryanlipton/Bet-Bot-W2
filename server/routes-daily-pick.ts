@@ -63,6 +63,32 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+  // Analyze any specific game for pick grading
+  app.post("/api/daily-pick/analyze-game", async (req: Request, res: Response) => {
+    try {
+      const { gameId, homeTeam, awayTeam, pickTeam, odds, gameTime, venue } = req.body;
+      
+      if (!homeTeam || !awayTeam || !pickTeam || !odds) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Generate analysis for this specific pick
+      const analysis = await dailyPickService.generateGameAnalysis(
+        homeTeam,
+        awayTeam,
+        pickTeam,
+        odds,
+        gameTime || new Date().toISOString(),
+        venue || "TBD"
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Failed to analyze game:", error);
+      res.status(500).json({ error: "Failed to analyze game" });
+    }
+  });
+
   // Test grading endpoint (development only)
   app.post("/api/daily-pick/test-new-grading", async (req: Request, res: Response) => {
     try {
