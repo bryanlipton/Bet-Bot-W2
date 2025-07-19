@@ -978,6 +978,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update pick visibility settings
+  app.patch('/api/user/picks/:pickId/visibility', isAuthenticated, async (req: any, res) => {
+    try {
+      const { pickId } = req.params;
+      const { showOnProfile, showOnFeed } = req.body;
+      const userId = req.user.claims.sub;
+
+      console.log(`Updating visibility for pick ${pickId}: profile=${showOnProfile}, feed=${showOnFeed}`);
+
+      // Update the pick visibility in database
+      const updatedPick = await storage.updatePickVisibility(userId, parseInt(pickId), { showOnProfile, showOnFeed });
+      
+      if (!updatedPick) {
+        return res.status(404).json({ message: "Pick not found or not owned by user" });
+      }
+
+      res.json({ success: true, pick: updatedPick });
+    } catch (error) {
+      console.error("Error updating pick visibility:", error);
+      res.status(500).json({ message: "Failed to update pick visibility" });
+    }
+  });
+
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');
   setupCustomGPTEndpoint(app);

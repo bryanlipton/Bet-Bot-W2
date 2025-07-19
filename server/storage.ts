@@ -90,6 +90,7 @@ export interface IStorage {
   getUserPicks(userId: string, limit?: number, offset?: number): Promise<UserPick[]>;
   getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]>;
   updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick>;
+  updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null>;
   deleteUserPick(pickId: string): Promise<void>;
   getUserPickStats(userId: string): Promise<{
     totalPicks: number;
@@ -904,6 +905,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userPicks.id, pickId))
       .returning();
     return pick;
+  }
+
+  async updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+    const [pick] = await db.update(userPicks)
+      .set(visibility)
+      .where(and(
+        eq(userPicks.id, pickId),
+        eq(userPicks.userId, userId)
+      ))
+      .returning();
+    return pick || null;
   }
 
   async deleteUserPick(pickId: number): Promise<void> {

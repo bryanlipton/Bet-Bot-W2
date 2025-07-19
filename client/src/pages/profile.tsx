@@ -177,6 +177,8 @@ export default function ProfilePage() {
             ...pick,
             // Map database fields to expected format
             timestamp: pick.createdAt || pick.gameDate,
+            showOnProfile: pick.showOnProfile,
+            showOnFeed: pick.showOnFeed,
             betInfo: {
               units: pick.units || 1,
               odds: pick.odds || 0,
@@ -474,6 +476,32 @@ export default function ProfilePage() {
   const handleUnfollowUser = (userId: string) => {
     unfollowUserMutation.mutate(userId);
   };
+
+  // Update pick visibility mutation
+  const updatePickVisibilityMutation = useMutation({
+    mutationFn: async ({ pickId, showOnProfile, showOnFeed }: { pickId: string; showOnProfile: boolean; showOnFeed: boolean }) => {
+      const response = await apiRequest(`/api/user/picks/${pickId}/visibility`, {
+        method: 'PATCH',
+        body: JSON.stringify({ showOnProfile, showOnFeed }),
+      });
+      return response;
+    },
+    onSuccess: () => {
+      // Refetch user picks to update the display
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      toast({
+        title: "Settings Updated",
+        description: "Pick visibility settings have been saved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update pick visibility.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
@@ -1146,8 +1174,15 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`profile-${item.id}`}
-                                    defaultChecked={true}
-                                    // TODO: Connect to actual pick data
+                                    checked={item.pick.showOnProfile !== false}
+                                    onCheckedChange={(checked) => {
+                                      updatePickVisibilityMutation.mutate({
+                                        pickId: item.id,
+                                        showOnProfile: checked,
+                                        showOnFeed: item.pick.showOnFeed !== false
+                                      });
+                                    }}
+                                    disabled={updatePickVisibilityMutation.isPending}
                                   />
                                   <Label htmlFor={`profile-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
                                     Show on profile
@@ -1156,8 +1191,15 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`feed-${item.id}`}
-                                    defaultChecked={true}
-                                    // TODO: Connect to actual pick data
+                                    checked={item.pick.showOnFeed !== false}
+                                    onCheckedChange={(checked) => {
+                                      updatePickVisibilityMutation.mutate({
+                                        pickId: item.id,
+                                        showOnProfile: item.pick.showOnProfile !== false,
+                                        showOnFeed: checked
+                                      });
+                                    }}
+                                    disabled={updatePickVisibilityMutation.isPending}
                                   />
                                   <Label htmlFor={`feed-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
                                     Show on feed

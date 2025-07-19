@@ -30,6 +30,8 @@ export interface Pick {
     url: string;
   };
   status: 'pending' | 'won' | 'lost' | 'void' | 'cancelled';
+  showOnProfile?: boolean; // Whether to show this pick on user profile
+  showOnFeed?: boolean; // Whether to show this pick on public feed
   result?: {
     finalScore?: {
       home: number;
