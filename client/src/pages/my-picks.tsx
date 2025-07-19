@@ -95,62 +95,10 @@ export default function MyPicksPage() {
         // Load from localStorage
         const localPicks = pickStorage.getPicks();
         
-        // Add historical database picks (until auth is fixed)
-        const databasePicks: Pick[] = [
-          {
-            id: 'db_pick_1',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            gameInfo: { homeTeam: 'Boston Red Sox', awayTeam: 'New York Yankees', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-            betInfo: { selection: 'Boston Red Sox', market: 'moneyline', odds: 150, units: 2.0, line: null },
-            bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
-            status: 'won'
-          },
-          {
-            id: 'db_pick_2',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            gameInfo: { homeTeam: 'Los Angeles Dodgers', awayTeam: 'San Francisco Giants', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-            betInfo: { selection: 'Los Angeles Dodgers -1.5', market: 'spread', odds: -110, units: 1.5, line: '-1.5' },
-            bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
-            status: 'lost'
-          },
-          {
-            id: 'db_pick_3',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            gameInfo: { homeTeam: 'Milwaukee Brewers', awayTeam: 'Chicago Cubs', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-            betInfo: { selection: 'Over 8.5', market: 'over', odds: -105, units: 1.0, line: '8.5' },
-            bookmaker: { key: 'betmgm', displayName: 'BetMGM', deepLink: '' },
-            status: 'won'
-          },
-          {
-            id: 'db_pick_4',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-            betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null },
-            bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
-            status: 'won'
-          },
-          {
-            id: 'db_pick_5',
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-            betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null },
-            bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
-            status: 'lost'
-          }
-        ];
-        
-        // Sort picks: pending first, then settled by timestamp (newest first)
-        const pendingPicks = localPicks.filter(pick => pick.status === 'pending');
-        const settledPicks = databasePicks.filter(pick => pick.status !== 'pending');
-        
-        // Sort settled picks by timestamp (newest first)
-        settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        
-        // Combine with pending picks first, then settled picks
-        const allPicks = [...pendingPicks, ...settledPicks];
+        // Only show localStorage picks (no fake database data)
+        const allPicks = localPicks;
         setPicks(allPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
-        console.log('Added database picks:', databasePicks.length);
         console.log('Total picks:', allPicks.length);
         
       } catch (error) {

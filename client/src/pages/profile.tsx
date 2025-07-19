@@ -190,67 +190,8 @@ export default function ProfilePage() {
       setPublicFeed(feedItems);
     }
     
-    // Always add historical database picks to public feed for display (until auth is fixed)
-    const addHistoricalPicksToFeed = () => {
-      const historicalPicks = [
-        {
-          id: 'db_pick_1',
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          gameInfo: { homeTeam: 'Boston Red Sox', awayTeam: 'New York Yankees', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-          betInfo: { selection: 'Boston Red Sox', market: 'moneyline', odds: 150, units: 2.0, line: null },
-          bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
-          status: 'won'
-        },
-        {
-          id: 'db_pick_2', 
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          gameInfo: { homeTeam: 'Los Angeles Dodgers', awayTeam: 'San Francisco Giants', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-          betInfo: { selection: 'Los Angeles Dodgers -1.5', market: 'spread', odds: -110, units: 1.5, line: '-1.5' },
-          bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
-          status: 'lost'
-        },
-        {
-          id: 'db_pick_3',
-          timestamp: new Date(Date.now() - 86400000).toISOString(), 
-          gameInfo: { homeTeam: 'Milwaukee Brewers', awayTeam: 'Chicago Cubs', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-          betInfo: { selection: 'Over 8.5', market: 'over', odds: -105, units: 1.0, line: '8.5' },
-          bookmaker: { key: 'betmgm', displayName: 'BetMGM', deepLink: '' },
-          status: 'won'
-        },
-        {
-          id: 'db_pick_4',
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-          betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null },
-          bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
-          status: 'won'
-        },
-        {
-          id: 'db_pick_5',
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: new Date(Date.now() - 86400000).toISOString(), sport: 'baseball_mlb' },
-          betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null },
-          bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
-          status: 'lost'
-        }
-      ];
-      
-      // Convert to PublicFeedItem format - settled picks only for now
-      const settledFeedItems = historicalPicks.map(pick => ({
-        id: pick.id,
-        type: 'pick' as const,
-        pick: {
-          ...pick,
-          betInfo: {
-            ...pick.betInfo,
-            bookmaker: pick.bookmaker.displayName
-          }
-        },
-        timestamp: pick.timestamp,
-        result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
-      }));
-
-      // Add pending picks from localStorage at the top
+    // Add only pending picks from localStorage to public feed
+    const addPendingPicksToFeed = () => {
       const localPicks = pickStorage.getPicks();
       const pendingFeedItems = localPicks
         .filter(pick => pick.status === 'pending')
@@ -268,9 +209,7 @@ export default function ProfilePage() {
           result: undefined // Pending picks have no result yet
         }));
 
-      // Combine with pending picks first, then settled picks
-      const combinedFeedItems = [...pendingFeedItems, ...settledFeedItems];
-      setPublicFeed(combinedFeedItems);
+      setPublicFeed(pendingFeedItems);
     };
     
     // Always load localStorage picks and add historical picks
@@ -290,29 +229,28 @@ export default function ProfilePage() {
         setPicks(localPicks);
       }
       
-      // Add historical picks to public feed
-      addHistoricalPicksToFeed();
+      // Add pending picks to public feed
+      addPendingPicksToFeed();
     };
 
     loadLocalStoragePicks();
   }, [userPicks]);
 
-  // Calculate comprehensive stats combining database picks + pending localStorage picks
-  // Since API is failing, use hardcoded database values until auth is fixed
-  const dbPicksCount = 5; // 5 historical picks from database (added Blue Jays ML + Parlay)
-  const dbWins = 3; // Boston Red Sox ML, Over 8.5, Blue Jays ML wins
-  const dbLosses = 2; // LA Dodgers -1.5 loss, Orioles+Mets parlay loss
+  // Calculate comprehensive stats with only pending localStorage picks
+  const dbPicksCount = 0; // No historical picks - removed fake data
+  const dbWins = 0; // No wins yet
+  const dbLosses = 0; // No losses yet
   const pendingPicks = picks.filter(p => p.status === 'pending').length;
   const totalCompletedPicks = dbWins + dbLosses;
   
   const profileStats = {
-    totalPicks: dbPicksCount + pendingPicks, // 3 from DB + 2 pending = 5 total
-    pendingPicks: pendingPicks, // 2 pending picks from localStorage
-    wonPicks: dbWins, // 2 wins from database
-    lostPicks: dbLosses, // 1 loss from database
-    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 3/5 = 60%
-    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0) + 5.4, // Total wins: +3.0 +0.95 +1.95 = +5.9, losses: -1.5 -1.0 = -2.5, net: +3.4
-    winStreak: 1 // Last pick was a win (Over 8.5)
+    totalPicks: dbPicksCount + pendingPicks, // 0 from DB + pending picks
+    pendingPicks: pendingPicks, // Pending picks from localStorage
+    wonPicks: dbWins, // No wins yet
+    lostPicks: dbLosses, // No losses yet
+    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // No completed picks yet
+    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0), // Only pending picks count
+    winStreak: 0 // No completed picks yet
   };
 
   // Calculate current win streak
