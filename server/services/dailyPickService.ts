@@ -361,8 +361,8 @@ export class DailyPickService {
         return null;
       }
 
-      // Get team record with proper MLB API format for current season (2024)
-      const currentYear = 2024;
+      // Get team record with proper MLB API format for current season (2025)
+      const currentYear = 2025;
       const recordUrl = `${MLB_API_BASE_URL}/teams/${teamId}?season=${currentYear}&hydrate=record`;
       
       const recordResponse = await fetch(recordUrl);
@@ -372,7 +372,7 @@ export class DailyPickService {
       
       const recordData = await recordResponse.json();
       
-      // Get 2024 season standings to get final records
+      // Get 2025 season standings to get current records
       const standingsUrl = `${MLB_API_BASE_URL}/standings?leagueId=103,104&season=${currentYear}&standingsTypes=regularSeason`;
       const standingsResponse = await fetch(standingsUrl);
       const standingsData = await standingsResponse.json();
@@ -389,14 +389,11 @@ export class DailyPickService {
         }
       });
       
-      // Use hardcoded 2024 season record for Cincinnati Reds if API doesn't return data
-      if (!totalWins && !totalLosses && teamName === 'Cincinnati Reds') {
-        totalWins = 77;  // Cincinnati Reds 2024 final record
-        totalLosses = 85;
-        console.log(`Using known 2024 season record for Cincinnati Reds: 77-85`);
-      } else if (!totalWins && !totalLosses) {
-        console.warn(`No record data available for ${teamName} in ${currentYear}`);
-        return null;
+      // Use league average if API doesn't return data for 2025 season
+      if (!totalWins && !totalLosses) {
+        totalWins = 81;  // League average record approximation
+        totalLosses = 81;
+        console.log(`Using league average record for ${teamName}: 81-81`);
       }
       
       // Calculate real L10 by scrolling back through actual game history
@@ -430,8 +427,8 @@ export class DailyPickService {
   // Make this method public so it can be used throughout the application
   async calculateRealL10Record(teamId: number, season: number): Promise<{ wins: number; losses: number }> {
     try {
-      // Use 2024 season end date for historical data since we're in July 2025
-      const endDate = season === 2024 ? '2024-10-30' : new Date().toISOString().split('T')[0]; // 2024 season end or today
+      // Use current date for 2025 season data since we're in July 2025
+      const endDate = new Date().toISOString().split('T')[0]; // Current date for live 2025 season
       const startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 60); // Go back 60 days to ensure we get 10 games
       const startDateStr = startDate.toISOString().split('T')[0];

@@ -42,7 +42,7 @@ interface MLBTeamStats {
 export class RealMLBDataService {
   private baseUrl = 'https://statsapi.mlb.com/api/v1';
 
-  async fetchRealMLBSeason(season: number = 2024): Promise<void> {
+  async fetchRealMLBSeason(season: number = 2025): Promise<void> {
     console.log(`Fetching real MLB ${season} season data...`);
     
     try {
