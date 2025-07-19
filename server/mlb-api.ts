@@ -68,6 +68,7 @@ export function registerMLBRoutes(app: Express) {
   app.get('/api/mlb/game/:gameId/live', async (req, res) => {
     try {
       const { gameId } = req.params;
+      const { homeTeam, awayTeam } = req.query;
       console.log(`Fetching live data for game ${gameId}`);
       
       let data;
@@ -84,7 +85,7 @@ export function registerMLBRoutes(app: Express) {
       } else {
         console.log(`Live feed not available for game ${gameId} (${response.status}), providing scheduled game info`);
         
-        // Return minimal data for scheduled games
+        // Return minimal data for scheduled games with actual team names
         const fallbackData = {
           gameId: gameId,
           status: {
@@ -124,12 +125,12 @@ export function registerMLBRoutes(app: Express) {
           recentPlays: [],
           teams: {
             home: {
-              name: 'Home Team',
-              abbreviation: 'HOME'
+              name: homeTeam || 'Home Team',
+              abbreviation: homeTeam ? homeTeam.split(' ').pop()?.toUpperCase() || 'HOME' : 'HOME'
             },
             away: {
-              name: 'Away Team',
-              abbreviation: 'AWAY'
+              name: awayTeam || 'Away Team',
+              abbreviation: awayTeam ? awayTeam.split(' ').pop()?.toUpperCase() || 'AWAY' : 'AWAY'
             }
           },
           lastUpdate: new Date().toISOString(),
@@ -247,6 +248,8 @@ export function registerMLBRoutes(app: Express) {
     } catch (error) {
       console.error(`Error fetching live data for game ${req.params.gameId}:`, error);
       
+      const { homeTeam, awayTeam } = req.query;
+      
       // Try to provide fallback data for scheduled games
       try {
         const fallbackData = {
@@ -288,12 +291,12 @@ export function registerMLBRoutes(app: Express) {
           recentPlays: [],
           teams: {
             home: {
-              name: 'Home Team',
-              abbreviation: 'HOME'
+              name: homeTeam || 'Home Team',
+              abbreviation: homeTeam ? homeTeam.split(' ').pop()?.toUpperCase() || 'HOME' : 'HOME'
             },
             away: {
-              name: 'Away Team',
-              abbreviation: 'AWAY'
+              name: awayTeam || 'Away Team',
+              abbreviation: awayTeam ? awayTeam.split(' ').pop()?.toUpperCase() || 'AWAY' : 'AWAY'
             }
           },
           lastUpdate: new Date().toISOString(),
