@@ -176,13 +176,42 @@ export function registerMLBRoutes(app: Express) {
           let homeLineup = [];
           let awayLineup = [];
           
-          if (data.teams?.home?.batters) {
-            // Boxscore format
-            homeLineup = data.teams.home.batters;
-            awayLineup = data.teams.away.batters;
-            console.log(`Found lineup data in boxscore format: ${homeLineup.length} home, ${awayLineup.length} away`);
-            console.log(`Sample home player:`, homeLineup[0] ? JSON.stringify(homeLineup[0]) : 'None');
-            console.log(`Sample away player:`, awayLineup[0] ? JSON.stringify(awayLineup[0]) : 'None');
+          if (data.teams?.home?.batters && data.teams?.home?.players) {
+            // Boxscore format - batters are player IDs, players object has full data
+            const homeBatterIds = data.teams.home.batters;
+            const awayBatterIds = data.teams.away.batters;
+            const homePlayers = data.teams.home.players;
+            const awayPlayers = data.teams.away.players;
+            
+            console.log(`Found boxscore data: ${homeBatterIds.length} home batters, ${awayBatterIds.length} away batters`);
+            
+            // Map player IDs to full player objects with actual lineup position
+            homeLineup = homeBatterIds.map((playerId: any, index: number) => {
+              const player = homePlayers[`ID${playerId}`] || {};
+              return {
+                id: playerId,
+                person: player.person || {},
+                position: player.position || {},
+                allPositions: player.allPositions || [],
+                battingOrder: index + 1, // Use actual batting order from lineup position
+                stats: player.stats || {}
+              };
+            });
+            
+            awayLineup = awayBatterIds.map((playerId: any, index: number) => {
+              const player = awayPlayers[`ID${playerId}`] || {};
+              return {
+                id: playerId,
+                person: player.person || {},
+                position: player.position || {},
+                allPositions: player.allPositions || [],
+                battingOrder: index + 1, // Use actual batting order from lineup position
+                stats: player.stats || {}
+              };
+            });
+            
+            console.log(`Mapped lineup data: ${homeLineup.length} home, ${awayLineup.length} away`);
+            console.log(`Sample home player:`, homeLineup[0] ? JSON.stringify(homeLineup[0], null, 2) : 'None');
           } else if (data.teams?.home?.players) {
             // Game content format - extract batters from players
             const homePlayers = data.teams.home.players;
@@ -198,21 +227,67 @@ export function registerMLBRoutes(app: Express) {
           }
           
           if (homeLineup.length > 0 || awayLineup.length > 0) {
-            const processedHomeLineup = homeLineup.map((player: any) => ({
-              id: player.person?.id || player.id,
-              name: player.person?.fullName || player.fullName || 'TBD',
-              position: player.position?.abbreviation || player.primaryPosition?.abbreviation || '',
-              battingOrder: player.battingOrder || player.stats?.batting?.battingOrder || null
-            })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
+            console.log(`Processing lineups - home: ${homeLineup.length}, away: ${awayLineup.length}`);
             
-            const processedAwayLineup = awayLineup.map((player: any) => ({
-              id: player.person?.id || player.id,
-              name: player.person?.fullName || player.fullName || 'TBD',
-              position: player.position?.abbreviation || player.primaryPosition?.abbreviation || '',
-              battingOrder: player.battingOrder || player.stats?.batting?.battingOrder || null
-            })).filter((player: any) => player.battingOrder).sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
+            const processedHomeLineup = homeLineup.map((player: any, index: number) => {
+              const battingOrder = player.battingOrder || 
+                                  player.stats?.batting?.battingOrder || 
+                                  player.positionInBattingOrder ||
+                                  (index < 9 ? index + 1 : null); // Fallback for starting 9
+              
+              const result = {
+                id: player.person?.id || player.id || `home-${index}`,
+                name: player.person?.fullName || player.fullName || `Player ${index + 1}`,
+                position: player.position?.abbreviation || player.primaryPosition?.abbreviation || player.position?.name || 'IF',
+                battingOrder: battingOrder
+              };
+              
+              console.log(`Home player ${index}:`, {
+                name: result.name,
+                position: result.position,
+                battingOrder: result.battingOrder,
+                rawPlayer: {
+                  battingOrder: player.battingOrder,
+                  statsOrder: player.stats?.batting?.battingOrder,
+                  positionOrder: player.positionInBattingOrder
+                }
+              });
+              
+              return result;
+            }).filter((player: any) => player.battingOrder && player.battingOrder <= 9)
+              .sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
             
-            // Only mark as found if we actually have players with batting orders
+            const processedAwayLineup = awayLineup.map((player: any, index: number) => {
+              const battingOrder = player.battingOrder || 
+                                  player.stats?.batting?.battingOrder || 
+                                  player.positionInBattingOrder ||
+                                  (index < 9 ? index + 1 : null); // Fallback for starting 9
+              
+              const result = {
+                id: player.person?.id || player.id || `away-${index}`,
+                name: player.person?.fullName || player.fullName || `Player ${index + 1}`,
+                position: player.position?.abbreviation || player.primaryPosition?.abbreviation || player.position?.name || 'IF',
+                battingOrder: battingOrder
+              };
+              
+              console.log(`Away player ${index}:`, {
+                name: result.name,
+                position: result.position,
+                battingOrder: result.battingOrder,
+                rawPlayer: {
+                  battingOrder: player.battingOrder,
+                  statsOrder: player.stats?.batting?.battingOrder,
+                  positionOrder: player.positionInBattingOrder
+                }
+              });
+              
+              return result;
+            }).filter((player: any) => player.battingOrder && player.battingOrder <= 9)
+              .sort((a: any, b: any) => (a.battingOrder || 0) - (b.battingOrder || 0));
+            
+            console.log(`Processed lineups - home: ${processedHomeLineup.length}, away: ${processedAwayLineup.length}`);
+            
+            // Accept lineups if we have any processed players (not requiring batting orders)
             if (processedHomeLineup.length > 0 || processedAwayLineup.length > 0) {
               lineups = {
                 home: processedHomeLineup,
