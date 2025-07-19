@@ -119,31 +119,47 @@ export function registerUserProfileRoutes(app: Express) {
       const picks = await storage.getUserPicksPublicFeed(userId);
       
       // Format picks for public feed with complete structure
-      const feedItems = picks.map(pick => ({
-        id: pick.id,
-        type: 'pick',
-        pick: {
-          gameInfo: {
-            awayTeam: pick.awayTeam,
-            homeTeam: pick.homeTeam
+      const feedItems = picks.map(pick => {
+        // Parse team names from the game string format "Team A @ Team B"
+        let awayTeam = '';
+        let homeTeam = '';
+        if (pick.game && pick.game.includes(' @ ')) {
+          const teams = pick.game.split(' @ ');
+          awayTeam = teams[0]?.trim() || '';
+          homeTeam = teams[1]?.trim() || '';
+        }
+        
+        return {
+          id: pick.id,
+          type: 'pick',
+          pick: {
+            gameInfo: {
+              awayTeam: pick.awayTeam || awayTeam,
+              homeTeam: pick.homeTeam || homeTeam,
+              game: pick.game || `${pick.awayTeam} @ ${pick.homeTeam}`,
+              gameTime: pick.gameDate,
+              sport: 'baseball_mlb'
+            },
+            betInfo: {
+              market: pick.market,
+              selection: pick.selection,
+              line: pick.line,
+              odds: pick.odds,
+              units: pick.units,
+              parlayLegs: pick.parlayLegs ? JSON.parse(pick.parlayLegs) : null
+            },
+            bookmaker: {
+              key: pick.bookmaker,
+              displayName: pick.bookmakerDisplayName
+            },
+            showOnProfile: pick.showOnProfile,
+            showOnFeed: pick.showOnFeed,
+            status: pick.status
           },
-          betInfo: {
-            market: pick.market,
-            selection: pick.selection,
-            line: pick.line,
-            odds: pick.odds,
-            units: pick.units,
-            parlayLegs: pick.parlayLegs ? JSON.parse(pick.parlayLegs) : null
-          },
-          bookmaker: {
-            displayName: pick.bookmakerDisplayName
-          },
-          showOnProfile: pick.showOnProfile,
-          showOnFeed: pick.showOnFeed
-        },
-        timestamp: pick.createdAt,
-        result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
-      }));
+          timestamp: pick.createdAt,
+          result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
+        };
+      });
       
       res.json(feedItems);
     } catch (error) {
