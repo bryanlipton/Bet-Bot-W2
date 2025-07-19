@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 import { savePick } from "@/services/pickStorage";
+import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -203,6 +204,7 @@ export default function LoggedInLockPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
+  const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
 
   // Listen for events to collapse both when one collapses (only for large screens)
   useEffect(() => {
@@ -224,6 +226,21 @@ export default function LoggedInLockPick() {
     queryKey: isAuthenticated ? ['/api/daily-pick/lock'] : ['/api/daily-pick'],
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
+
+  // Track visits and determine if should be collapsed
+  useEffect(() => {
+    if (lockPick?.id) {
+      // Clean up old visits on component mount
+      cleanupOldVisits();
+      
+      // Track this visit
+      trackPickVisit(lockPick.id);
+      
+      // Check if should be collapsed
+      const shouldCollapse = shouldCollapsePickForUser(lockPick.id);
+      setIsCollapsed(shouldCollapse);
+    }
+  }, [lockPick?.id]);
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
     queryKey: [`/api/daily-pick/${lockPick?.id}/analysis`],
@@ -305,6 +322,30 @@ export default function LoggedInLockPick() {
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-500">
                 Check back when games with odds are available
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Hide pick if game has started and it's before 2 AM next day
+  if (shouldHideStartedPick(lockPick.gameTime)) {
+    return (
+      <Card className="w-full border-dashed">
+        <CardContent className="p-6 text-center">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="flex items-center space-x-2">
+              <BetBotIcon className="w-12 h-12 opacity-50" />
+              <Lock className="w-6 h-6 text-gray-400" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-gray-600 dark:text-gray-400">
+                Game Already Started
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                New picks will be available at 2:00 AM EST
               </p>
             </div>
           </div>
@@ -411,6 +452,48 @@ export default function LoggedInLockPick() {
 
   const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
   const factors = getFactors(lockPick.analysis, lockPick.probablePitchers);
+
+  // Collapsed view when user has visited 2+ times
+  if (isCollapsed) {
+    return (
+      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+        <CardContent className="p-4 relative">
+          {/* Blur overlay for non-authenticated users */}
+          {!isAuthenticated && (
+            <div 
+              className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              <div className="text-center">
+                <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400 mx-auto mb-2" />
+                <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100 mb-1">
+                  Login Required
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Click to access lock pick
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className={`flex items-center justify-between cursor-pointer ${!isAuthenticated ? 'blur-sm' : ''}`} onClick={() => setIsCollapsed(false)}>
+            <div className="flex items-center space-x-3">
+              <BetBotIcon className="w-8 h-8" />
+              <div>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                  Logged in Lock Pick
+                </h3>
+                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)} • Grade {lockPick.grade}
+                </p>
+              </div>
+            </div>
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
