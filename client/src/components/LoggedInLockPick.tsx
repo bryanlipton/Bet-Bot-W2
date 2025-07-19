@@ -224,6 +224,7 @@ export default function LoggedInLockPick() {
   // Fetch lock pick for authenticated users, or daily pick for non-authenticated
   const { data: lockPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: isAuthenticated ? ['/api/daily-pick/lock'] : ['/api/daily-pick'],
+    enabled: !authLoading, // Only fetch when auth loading is complete
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
