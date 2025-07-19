@@ -740,7 +740,7 @@ export default function ProfilePage() {
                                 );
                               }
                             })()}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-between">
                               <Button
                                 type="button"
                                 variant="outline"
@@ -751,10 +751,7 @@ export default function ProfilePage() {
                                 Choose Picture
                               </Button>
                               
-                              {/* Save/Cancel Buttons */}
-                              <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
-                                Cancel
-                              </Button>
+                              {/* Save Button - Right Aligned */}
                               <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
                                 {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                               </Button>
