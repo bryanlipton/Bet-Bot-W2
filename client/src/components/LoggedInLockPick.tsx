@@ -680,7 +680,10 @@ export default function LoggedInLockPick() {
         <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             className="flex items-center justify-center w-full text-xs text-amber-600 dark:text-amber-400 py-2"
-            onClick={() => setLockPickMediumOpen(!lockPickMediumOpen)}
+            onClick={() => {
+              console.log('LoggedInLockPick: Toggling analysis from', lockPickMediumOpen, 'to', !lockPickMediumOpen);
+              setLockPickMediumOpen(!lockPickMediumOpen);
+            }}
           >
             Show Analysis
             {lockPickMediumOpen ? (

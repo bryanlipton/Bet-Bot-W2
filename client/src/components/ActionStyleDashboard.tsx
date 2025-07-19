@@ -280,8 +280,8 @@ export function ActionStyleDashboard() {
         </div>
         {/* Responsive layout for picks - stack vertically at md, side-by-side at lg+ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-4 lg:gap-6">
-          <DailyPick />
-          <LoggedInLockPick />
+          <DailyPick key="daily-pick-component" />
+          <LoggedInLockPick key="lock-pick-component" />
         </div>
       </div>
 
