@@ -12,7 +12,7 @@ import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info, Plus } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 import { GameDetailsModal } from "./GameDetailsModal";
-import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses } from "@/lib/factorUtils";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
@@ -342,10 +342,18 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
               </div>
             </div>
 
-            {/* Reasoning */}
+            {/* Grade Analysis */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Reasoning</h3>
-              <p className="text-sm leading-relaxed">{analysisData.reasoning || analysisData.overall?.reasoning || "Analysis reasoning not available."}</p>
+              <h3 className="text-lg font-semibold mb-3">Grade Analysis</h3>
+              <pre className="text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                {getMainGradeExplanation(
+                  pickData.grade || calculateOverallGrade(),
+                  pickData.confidence || analysisData.overall?.confidence || 75,
+                  analysisData,
+                  pickData.pickTeam || analysisData.gameDetails?.pickTeam || '',
+                  pickData.odds || analysisData.gameDetails?.odds || 0
+                )}
+              </pre>
             </div>
 
             {/* Analysis Factors */}

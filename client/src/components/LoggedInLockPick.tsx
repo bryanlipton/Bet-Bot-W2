@@ -11,7 +11,7 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, Chev
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 import { savePick } from "@/services/pickStorage";
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
-import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses } from "@/lib/factorUtils";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -616,10 +616,16 @@ export default function LoggedInLockPick() {
                       </div>
                       
                       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                        <h4 className="font-semibold mb-3">Reasoning</h4>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                          {lockPick.reasoning}
-                        </p>
+                        <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                        <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                          {getMainGradeExplanation(
+                            lockPick.grade,
+                            lockPick.confidence,
+                            lockPick.analysis,
+                            lockPick.pickTeam,
+                            lockPick.odds
+                          )}
+                        </pre>
                       </div>
 
                       <div>
@@ -700,10 +706,16 @@ export default function LoggedInLockPick() {
                     </div>
                     
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                      <h4 className="font-semibold mb-3">Reasoning</h4>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {lockPick.reasoning}
-                      </p>
+                      <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                      <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                        {getMainGradeExplanation(
+                          lockPick.grade,
+                          lockPick.confidence,
+                          lockPick.analysis,
+                          lockPick.pickTeam,
+                          lockPick.odds
+                        )}
+                      </pre>
                     </div>
 
                     <div>
