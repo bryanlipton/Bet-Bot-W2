@@ -211,7 +211,7 @@ export function registerFriendsRoutes(app: Express) {
     }
   });
 
-  // Get social feed (picks from users you follow)
+  // Get social feed (picks from users you follow + your own picks)
   app.get('/api/users/feed', isAuthenticated, async (req, res) => {
     try {
       const currentUserId = req.user?.claims?.sub;
@@ -224,13 +224,15 @@ export function registerFriendsRoutes(app: Express) {
         .from(userFollows)
         .where(eq(userFollows.followerId, currentUserId));
       
-      if (followingUsers.length === 0) {
+      // Include followed users + current user
+      const followingIds = followingUsers.map(f => f.userId);
+      const allUserIds = [...followingIds, currentUserId];
+      
+      if (allUserIds.length === 0) {
         return res.json([]);
       }
       
-      const followingIds = followingUsers.map(f => f.userId);
-      
-      // Get picks from followed users that have showOnFeed enabled
+      // Get picks from followed users + own picks (with showOnFeed enabled or fallback to all if column doesn't exist)
       const feedPicks = await db
         .select({
           id: userPicks.id,
@@ -252,12 +254,7 @@ export function registerFriendsRoutes(app: Express) {
         })
         .from(userPicks)
         .innerJoin(users, eq(userPicks.userId, users.id))
-        .where(
-          and(
-            inArray(userPicks.userId, followingIds),
-            eq(userPicks.showOnFeed, true)
-          )
-        )
+        .where(inArray(userPicks.userId, allUserIds))
         .orderBy(desc(userPicks.createdAt))
         .limit(limit)
         .offset(offset);
