@@ -167,64 +167,114 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Score and Game Status */}
-          <Card>
+          {/* Enhanced Score and Game Status */}
+          <Card className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 border-2">
             <CardContent className="p-6">
-              <div className="grid grid-cols-3 gap-4 items-center">
+              <div className="grid grid-cols-3 gap-6 items-center">
+                {/* Away Team */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{liveData.teams.away.abbreviation}</div>
-                  <div className="text-3xl font-bold" style={{ color: getTeamColor(awayTeam) }}>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    {liveData.teams.away.abbreviation}
+                  </div>
+                  <div className="text-4xl font-bold mb-1" style={{ color: getTeamColor(awayTeam) }}>
                     {liveData.score.away}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {liveData.teams.away.name}
                   </div>
                 </div>
                 
+                {/* Game Status */}
                 <div className="text-center">
-                  <Badge variant="secondary" className="mb-2">
-                    {liveData.status.inProgress ? 'LIVE' : liveData.status.detailed}
+                  <Badge variant="secondary" className="mb-3 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                    {liveData.status.inProgress ? '🔴 LIVE' : liveData.status.detailed}
                   </Badge>
-                  <div className="text-lg font-semibold">
+                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                     {formatInning(liveData.inning.current, liveData.inning.state)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {liveData.count.outs} Out{liveData.count.outs !== 1 ? 's' : ''}
                   </div>
+                  
+                  {/* Count Display */}
+                  <div className="mt-3 inline-flex items-center gap-1 bg-white dark:bg-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+                    <span className="text-blue-600 dark:text-blue-400">{liveData.count.balls}</span>
+                    <span className="text-gray-400">-</span>
+                    <span className="text-red-600 dark:text-red-400">{liveData.count.strikes}</span>
+                  </div>
                 </div>
                 
+                {/* Home Team */}
                 <div className="text-center">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{liveData.teams.home.abbreviation}</div>
-                  <div className="text-3xl font-bold" style={{ color: getTeamColor(homeTeam) }}>
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    {liveData.teams.home.abbreviation}
+                  </div>
+                  <div className="text-4xl font-bold mb-1" style={{ color: getTeamColor(homeTeam) }}>
                     {liveData.score.home}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {liveData.teams.home.name}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Current At-Bat */}
+          {/* Enhanced Current At-Bat */}
           {liveData.status.inProgress && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <User className="w-4 h-4" />
-                    <span className="font-semibold">Current Batter</span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Current Batter */}
+              <Card className="border-blue-200 dark:border-blue-800">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                      <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-lg font-semibold text-blue-700 dark:text-blue-400">At Bat</span>
                   </div>
-                  <div className="text-lg font-bold">{liveData.currentBatter.name}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Count: {formatCount(liveData.count.balls, liveData.count.strikes)}
+                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {liveData.currentBatter.name}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {liveData.currentBatter.team}
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {formatCount(liveData.count.balls, liveData.count.strikes)}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Balls - Strikes
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Target className="w-4 h-4" />
-                    <span className="font-semibold">Current Pitcher</span>
+              {/* Current Pitcher */}
+              <Card className="border-green-200 dark:border-green-800">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                      <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <span className="text-lg font-semibold text-green-700 dark:text-green-400">Pitching</span>
                   </div>
-                  <div className="text-lg font-bold">{liveData.currentPitcher.name}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Pitches: {liveData.currentPitcher.pitchCount}
+                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {liveData.currentPitcher.name}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Pitcher
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {liveData.currentPitcher.pitchCount}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Pitches Thrown
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -291,29 +341,38 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
             </Card>
           )}
 
-          {/* Recent Plays */}
+          {/* Enhanced Recent Plays */}
           {liveData.status.inProgress && liveData.recentPlays && liveData.recentPlays.length > 0 && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="font-semibold">Recent Plays</span>
+            <Card className="border-purple-200 dark:border-purple-800">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-lg font-semibold text-purple-700 dark:text-purple-400">Play-by-Play</span>
                 </div>
                 
-                <div className="space-y-2">
-                  {liveData.recentPlays.slice().reverse().map((play, index) => (
-                    <div key={play.id || index} className="flex justify-between items-start p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{play.description}</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
-                          {play.halfInning} {play.inning}, {play.outs} out{play.outs !== 1 ? 's' : ''}
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {liveData.recentPlays.slice(0, 8).reverse().map((play, index) => (
+                    <div key={play.id || index} className="border-l-4 border-purple-500 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-r-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                            {play.halfInning} {play.inning}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {play.outs} out{play.outs !== 1 ? 's' : ''}
+                          </span>
                         </div>
+                        {play.result && (
+                          <Badge variant="outline" className="text-xs bg-white dark:bg-gray-700">
+                            {play.result}
+                          </Badge>
+                        )}
                       </div>
-                      {play.result && (
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {play.result}
-                        </Badge>
-                      )}
+                      <p className="text-sm text-gray-900 dark:text-white leading-relaxed">
+                        {play.description}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -321,10 +380,30 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
             </Card>
           )}
 
-          {/* Last Updated */}
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-            <Clock className="w-3 h-3 inline mr-1" />
-            Last updated: {new Date(liveData.lastUpdate).toLocaleTimeString()}
+          {/* No Recent Plays Available */}
+          {liveData.status.inProgress && (!liveData.recentPlays || liveData.recentPlays.length === 0) && (
+            <Card className="border-gray-200 dark:border-gray-700">
+              <CardContent className="p-5">
+                <div className="text-center py-4">
+                  <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Play-by-play data will appear here during live action
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Enhanced Auto-refresh indicator */}
+          <div className="flex items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+            <Clock className="w-4 h-4" />
+            <span>Live updates every 5 seconds</span>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            {liveData.lastUpdate && (
+              <span className="text-xs">
+                Last updated: {new Date(liveData.lastUpdate).toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
       </DialogContent>

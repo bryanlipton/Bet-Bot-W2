@@ -634,48 +634,115 @@ function ScoreGameCard({
     // Finished games don't open modals
   };
 
+  // For live games, we need to fetch live data to show proper inning/outs info
+  const { data: liveData } = useQuery({
+    queryKey: [`/api/mlb/game/${game.id}/live`],
+    enabled: isLive,
+    refetchInterval: 5000, // Refresh every 5 seconds for live games
+    retry: false,
+  });
+
   return (
     <Card 
       className={`bg-white dark:bg-gray-800 hover:shadow-md transition-shadow ${(isLive || !isFinished) ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
       <CardContent className="p-4">
-        {/* Horizontal layout inspired by the image */}
-        <div className="flex items-center justify-between">
-          {/* Left side - Teams */}
-          <div className="flex-1 space-y-2">
+        {isLive && liveData ? (
+          /* Live Game Format - ESPN Style */
+          <div className="space-y-2">
             {/* Away Team */}
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full shadow-sm" 
-                style={{ backgroundColor: getTeamColor(game.awayTeam) }}
-              />
-              <span className={`text-sm font-medium ${
-                isFinished && homeWon && !isTied 
-                  ? "text-gray-400 dark:text-gray-500" 
-                  : "text-gray-900 dark:text-white"
-              }`}>
-                {game.awayTeam}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {liveData.teams?.away?.abbreviation || game.awayTeam}
+                </span>
+              </div>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                {liveData.score?.away || game.awayScore || 0}
               </span>
             </div>
             
             {/* Home Team */}
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full shadow-sm" 
-                style={{ backgroundColor: getTeamColor(game.homeTeam) }}
-              />
-              <span className={`text-sm font-medium ${
-                isFinished && awayWon && !isTied 
-                  ? "text-gray-400 dark:text-gray-500" 
-                  : "text-gray-900 dark:text-white"
-              }`}>
-                {game.homeTeam}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {liveData.teams?.home?.abbreviation || game.homeTeam}
+                </span>
+              </div>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
+                {liveData.score?.home || game.homeScore || 0}
               </span>
             </div>
-          </div>
 
-          {/* Right side - Scores and Status */}
+            {/* Game Status with Inning and Outs */}
+            <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
+              <div className="text-xs text-red-600 font-medium">
+                {liveData.inning ? `${liveData.inning.half === 'top' ? 'Top' : 'Bot'} ${liveData.inning.current}${liveData.inning.current === 1 ? 'st' : liveData.inning.current === 2 ? 'nd' : liveData.inning.current === 3 ? 'rd' : 'th'}` : 'Live'}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                {liveData.count ? `${liveData.count.outs} Outs` : ''}
+              </div>
+            </div>
+
+            {/* Bases Visualization */}
+            {liveData.baseRunners && (
+              <div className="flex justify-center pt-1">
+                <div className="relative w-8 h-8">
+                  {/* Diamond base layout */}
+                  <div className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 border ${liveData.baseRunners.second ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
+                  <div className={`absolute bottom-0 left-0 w-2 h-2 rotate-45 border ${liveData.baseRunners.third ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
+                  <div className={`absolute bottom-0 right-0 w-2 h-2 rotate-45 border ${liveData.baseRunners.first ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 bg-gray-600 border border-gray-700"></div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Regular/Scheduled Game Format */
+          <div className="flex items-center justify-between">
+            {/* Left side - Teams */}
+            <div className="flex-1 space-y-2">
+              {/* Away Team */}
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                />
+                <span className={`text-sm font-medium ${
+                  isFinished && homeWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.awayTeam}
+                </span>
+              </div>
+              
+              {/* Home Team */}
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full shadow-sm" 
+                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                />
+                <span className={`text-sm font-medium ${
+                  isFinished && awayWon && !isTied 
+                    ? "text-gray-400 dark:text-gray-500" 
+                    : "text-gray-900 dark:text-white"
+                }`}>
+                  {game.homeTeam}
+                </span>
+              </div>
+            </div>
+
+            {/* Right side - Scores and Status */}
           <div className="flex items-center gap-4">
             {/* Scores */}
             <div className="text-right space-y-2">
@@ -738,7 +805,8 @@ function ScoreGameCard({
               )}
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
