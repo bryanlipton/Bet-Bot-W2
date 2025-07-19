@@ -104,6 +104,10 @@ export interface IStorage {
   // User preferences methods
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   upsertUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
+  
+  // Additional methods needed for profile viewing
+  getUserPicksPublicFeed(userId: string): Promise<UserPick[]>;
+  isUserFollowing(currentUserId: string, targetUserId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -967,6 +971,28 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Profile viewing methods
+  async getUserPicksPublicFeed(userId: string): Promise<UserPick[]> {
+    const picks = await db
+      .select()
+      .from(userPicks)
+      .where(
+        and(
+          eq(userPicks.userId, userId),
+          eq(userPicks.showOnFeed, true)
+        )
+      )
+      .orderBy(desc(userPicks.createdAt))
+      .limit(20);
+    return picks;
+  }
+
+  async isUserFollowing(currentUserId: string, targetUserId: string): Promise<boolean> {
+    // For now, return false since we haven't implemented the following system yet
+    // This can be implemented when we add a followers/following table
+    return false;
   }
 }
 

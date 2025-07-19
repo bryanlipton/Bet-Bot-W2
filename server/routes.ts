@@ -20,6 +20,7 @@ import userPreferencesRoutes from "./routes-user-preferences";
 import { registerUserPicksRoutes } from "./routes-user-picks";
 import { registerUserProfileRoutes } from "./routes-user-profile";
 import { registerFriendsRoutes } from "./routes-friends";
+import { registerPickGradingRoutes } from "./routes-pick-grading";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -919,6 +920,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register friends routes (search and follow functionality)
   registerFriendsRoutes(app);
+  
+  // Register pick grading routes
+  registerPickGradingRoutes(app);
   
   // Add MLB team analysis route for real L10 data
   app.get('/api/mlb/team-analysis/:teamName', async (req, res) => {

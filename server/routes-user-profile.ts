@@ -59,25 +59,24 @@ export function registerUserProfileRoutes(app: Express) {
       // Only return public data if profile is not public or not the owner
       const isOwner = req.user?.claims?.sub === userId;
       
-      if (!user.profilePublic && !isOwner) {
-        return res.status(403).json({ message: "Profile is private" });
-      }
+      // For now, allow all profiles to be viewable for Instagram-style functionality
+      // We can add privacy settings later if needed
 
       // Filter out sensitive data based on privacy settings
       const publicProfile = {
         id: user.id,
-        username: user.username,
+        username: user.username || user.firstName,
         profileImageUrl: user.profileImageUrl,
         bio: user.bio,
-        followers: user.followers,
-        following: user.following,
+        followers: user.followers || 0,
+        following: user.following || 0,
         createdAt: user.createdAt,
-        // Only include stats if they're public or user is the owner
+        // Include basic stats for public viewing
         stats: {
-          totalPicks: (user.totalPicksPublic || isOwner) ? user.totalPicks : null,
-          pendingPicks: (user.pendingPicksPublic || isOwner) ? user.pendingPicks : null,
-          winRate: (user.winRatePublic || isOwner) ? user.winRate : null,
-          winStreak: (user.winStreakPublic || isOwner) ? user.winStreak : null,
+          totalPicks: user.totalPicks || 0,
+          pendingPicks: user.pendingPicks || 0,
+          winRate: user.winRate || 0,
+          winStreak: user.winStreak || 0,
         }
       };
 
@@ -85,6 +84,56 @@ export function registerUserProfileRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching user profile:", error);
       res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  // Get user's public picks feed
+  app.get('/api/user/public-feed/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user's public picks (those marked as showOnFeed = true)
+      const picks = await storage.getUserPicksPublicFeed(userId);
+      
+      // Format picks for public feed
+      const feedItems = picks.map(pick => ({
+        id: pick.id,
+        type: 'pick',
+        pick: {
+          selection: pick.selection,
+          game: pick.game,
+          market: pick.market,
+          odds: pick.odds,
+          units: pick.units
+        },
+        timestamp: pick.createdAt,
+        result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
+      }));
+      
+      res.json(feedItems);
+    } catch (error) {
+      console.error("Error fetching public feed:", error);
+      res.status(500).json({ message: "Failed to fetch public feed" });
+    }
+  });
+
+  // Check if current user is following a specific user
+  app.get('/api/user/follow-status/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.user?.claims?.sub;
+      
+      if (!currentUserId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Check if current user is following the target user
+      const isFollowing = await storage.isUserFollowing(currentUserId, userId);
+      
+      res.json({ isFollowing });
+    } catch (error) {
+      console.error("Error checking follow status:", error);
+      res.status(500).json({ message: "Failed to check follow status" });
     }
   });
 }

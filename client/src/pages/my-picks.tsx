@@ -29,7 +29,7 @@ import {
 export default function MyPicksPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [picks, setPicks] = useState<Pick[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'won' | 'lost'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
   const [editingUnits, setEditingUnits] = useState<string | null>(null);
@@ -672,10 +672,26 @@ export default function MyPicksPage() {
   const stats = {
     total: picks.length,
     pending: picks.filter(p => p.status === 'pending').length,
-    won: picks.filter(p => p.status === 'won').length,
-    lost: picks.filter(p => p.status === 'lost').length,
-    winRate: picks.filter(p => p.status === 'won' || p.status === 'lost').length > 0 ? 
-      (picks.filter(p => p.status === 'won').length / picks.filter(p => p.status === 'won' || p.status === 'lost').length * 100) : 0
+    won: picks.filter(p => p.status === 'won' || p.status === 'win').length,
+    lost: picks.filter(p => p.status === 'lost' || p.status === 'loss').length,
+    push: picks.filter(p => p.status === 'push').length,
+    winRate: picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length > 0 ? 
+      (picks.filter(p => p.status === 'won' || p.status === 'win').length / picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
+    totalUnits: picks.reduce((sum, p) => {
+      if (p.status === 'won' || p.status === 'win') {
+        // Calculate winnings based on odds and units
+        const odds = p.betInfo?.odds || 0;
+        const units = p.betInfo?.units || 0;
+        if (odds > 0) {
+          return sum + (odds / 100) * units;
+        } else if (odds < 0) {
+          return sum + (100 / Math.abs(odds)) * units;
+        }
+      } else if (p.status === 'lost' || p.status === 'loss') {
+        return sum - (p.betInfo?.units || 0);
+      }
+      return sum;
+    }, 0)
   };
 
   return (
@@ -692,7 +708,7 @@ export default function MyPicksPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
@@ -722,8 +738,20 @@ export default function MyPicksPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-green-600" />
                 <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.won}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Won</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600" />
+                <div>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.lost}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Lost</p>
                 </div>
               </div>
             </CardContent>
@@ -795,7 +823,7 @@ export default function MyPicksPage() {
 
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
-          {(['all', 'pending', 'won', 'lost'] as const).map((status) => (
+          {(['all', 'pending', 'past'] as const).map((status) => (
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
@@ -807,30 +835,36 @@ export default function MyPicksPage() {
             >
               {status} ({status === 'all' ? stats.total : 
                 status === 'pending' ? stats.pending :
-                status === 'won' ? stats.won : stats.lost})
+                stats.won + stats.lost})
             </button>
           ))}
         </div>
 
         {/* Picks List */}
-        {filteredPicks.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                {picks.length === 0 ? 'No Picks Yet' : `No ${selectedStatus} Picks`}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {picks.length === 0 
-                  ? 'Start by clicking "Make Pick" on any game to track your bets here.'
-                  : `You don't have any ${selectedStatus} picks at the moment.`
-                }
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredPicks.map((pick) => (
+        {(() => {
+          const filteredPicks = selectedStatus === 'all' ? picks :
+            selectedStatus === 'pending' ? picks.filter(p => p.status === 'pending') :
+            selectedStatus === 'past' ? picks.filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost' || p.status === 'push') :
+            picks;
+          
+          return filteredPicks.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  {picks.length === 0 ? 'No Picks Yet' : `No ${selectedStatus} Picks`}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {picks.length === 0 
+                    ? 'Start by clicking "Make Pick" on any game to track your bets here.'
+                    : `You don't have any ${selectedStatus} picks at the moment.`
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filteredPicks.map((pick) => (
               <Card key={pick.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1024,9 +1058,10 @@ export default function MyPicksPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Manual Entry Modal */}
