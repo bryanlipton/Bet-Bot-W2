@@ -55,7 +55,6 @@ interface UserProfile {
   pendingPicksPublic: boolean;
   winRatePublic: boolean;
   winStreakPublic: boolean;
-  profilePublic: boolean;
 }
 
 interface PublicFeedItem {
@@ -81,8 +80,7 @@ export default function ProfilePage() {
     totalPicksPublic: true,
     pendingPicksPublic: true,
     winRatePublic: true,
-    winStreakPublic: true,
-    profilePublic: true
+    winStreakPublic: true
   });
   
   const { toast } = useToast();
@@ -218,8 +216,7 @@ export default function ProfilePage() {
     totalPicksPublic: user?.totalPicksPublic ?? true,
     pendingPicksPublic: user?.pendingPicksPublic ?? true,
     winRatePublic: user?.winRatePublic ?? true,
-    winStreakPublic: user?.winStreakPublic ?? true,
-    profilePublic: user?.profilePublic ?? true
+    winStreakPublic: user?.winStreakPublic ?? true
   };
 
   // Update profile mutation
@@ -273,8 +270,7 @@ export default function ProfilePage() {
         totalPicksPublic: user.totalPicksPublic ?? true,
         pendingPicksPublic: user.pendingPicksPublic ?? true,
         winRatePublic: user.winRatePublic ?? true,
-        winStreakPublic: user.winStreakPublic ?? true,
-        profilePublic: user.profilePublic ?? true
+        winStreakPublic: user.winStreakPublic ?? true
       });
     }
   }, [user]);
@@ -550,20 +546,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="profilePublic">Public Profile</Label>
-                            <div className="flex items-center gap-2">
-                              <EyeOff className="w-4 h-4" />
-                              <Switch
-                                id="profilePublic"
-                                checked={privacySettings.profilePublic}
-                                onCheckedChange={(checked) => 
-                                  setPrivacySettings({...privacySettings, profilePublic: checked})
-                                }
-                              />
-                              <Eye className="w-4 h-4" />
-                            </div>
-                          </div>
+
                         </div>
                         
                         {/* Save Button */}
@@ -743,7 +726,7 @@ export default function ProfilePage() {
                         
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                           <div className="flex items-center justify-between">
-                            <div>
+                            <div className="flex-1">
                               <div className="font-medium text-gray-900 dark:text-white">
                                 {item.pick.gameInfo?.awayTeam} @ {item.pick.gameInfo?.homeTeam}
                               </div>
@@ -752,11 +735,35 @@ export default function ProfilePage() {
                                 {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
                                 {item.pick.betInfo?.odds && ` (${formatOdds(item.pick.betInfo.odds)})`}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                              <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                                 {item.pick.betInfo?.units || 1} units • {item.pick.bookmaker?.displayName}
                               </div>
+                              
+                              {/* Individual bet visibility controls */}
+                              <div className="flex items-center gap-4 mt-2">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    id={`profile-${item.id}`}
+                                    defaultChecked={true}
+                                    // TODO: Connect to actual pick data
+                                  />
+                                  <Label htmlFor={`profile-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                    Show on profile
+                                  </Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    id={`feed-${item.id}`}
+                                    defaultChecked={true}
+                                    // TODO: Connect to actual pick data
+                                  />
+                                  <Label htmlFor={`feed-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                    Show on feed
+                                  </Label>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right ml-4">
                               {getResultBadge(item.result)}
                             </div>
                           </div>

@@ -304,6 +304,8 @@ export const userPicks = pgTable("user_picks", {
   result: text("result"), // Game result details when graded
   winAmount: real("win_amount"), // Calculated win amount when graded
   parlayLegs: json("parlay_legs"), // Array of parlay legs if market is "parlay"
+  showOnProfile: boolean("show_on_profile").default(true), // Whether to show this pick on user profile
+  showOnFeed: boolean("show_on_feed").default(true), // Whether to show this pick on public feed
   createdAt: timestamp("created_at").defaultNow(),
   gameDate: timestamp("game_date"), // When the game is/was played
   gradedAt: timestamp("graded_at"), // When the pick was graded
