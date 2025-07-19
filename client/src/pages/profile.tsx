@@ -24,6 +24,7 @@ import {
   User, 
   Users, 
   UserPlus, 
+  UserMinus,
   TrendingUp, 
   TrendingDown, 
   Calendar,
