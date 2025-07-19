@@ -629,11 +629,11 @@ export class DailyPickService {
     
     // Add detailed analysis based on the strongest factors
     const factors = [
-      { name: 'offense', score: analysis.offensiveEdge, type: 'offensive' },
-      { name: 'pitching', score: analysis.pitchingEdge, type: 'pitching' },
-      { name: 'ballpark', score: analysis.ballparkAdvantage, type: 'venue' },
-      { name: 'form', score: analysis.recentForm, type: 'situational' },
-      { name: 'value', score: analysis.bettingValue, type: 'betting' }
+      { name: 'offense', score: analysis.offensiveProduction, type: 'offensive' },
+      { name: 'pitching', score: analysis.pitchingMatchup, type: 'pitching' },
+      { name: 'situational', score: analysis.situationalEdge, type: 'venue' },
+      { name: 'momentum', score: analysis.teamMomentum, type: 'situational' },
+      { name: 'value', score: analysis.marketInefficiency, type: 'betting' }
     ];
     
     // Sort factors by strength and pick top 2-3 for explanation
@@ -758,9 +758,9 @@ export class DailyPickService {
         const grade = this.calculateGrade(analysis);
         const reasoning = await this.generateReasoning(pickTeam, analysis, game.home_team, game.away_team, game.venue || '', outcome.price, game.probablePitchers);
         
-        const overallScore = confidence;
+        const overallScore = analysis.confidence;
         
-        if (overallScore > bestScore && confidence > 55) {
+        if (overallScore > bestScore && analysis.confidence > 55) {
           bestScore = overallScore;
           bestPick = {
             id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -771,7 +771,7 @@ export class DailyPickService {
             pickType: 'moneyline',
             odds: outcome.price,
             grade,
-            confidence,
+            confidence: analysis.confidence,
             reasoning,
             analysis,
             gameTime: game.commence_time,
