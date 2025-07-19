@@ -88,8 +88,9 @@ export default function AboutPage() {
               </h2>
             </div>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              Bet Bot analyzes real-time sports data using advanced AI to identify the best betting opportunities. 
-              We combine machine learning, statistical analysis, and market intelligence to give you an edge.
+              We're here to level the playing field. While sportsbooks have teams of analysts and massive data resources, 
+              most bettors are flying blind. Bet Bot gives you the same analytical edge that professionals use, 
+              but in a simple format that saves you hours of research.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -97,9 +98,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Target className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Daily Picks</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Expert Picks, Daily</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      AI-generated daily picks with detailed analysis and confidence ratings
+                      Wake up to carefully analyzed picks with clear reasoning - no guesswork required
                     </p>
                   </div>
                 </div>
@@ -107,9 +108,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <BarChart3 className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Real-Time Odds</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Best Odds, Instantly</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Live odds comparison across multiple sportsbooks with deep linking
+                      Compare odds across all major sportsbooks and place bets with one click
                     </p>
                   </div>
                 </div>
@@ -117,9 +118,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Performance Tracking</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Track Your Success</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Comprehensive analytics and performance metrics for your bets
+                      See exactly how you're performing and share your wins with the community
                     </p>
                   </div>
                 </div>
@@ -129,9 +130,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Database className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Data Integration</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Real Sports Data</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Integration with official MLB Stats API and The Odds API for authentic data
+                      Everything is based on official MLB statistics - no made-up numbers or biased opinions
                     </p>
                   </div>
                 </div>
@@ -139,9 +140,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Zap className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Live Updates</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Always Fresh</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Real-time game monitoring and automatic pick rotation system
+                      Picks update automatically as games start, so you never miss an opportunity
                     </p>
                   </div>
                 </div>
@@ -149,9 +150,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Privacy Controls</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Your Privacy Matters</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Granular privacy settings for your betting activity and statistics
+                      Choose what to share and what to keep private - it's your betting journey
                     </p>
                   </div>
                 </div>
@@ -160,13 +161,13 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* How It Works */}
+        {/* How You'll Use It */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <Zap className="w-6 h-6 text-blue-600" />
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                How It Works
+                How You'll Use It
               </h2>
             </div>
             
@@ -176,10 +177,10 @@ export default function AboutPage() {
                   1
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Data Collection</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Check Your Picks</h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    We continuously gather real-time sports data, including game statistics, weather conditions, 
-                    team performance, and betting market movements from official sources.
+                    Every morning, new picks are waiting for you. Each comes with a clear grade (A+ to D) 
+                    and simple explanation of why it's a good bet. No spreadsheets, no complicated math - just the info you need.
                   </p>
                 </div>
               </div>
@@ -189,10 +190,10 @@ export default function AboutPage() {
                   2
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">AI Analysis</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Find the Best Odds</h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Our machine learning models analyze historical patterns, current form, matchup dynamics, 
-                    and market inefficiencies to identify value betting opportunities.
+                    Click any pick to see odds from all the major sportsbooks. We'll show you who's offering 
+                    the best payout and take you directly to place your bet. More money in your pocket, less time shopping around.
                   </p>
                 </div>
               </div>
@@ -202,10 +203,10 @@ export default function AboutPage() {
                   3
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Smart Recommendations</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Track and Share</h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    The system generates daily picks with confidence ratings, detailed analysis, 
-                    and optimal timing recommendations based on comprehensive data analysis.
+                    Log your bets to see your win rate, profit, and hot streaks. Follow other successful bettors 
+                    and share your own wins. It's like social media, but for people who actually know sports.
                   </p>
                 </div>
               </div>
@@ -213,38 +214,41 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* Key Features */}
+        {/* Why You'll Love It */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <Target className="w-6 h-6 text-blue-600" />
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Key Features
+                Why You'll Love It
               </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4">
                 <Clock className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Daily Pick Rotation</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Save Hours Every Day</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Automated daily picks generated at 2 AM EST with intelligent rotation when games begin
+                  No more endless research or second-guessing. Fresh picks every morning at 2 AM, 
+                  updated automatically when games change
                 </p>
               </div>
               
               <div className="text-center p-4">
                 <BarChart3 className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Live Odds Comparison</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Never Miss the Best Odds</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Real-time odds from multiple sportsbooks with direct deep linking to bet slips
+                  Compare every major sportsbook instantly and place bets with one click. 
+                  More winnings, less hassle
                 </p>
               </div>
               
               <div className="text-center p-4">
                 <TrendingUp className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Social Features</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Join the Community</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Instagram/Twitter-style social networking with friend following and public feeds
+                  Follow successful bettors, share your wins, and learn from others. 
+                  Betting is more fun when you're not doing it alone
                 </p>
               </div>
             </div>
