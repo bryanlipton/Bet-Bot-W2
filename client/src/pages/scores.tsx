@@ -693,7 +693,7 @@ function ScoreGameCard({
             {/* Game Status with Inning and Outs */}
             <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
               <div className="text-xs text-red-600 font-medium">
-                {liveData.inning ? `${liveData.inning.half === 'top' ? 'Top' : 'Bot'} ${liveData.inning.current}${liveData.inning.current === 1 ? 'st' : liveData.inning.current === 2 ? 'nd' : liveData.inning.current === 3 ? 'rd' : 'th'}` : 'Live'}
+                {liveData.inning ? `${liveData.inning.state === 'Top' ? 'Top' : 'Bot'} ${liveData.inning.current}${liveData.inning.current === 1 ? 'st' : liveData.inning.current === 2 ? 'nd' : liveData.inning.current === 3 ? 'rd' : 'th'}` : 'Live'}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
                 {liveData.count ? `${liveData.count.outs} Outs` : ''}
