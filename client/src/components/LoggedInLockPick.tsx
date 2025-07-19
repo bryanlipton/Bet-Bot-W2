@@ -516,8 +516,7 @@ export default function LoggedInLockPick() {
           </div>
         )}
         
-        <div className={!isAuthenticated ? 'blur-sm' : ''}>
-        <div className="relative">
+        <div className={`relative ${!isAuthenticated ? 'blur-sm' : ''}`}>
           {/* Mobile Layout */}
           <div className="md:hidden">
             <div className="flex justify-between items-start">
@@ -532,8 +531,7 @@ export default function LoggedInLockPick() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <GradeBadge grade={lockPick.grade} />
+              <div className="flex flex-col items-end space-y-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -543,7 +541,9 @@ export default function LoggedInLockPick() {
                 >
                   <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </Button>
-                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                <div className="flex items-center space-x-2">
+                  <GradeBadge grade={lockPick.grade} />
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
                       variant="ghost" 
@@ -598,8 +598,8 @@ export default function LoggedInLockPick() {
                     </div>
                   </DialogContent>
                 </Dialog>
+                </div>
               </div>
-            </div>
           </div>
 
           {/* Desktop Layout */}
@@ -615,8 +615,7 @@ export default function LoggedInLockPick() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <GradeBadge grade={lockPick.grade} />
+            <div className="flex flex-col items-end space-y-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -626,7 +625,9 @@ export default function LoggedInLockPick() {
               >
                 <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </Button>
-              <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+              <div className="flex items-center space-x-2">
+                <GradeBadge grade={lockPick.grade} />
+                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     variant="ghost" 
@@ -681,8 +682,8 @@ export default function LoggedInLockPick() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
-          </div>
         </div>
 
         <div className="flex items-start justify-between space-x-6">
@@ -830,13 +831,6 @@ export default function LoggedInLockPick() {
               </div>
             </div>
           )}
-
-
-
-
-        </div>
-
-
         </div>
       </CardContent>
       

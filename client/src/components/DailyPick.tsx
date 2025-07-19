@@ -487,8 +487,7 @@ export default function DailyPick() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <GradeBadge grade={dailyPick.grade} />
+              <div className="flex flex-col items-end space-y-1">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -498,17 +497,19 @@ export default function DailyPick() {
                 >
                   <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 </Button>
-                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Info className="h-2.5 w-2.5 text-black dark:text-white" />
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex items-center space-x-2">
+                  <GradeBadge grade={dailyPick.grade} />
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Info className="h-2.5 w-2.5 text-black dark:text-white" />
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center space-x-2">
@@ -553,6 +554,7 @@ export default function DailyPick() {
                     </div>
                   </DialogContent>
                 </Dialog>
+                </div>
               </div>
             </div>
           </div>
@@ -570,8 +572,7 @@ export default function DailyPick() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <GradeBadge grade={dailyPick.grade} />
+            <div className="flex flex-col items-end space-y-1">
               <Button
                 variant="ghost"
                 size="sm"
@@ -581,17 +582,19 @@ export default function DailyPick() {
               >
                 <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </Button>
-              <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Info className="h-3 w-3 text-black dark:text-white" />
-                  </Button>
-                </DialogTrigger>
+              <div className="flex items-center space-x-2">
+                <GradeBadge grade={dailyPick.grade} />
+                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Info className="h-3 w-3 text-black dark:text-white" />
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="flex items-center space-x-2">
@@ -636,8 +639,8 @@ export default function DailyPick() {
                   </div>
                 </DialogContent>
               </Dialog>
+              </div>
             </div>
-          </div>
         </div>
 
         <div className="flex items-start justify-between space-x-6">
@@ -785,13 +788,8 @@ export default function DailyPick() {
               </div>
             </div>
           )}
-
-
-
-
         </div>
-
-
+      </div>
       </CardContent>
       
       {/* Odds Comparison Modal */}

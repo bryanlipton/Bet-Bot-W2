@@ -599,7 +599,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Stats Cards with Privacy Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Picks */}
           {userProfile.totalPicksPublic && (
             <Card className="bg-white dark:bg-gray-800">
@@ -611,23 +611,6 @@ export default function ProfilePage() {
                       {profileStats.totalPicks}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Total Picks</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Total Won */}
-          {userProfile.winRatePublic && (
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profileStats.wonPicks}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Won</div>
                   </div>
                 </div>
               </CardContent>
