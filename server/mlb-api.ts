@@ -133,27 +133,53 @@ export function registerMLBRoutes(app: Express) {
                 };
               }
               
-              // Extract base runners if available
+              // Extract base runners if available (use fullName property to match frontend expectations)
               let baseRunners = { first: null, second: null, third: null };
               if (linescore.offense) {
                 if (linescore.offense.first) {
                   baseRunners.first = {
                     id: linescore.offense.first.id,
+                    fullName: linescore.offense.first.fullName || linescore.offense.first.nameFirstLast,
                     name: linescore.offense.first.fullName || linescore.offense.first.nameFirstLast
                   };
                 }
                 if (linescore.offense.second) {
                   baseRunners.second = {
                     id: linescore.offense.second.id,
+                    fullName: linescore.offense.second.fullName || linescore.offense.second.nameFirstLast,
                     name: linescore.offense.second.fullName || linescore.offense.second.nameFirstLast
                   };
                 }
                 if (linescore.offense.third) {
                   baseRunners.third = {
                     id: linescore.offense.third.id,
+                    fullName: linescore.offense.third.fullName || linescore.offense.third.nameFirstLast,
                     name: linescore.offense.third.fullName || linescore.offense.third.nameFirstLast
                   };
                 }
+              }
+              
+              // Try to get pitch count from playByPlay endpoint for more accuracy
+              let pitchCount = 0;
+              try {
+                const playByPlayResponse = await fetch(`${MLB_API_BASE_URL}/game/${gameId}/playByPlay`);
+                if (playByPlayResponse.ok) {
+                  const playByPlayData = await playByPlayResponse.json();
+                  const currentPlay = playByPlayData.allPlays?.[playByPlayData.allPlays.length - 1];
+                  if (currentPlay?.playEvents) {
+                    // Count pitches in current at-bat
+                    pitchCount = currentPlay.playEvents.filter((event: any) => 
+                      event.type === 'pitch' && event.isPitch === true
+                    ).length;
+                  }
+                }
+              } catch (pitchError) {
+                console.log('Could not fetch pitch count from playByPlay endpoint');
+              }
+              
+              // Update pitcher with actual pitch count
+              if (pitchCount > 0) {
+                currentPitcher.pitchCount = pitchCount;
               }
               
               const liveGameData = {
