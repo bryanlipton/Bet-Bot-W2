@@ -740,7 +740,7 @@ export default function ProfilePage() {
                                 );
                               }
                             })()}
-                            <div className="flex items-center">
+                            <div className="flex items-center justify-between w-full">
                               <Button
                                 type="button"
                                 variant="outline"
@@ -751,12 +751,10 @@ export default function ProfilePage() {
                                 Choose Picture
                               </Button>
                               
-                              {/* Save Button - Fully Right Aligned */}
-                              <div className="flex-1 flex justify-end">
-                                <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
-                                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                                </Button>
-                              </div>
+                              {/* Save Button - Aligned with right edge of inputs below */}
+                              <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
+                                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                              </Button>
                             </div>
                           </div>
                         </div>
