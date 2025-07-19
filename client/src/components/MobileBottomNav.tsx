@@ -1,6 +1,7 @@
 import { Home, TrendingUp, Trophy, Rss, User, Info } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   id: string;
@@ -44,11 +45,21 @@ const navItems: NavItem[] = [
 
 export default function MobileBottomNav() {
   const [location] = useLocation();
+  const { isAuthenticated } = useAuth();
+  
+  // Filter nav items based on authentication status
+  const filteredNavItems = navItems.filter(item => {
+    // Hide "My Picks" tab for non-authenticated users
+    if (item.id === "picks" && !isAuthenticated) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-50">
       <nav className="flex items-center justify-around py-2 px-1">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path || 
             (item.path !== "/" && location.startsWith(item.path));
