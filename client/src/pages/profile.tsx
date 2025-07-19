@@ -204,7 +204,7 @@ export default function ProfilePage() {
     id: user?.id || '1',
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
-    profileImage: getAvatarUrl(user?.profileImageUrl, user?.id),
+    profileImage: user?.profileImageUrl || getRandomAnimalAvatar(),
     followers: user?.followers || 0,
     following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
@@ -264,7 +264,7 @@ export default function ProfilePage() {
       setEditForm({
         username: user.username || user.firstName || user.email?.split('@')[0] || '',
         bio: user.bio || '',
-        profileImage: user.profileImageUrl || getAvatarUrl(user.profileImageUrl, user.id)
+        profileImage: user.profileImageUrl || getRandomAnimalAvatar()
       });
       setPrivacySettings({
         totalPicksPublic: user.totalPicksPublic ?? true,
@@ -392,8 +392,7 @@ export default function ProfilePage() {
               {/* Profile Picture with Edit Button */}
               <div className="relative">
                 {(() => {
-                  const avatarUrl = getAvatarUrl(userProfile.profileImage, userProfile.id);
-                  const avatarData = getAnimalAvatarByEmoji(avatarUrl);
+                  const avatarData = getAnimalAvatarByEmoji(userProfile.profileImage);
                   
                   if (avatarData) {
                     // Display emoji avatar with background
@@ -405,18 +404,27 @@ export default function ProfilePage() {
                         <span className="text-4xl">{avatarData.emoji}</span>
                       </div>
                     );
-                  } else {
+                  } else if (userProfile.profileImage.startsWith('http')) {
                     // Display regular image avatar
                     return (
                       <Avatar className="w-24 h-24">
                         <AvatarImage 
-                          src={avatarUrl} 
+                          src={userProfile.profileImage} 
                           alt={userProfile.username}
                         />
                         <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
                           {userProfile.username.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
+                    );
+                  } else {
+                    // Display emoji directly if it's not in our animal list
+                    return (
+                      <div 
+                        className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-gray-300"
+                      >
+                        <span className="text-4xl">{userProfile.profileImage}</span>
+                      </div>
                     );
                   }
                 })()}

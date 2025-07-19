@@ -52,7 +52,7 @@ export default function AvatarPicker({ isOpen, onClose, currentAvatar, onAvatarC
             >
               {currentAvatarData ? (
                 <span className="text-4xl">{selectedAvatar}</span>
-              ) : (
+              ) : selectedAvatar.startsWith('http') ? (
                 <img 
                   src={selectedAvatar} 
                   alt="Preview"
@@ -60,9 +60,11 @@ export default function AvatarPicker({ isOpen, onClose, currentAvatar, onAvatarC
                   onError={(e) => {
                     const target = e.currentTarget as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.innerHTML = '<span class="text-2xl text-white font-bold">U</span>';
+                    target.parentElement!.innerHTML = '<span class="text-2xl text-white font-bold">?</span>';
                   }}
                 />
+              ) : (
+                <span className="text-4xl">{selectedAvatar}</span>
               )}
             </div>
           </div>
