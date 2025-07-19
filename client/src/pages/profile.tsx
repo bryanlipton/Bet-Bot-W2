@@ -188,83 +188,45 @@ export default function ProfilePage() {
         }));
       
       setPublicFeed(feedItems);
-    } else {
-      // Fallback to localStorage picks if no API picks
-      const loadPicks = async () => {
-        try {
-          const databasePicks = await databasePickStorage.getPicks();
-          const localPicks = pickStorage.getPicks();
-          
-          // Combine and deduplicate picks
-          const combinedPicks = [...databasePicks, ...localPicks];
-          const uniquePicks = combinedPicks.filter((pick, index, self) => 
-            index === self.findIndex(p => p.id === pick.id)
-          );
-          
-          setPicks(uniquePicks);
-        
-          // Generate public feed from picks
-          const feedItems: PublicFeedItem[] = uniquePicks
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 20) // Show latest 20 items
-            .map(pick => ({
-              id: pick.id,
-              type: 'pick' as const,
-              pick,
-              timestamp: pick.timestamp,
-              result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
-            }));
-          
-          setPublicFeed(feedItems);
-        } catch (error) {
-          console.error('Error loading picks:', error);
-          const localPicks = pickStorage.getPicks();
-          setPicks(localPicks);
-          
-          const feedItems: PublicFeedItem[] = localPicks
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 20)
-            .map(pick => ({
-              id: pick.id,
-              type: 'pick' as const,
-              pick,
-              timestamp: pick.timestamp,
-              result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
-            }));
-          
-          setPublicFeed(feedItems);
-        }
-      };
-
-      loadPicks();
     }
+    
+    // Always load localStorage picks to get pending picks for stats calculation
+    const loadLocalStoragePicks = async () => {
+      try {
+        const localPicks = pickStorage.getPicks();
+        // Merge with existing picks from database, prioritizing database picks
+        const mergedPicks = [...picks];
+        localPicks.forEach(localPick => {
+          if (!mergedPicks.find(p => p.id === localPick.id)) {
+            mergedPicks.push(localPick);
+          }
+        });
+        setPicks(mergedPicks);
+      } catch (error) {
+        console.error('Error loading localStorage picks:', error);
+        // Fallback to just localStorage if database failed
+        const localPicks = pickStorage.getPicks();
+        setPicks(localPicks);
+      }
+    };
+
+    loadLocalStoragePicks();
   }, [userPicks]);
 
-  // Calculate profile stats with fallback data for demonstration
-  const profileStats = userPicks.length > 0 ? {
-    totalPicks: userPicks.length,
-    pendingPicks: userPicks.filter(p => p.status === 'pending').length,
-    wonPicks: userPicks.filter(p => p.status === 'win').length,
-    lostPicks: userPicks.filter(p => p.status === 'loss').length,
-    winRate: userPicks.length > 0 ? (userPicks.filter(p => p.status === 'win').length / (userPicks.filter(p => p.status === 'win').length + userPicks.filter(p => p.status === 'loss').length)) * 100 : 0,
-    totalUnits: userPicks.reduce((sum, pick) => sum + (pick.units || 1), 0),
+  // Calculate comprehensive stats combining database picks + pending localStorage picks
+  const dbWins = userPicks.filter(p => p.status === 'win').length;
+  const dbLosses = userPicks.filter(p => p.status === 'loss').length;
+  const pendingPicks = picks.filter(p => p.status === 'pending').length;
+  const totalCompletedPicks = dbWins + dbLosses;
+  
+  const profileStats = {
+    totalPicks: userPicks.length + pendingPicks, // 3 from DB + 2 pending = 5 total
+    pendingPicks: pendingPicks, // 2 pending picks from localStorage
+    wonPicks: dbWins, // 2 wins from database
+    lostPicks: dbLosses, // 1 loss from database
+    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 2/3 = 66.7%
+    totalUnits: userPicks.reduce((sum, pick) => sum + (pick.units || 1), 0) + picks.filter(p => p.status === 'pending').reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0),
     winStreak: calculateWinStreak(userPicks)
-  } : pickStats ? {
-    totalPicks: pickStats.totalPicks,
-    pendingPicks: pickStats.pendingPicks,
-    wonPicks: pickStats.winCount,
-    lostPicks: pickStats.lossCount,
-    winRate: pickStats.totalPicks > 0 ? (pickStats.winCount / (pickStats.winCount + pickStats.lossCount)) * 100 : 0,
-    totalUnits: pickStats.totalUnits,
-    winStreak: 0
-  } : {
-    totalPicks: picks.length,
-    pendingPicks: picks.filter(p => p.status === 'pending').length,
-    wonPicks: picks.filter(p => p.status === 'won').length,
-    lostPicks: picks.filter(p => p.status === 'lost').length,
-    winRate: picks.length > 0 ? (picks.filter(p => p.status === 'won').length / picks.filter(p => p.status !== 'pending').length) * 100 : 0,
-    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0),
-    winStreak: calculateWinStreak(picks)
   };
 
   // Calculate current win streak
