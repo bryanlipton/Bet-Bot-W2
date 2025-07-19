@@ -84,7 +84,34 @@ export function registerMLBRoutes(app: Express) {
         isLiveFeed = true;
         console.log(`Retrieved live feed data for game ${gameId}`);
       } else {
-        console.log(`Live feed not available for game ${gameId} (${response.status}), providing scheduled game info`);
+        console.log(`Live feed not available for game ${gameId} (${response.status}), fetching scheduled game info from MLB API`);
+        
+        // Try to get actual team names from MLB schedule API
+        let actualHomeTeam = homeTeam || 'Home Team';
+        let actualAwayTeam = awayTeam || 'Away Team';
+        
+        try {
+          const scheduleResponse = await fetch(`${MLB_API_BASE_URL}/game/${gameId}/feed/live`);
+          if (scheduleResponse.ok) {
+            const scheduleData = await scheduleResponse.json();
+            actualHomeTeam = scheduleData.gameData?.teams?.home?.name || actualHomeTeam;
+            actualAwayTeam = scheduleData.gameData?.teams?.away?.name || actualAwayTeam;
+          } else {
+            // Try alternative schedule endpoint
+            const today = new Date().toISOString().split('T')[0];
+            const altResponse = await fetch(`${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team`);
+            if (altResponse.ok) {
+              const altData = await altResponse.json();
+              const game = altData.dates?.[0]?.games?.find((g: any) => g.gamePk.toString() === gameId);
+              if (game) {
+                actualHomeTeam = game.teams.home.team.name;
+                actualAwayTeam = game.teams.away.team.name;
+              }
+            }
+          }
+        } catch (error) {
+          console.log('Could not fetch team names from MLB API, using provided names');
+        }
         
         // Return minimal data for scheduled games with actual team names
         const fallbackData = {
@@ -126,12 +153,12 @@ export function registerMLBRoutes(app: Express) {
           recentPlays: [],
           teams: {
             home: {
-              name: homeTeam || 'Home Team',
-              abbreviation: homeTeam ? homeTeam.split(' ').pop()?.toUpperCase() || 'HOME' : 'HOME'
+              name: actualHomeTeam,
+              abbreviation: actualHomeTeam.split(' ').pop()?.toUpperCase() || 'HOME'
             },
             away: {
-              name: awayTeam || 'Away Team',
-              abbreviation: awayTeam ? awayTeam.split(' ').pop()?.toUpperCase() || 'AWAY' : 'AWAY'
+              name: actualAwayTeam,
+              abbreviation: actualAwayTeam.split(' ').pop()?.toUpperCase() || 'AWAY'
             }
           },
           lastUpdate: new Date().toISOString(),
@@ -253,6 +280,25 @@ export function registerMLBRoutes(app: Express) {
       
       // Try to provide fallback data for scheduled games
       try {
+        // Try to get actual team names from MLB schedule API
+        let actualHomeTeam = homeTeam || 'Home Team';
+        let actualAwayTeam = awayTeam || 'Away Team';
+        
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const altResponse = await fetch(`${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team`);
+          if (altResponse.ok) {
+            const altData = await altResponse.json();
+            const game = altData.dates?.[0]?.games?.find((g: any) => g.gamePk.toString() === req.params.gameId);
+            if (game) {
+              actualHomeTeam = game.teams.home.team.name;
+              actualAwayTeam = game.teams.away.team.name;
+            }
+          }
+        } catch (mlbError) {
+          console.log('Could not fetch team names from MLB API in error handler, using provided names');
+        }
+        
         const fallbackData = {
           gameId: req.params.gameId,
           status: {
@@ -292,12 +338,12 @@ export function registerMLBRoutes(app: Express) {
           recentPlays: [],
           teams: {
             home: {
-              name: homeTeam || 'Home Team',
-              abbreviation: homeTeam ? homeTeam.split(' ').pop()?.toUpperCase() || 'HOME' : 'HOME'
+              name: actualHomeTeam,
+              abbreviation: actualHomeTeam.split(' ').pop()?.toUpperCase() || 'HOME'
             },
             away: {
-              name: awayTeam || 'Away Team',
-              abbreviation: awayTeam ? awayTeam.split(' ').pop()?.toUpperCase() || 'AWAY' : 'AWAY'
+              name: actualAwayTeam,
+              abbreviation: actualAwayTeam.split(' ').pop()?.toUpperCase() || 'AWAY'
             }
           },
           lastUpdate: new Date().toISOString(),
