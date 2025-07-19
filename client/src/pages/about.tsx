@@ -179,7 +179,8 @@ export default function AboutPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Check Your Picks</h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Every morning, new picks are waiting for you. Each comes with a clear grade (A+ to D) 
+                    Every morning, new picks are waiting for you. Our AI model generates each pick by analyzing 
+                    dozens of factors - team stats, pitcher matchups, weather, recent form, and more. Each comes with a clear grade (A+ to D) 
                     and simple explanation of why it's a good bet. No spreadsheets, no complicated math - just the info you need.
                   </p>
                 </div>
