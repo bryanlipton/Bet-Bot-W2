@@ -68,6 +68,10 @@ export default function MobileBottomNav() {
             <Link
               key={item.id}
               href={item.path}
+              onClick={() => {
+                // Scroll to top when switching tabs
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className={cn(
                 "flex flex-col items-center justify-center py-1 px-2 min-w-0 flex-1",
                 "text-xs font-medium transition-colors duration-200",
