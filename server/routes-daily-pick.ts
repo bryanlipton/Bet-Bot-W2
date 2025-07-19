@@ -38,6 +38,52 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+  // Test grading endpoint (development only)
+  app.post("/api/daily-pick/test-new-grading", async (req: Request, res: Response) => {
+    try {
+      // Get today's games
+      const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
+      const games = await gamesResponse.json();
+      
+      // Filter for upcoming games with odds
+      const today = new Date();
+      const todaysGames = games.filter((game: any) => {
+        const gameDate = new Date(game.commence_time);
+        const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds;
+      });
+
+      if (todaysGames.length === 0) {
+        return res.status(400).json({ error: "No games with odds available for testing" });
+      }
+
+      // Generate new picks to test grading
+      const newPick = await dailyPickService.generateDailyPick(todaysGames);
+      const newLockPick = await dailyPickService.generateDailyPick(todaysGames);
+      
+      if (newPick && newLockPick) {
+        // Save both picks for testing
+        await dailyPickService.saveDailyPick(newPick);
+        await dailyPickService.saveLockPick(newLockPick);
+        
+        res.json({ 
+          dailyPick: newPick, 
+          lockPick: newLockPick,
+          message: "New picks generated with updated grading system",
+          grades: {
+            daily: newPick.grade,
+            lock: newLockPick.grade
+          }
+        });
+      } else {
+        res.status(400).json({ error: "Could not generate suitable picks for testing" });
+      }
+    } catch (error) {
+      console.error("Failed to test new grading:", error);
+      res.status(500).json({ error: "Failed to test new grading system" });
+    }
+  });
+
   // Generate new daily pick (admin/testing endpoint)
   app.post("/api/daily-pick/generate", async (req: Request, res: Response) => {
     try {

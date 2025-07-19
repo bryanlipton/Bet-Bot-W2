@@ -67,12 +67,12 @@ export function registerMLBRoutes(app: Express) {
   // Get today's MLB schedule
   app.get('/api/mlb/schedule', async (req, res) => {
     try {
-      // Get games from yesterday to next 3 days to show more games
+      // Get games for current day and next day only (as requested)
       const today = new Date();
       const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 1); // Yesterday
+      // For current day
       const endDate = new Date(today);
-      endDate.setDate(today.getDate() + 3); // Next 3 days
+      endDate.setDate(today.getDate() + 1); // Next day only
       
       const url = `${MLB_API_BASE_URL}/schedule?sportId=1&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&hydrate=team,linescore,probablePitcher`;
       

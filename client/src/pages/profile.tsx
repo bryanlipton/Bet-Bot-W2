@@ -796,7 +796,7 @@ export default function ProfilePage() {
         isOpen={isImagePickerOpen}
         onClose={() => setIsImagePickerOpen(false)}
         currentAvatar={editForm.profileImage}
-        onSelect={handleImageSelect}
+        onAvatarChange={handleImageSelect}
       />
     </div>
   );
