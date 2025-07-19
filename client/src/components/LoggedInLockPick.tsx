@@ -244,6 +244,13 @@ export default function LoggedInLockPick() {
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
+  // Check if game has started to hide the tile
+  const isGameStarted = (gameTime: string) => {
+    const now = new Date();
+    const game = new Date(gameTime);
+    return now > game;
+  };
+
   // Track visits and determine if should be collapsed
   useEffect(() => {
     if (lockPick?.id) {
