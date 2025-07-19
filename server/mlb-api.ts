@@ -64,6 +64,252 @@ interface MLBScheduleResponse {
 }
 
 export function registerMLBRoutes(app: Express) {
+  // Get live game data with detailed real-time information
+  app.get('/api/mlb/game/:gameId/live', async (req, res) => {
+    try {
+      const { gameId } = req.params;
+      console.log(`Fetching live data for game ${gameId}`);
+      
+      let data;
+      let isLiveFeed = false;
+      
+      // Try live feed first
+      const liveUrl = `${MLB_API_BASE_URL}/game/${gameId}/feed/live`;
+      const response = await fetch(liveUrl);
+      
+      if (response.ok) {
+        data = await response.json();
+        isLiveFeed = true;
+        console.log(`Retrieved live feed data for game ${gameId}`);
+      } else {
+        console.log(`Live feed not available for game ${gameId} (${response.status}), providing scheduled game info`);
+        
+        // Return minimal data for scheduled games
+        const fallbackData = {
+          gameId: gameId,
+          status: {
+            detailed: 'Scheduled',
+            abstract: 'Preview',
+            inProgress: false
+          },
+          score: {
+            home: 0,
+            away: 0
+          },
+          inning: {
+            current: 1,
+            state: 'Top',
+            half: 'top'
+          },
+          count: {
+            balls: 0,
+            strikes: 0,
+            outs: 0
+          },
+          currentBatter: {
+            id: null,
+            name: 'Game not started',
+            team: 'N/A'
+          },
+          currentPitcher: {
+            id: null,
+            name: 'Game not started',
+            pitchCount: 0
+          },
+          baseRunners: {
+            first: null,
+            second: null,
+            third: null
+          },
+          recentPlays: [],
+          teams: {
+            home: {
+              name: 'Home Team',
+              abbreviation: 'HOME'
+            },
+            away: {
+              name: 'Away Team',
+              abbreviation: 'AWAY'
+            }
+          },
+          lastUpdate: new Date().toISOString(),
+          note: 'Game has not started yet'
+        };
+        
+        res.json(fallbackData);
+        return;
+      }
+      
+      if (!isLiveFeed) {
+        throw new Error('No data source available');
+      }
+      
+      // Extract live game information
+      const gameData = data.gameData;
+      const liveData = data.liveData;
+      
+      // Current play information
+      const currentPlay = liveData?.plays?.currentPlay || {};
+      const linescore = liveData?.linescore || {};
+      
+      // Current batter and pitcher
+      const currentBatter = currentPlay?.matchup?.batter || {};
+      const currentPitcher = currentPlay?.matchup?.pitcher || {};
+      
+      // Base runners
+      const runners = currentPlay?.runners || [];
+      const bases = {
+        first: runners.find((r: any) => r.movement?.end === '1B')?.details?.runner || null,
+        second: runners.find((r: any) => r.movement?.end === '2B')?.details?.runner || null,
+        third: runners.find((r: any) => r.movement?.end === '3B')?.details?.runner || null
+      };
+      
+      // Recent plays (last 5)
+      const allPlays = liveData?.plays?.allPlays || [];
+      const recentPlays = allPlays.slice(-5).map((play: any) => ({
+        id: play.about?.atBatIndex,
+        description: play.result?.description || play.playEvents?.[play.playEvents.length - 1]?.details?.description,
+        inning: play.about?.inning,
+        halfInning: play.about?.halfInning,
+        outs: play.count?.outs,
+        result: play.result?.event
+      }));
+      
+      // Count and situation
+      const count = currentPlay?.count || {};
+      const currentInning = linescore?.currentInning || 1;
+      const inningState = linescore?.inningState || 'Top';
+      const currentInningHalf = linescore?.inningHalf || 'top';
+      
+      // Scores
+      const homeScore = linescore?.teams?.home?.runs || 0;
+      const awayScore = linescore?.teams?.away?.runs || 0;
+      
+      // Game status
+      const gameStatus = gameData?.status?.detailedState || 'Unknown';
+      const abstractState = gameData?.status?.abstractGameState || 'Unknown';
+      
+      const liveGameData = {
+        gameId: gameId,
+        status: {
+          detailed: gameStatus,
+          abstract: abstractState,
+          inProgress: abstractState === 'Live'
+        },
+        score: {
+          home: homeScore,
+          away: awayScore
+        },
+        inning: {
+          current: currentInning,
+          state: inningState,
+          half: currentInningHalf
+        },
+        count: {
+          balls: count.balls || 0,
+          strikes: count.strikes || 0,
+          outs: count.outs || 0
+        },
+        currentBatter: {
+          id: currentBatter.id,
+          name: currentBatter.fullName || 'Unknown Batter',
+          team: currentPlay?.matchup?.batSide?.description || 'Unknown'
+        },
+        currentPitcher: {
+          id: currentPitcher.id,
+          name: currentPitcher.fullName || 'Unknown Pitcher',
+          pitchCount: currentPitcher.pitchCount || 0
+        },
+        baseRunners: bases,
+        recentPlays: recentPlays,
+        teams: {
+          home: {
+            name: gameData?.teams?.home?.name || 'Home Team',
+            abbreviation: gameData?.teams?.home?.abbreviation || 'HOME'
+          },
+          away: {
+            name: gameData?.teams?.away?.name || 'Away Team',
+            abbreviation: gameData?.teams?.away?.abbreviation || 'AWAY'
+          }
+        },
+        lastUpdate: new Date().toISOString()
+      };
+      
+      console.log(`Live data for game ${gameId}:`, {
+        status: liveGameData.status.detailed,
+        inning: `${liveGameData.inning.state} ${liveGameData.inning.current}`,
+        count: `${liveGameData.count.balls}-${liveGameData.count.strikes}`,
+        outs: liveGameData.count.outs,
+        batter: liveGameData.currentBatter.name
+      });
+      
+      res.json(liveGameData);
+    } catch (error) {
+      console.error(`Error fetching live data for game ${req.params.gameId}:`, error);
+      
+      // Try to provide fallback data for scheduled games
+      try {
+        const fallbackData = {
+          gameId: req.params.gameId,
+          status: {
+            detailed: 'Scheduled',
+            abstract: 'Preview',
+            inProgress: false
+          },
+          score: {
+            home: 0,
+            away: 0
+          },
+          inning: {
+            current: 1,
+            state: 'Top',
+            half: 'top'
+          },
+          count: {
+            balls: 0,
+            strikes: 0,
+            outs: 0
+          },
+          currentBatter: {
+            id: null,
+            name: 'Game not started',
+            team: 'N/A'
+          },
+          currentPitcher: {
+            id: null,
+            name: 'Game not started',
+            pitchCount: 0
+          },
+          baseRunners: {
+            first: null,
+            second: null,
+            third: null
+          },
+          recentPlays: [],
+          teams: {
+            home: {
+              name: 'Home Team',
+              abbreviation: 'HOME'
+            },
+            away: {
+              name: 'Away Team',
+              abbreviation: 'AWAY'
+            }
+          },
+          lastUpdate: new Date().toISOString(),
+          note: 'Game has not started yet'
+        };
+        
+        res.json(fallbackData);
+      } catch (fallbackError) {
+        res.status(500).json({ 
+          error: 'Failed to fetch live game data',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  });
+
   // Get today's MLB schedule
   app.get('/api/mlb/schedule', async (req, res) => {
     try {

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
+import { LiveGameModal } from "@/components/LiveGameModal";
 import { getTeamColor } from "@/utils/teamLogos";
 import { 
   Calendar,
@@ -12,7 +13,9 @@ import {
   Trophy,
   RefreshCw,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Play,
+  Radio
 } from "lucide-react";
 
 interface ScoreGame {
@@ -68,6 +71,11 @@ export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedLiveGame, setSelectedLiveGame] = useState<{
+    gameId: string;
+    homeTeam: string;
+    awayTeam: string;
+  } | null>(null);
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -392,7 +400,7 @@ export default function ScoresPage() {
                   return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
                          !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
                 ))}
               </div>
             </div>
@@ -415,7 +423,7 @@ export default function ScoresPage() {
                   return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
                          !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
                 ))}
               </div>
             </div>
@@ -436,7 +444,7 @@ export default function ScoresPage() {
                   const status = game.status.toLowerCase();
                   return status.includes('final') || status.includes('completed') || status.includes('game over');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
                 ))}
               </div>
             </div>
@@ -444,12 +452,29 @@ export default function ScoresPage() {
         </div>
       </div>
       <Footer />
+      
+      {/* Live Game Modal */}
+      {selectedLiveGame && (
+        <LiveGameModal
+          gameId={selectedLiveGame.gameId}
+          homeTeam={selectedLiveGame.homeTeam}
+          awayTeam={selectedLiveGame.awayTeam}
+          isOpen={!!selectedLiveGame}
+          onClose={() => setSelectedLiveGame(null)}
+        />
+      )}
     </div>
   );
 }
 
 // Score Game Card Component
-function ScoreGameCard({ game }: { game: ScoreGame }) {
+function ScoreGameCard({ 
+  game, 
+  onLiveGameClick 
+}: { 
+  game: ScoreGame; 
+  onLiveGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string }) => void;
+}) {
   const getStatusBadge = (status: string) => {
     const lowerStatus = status.toLowerCase();
     // Check for final status first (including special final statuses)
@@ -509,8 +534,22 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
     return inning;
   };
 
+  const handleCardClick = () => {
+    // Only open live modal for live games
+    if (isLive) {
+      onLiveGameClick({
+        gameId: game.id,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam
+      });
+    }
+  };
+
   return (
-    <Card className="bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
+    <Card 
+      className={`bg-white dark:bg-gray-800 hover:shadow-md transition-shadow ${isLive ? 'cursor-pointer' : ''}`}
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
         {/* Horizontal layout inspired by the image */}
         <div className="flex items-center justify-between">
@@ -577,9 +616,12 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                 {isFinished ? (
                   <span className="text-red-600 dark:text-red-400 font-bold">F</span>
                 ) : isLive && game.inning ? (
-                  <span className="text-orange-600 dark:text-orange-400 font-bold">
-                    {formatInning(game.inning)}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <Radio className="w-3 h-3 text-green-500 animate-pulse" />
+                    <span className="text-orange-600 dark:text-orange-400 font-bold">
+                      {formatInning(game.inning)}
+                    </span>
+                  </div>
                 ) : !isFinished && !isLive ? (
                   <span className="text-gray-500 dark:text-gray-400">
                     {formatTime(game.startTime)}
@@ -595,6 +637,14 @@ function ScoreGameCard({ game }: { game: ScoreGame }) {
                       {game.liveDetails.balls}-{game.liveDetails.strikes}, {game.liveDetails.outs} out
                     </span>
                   )}
+                </div>
+              )}
+              
+              {/* Click to view live indicator */}
+              {isLive && (
+                <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                  <Play className="w-3 h-3" />
+                  <span>Click for live</span>
                 </div>
               )}
             </div>
