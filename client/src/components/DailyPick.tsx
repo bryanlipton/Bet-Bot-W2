@@ -628,9 +628,9 @@ export default function DailyPick() {
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
                 </button>
-                {/* Medium size dropdown toggle (md-lg when stacked) */}
+                {/* Medium size dropdown toggle (md-xl when stacked) */}
                 <button
-                  className="hidden sm:flex lg:hidden items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="hidden sm:flex xl:hidden items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setDailyPickMediumOpen(!dailyPickMediumOpen)}
                 >
                   {dailyPickMediumOpen ? 'Hide' : 'Show'} Analysis
@@ -659,9 +659,9 @@ export default function DailyPick() {
 
             </div>
 
-            {/* Medium size analysis factors dropdown (md-lg when stacked) - Below buttons */}
+            {/* Medium size analysis factors dropdown (md-xl when stacked) - Below buttons */}
             {dailyPickMediumOpen && (
-              <div className="hidden sm:block lg:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="hidden sm:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3 text-center">
                   Analysis Factors
                 </h5>
@@ -674,9 +674,9 @@ export default function DailyPick() {
             )}
           </div>
 
-          {/* Right side - Analysis Factors (large screens side-by-side) */}
+          {/* Right side - Analysis Factors (xl screens side-by-side) */}
           {dailyPickLargeOpen && (
-            <div className="w-80 hidden lg:block">
+            <div className="w-80 hidden xl:block">
               <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
                 Analysis Factors
               </h5>

@@ -278,8 +278,8 @@ export function ActionStyleDashboard() {
             Free Users
           </Badge>
         </div>
-        {/* Responsive layout for picks - stack vertically at md, side-by-side at lg+ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-4 lg:gap-6">
+        {/* Responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-4 xl:gap-6">
           <DailyPick key="daily-pick-component" />
           <LoggedInLockPick key="lock-pick-component" />
         </div>
