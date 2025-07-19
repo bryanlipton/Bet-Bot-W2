@@ -502,7 +502,7 @@ export default function ProfilePage() {
                           </div>
                           
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="pendingPicksPublic">Do you want to share pending picks on profile</Label>
+                            <Label htmlFor="pendingPicksPublic">Do you want to share the number of pending picks on profile</Label>
                             <div className="flex items-center gap-2">
                               <EyeOff className="w-4 h-4" />
                               <Switch
@@ -600,74 +600,78 @@ export default function ProfilePage() {
 
         {/* Stats Cards with Privacy Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Picks */}
-          {userProfile.totalPicksPublic && (
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Target className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profileStats.totalPicks}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Picks</div>
+          {/* Total Picks - Always visible to user */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Target className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.totalPicks}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    Total Picks
+                    {!userProfile.totalPicksPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Pending Picks */}
-          {userProfile.pendingPicksPublic && (
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profileStats.pendingPicks}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Pending</div>
+          {/* Pending Picks - Always visible to user */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.pendingPicks}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    Pending
+                    {!userProfile.pendingPicksPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Win Rate */}
-          {userProfile.winRatePublic && (
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {profileStats.winRate.toFixed(1)}%
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Win Rate</div>
+          {/* Win Rate - Always visible to user */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.winRate.toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    Win Rate
+                    {!userProfile.winRatePublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Win Streak with Fire Emoji */}
-          {userProfile.winStreakPublic && (
-            <Card className="bg-white dark:bg-gray-800">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Flame className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-                  <div>
-                    <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                      {profileStats.winStreak}
-                      {profileStats.winStreak > 0 && <span>🔥</span>}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Win Streak</div>
+          {/* Win Streak with Fire Emoji - Always visible to user */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Flame className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                <div>
+                  <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.winStreak}
+                    {profileStats.winStreak > 0 && <span>🔥</span>}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    Win Streak
+                    {!userProfile.winStreakPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Public Feed */}
