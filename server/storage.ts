@@ -955,8 +955,16 @@ export class DatabaseStorage implements IStorage {
     return pick || null;
   }
 
-  async deleteUserPick(pickId: number): Promise<void> {
-    await db.delete(userPicks).where(eq(userPicks.id, pickId));
+  async deleteUserPick(pickId: number | string): Promise<void> {
+    // Handle both integer IDs (database picks) and string IDs (sample picks)
+    if (typeof pickId === 'string' && isNaN(parseInt(pickId))) {
+      // Sample picks with string IDs don't exist in database, so return silently
+      console.log(`Sample pick ${pickId} delete request - frontend only`);
+      return;
+    }
+    
+    const numericPickId = typeof pickId === 'string' ? parseInt(pickId) : pickId;
+    await db.delete(userPicks).where(eq(userPicks.id, numericPickId));
   }
 
   async getUserPickStats(userId: string): Promise<{

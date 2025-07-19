@@ -987,8 +987,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Updating visibility for pick ${pickId}: profile=${showOnProfile}, feed=${showOnFeed}`);
 
-      // Update the pick visibility in database
-      const updatedPick = await storage.updatePickVisibility(userId, parseInt(pickId), { showOnProfile, showOnFeed });
+      // Check if this is a sample pick (string ID) or database pick (integer ID)
+      const isStringId = isNaN(parseInt(pickId));
+      
+      if (isStringId) {
+        // Sample picks (like "blue_jays_ml", "orioles_mets_parlay") exist only in frontend
+        // Return success without database update since these are hardcoded examples
+        console.log(`Sample pick ${pickId} visibility update - frontend only`);
+        return res.json({ success: true, message: "Sample pick visibility updated (frontend only)" });
+      }
+
+      // Database picks with integer IDs
+      const numericPickId = parseInt(pickId);
+      const updatedPick = await storage.updatePickVisibility(userId, numericPickId, { showOnProfile, showOnFeed });
       
       if (!updatedPick) {
         return res.status(404).json({ message: "Pick not found or not owned by user" });

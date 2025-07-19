@@ -85,15 +85,25 @@ export function registerUserPicksRoutes(app: Express) {
       const userId = req.user.claims.sub;
       const { pickId } = req.params;
       
-      // Ensure user owns the pick
+      // Check if this is a sample pick (string ID) or database pick (integer ID)
+      const isStringId = isNaN(parseInt(pickId));
+      
+      if (isStringId) {
+        // Sample picks (like "blue_jays_ml", "orioles_mets_parlay") exist only in frontend
+        console.log(`Sample pick ${pickId} delete request - frontend only`);
+        return res.json({ message: "Sample pick deleted (frontend only)" });
+      }
+      
+      // For database picks, ensure user owns the pick
       const existingPicks = await storage.getUserPicks(userId);
-      const userOwnsPick = existingPicks.some(pick => pick.id === pickId);
+      const numericPickId = parseInt(pickId);
+      const userOwnsPick = existingPicks.some(pick => pick.id === numericPickId);
       
       if (!userOwnsPick) {
         return res.status(403).json({ message: "Not authorized to delete this pick" });
       }
       
-      await storage.deleteUserPick(pickId);
+      await storage.deleteUserPick(numericPickId);
       res.json({ message: "Pick deleted successfully" });
     } catch (error) {
       console.error("Error deleting user pick:", error);
