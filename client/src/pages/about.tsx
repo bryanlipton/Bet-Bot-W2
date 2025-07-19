@@ -64,15 +64,13 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Mission Statement */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
-            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-              Bet Bot is a data-driven sports betting platform built to deliver accurate, actionable insights.
+            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+              Bet Bot is a machine learning-powered sports betting platform built to deliver accurate, actionable insights.
             </p>
-            <br />
             <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-              We use artificial intelligence, machine learning, and real-time data integration to help bettors make smarter decisions—without the need for spreadsheets or hours of research.
+              We combine advanced statistical models, real-time data sources, and clean user tools to help bettors make informed decisions across every stage of the betting process.
             </p>
           </CardContent>
         </Card>
@@ -86,21 +84,30 @@ export default function AboutPage() {
                 What We Do
               </h2>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              Bet Bot provides users with reliable daily picks, odds comparisons from major sportsbooks, and tools to track performance—all powered by official data sources and advanced analytics.
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Bet Bot levels the playing field between bettors and sportsbooks by providing access to the kind of data and analysis typically reserved for professionals. From predictive picks to transparent performance tracking, we help users bet smarter with tools designed for clarity, not clutter.
             </p>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              While sportsbooks rely on vast teams and proprietary models, everyday bettors often rely on instinct. Bet Bot aims to close that gap, giving individuals access to a professional-grade betting assistant.
-            </p>
+          </CardContent>
+        </Card>
+
+        {/* Key Features */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Target className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Key Features
+              </h2>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Target className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">AI-Powered Daily Picks</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Machine Learning-Driven Picks</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Picks are generated every morning at 2 AM EST using models built with 27+ statistical features, including data from Baseball Savant, official MLB APIs, and weather conditions.
+                      Bet recommendations are generated daily by a proprietary machine learning model built in TensorFlow.js. It analyzes over 27 input features including team statistics, pitching matchups, park effects, umpire data, and weather conditions to identify profitable betting opportunities.
                     </p>
                   </div>
                 </div>
@@ -110,7 +117,7 @@ export default function AboutPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">Live Odds Comparison</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Real-time odds from leading sportsbooks including DraftKings, FanDuel, Caesars, and BetMGM—refreshed every 15 minutes and linked directly to the bet slip.
+                      Instantly view odds from major U.S. sportsbooks including FanDuel, DraftKings, Caesars, and BetMGM with deep links to place bets directly.
                     </p>
                   </div>
                 </div>
@@ -118,9 +125,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Transparent Confidence Grading</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Confidence Grading</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Each pick is assigned a grade from A+ to D, reflecting confidence levels based on six analytical factors such as offensive production, pitching matchup, and market inefficiencies.
+                      Every pick is scored from A+ to D based on six core evaluation metrics such as offensive efficiency, pitching matchups, and market inefficiencies. This helps users quickly understand where value may exist.
                     </p>
                   </div>
                 </div>
@@ -130,9 +137,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Database className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Bet Tracking and History</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Performance Tracking</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Log picks, track performance over time, and view detailed metrics like ROI, win rate, and betting trends. Parlay support and unit-based tracking included.
+                      Users can log bets, monitor outcomes, analyze ROI and win rates, and build or track parlays. The system supports configurable units and automatic status grading.
                     </p>
                   </div>
                 </div>
@@ -140,9 +147,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Zap className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">User Profiles and Community</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Profile and Community Tools</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Optional public profiles with follower systems, privacy controls, and performance visibility allow for connection without compromising data ownership.
+                      Create a profile, follow other users, and view public betting activity with full control over privacy settings and data visibility.
                     </p>
                   </div>
                 </div>
@@ -150,9 +157,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Mobile-First Design</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Designed for Any Platform</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Bet Bot is optimized for mobile use, with touch-friendly layouts and responsive grids that adapt to any screen size.
+                      Whether you're using a mobile phone, tablet, or desktop, Bet Bot offers a consistent and intuitive experience across all devices.
                     </p>
                   </div>
                 </div>
@@ -161,67 +168,33 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* Data Integrity */}
+        {/* Data and Technology */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <Database className="w-6 h-6 text-blue-600" />
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Data Integrity
+                Data and Technology
               </h2>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              All data used by Bet Bot comes from official sources. No simulations, no biased inputs—just verified statistics and real-time game conditions. Picks update automatically as lineups change or games begin.
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+              All insights are powered by real-time, verified data from trusted sources including the MLB Stats API, Baseball Savant, and national weather services. Picks and odds update dynamically as games progress and new data becomes available.
             </p>
-          </CardContent>
-        </Card>
-
-        {/* Our Technology Stack */}
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Target className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Our Technology Stack
-              </h2>
-            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Frontend</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">React</Badge>
-                  <Badge variant="outline">TypeScript</Badge>
-                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Tech Stack</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">React, TypeScript, Node.js, PostgreSQL, WebSockets</p>
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Backend</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">Node.js</Badge>
-                  <Badge variant="outline">Express</Badge>
-                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">AI Infrastructure</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Custom TensorFlow.js model with continuous learning and validation</p>
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Database</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">PostgreSQL</Badge>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Live Features</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">WebSockets</Badge>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">AI/ML</h3>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">TensorFlow.js</Badge>
-                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Security</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Secure OAuth login, session management, and user data isolation</p>
               </div>
             </div>
           </CardContent>
@@ -237,7 +210,7 @@ export default function AboutPage() {
                   Responsible Use
                 </h3>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
-                  Bet Bot is intended for informational and educational purposes. Betting carries risk, and past performance does not guarantee future outcomes. Users are encouraged to gamble responsibly.
+                  Bet Bot is built for informed, responsible engagement with sports betting. All tools are provided for educational and entertainment purposes. Please bet within your means and consult responsible gaming resources if needed.
                 </p>
               </div>
             </div>

@@ -1,0 +1,38 @@
+About Bet Bot
+Bet Bot is a machine learning-powered sports betting platform built to deliver accurate, actionable insights.
+
+We combine advanced statistical models, real-time data sources, and clean user tools to help bettors make informed decisions across every stage of the betting process.
+
+What We Do
+Bet Bot levels the playing field between bettors and sportsbooks by providing access to the kind of data and analysis typically reserved for professionals. From predictive picks to transparent performance tracking, we help users bet smarter with tools designed for clarity, not clutter.
+
+Key Features
+Machine Learning-Driven Picks
+Bet recommendations are generated daily by a proprietary machine learning model built in TensorFlow.js. It analyzes over 27 input features including team statistics, pitching matchups, park effects, umpire data, and weather conditions to identify profitable betting opportunities.
+
+Live Odds Comparison
+Instantly view odds from major U.S. sportsbooks including FanDuel, DraftKings, Caesars, and BetMGM with deep links to place bets directly.
+
+Confidence Grading
+Every pick is scored from A+ to D based on six core evaluation metrics such as offensive efficiency, pitching matchups, and market inefficiencies. This helps users quickly understand where value may exist.
+
+Performance Tracking
+Users can log bets, monitor outcomes, analyze ROI and win rates, and build or track parlays. The system supports configurable units and automatic status grading.
+
+Profile and Community Tools
+Create a profile, follow other users, and view public betting activity with full control over privacy settings and data visibility.
+
+Designed for Any Platform
+Whether you're using a mobile phone, tablet, or desktop, Bet Bot offers a consistent and intuitive experience across all devices.
+
+Data and Technology
+All insights are powered by real-time, verified data from trusted sources including the MLB Stats API, Baseball Savant, and national weather services. Picks and odds update dynamically as games progress and new data becomes available.
+
+Tech Stack: React, TypeScript, Node.js, PostgreSQL, WebSockets
+
+AI Infrastructure: Custom TensorFlow.js model with continuous learning and validation
+
+Security: Secure OAuth login, session management, and user data isolation
+
+Responsible Use
+Bet Bot is built for informed, responsible engagement with sports betting. All tools are provided for educational and entertainment purposes. Please bet within your means and consult responsible gaming resources if needed.
