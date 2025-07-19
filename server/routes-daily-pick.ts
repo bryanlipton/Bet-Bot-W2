@@ -38,6 +38,31 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+  // Get specific pitcher stats (development endpoint)
+  app.get("/api/daily-pick/pitcher-stats/:name", async (req: Request, res: Response) => {
+    try {
+      const pitcherName = req.params.name;
+      const stats = await dailyPickService.fetchReal2025PitcherStats(pitcherName);
+      
+      if (stats) {
+        res.json({
+          pitcher: pitcherName,
+          stats,
+          message: `Real 2025 season stats for ${pitcherName}`
+        });
+      } else {
+        res.status(404).json({
+          pitcher: pitcherName,
+          error: "No 2025 stats found for this pitcher",
+          message: "Pitcher may not be active or stats not available"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch pitcher stats:", error);
+      res.status(500).json({ error: "Failed to fetch pitcher stats" });
+    }
+  });
+
   // Test grading endpoint (development only)
   app.post("/api/daily-pick/test-new-grading", async (req: Request, res: Response) => {
     try {

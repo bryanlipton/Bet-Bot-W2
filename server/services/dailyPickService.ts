@@ -179,7 +179,7 @@ export class DailyPickService {
     return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
-  private async fetchReal2025PitcherStats(pitcherName: string): Promise<any> {
+  async fetchReal2025PitcherStats(pitcherName: string): Promise<any> {
     try {
       // First, search for pitcher by name to get their ID
       const searchResponse = await fetch(`${MLB_API_BASE_URL}/sports/1/players?season=2025&activeStatus=Y&search=${encodeURIComponent(pitcherName)}`);
