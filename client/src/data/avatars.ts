@@ -1,15 +1,17 @@
-// Cute animal avatar options based on the provided design
+// Cute animal avatar options matching the exact design provided
 export const animalAvatars = [
-  // Fun emoji-style animal avatars with cute designs similar to your provided image
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=cat&backgroundColor=E78B9C',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=wolf&backgroundColor=4FACFF', 
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=panda&backgroundColor=9BD723',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=bear&backgroundColor=FFDA44',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=fox&backgroundColor=37495A',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=raccoon&backgroundColor=FF5A42',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=monkey&backgroundColor=4FACFF',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=koala&backgroundColor=FFA726',
-  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=bull&backgroundColor=1CBE76'
+  // Row 1: Cat (pink), Wolf (blue), Panda (green)
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=cat&backgroundColor=E781A6&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=wolf&backgroundColor=4FB3D9&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=panda&backgroundColor=9FD356&colorful=1',
+  // Row 2: Bear (yellow), Fox (dark blue), Raccoon (coral)
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=bear&backgroundColor=F7D060&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=fox&backgroundColor=3F5F7F&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=raccoon&backgroundColor=F56565&colorful=1',
+  // Row 3: Monkey (light blue), Koala (orange), Bull (teal)
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=monkey&backgroundColor=87CEEB&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=koala&backgroundColor=FFA500&colorful=1',
+  'https://api.dicebear.com/9.x/bottts-neutral/svg?seed=bull&backgroundColor=1DD1A1&colorful=1'
 ];
 
 // Function to get a random animal avatar
