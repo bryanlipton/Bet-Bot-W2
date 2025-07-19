@@ -139,8 +139,15 @@ export default function MyPicksPage() {
           }
         ];
         
-        // Combine picks (database picks first, then localStorage)
-        const allPicks = [...databasePicks, ...localPicks];
+        // Sort picks: pending first, then settled by timestamp (newest first)
+        const pendingPicks = localPicks.filter(pick => pick.status === 'pending');
+        const settledPicks = databasePicks.filter(pick => pick.status !== 'pending');
+        
+        // Sort settled picks by timestamp (newest first)
+        settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        
+        // Combine with pending picks first, then settled picks
+        const allPicks = [...pendingPicks, ...settledPicks];
         setPicks(allPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
         console.log('Added database picks:', databasePicks.length);

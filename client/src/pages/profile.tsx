@@ -235,8 +235,8 @@ export default function ProfilePage() {
         }
       ];
       
-      // Convert to PublicFeedItem format
-      const feedItems = historicalPicks.map(pick => ({
+      // Convert to PublicFeedItem format - settled picks only for now
+      const settledFeedItems = historicalPicks.map(pick => ({
         id: pick.id,
         type: 'pick' as const,
         pick: {
@@ -249,8 +249,28 @@ export default function ProfilePage() {
         timestamp: pick.timestamp,
         result: pick.status === 'won' ? 'win' : pick.status === 'lost' ? 'loss' : undefined
       }));
-      
-      setPublicFeed(feedItems);
+
+      // Add pending picks from localStorage at the top
+      const localPicks = pickStorage.getPicks();
+      const pendingFeedItems = localPicks
+        .filter(pick => pick.status === 'pending')
+        .map(pick => ({
+          id: pick.id,
+          type: 'pick' as const,
+          pick: {
+            ...pick,
+            betInfo: {
+              ...pick.betInfo,
+              bookmaker: pick.bookmaker?.displayName || 'Unknown'
+            }
+          },
+          timestamp: pick.timestamp,
+          result: undefined // Pending picks have no result yet
+        }));
+
+      // Combine with pending picks first, then settled picks
+      const combinedFeedItems = [...pendingFeedItems, ...settledFeedItems];
+      setPublicFeed(combinedFeedItems);
     };
     
     // Always load localStorage picks and add historical picks
