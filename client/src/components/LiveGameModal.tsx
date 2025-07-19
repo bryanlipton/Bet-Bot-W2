@@ -107,8 +107,15 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
 
   // Format inning display
   const formatInning = (current: number, state: string) => {
-    const inningState = state === 'Top' ? 'T' : 'B';
-    return `${inningState}${current}`;
+    const getOrdinal = (num: number) => {
+      const j = num % 10;
+      const k = num % 100;
+      if (j === 1 && k !== 11) return `${num}st`;
+      if (j === 2 && k !== 12) return `${num}nd`;
+      if (j === 3 && k !== 13) return `${num}rd`;
+      return `${num}th`;
+    };
+    return `${state} ${getOrdinal(current)}`;
   };
 
   // Determine if bases have runners
@@ -153,25 +160,9 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold">
-              {liveData.teams.away.name} @ {liveData.teams.home.name}
-            </DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className={autoRefresh ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : ""}
-              >
-                <RefreshCw className={`w-4 h-4 mr-1 ${autoRefresh ? 'animate-spin' : ''}`} />
-                Auto
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          <DialogTitle className="text-2xl font-bold">
+            {liveData.teams.away.name} @ {liveData.teams.home.name}
+          </DialogTitle>
           <VisuallyHidden>
             <DialogDescription>
               Live game information showing current game state, score, batter, pitcher, count, and base runners for {liveData.teams.away.name} at {liveData.teams.home.name}.
