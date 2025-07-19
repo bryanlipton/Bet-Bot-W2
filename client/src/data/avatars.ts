@@ -1,4 +1,4 @@
-import animalAvatarsImage from '@assets/360_F_91764443_Km6nSUpkR6lo73DBolwLqMeSqmX2hQxs_1752891504307.jpg';
+import animalAvatarsImage from '@assets/360_F_91764443_Km6nSUpkR6lo73DBolwLqMeSqmX2hQxs_1752891676485.jpg';
 
 // Individual animal avatar options extracted from the provided design
 export const animalAvatars = [
