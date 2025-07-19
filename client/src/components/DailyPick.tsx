@@ -202,7 +202,7 @@ export default function DailyPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
-  const [mediumAnalysisOpen, setMediumAnalysisOpen] = useState(false);
+  const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false);
   
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -656,10 +656,10 @@ export default function DailyPick() {
         <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
-            onClick={() => setMediumAnalysisOpen(!mediumAnalysisOpen)}
+            onClick={() => setDailyPickMediumOpen(!dailyPickMediumOpen)}
           >
             Show Analysis
-            {mediumAnalysisOpen ? (
+            {dailyPickMediumOpen ? (
               <ChevronUp className="w-3 h-3 ml-1" />
             ) : (
               <ChevronDown className="w-3 h-3 ml-1" />
@@ -667,7 +667,7 @@ export default function DailyPick() {
           </button>
           
           {/* Medium-size analysis factors dropdown */}
-          {mediumAnalysisOpen && (
+          {dailyPickMediumOpen && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
               <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
                 Analysis Factors
