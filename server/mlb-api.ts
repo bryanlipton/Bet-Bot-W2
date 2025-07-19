@@ -121,15 +121,13 @@ export function registerMLBRoutes(app: Express) {
               // Get current pitcher from linescore defense data
               let currentPitcher = {
                 id: null,
-                name: `${pitchingTeam.abbreviation || pitchingTeam.name} Pitcher`,
-                pitchCount: 0
+                name: `${pitchingTeam.abbreviation || pitchingTeam.name} Pitcher`
               };
               
               if (linescore.defense?.pitcher) {
                 currentPitcher = {
                   id: linescore.defense.pitcher.id,
-                  name: linescore.defense.pitcher.fullName || linescore.defense.pitcher.nameFirstLast,
-                  pitchCount: 0
+                  name: linescore.defense.pitcher.fullName || linescore.defense.pitcher.nameFirstLast
                 };
               }
               
@@ -159,28 +157,7 @@ export function registerMLBRoutes(app: Express) {
                 }
               }
               
-              // Try to get pitch count from playByPlay endpoint for more accuracy
-              let pitchCount = 0;
-              try {
-                const playByPlayResponse = await fetch(`${MLB_API_BASE_URL}/game/${gameId}/playByPlay`);
-                if (playByPlayResponse.ok) {
-                  const playByPlayData = await playByPlayResponse.json();
-                  const currentPlay = playByPlayData.allPlays?.[playByPlayData.allPlays.length - 1];
-                  if (currentPlay?.playEvents) {
-                    // Count pitches in current at-bat
-                    pitchCount = currentPlay.playEvents.filter((event: any) => 
-                      event.type === 'pitch' && event.isPitch === true
-                    ).length;
-                  }
-                }
-              } catch (pitchError) {
-                console.log('Could not fetch pitch count from playByPlay endpoint');
-              }
-              
-              // Update pitcher with actual pitch count
-              if (pitchCount > 0) {
-                currentPitcher.pitchCount = pitchCount;
-              }
+
               
               const liveGameData = {
                 gameId: gameId,
@@ -387,8 +364,7 @@ export function registerMLBRoutes(app: Express) {
         },
         currentPitcher: {
           id: currentPitcher.id,
-          name: currentPitcher.fullName || 'Unknown Pitcher',
-          pitchCount: currentPitcher.pitchCount || 0
+          name: currentPitcher.fullName || 'Unknown Pitcher'
         },
         baseRunners: bases,
         recentPlays: recentPlays,
