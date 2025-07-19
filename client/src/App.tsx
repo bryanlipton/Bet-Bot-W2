@@ -9,6 +9,7 @@ import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks";
 import MyFeedPage from "@/pages/my-feed";
 import ProfilePage from "@/pages/profile";
+import AboutPage from "@/pages/about";
 import ScoresPage from "@/pages/scores";
 import GetPro from "@/pages/GetPro";
 import Subscribe from "@/pages/Subscribe";
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/my-feed" component={MyFeedPage} />
         <Route path="/feed" component={Feed} />
         <Route path="/profile" component={ProfilePage} />
+        <Route path="/about" component={AboutPage} />
         <Route path="/scores" component={ScoresPage} />
         <Route path="/get-pro" component={GetPro} />
         <Route path="/subscribe" component={Subscribe} />
