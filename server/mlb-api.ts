@@ -84,29 +84,99 @@ export function registerMLBRoutes(app: Express) {
         isLiveFeed = true;
         console.log(`Retrieved live feed data for game ${gameId}`);
       } else {
-        console.log(`Live feed not available for game ${gameId} (${response.status}), fetching scheduled game info from MLB API`);
+        console.log(`Live feed not available for game ${gameId} (${response.status}), trying scores API for live data`);
         
-        // Try to get actual team names from MLB schedule API
+        // Try to get live data from scores API which has inning information
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const scoresResponse = await fetch(`${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team,linescore`);
+          if (scoresResponse.ok) {
+            const scoresData = await scoresResponse.json();
+            const game = scoresData.dates?.[0]?.games?.find((g: any) => g.gamePk.toString() === gameId);
+            
+            if (game && game.linescore) {
+              // Found game with linescore data - use it for live information
+              const linescore = game.linescore;
+              const gameData = game;
+              
+              const liveGameData = {
+                gameId: gameId,
+                status: {
+                  detailed: gameData.status.detailedState,
+                  abstract: gameData.status.abstractGameState,
+                  inProgress: gameData.status.abstractGameState === 'Live'
+                },
+                score: {
+                  home: linescore.teams?.home?.runs || 0,
+                  away: linescore.teams?.away?.runs || 0
+                },
+                inning: {
+                  current: linescore.currentInning || 1,
+                  state: linescore.inningState || 'Top',
+                  half: linescore.inningHalf || 'top'
+                },
+                count: {
+                  balls: linescore.balls || 0,
+                  strikes: linescore.strikes || 0,
+                  outs: linescore.outs || 0
+                },
+                currentBatter: {
+                  id: null,
+                  name: 'Unknown Batter',
+                  team: 'N/A'
+                },
+                currentPitcher: {
+                  id: null,
+                  name: 'Unknown Pitcher',
+                  pitchCount: 0
+                },
+                baseRunners: {
+                  first: null,
+                  second: null,
+                  third: null
+                },
+                recentPlays: [],
+                teams: {
+                  home: {
+                    name: gameData.teams.home.team.name,
+                    abbreviation: gameData.teams.home.team.abbreviation || gameData.teams.home.team.name.split(' ').pop()?.toUpperCase() || 'HOME'
+                  },
+                  away: {
+                    name: gameData.teams.away.team.name,
+                    abbreviation: gameData.teams.away.team.abbreviation || gameData.teams.away.team.name.split(' ').pop()?.toUpperCase() || 'AWAY'
+                  }
+                },
+                lastUpdate: new Date().toISOString()
+              };
+              
+              console.log(`Using scores API data for game ${gameId}:`, {
+                status: liveGameData.status.detailed,
+                inning: `${liveGameData.inning.state} ${liveGameData.inning.current}`,
+                count: `${liveGameData.count.balls}-${liveGameData.count.strikes}`,
+                outs: liveGameData.count.outs
+              });
+              
+              res.json(liveGameData);
+              return;
+            }
+          }
+        } catch (error) {
+          console.log('Could not fetch live data from scores API');
+        }
+        
+        // Fallback - Try to get actual team names from MLB schedule API
         let actualHomeTeam = homeTeam || 'Home Team';
         let actualAwayTeam = awayTeam || 'Away Team';
         
         try {
-          const scheduleResponse = await fetch(`${MLB_API_BASE_URL}/game/${gameId}/feed/live`);
-          if (scheduleResponse.ok) {
-            const scheduleData = await scheduleResponse.json();
-            actualHomeTeam = scheduleData.gameData?.teams?.home?.name || actualHomeTeam;
-            actualAwayTeam = scheduleData.gameData?.teams?.away?.name || actualAwayTeam;
-          } else {
-            // Try alternative schedule endpoint
-            const today = new Date().toISOString().split('T')[0];
-            const altResponse = await fetch(`${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team`);
-            if (altResponse.ok) {
-              const altData = await altResponse.json();
-              const game = altData.dates?.[0]?.games?.find((g: any) => g.gamePk.toString() === gameId);
-              if (game) {
-                actualHomeTeam = game.teams.home.team.name;
-                actualAwayTeam = game.teams.away.team.name;
-              }
+          const today = new Date().toISOString().split('T')[0];
+          const altResponse = await fetch(`${MLB_API_BASE_URL}/schedule?sportId=1&date=${today}&hydrate=team`);
+          if (altResponse.ok) {
+            const altData = await altResponse.json();
+            const game = altData.dates?.[0]?.games?.find((g: any) => g.gamePk.toString() === gameId);
+            if (game) {
+              actualHomeTeam = game.teams.home.team.name;
+              actualAwayTeam = game.teams.away.team.name;
             }
           }
         } catch (error) {
