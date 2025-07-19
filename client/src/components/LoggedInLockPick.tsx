@@ -832,6 +832,8 @@ export default function LoggedInLockPick() {
             </div>
           )}
         </div>
+        </div>
+        </div>
       </CardContent>
       
       {/* Odds Comparison Modal */}
