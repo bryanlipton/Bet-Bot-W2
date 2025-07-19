@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Clock, MapPin } from "lucide-react";
@@ -65,6 +66,11 @@ export function GameDetailsModal({
           <DialogTitle className="text-xl font-bold">
             {awayTeam} @ {homeTeam}
           </DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription>
+              Game details and lineups for {awayTeam} at {homeTeam} including probable pitchers and starting lineups.
+            </DialogDescription>
+          </VisuallyHidden>
           <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
             {startTime && (
               <div className="flex items-center gap-1">

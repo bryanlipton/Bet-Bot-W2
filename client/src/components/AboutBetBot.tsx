@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Brain, Database, Shield, Target, Zap } from "lucide-react";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
@@ -17,6 +18,11 @@ export default function AboutBetBot({ open, onClose }: AboutBetBotProps) {
             <img src={betbotLogo} alt="Bet Bot" className="w-8 h-8" />
             About Bet Bot
           </DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription>
+              Information about Bet Bot, an AI-powered sports betting intelligence platform with machine learning analysis and real-time data.
+            </DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         
         <div className="space-y-6 mt-4">
