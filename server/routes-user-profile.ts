@@ -46,8 +46,8 @@ export function registerUserProfileRoutes(app: Express) {
     }
   });
 
-  // Get user profile by ID (for viewing other users' profiles)
-  app.get('/api/user/profile/:userId', async (req, res) => {
+  // Get user profile by ID (for viewing other users' profiles) - PUBLIC ENDPOINT
+  app.get('/api/profile/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       const user = await storage.getUser(userId);
@@ -56,11 +56,34 @@ export function registerUserProfileRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Only return public data if profile is not public or not the owner
-      const isOwner = req.user?.claims?.sub === userId;
+      // Check if user is authenticated and is the owner (optional authentication)
+      const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
+      const isOwner = isAuthenticated && req.user?.claims?.sub === userId;
       
       // For now, allow all profiles to be viewable for Instagram-style functionality
       // We can add privacy settings later if needed
+
+      // Calculate actual stats from user's picks
+      const stats = await storage.getUserPickStats(userId);
+      
+      // Calculate win rate
+      const totalSettledPicks = stats.winCount + stats.lossCount + stats.pushCount;
+      const winRate = totalSettledPicks > 0 ? (stats.winCount / totalSettledPicks) * 100 : 0;
+      
+      // Calculate win streak (we'll need the picks to determine this)
+      const userPicks = await storage.getUserPicks(userId);
+      const sortedPicks = userPicks
+        .filter(pick => pick.status === 'win' || pick.status === 'loss')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      let winStreak = 0;
+      for (const pick of sortedPicks) {
+        if (pick.status === 'win') {
+          winStreak++;
+        } else {
+          break;
+        }
+      }
 
       // Filter out sensitive data based on privacy settings
       const publicProfile = {
@@ -71,12 +94,12 @@ export function registerUserProfileRoutes(app: Express) {
         followers: user.followers || 0,
         following: user.following || 0,
         createdAt: user.createdAt,
-        // Include basic stats for public viewing
+        // Include calculated stats for public viewing
         stats: {
-          totalPicks: user.totalPicks || 0,
-          pendingPicks: user.pendingPicks || 0,
-          winRate: user.winRate || 0,
-          winStreak: user.winStreak || 0,
+          totalPicks: stats.totalPicks,
+          pendingPicks: stats.pendingPicks,
+          winRate: winRate,
+          winStreak: winStreak,
         }
       };
 
@@ -87,24 +110,36 @@ export function registerUserProfileRoutes(app: Express) {
     }
   });
 
-  // Get user's public picks feed
-  app.get('/api/user/public-feed/:userId', async (req, res) => {
+  // Get user's public picks feed - PUBLIC ENDPOINT
+  app.get('/api/public-feed/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       
       // Get user's public picks (those marked as showOnFeed = true)
       const picks = await storage.getUserPicksPublicFeed(userId);
       
-      // Format picks for public feed
+      // Format picks for public feed with complete structure
       const feedItems = picks.map(pick => ({
         id: pick.id,
         type: 'pick',
         pick: {
-          selection: pick.selection,
-          game: pick.game,
-          market: pick.market,
-          odds: pick.odds,
-          units: pick.units
+          gameInfo: {
+            awayTeam: pick.awayTeam,
+            homeTeam: pick.homeTeam
+          },
+          betInfo: {
+            market: pick.market,
+            selection: pick.selection,
+            line: pick.line,
+            odds: pick.odds,
+            units: pick.units,
+            parlayLegs: pick.parlayLegs ? JSON.parse(pick.parlayLegs) : null
+          },
+          bookmaker: {
+            displayName: pick.bookmakerDisplayName
+          },
+          showOnProfile: pick.showOnProfile,
+          showOnFeed: pick.showOnFeed
         },
         timestamp: pick.createdAt,
         result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined

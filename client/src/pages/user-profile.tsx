@@ -82,13 +82,13 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
 
   // Fetch user profile
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['/api/user/profile', userId],
+    queryKey: ['/api/profile', userId],
     enabled: !!userId,
   });
 
   // Fetch user's public picks feed
   const { data: publicFeed, isLoading: feedLoading } = useQuery({
-    queryKey: ['/api/user/public-feed', userId],
+    queryKey: ['/api/public-feed', userId],
     enabled: !!userId && !!profileData, // Only fetch if profile exists
   });
 
