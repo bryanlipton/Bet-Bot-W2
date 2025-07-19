@@ -398,11 +398,12 @@ export default function ScoresPage() {
         <div className="space-y-6">
           {/* Live Games Section */}
           {sortedGames.filter(game => {
-            const status = game.status.toLowerCase();
-            return (status.includes('live') || status.includes('progress') || status.includes('in progress') || 
-                   status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ')) && 
-                   !status.includes('final') && !status.includes('completed') && !status.includes('game over') &&
-                   !status.includes('warmup') && !status.includes('pre-game') && !status.includes('scheduled');
+            // Game is live if it has no odds available (bookmakers removed when game starts)
+            const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+            const isFinished = game.status.toLowerCase().includes('final') || 
+                               game.status.toLowerCase().includes('completed') || 
+                               game.status.toLowerCase().includes('game over');
+            return !hasOdds && !isFinished;
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -411,11 +412,12 @@ export default function ScoresPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
-                  const status = game.status.toLowerCase();
-                  return (status.includes('live') || status.includes('progress') || status.includes('in progress') || 
-                         status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ')) && 
-                         !status.includes('final') && !status.includes('completed') && !status.includes('game over') &&
-                         !status.includes('warmup') && !status.includes('pre-game') && !status.includes('scheduled');
+                  // Game is live if it has no odds available (bookmakers removed when game starts)
+                  const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+                  const isFinished = game.status.toLowerCase().includes('final') || 
+                                     game.status.toLowerCase().includes('completed') || 
+                                     game.status.toLowerCase().includes('game over');
+                  return !hasOdds && !isFinished;
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
@@ -425,9 +427,12 @@ export default function ScoresPage() {
 
           {/* Scheduled Games Section */}
           {sortedGames.filter(game => {
-            const status = game.status.toLowerCase();
-            return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
-                   !status.includes('final') && !status.includes('completed');
+            // Game is scheduled if it has odds available (game hasn't started yet)
+            const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+            const isFinished = game.status.toLowerCase().includes('final') || 
+                               game.status.toLowerCase().includes('completed') || 
+                               game.status.toLowerCase().includes('game over');
+            return hasOdds && !isFinished;
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -436,9 +441,12 @@ export default function ScoresPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
-                  const status = game.status.toLowerCase();
-                  return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
-                         !status.includes('final') && !status.includes('completed');
+                  // Game is scheduled if it has odds available (game hasn't started yet)
+                  const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+                  const isFinished = game.status.toLowerCase().includes('final') || 
+                                     game.status.toLowerCase().includes('completed') || 
+                                     game.status.toLowerCase().includes('game over');
+                  return hasOdds && !isFinished;
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
@@ -510,9 +518,11 @@ function ScoreGameCard({
     // Check for final status first (including special final statuses)
     if (lowerStatus.includes('final') || lowerStatus.includes('completed') || lowerStatus.includes('game over')) {
       return <Badge className="bg-blue-600 text-white">Final</Badge>;
-    } else if ((lowerStatus.includes('live') || lowerStatus.includes('progress') || lowerStatus.includes('in progress') || 
-               lowerStatus.includes('top ') || lowerStatus.includes('bot ') || lowerStatus.includes('middle ') || lowerStatus.includes('end ')) &&
-               !lowerStatus.includes('warmup') && !lowerStatus.includes('pre-game') && !lowerStatus.includes('scheduled')) {
+    }
+    
+    // Use odds availability to determine live vs scheduled
+    const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+    if (!hasOdds) {
       return <Badge className="bg-green-600 text-white">Live</Badge>;
     } else {
       return <Badge className="bg-gray-600 text-white">Scheduled</Badge>;
@@ -532,17 +542,9 @@ function ScoreGameCard({
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
 
-  const status = game.status.toLowerCase();
-  const isLive = (status.includes('live') || 
-                 status.includes('progress') || 
-                 status.includes('in progress') ||
-                 status.includes('top ') ||
-                 status.includes('bot ') ||
-                 status.includes('middle ') ||
-                 status.includes('end ')) &&
-                 !status.includes('warmup') &&
-                 !status.includes('pre-game') &&
-                 !status.includes('scheduled');
+  // Game is live if it has no odds available (bookmakers removed when game starts)
+  const hasOdds = game.bookmakers && game.bookmakers.length > 0;
+  const isLive = !hasOdds && !isFinished;
 
   // Determine winner/loser for finished games
   const awayWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore > game.homeScore;
