@@ -161,13 +161,13 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
           <Info className="h-2.5 w-2.5 text-white dark:text-black" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 text-xs" side="top">
-        <div className="font-medium mb-1">{title}</div>
-        <div className="mb-2">{info}</div>
+      <PopoverContent className="w-80 p-3 text-xs" side="top">
+        <div className="font-medium mb-2">{title}</div>
+        <div className="mb-3 text-gray-700 dark:text-gray-300">{info.split('\n\n')[0]}</div>
         {score !== undefined && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
-            <div>{getGradeExplanation(score, title)}</div>
+            <div className="text-gray-800 dark:text-gray-200">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
             <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-500">
               90+ = Elite | 80-89 = Strong | 75 = Neutral baseline | &lt;75 = Disadvantage
             </div>
