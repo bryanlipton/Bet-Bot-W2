@@ -253,6 +253,13 @@ export default function LoggedInLockPick() {
     enabled: !!lockPick?.gameId,
   });
 
+  // Fetch live scores for the game
+  const { data: gameScore } = useQuery({
+    queryKey: ['/api/mlb/scores', lockPick?.gameTime ? new Date(lockPick.gameTime).toISOString().split('T')[0] : ''],
+    enabled: !!lockPick?.gameTime,
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
+  });
+
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
@@ -376,6 +383,12 @@ export default function LoggedInLockPick() {
                  pickType === 'over_under' ? 'O/U' : 'ML';
     return `${type} ${sign}`;
   };
+
+  // Find current game score data
+  const currentGameScore = gameScore?.find((game: any) => 
+    game.gameId === parseInt(lockPick?.gameId || '0') ||
+    (game.homeTeam === lockPick?.homeTeam && game.awayTeam === lockPick?.awayTeam)
+  );
 
   // Get all 6 factors with their info descriptions in permanent order
   const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
@@ -739,6 +752,35 @@ export default function LoggedInLockPick() {
               </p>
             </div>
             <div className="mt-3">
+              {/* Live Score Display */}
+              {currentGameScore && currentGameScore.status && (
+                <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-amber-600 dark:text-amber-400 font-semibold">
+                        {currentGameScore.awayTeam}
+                      </div>
+                      <div className="text-lg font-bold">
+                        {currentGameScore.awayScore ?? 0}
+                      </div>
+                      <div className="text-gray-400">-</div>
+                      <div className="text-lg font-bold">
+                        {currentGameScore.homeScore ?? 0}
+                      </div>
+                      <div className="text-amber-600 dark:text-amber-400 font-semibold">
+                        {currentGameScore.homeTeam}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {currentGameScore.status === 'Final' ? 'Final' : 
+                       currentGameScore.status === 'In Progress' ? 
+                         (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
+                       currentGameScore.status}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
