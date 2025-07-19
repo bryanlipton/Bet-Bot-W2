@@ -398,12 +398,13 @@ export default function ScoresPage() {
         <div className="space-y-6">
           {/* Live Games Section */}
           {sortedGames.filter(game => {
-            // Game is live if it has no odds available (bookmakers removed when game starts)
+            // Game is live if it has no odds AND shows live status indicators
             const hasOdds = game.bookmakers && game.bookmakers.length > 0;
-            const isFinished = game.status.toLowerCase().includes('final') || 
-                               game.status.toLowerCase().includes('completed') || 
-                               game.status.toLowerCase().includes('game over');
-            return !hasOdds && !isFinished;
+            const status = game.status.toLowerCase();
+            const isFinished = status.includes('final') || status.includes('completed') || status.includes('game over');
+            const showsLiveStatus = status.includes('live') || status.includes('progress') || status.includes('in progress') || 
+                                   status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ');
+            return !hasOdds && showsLiveStatus && !isFinished;
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -412,12 +413,13 @@ export default function ScoresPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
-                  // Game is live if it has no odds available (bookmakers removed when game starts)
+                  // Game is live if it has no odds AND shows live status indicators
                   const hasOdds = game.bookmakers && game.bookmakers.length > 0;
-                  const isFinished = game.status.toLowerCase().includes('final') || 
-                                     game.status.toLowerCase().includes('completed') || 
-                                     game.status.toLowerCase().includes('game over');
-                  return !hasOdds && !isFinished;
+                  const status = game.status.toLowerCase();
+                  const isFinished = status.includes('final') || status.includes('completed') || status.includes('game over');
+                  const showsLiveStatus = status.includes('live') || status.includes('progress') || status.includes('in progress') || 
+                                         status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ');
+                  return !hasOdds && showsLiveStatus && !isFinished;
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
@@ -520,9 +522,12 @@ function ScoreGameCard({
       return <Badge className="bg-blue-600 text-white">Final</Badge>;
     }
     
-    // Use odds availability to determine live vs scheduled
+    // Game is live if it has no odds AND shows live status indicators
     const hasOdds = game.bookmakers && game.bookmakers.length > 0;
-    if (!hasOdds) {
+    const showsLiveStatus = lowerStatus.includes('live') || lowerStatus.includes('progress') || lowerStatus.includes('in progress') || 
+                           lowerStatus.includes('top ') || lowerStatus.includes('bot ') || lowerStatus.includes('middle ') || lowerStatus.includes('end ');
+    
+    if (!hasOdds && showsLiveStatus) {
       return <Badge className="bg-green-600 text-white">Live</Badge>;
     } else {
       return <Badge className="bg-gray-600 text-white">Scheduled</Badge>;
@@ -542,9 +547,12 @@ function ScoreGameCard({
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
 
-  // Game is live if it has no odds available (bookmakers removed when game starts)
+  // Game is live if it has no odds AND shows live status indicators
   const hasOdds = game.bookmakers && game.bookmakers.length > 0;
-  const isLive = !hasOdds && !isFinished;
+  const status = game.status.toLowerCase();
+  const showsLiveStatus = status.includes('live') || status.includes('progress') || status.includes('in progress') || 
+                         status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ');
+  const isLive = !hasOdds && showsLiveStatus && !isFinished;
 
   // Determine winner/loser for finished games
   const awayWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore > game.homeScore;
