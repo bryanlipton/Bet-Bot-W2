@@ -476,28 +476,52 @@ export function ActionStyleGameCard({
   const [betUnit, setBetUnit] = useState(50);
 
   const handleMakePick = (event: React.MouseEvent, market: 'moneyline' | 'spread' | 'total', selection: string, line?: number) => {
-    // Prevent the card click event from firing
-    event.stopPropagation();
-    
-    console.log('Pick button clicked:', { market, selection, line });
-    console.log('rawBookmakers available:', rawBookmakers?.length || 0);
-    console.log('rawBookmakers data:', rawBookmakers);
-    
-    if (!rawBookmakers || rawBookmakers.length === 0) {
-      console.warn('No bookmakers data available for odds comparison');
-      alert('No betting odds available for this game yet. Please try again later.');
-      return;
-    }
+    try {
+      // Prevent the card click event from firing
+      event.stopPropagation();
+      event.preventDefault();
+      
+      console.log('=== PICK BUTTON DEBUG ===');
+      console.log('1. Pick button clicked:', { market, selection, line });
+      console.log('2. Event target:', event.target);
+      console.log('3. Current URL:', window.location.href);
+      console.log('4. User agent:', navigator.userAgent);
+      console.log('5. rawBookmakers available:', rawBookmakers?.length || 0);
+      console.log('6. Current modal state - oddsModalOpen:', oddsModalOpen);
+      
+      if (!rawBookmakers || rawBookmakers.length === 0) {
+        console.warn('No bookmakers data available for odds comparison');
+        alert('No betting odds available for this game yet. Please try again later.');
+        return;
+      }
 
-    // Close any existing modal first to prevent overlap
-    setOddsModalOpen(false);
-    
-    // Small delay to ensure old modal is closed before opening new one
-    setTimeout(() => {
-      console.log('Opening odds modal with:', { market, selection, line });
-      setSelectedBet({ market, selection, line });
-      setOddsModalOpen(true);
-    }, 50);
+      // Reset modal state with debugging
+      console.log('7. Resetting modal state...');
+      setOddsModalOpen(false);
+      setSelectedBet(null);
+      
+      // Small delay to ensure old modal is closed before opening new one
+      setTimeout(() => {
+        try {
+          console.log('8. Timeout executed - setting new modal state');
+          console.log('9. Setting selectedBet to:', { market, selection, line });
+          setSelectedBet({ market, selection, line });
+          console.log('10. Setting oddsModalOpen to true');
+          setOddsModalOpen(true);
+          console.log('11. Modal state updated successfully');
+        } catch (timeoutError) {
+          console.error('Error in timeout function:', timeoutError);
+          alert('Error in delayed modal opening. Please try again.');
+        }
+      }, 100);
+      
+      console.log('12. handleMakePick function completed without errors');
+      
+    } catch (error) {
+      console.error('=== CRITICAL ERROR in handleMakePick ===', error);
+      console.error('Error stack:', error.stack);
+      alert(`Critical error opening betting options: ${error.message}. Please try again or refresh the page.`);
+    }
   };
 
   const handleManualEntry = (gameInfo: any, selectedBet: any) => {
@@ -649,8 +673,8 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
-                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
-                  style={{ backgroundColor: getTeamColor(awayTeam) }}
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90 touch-manipulation"
+                  style={{ backgroundColor: getTeamColor(awayTeam), WebkitTapHighlightColor: 'transparent' }}
                 >
                   Pick
                 </Button>
@@ -705,8 +729,8 @@ export function ActionStyleGameCard({
                 <Button
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
-                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
-                  style={{ backgroundColor: getTeamColor(homeTeam) }}
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90 touch-manipulation"
+                  style={{ backgroundColor: getTeamColor(homeTeam), WebkitTapHighlightColor: 'transparent' }}
                 >
                   Pick
                 </Button>
@@ -763,14 +787,16 @@ export function ActionStyleGameCard({
                           <Button
                             size="sm"
                             onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
-                            className="text-xs px-1.5 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                            className="text-xs px-1.5 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
                           >
                             Pick
                           </Button>
                           <Button
                             size="sm"
                             onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
-                            className="text-xs px-1.5 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                            className="text-xs px-1.5 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
                           >
                             Fade
                           </Button>

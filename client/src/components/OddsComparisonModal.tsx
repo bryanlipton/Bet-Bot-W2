@@ -209,7 +209,7 @@ export function OddsComparisonModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
@@ -298,7 +298,14 @@ export function OddsComparisonModal({
                             )}
                           </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Updated: {new Date(odds!.lastUpdate).toLocaleTimeString()}
+                            Updated: {(() => {
+                              try {
+                                return new Date(odds!.lastUpdate).toLocaleTimeString();
+                              } catch (error) {
+                                console.warn('Invalid date format:', odds!.lastUpdate);
+                                return 'Recently';
+                              }
+                            })()}
                           </p>
                         </div>
                       </div>

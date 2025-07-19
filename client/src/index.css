@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS Safari Compatibility Fixes */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+
+button {
+  touch-action: manipulation !important;
+  -webkit-appearance: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 :root {
   --background: hsl(0, 0%, 92%);
   --foreground: hsl(20, 14.3%, 4.1%);
