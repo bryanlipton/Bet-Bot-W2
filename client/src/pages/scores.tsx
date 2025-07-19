@@ -649,8 +649,9 @@ function ScoreGameCard({
     retry: false,
   });
 
-  // Check if game is actually live based on the live data response
-  const isActuallyLive = liveData && liveData.status && liveData.status.inProgress;
+  // Check if game is actually live - either from live API or if it has scores and inning data
+  const isActuallyLive = (liveData && liveData.status && liveData.status.inProgress) || 
+                         (isLive && game.inning && (game.homeScore !== undefined || game.awayScore !== undefined));
 
   return (
     <Card 
@@ -669,11 +670,11 @@ function ScoreGameCard({
                   style={{ backgroundColor: getTeamColor(game.awayTeam) }}
                 />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {liveData.teams?.away?.abbreviation || game.awayTeam}
+                  {liveData?.teams?.away?.abbreviation || game.awayTeam}
                 </span>
               </div>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
-                {liveData.score?.away || game.awayScore || 0}
+                {liveData?.score?.away || game.awayScore || 0}
               </span>
             </div>
             
@@ -685,21 +686,21 @@ function ScoreGameCard({
                   style={{ backgroundColor: getTeamColor(game.homeTeam) }}
                 />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {liveData.teams?.home?.abbreviation || game.homeTeam}
+                  {liveData?.teams?.home?.abbreviation || game.homeTeam}
                 </span>
               </div>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
-                {liveData.score?.home || game.homeScore || 0}
+                {liveData?.score?.home || game.homeScore || 0}
               </span>
             </div>
 
             {/* Game Status with Inning and Outs */}
             <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
               <div className="text-xs text-red-600 font-medium">
-                {liveData.inning ? `${liveData.inning.state === 'Top' ? 'Top' : 'Bot'} ${liveData.inning.current}${liveData.inning.current === 1 ? 'st' : liveData.inning.current === 2 ? 'nd' : liveData.inning.current === 3 ? 'rd' : 'th'}` : 'Live'}
+                {liveData?.inning ? `${liveData.inning.state === 'Top' ? 'Top' : 'Bot'} ${liveData.inning.current}${liveData.inning.current === 1 ? 'st' : liveData.inning.current === 2 ? 'nd' : liveData.inning.current === 3 ? 'rd' : 'th'}` : game.inning ? formatInning(game.inning) : 'Live'}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
-                {liveData.count ? `${liveData.count.outs} Outs` : ''}
+                {liveData?.count ? `${liveData.count.outs} Outs` : ''}
               </div>
             </div>
 
@@ -770,11 +771,14 @@ function ScoreGameCard({
               <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 {isFinished ? (
                   <span className="text-red-600 dark:text-red-400 font-bold">F</span>
-                ) : isActuallyLive && liveData.inning ? (
+                ) : isActuallyLive && (liveData?.inning || game.inning) ? (
                   <div className="flex items-center gap-1">
                     <Radio className="w-3 h-3 text-green-500 animate-pulse" />
                     <span className="text-orange-600 dark:text-orange-400 font-bold">
-                      {liveData.inning.state === 'Top' ? 'T' : 'B'}{liveData.inning.current}
+                      {liveData?.inning ? 
+                        `${liveData.inning.state === 'Top' ? 'T' : 'B'}${liveData.inning.current}` : 
+                        formatInning(game.inning)
+                      }
                     </span>
                   </div>
                 ) : !isFinished && !isActuallyLive ? (
@@ -785,10 +789,15 @@ function ScoreGameCard({
               </div>
               
               {/* Live details */}
-              {isActuallyLive && liveData.count && (
+              {isActuallyLive && (liveData?.count || game.liveDetails) && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   <span>
-                    {liveData.count.balls}-{liveData.count.strikes}, {liveData.count.outs} out{liveData.count.outs !== 1 ? 's' : ''}
+                    {liveData?.count ? 
+                      `${liveData.count.balls}-${liveData.count.strikes}, ${liveData.count.outs} out${liveData.count.outs !== 1 ? 's' : ''}` :
+                      game.liveDetails ? 
+                        `${game.liveDetails.balls || 0}-${game.liveDetails.strikes || 0}, ${game.liveDetails.outs || 0} out${game.liveDetails.outs !== 1 ? 's' : ''}` :
+                        ''
+                    }
                   </span>
                 </div>
               )}
