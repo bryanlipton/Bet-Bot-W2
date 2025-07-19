@@ -398,6 +398,43 @@ export class MemStorage implements IStorage {
     throw new Error('Baseball methods not implemented in MemStorage');
   }
 
+  // User picks methods - basic implementation
+  async createUserPick(pick: InsertUserPick): Promise<UserPick> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async getUserPicks(userId: string, limit?: number, offset?: number): Promise<UserPick[]> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async deleteUserPick(pickId: string): Promise<void> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
+  async getUserPickStats(userId: string): Promise<{
+    totalPicks: number;
+    pendingPicks: number;
+    winCount: number;
+    lossCount: number;
+    pushCount: number;
+    totalUnits: number;
+    totalWinnings: number;
+  }> {
+    throw new Error('User picks methods not implemented in MemStorage');
+  }
+
   // User bet tracking methods implementation
   async createUserBet(insertBet: InsertUserBet): Promise<UserBet> {
     const id = this.currentUserBetId++;

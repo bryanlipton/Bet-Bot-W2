@@ -480,11 +480,28 @@ export default function ProfilePage() {
   // Update pick visibility mutation
   const updatePickVisibilityMutation = useMutation({
     mutationFn: async ({ pickId, showOnProfile, showOnFeed }: { pickId: string; showOnProfile: boolean; showOnFeed: boolean }) => {
-      const response = await apiRequest(`/api/user/picks/${pickId}/visibility`, {
+      console.log(`Updating pick ${pickId} visibility:`, { showOnProfile, showOnFeed });
+      
+      const response = await fetch(`/api/user/picks/${pickId}/visibility`, {
         method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ showOnProfile, showOnFeed }),
+        credentials: 'include',
       });
-      return response;
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(errorText || 'Failed to update visibility');
+      }
+      
+      const result = await response.json();
+      console.log('Success response:', result);
+      return result;
     },
     onSuccess: () => {
       // Refetch user picks to update the display
@@ -495,8 +512,9 @@ export default function ProfilePage() {
       });
     },
     onError: (error: any) => {
+      console.error('Pick visibility update error:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: error.message || "Failed to update pick visibility.",
         variant: "destructive",
       });
