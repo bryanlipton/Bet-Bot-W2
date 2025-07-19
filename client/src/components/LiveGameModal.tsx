@@ -87,7 +87,7 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
 
   const { data: liveData, isLoading, error, refetch } = useQuery({
     queryKey: [`/api/mlb/game/${numericGameId}/live`],
-    refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds when auto-refresh is on
+    refetchInterval: autoRefresh ? 5000 : false, // Refresh every 5 seconds when auto-refresh is on
     enabled: isOpen && numericGameId !== '',
     retry: 2
   });
