@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,7 +202,20 @@ export default function DailyPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
-  const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false);
+  const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(true); // Start expanded
+
+  // Listen for events to collapse both when one collapses
+  useEffect(() => {
+    const handleCollapseAnalysis = (e: any) => {
+      if (e.detail?.source === 'lock') {
+        console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
+        setDailyPickMediumOpen(false);
+      }
+    };
+    
+    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+  }, []);
   
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -652,16 +665,18 @@ export default function DailyPick() {
 
         </div>
 
-        {/* Show Analysis button at bottom for medium screens (768px-1279px) */}
+        {/* Hide Analysis button at bottom for medium screens (768px-1279px) */}
         <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
             onClick={() => {
-              console.log('DailyPick: Toggling analysis from', dailyPickMediumOpen, 'to', !dailyPickMediumOpen);
-              setDailyPickMediumOpen(!dailyPickMediumOpen);
+              console.log('DailyPick: Collapsing analysis, will trigger LoggedInLockPick to collapse too');
+              setDailyPickMediumOpen(false);
+              // Send custom event to collapse both analysis sections
+              window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { detail: { source: 'daily' } }));
             }}
           >
-            Show Analysis
+            Hide Analysis
             {dailyPickMediumOpen ? (
               <ChevronUp className="w-3 h-3 ml-1" />
             ) : (

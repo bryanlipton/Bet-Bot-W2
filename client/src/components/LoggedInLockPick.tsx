@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -201,7 +201,20 @@ export default function LoggedInLockPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
-  const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false);
+  const [lockPickMediumOpen, setLockPickMediumOpen] = useState(true); // Start expanded
+
+  // Listen for events to collapse both when one collapses
+  useEffect(() => {
+    const handleCollapseAnalysis = (e: any) => {
+      if (e.detail?.source === 'daily') {
+        console.log('LoggedInLockPick: Received collapse event from DailyPick, collapsing both');
+        setLockPickMediumOpen(false);
+      }
+    };
+    
+    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+  }, []);
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
@@ -681,11 +694,13 @@ export default function LoggedInLockPick() {
           <button
             className="flex items-center justify-center w-full text-xs text-amber-600 dark:text-amber-400 py-2"
             onClick={() => {
-              console.log('LoggedInLockPick: Toggling analysis from', lockPickMediumOpen, 'to', !lockPickMediumOpen);
-              setLockPickMediumOpen(!lockPickMediumOpen);
+              console.log('LoggedInLockPick: Collapsing analysis, will trigger DailyPick to collapse too');
+              setLockPickMediumOpen(false);
+              // Send custom event to collapse both analysis sections
+              window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { detail: { source: 'lock' } }));
             }}
           >
-            Show Analysis
+            Hide Analysis
             {lockPickMediumOpen ? (
               <ChevronUp className="w-3 h-3 ml-1" />
             ) : (
