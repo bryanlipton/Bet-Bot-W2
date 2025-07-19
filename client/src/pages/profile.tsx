@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import AvatarPicker from "@/components/AvatarPicker";
-import { getAvatarUrl, getRandomAnimalAvatar } from '@/data/avatars';
+import { getAvatarUrl, getRandomAnimalAvatar, isEmojiAvatar } from '@/data/avatars';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
@@ -392,13 +392,21 @@ export default function ProfilePage() {
               {/* Profile Picture with Edit Button */}
               <div className="relative">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage 
-                    src={getAvatarUrl(userProfile.profileImage, userProfile.id)} 
-                    alt={userProfile.username}
-                  />
-                  <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
-                    {userProfile.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
+                  {isEmojiAvatar(userProfile.profileImage) ? (
+                    <AvatarFallback className="bg-gray-100 dark:bg-gray-700 text-4xl">
+                      {userProfile.profileImage}
+                    </AvatarFallback>
+                  ) : (
+                    <>
+                      <AvatarImage 
+                        src={getAvatarUrl(userProfile.profileImage, userProfile.id)} 
+                        alt={userProfile.username}
+                      />
+                      <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
+                        {userProfile.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </>
+                  )}
                 </Avatar>
                 {isEditingProfile && (
                   <Button
@@ -437,10 +445,18 @@ export default function ProfilePage() {
                           <Label>Profile Picture</Label>
                           <div className="flex items-center gap-4">
                             <Avatar className="w-16 h-16">
-                              <AvatarImage src={getAvatarUrl(editForm.profileImage)} alt="Preview" />
-                              <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
-                                {editForm.username.charAt(0).toUpperCase()}
-                              </AvatarFallback>
+                              {isEmojiAvatar(editForm.profileImage) ? (
+                                <AvatarFallback className="bg-gray-100 dark:bg-gray-700 text-2xl">
+                                  {editForm.profileImage}
+                                </AvatarFallback>
+                              ) : (
+                                <>
+                                  <AvatarImage src={getAvatarUrl(editForm.profileImage)} alt="Preview" />
+                                  <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
+                                    {editForm.username.charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </>
+                              )}
                             </Avatar>
                             <Button
                               type="button"

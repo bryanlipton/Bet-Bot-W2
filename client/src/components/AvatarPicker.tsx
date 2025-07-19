@@ -63,31 +63,28 @@ export default function AvatarPicker({ isOpen, onClose, onSelect, currentAvatar 
           {/* Animal Avatars */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Choose an avatar</Label>
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-              {animalAvatars.map((avatar, index) => (
+            <div className="grid grid-cols-3 gap-4">
+              {animalAvatars.slice(1).map((avatar, index) => (
                 <button
                   key={index}
                   onClick={() => handleAnimalSelect(avatar)}
-                  className={`relative rounded-full border-2 transition-all hover:scale-105 ${
+                  className={`relative w-16 h-16 rounded-full border-2 transition-all hover:scale-105 flex items-center justify-center text-2xl ${
                     selectedAvatar === avatar 
                       ? 'border-blue-500 ring-2 ring-blue-500 ring-offset-2' 
                       : 'border-gray-300 dark:border-gray-600'
+                  } ${
+                    index === 0 ? 'bg-pink-400' :
+                    index === 1 ? 'bg-blue-400' :
+                    index === 2 ? 'bg-green-400' :
+                    index === 3 ? 'bg-yellow-400' :
+                    index === 4 ? 'bg-slate-600' :
+                    index === 5 ? 'bg-red-400' :
+                    index === 6 ? 'bg-cyan-400' :
+                    index === 7 ? 'bg-orange-400' :
+                    'bg-teal-400'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 dark:border-gray-600">
-                    <img 
-                      src={avatar} 
-                      alt={`Animal ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    <div className="hidden w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-xs font-bold">
-                      {index + 1}
-                    </div>
-                  </div>
+                  {avatar}
                   {selectedAvatar === avatar && (
                     <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
                       <Check className="w-3 h-3 text-white" />
