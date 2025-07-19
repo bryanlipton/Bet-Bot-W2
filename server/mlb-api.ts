@@ -99,6 +99,24 @@ export function registerMLBRoutes(app: Express) {
               const linescore = game.linescore;
               const gameData = game;
               
+              // Use context-aware information instead of trying to fetch unavailable player data
+              const battingTeam = linescore.inningState === 'Top' ? gameData.teams.away.team : gameData.teams.home.team;
+              const pitchingTeam = linescore.inningState === 'Top' ? gameData.teams.home.team : gameData.teams.away.team;
+              
+              const currentBatter = {
+                id: null,
+                name: `${battingTeam.abbreviation || battingTeam.name} Batter`,
+                team: battingTeam.abbreviation || battingTeam.name.split(' ').pop()?.toUpperCase() || 'N/A'
+              };
+              
+              const currentPitcher = {
+                id: null,
+                name: `${pitchingTeam.abbreviation || pitchingTeam.name} Pitcher`,
+                pitchCount: 0
+              };
+              
+              const baseRunners = { first: null, second: null, third: null };
+              
               const liveGameData = {
                 gameId: gameId,
                 status: {
@@ -120,21 +138,9 @@ export function registerMLBRoutes(app: Express) {
                   strikes: linescore.strikes || 0,
                   outs: linescore.outs || 0
                 },
-                currentBatter: {
-                  id: null,
-                  name: 'Unknown Batter',
-                  team: 'N/A'
-                },
-                currentPitcher: {
-                  id: null,
-                  name: 'Unknown Pitcher',
-                  pitchCount: 0
-                },
-                baseRunners: {
-                  first: null,
-                  second: null,
-                  third: null
-                },
+                currentBatter,
+                currentPitcher,
+                baseRunners,
                 recentPlays: [],
                 teams: {
                   home: {
