@@ -202,14 +202,15 @@ export default function DailyPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
-  const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(true); // Start expanded
+  const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
+  const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
 
-  // Listen for events to collapse both when one collapses
+  // Listen for events to collapse both when one collapses (only for large screens)
   useEffect(() => {
     const handleCollapseAnalysis = (e: any) => {
       if (e.detail?.source === 'lock') {
         console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
-        setDailyPickMediumOpen(false);
+        setDailyPickLargeOpen(false);
       }
     };
     
@@ -615,13 +616,25 @@ export default function DailyPick() {
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
                 </p>
-                {/* Mobile dropdown toggle */}
+                {/* Mobile dropdown toggle (sm and below) */}
                 <button
-                  className="md:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="sm:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
-                  Show Analysis
+                  {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
                   {mobileAnalysisOpen ? (
+                    <ChevronUp className="w-3 h-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
+                {/* Medium size dropdown toggle (md-lg when stacked) */}
+                <button
+                  className="hidden sm:flex lg:hidden items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  onClick={() => setDailyPickMediumOpen(!dailyPickMediumOpen)}
+                >
+                  {dailyPickMediumOpen ? 'Hide' : 'Show'} Analysis
+                  {dailyPickMediumOpen ? (
                     <ChevronUp className="w-3 h-3 ml-1" />
                   ) : (
                     <ChevronDown className="w-3 h-3 ml-1" />
@@ -629,9 +642,23 @@ export default function DailyPick() {
                 </button>
               </div>
 
-              {/* Mobile analysis factors dropdown */}
+              {/* Mobile analysis factors dropdown (sm and below) */}
               {mobileAnalysisOpen && (
-                <div className="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="sm:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+                    Analysis Factors
+                  </h5>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    {factors.map(({ key, title, score, info }) => (
+                      <FactorScore key={key} title={title} score={score} info={info} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Medium size analysis factors dropdown (md-lg when stacked) */}
+              {dailyPickMediumOpen && (
+                <div className="hidden sm:block lg:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
                     Analysis Factors
                   </h5>
@@ -645,59 +672,44 @@ export default function DailyPick() {
             </div>
           </div>
 
-          {/* Right side - Analysis Factors with responsive behavior */}
-          {/* Show full analysis on larger screens (1280px+) */}
-          <div className="w-80 hidden xl:block">
-            <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
-              Analysis Factors
-            </h5>
-            
-            {/* 2 columns x 3 rows grid of factor scores */}
-            <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-1">
-              {factors.map(({ key, title, score, info }) => (
-                <FactorScore key={key} title={title} score={score} info={info} />
-              ))}
-            </div>
-          </div>
-
-
-
-
-        </div>
-
-        {/* Hide Analysis button at bottom for medium screens (768px-1279px) */}
-        <div className="hidden md:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
-            onClick={() => {
-              console.log('DailyPick: Collapsing analysis, will trigger LoggedInLockPick to collapse too');
-              setDailyPickMediumOpen(false);
-              // Send custom event to collapse both analysis sections
-              window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { detail: { source: 'daily' } }));
-            }}
-          >
-            Hide Analysis
-            {dailyPickMediumOpen ? (
-              <ChevronUp className="w-3 h-3 ml-1" />
-            ) : (
-              <ChevronDown className="w-3 h-3 ml-1" />
-            )}
-          </button>
-          
-          {/* Medium-size analysis factors dropdown */}
-          {dailyPickMediumOpen && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-              <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+          {/* Right side - Analysis Factors (large screens side-by-side) */}
+          {dailyPickLargeOpen && (
+            <div className="w-80 hidden lg:block">
+              <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
                 Analysis Factors
               </h5>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              
+              {/* 2 columns x 3 rows grid of factor scores */}
+              <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-1">
                 {factors.map(({ key, title, score, info }) => (
                   <FactorScore key={key} title={title} score={score} info={info} />
                 ))}
               </div>
+              
+              {/* Hide Analysis button for large screens */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
+                  onClick={() => {
+                    console.log('DailyPick: Collapsing analysis, will trigger LoggedInLockPick to collapse too');
+                    setDailyPickLargeOpen(false);
+                    // Send custom event to collapse both analysis sections
+                    window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { detail: { source: 'daily' } }));
+                  }}
+                >
+                  Hide Analysis
+                  <ChevronUp className="w-3 h-3 ml-1" />
+                </button>
+              </div>
             </div>
           )}
+
+
+
+
         </div>
+
+
       </CardContent>
       
       {/* Odds Comparison Modal */}
