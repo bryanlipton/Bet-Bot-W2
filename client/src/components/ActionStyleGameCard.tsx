@@ -269,34 +269,34 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
 
   const factors = [
     { 
-      key: 'bettingValue', 
-      score: analysisData.bettingValue || analysisData.factors?.valueScore?.score,
-      description: analysisData.factors?.valueScore?.description
+      key: 'marketInefficiency', 
+      score: analysisData.marketInefficiency || analysisData.factors?.marketEdge?.score,
+      description: analysisData.factors?.marketEdge?.description
     },
     { 
-      key: 'fieldValue', 
-      score: analysisData.fieldValue || analysisData.factors?.ballparkFactor?.score,
-      description: analysisData.factors?.ballparkFactor?.description
-    },
-    { 
-      key: 'pitchingEdge', 
-      score: analysisData.pitchingEdge || analysisData.factors?.pitchingMatchup?.score,
-      description: analysisData.factors?.pitchingMatchup?.description
-    },
-    { 
-      key: 'recentForm', 
-      score: analysisData.recentForm || analysisData.factors?.situationalEdge?.score,
+      key: 'situationalEdge', 
+      score: analysisData.situationalEdge || analysisData.factors?.situationalEdge?.score,
       description: analysisData.factors?.situationalEdge?.description
     },
     { 
-      key: 'weatherImpact', 
-      score: analysisData.weatherImpact || analysisData.factors?.weatherImpact?.score,
-      description: analysisData.factors?.weatherImpact?.description
+      key: 'pitchingMatchup', 
+      score: analysisData.pitchingMatchup || analysisData.factors?.pitchingMatchup?.score,
+      description: analysisData.factors?.pitchingMatchup?.description
     },
     { 
-      key: 'offensiveEdge', 
-      score: analysisData.offensiveEdge || analysisData.factors?.offensiveEdge?.score,
-      description: analysisData.factors?.offensiveEdge?.description
+      key: 'teamMomentum', 
+      score: analysisData.teamMomentum || analysisData.factors?.teamMomentum?.score,
+      description: analysisData.factors?.teamMomentum?.description
+    },
+    { 
+      key: 'systemConfidence', 
+      score: analysisData.systemConfidence || analysisData.factors?.systemConfidence?.score,
+      description: analysisData.factors?.systemConfidence?.description
+    },
+    { 
+      key: 'offensiveProduction', 
+      score: analysisData.offensiveProduction || analysisData.factors?.offensiveProduction?.score,
+      description: analysisData.factors?.offensiveProduction?.description
     }
   ];
 

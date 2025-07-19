@@ -430,3 +430,14 @@ export type UserBet = typeof userBets.$inferSelect;
 export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
 export type UserFollow = typeof userFollows.$inferSelect;
 export type InsertUserFollow = z.infer<typeof insertUserFollowSchema>;
+
+// Daily pick analysis interface for enhanced model factors
+export interface DailyPickAnalysis {
+  offensiveProduction: number;     // 0-100 scale - Team's run-scoring capability based on advanced metrics
+  pitchingMatchup: number;         // 0-100 scale - Starting pitcher advantage and effectiveness
+  situationalEdge: number;         // 0-100 scale - Ballpark factors, travel, rest, conditions
+  teamMomentum: number;            // 0-100 scale - Recent performance and current form trends
+  marketInefficiency: number;      // 0-100 scale - Betting value relative to true probability
+  systemConfidence: number;        // 0-100 scale - Model certainty based on data quality and consensus
+  confidence: number;              // 60-100 normalized scale - Overall recommendation strength
+}

@@ -14,15 +14,7 @@ import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHide
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 import { useAuth } from "@/hooks/useAuth";
 
-interface DailyPickAnalysis {
-  offensivePower: number;    // 60-100 normalized scale
-  pitchingEdge: number;      // 60-100 normalized scale  
-  ballparkAdvantage: number; // 60-100 normalized scale
-  recentForm: number;        // 60-100 normalized scale
-  weatherConditions: number; // 60-100 normalized scale
-  bettingValue: number;      // 60-100 normalized scale
-  confidence: number;        // 60-100 normalized scale
-}
+import { DailyPickAnalysis } from '@shared/schema';
 
 interface DailyPick {
   id: string;
@@ -406,48 +398,48 @@ export default function LoggedInLockPick() {
   const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
     const factorData = [
       {
-        key: 'bettingValue',
-        title: 'Betting Value',
-        score: analysis.bettingValue,
-        info: 'Analysis of odds value comparing our probability model to available betting lines and market efficiency.'
+        key: 'marketInefficiency',
+        title: 'Market Edge',
+        score: analysis.marketInefficiency,
+        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
       },
       {
-        key: 'ballparkAdvantage',
-        title: 'Field Value',
-        score: analysis.ballparkAdvantage,
-        info: 'Stadium factors including dimensions, homefield advantage, and how the stadium favors hitters and pitchers.'
+        key: 'situationalEdge',
+        title: 'Situational Edge',
+        score: analysis.situationalEdge,
+        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
       }
     ];
 
-    // Always include Pitching Edge, show NA if either pitcher is TBD
+    // Always include Pitching Matchup, show NA if either pitcher is TBD
     const homePitcher = probablePitchers.home || 'TBD';
     const awayPitcher = probablePitchers.away || 'TBD';
     
     factorData.push({
-      key: 'pitchingEdge',
-      title: 'Pitching Edge', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? analysis.pitchingEdge : null,
-      info: 'Probable pitcher analysis comparing ERA, strikeout rates, and recent form between starters.'
+      key: 'pitchingMatchup',
+      title: 'Pitching Matchup', 
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? analysis.pitchingMatchup : null,
+      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
     factorData.push(
       {
-        key: 'recentForm',
-        title: 'Recent Form',
-        score: analysis.recentForm,
-        info: 'Real team momentum from official MLB Stats API showing actual wins/losses in last 10 completed games, recent scoring trends, and competitive performance.'
+        key: 'teamMomentum',
+        title: 'Team Momentum',
+        score: analysis.teamMomentum,
+        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
       },
       {
-        key: 'weatherConditions',
-        title: 'Weather Impact',
-        score: analysis.weatherConditions,
-        info: 'Wind speed/direction, temperature, and humidity effects on ball flight and overall scoring.'
+        key: 'systemConfidence',
+        title: 'System Confidence',
+        score: analysis.systemConfidence,
+        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
       },
       {
-        key: 'offensiveEdge',
-        title: 'Offensive Edge',
-        score: analysis.offensiveEdge,
-        info: 'Team batting performance including recent run production, lineup depth, and offensive momentum trends from official MLB statistics.'
+        key: 'offensiveProduction',
+        title: 'Offensive Production',
+        score: analysis.offensiveProduction,
+        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
       }
     );
 
