@@ -649,13 +649,16 @@ function ScoreGameCard({
     retry: false,
   });
 
+  // Check if game is actually live based on the live data response
+  const isActuallyLive = liveData && liveData.status && liveData.status.inProgress;
+
   return (
     <Card 
       className={`bg-white dark:bg-gray-800 hover:shadow-md transition-shadow ${(isLive || !isFinished) ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
       <CardContent className="p-4">
-        {isLive && liveData ? (
+        {isActuallyLive ? (
           /* Live Game Format - ESPN Style */
           <div className="space-y-2">
             {/* Away Team */}
@@ -700,18 +703,7 @@ function ScoreGameCard({
               </div>
             </div>
 
-            {/* Bases Visualization */}
-            {liveData.baseRunners && (
-              <div className="flex justify-center pt-1">
-                <div className="relative w-8 h-8">
-                  {/* Diamond base layout */}
-                  <div className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 border ${liveData.baseRunners.second ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
-                  <div className={`absolute bottom-0 left-0 w-2 h-2 rotate-45 border ${liveData.baseRunners.third ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
-                  <div className={`absolute bottom-0 right-0 w-2 h-2 rotate-45 border ${liveData.baseRunners.first ? 'bg-yellow-500 border-yellow-600' : 'bg-gray-300 border-gray-400'}`}></div>
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 bg-gray-600 border border-gray-700"></div>
-                </div>
-              </div>
-            )}
+
           </div>
         ) : (
           /* Regular/Scheduled Game Format */
@@ -778,14 +770,14 @@ function ScoreGameCard({
               <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 {isFinished ? (
                   <span className="text-red-600 dark:text-red-400 font-bold">F</span>
-                ) : isLive && game.inning ? (
+                ) : isActuallyLive && liveData.inning ? (
                   <div className="flex items-center gap-1">
                     <Radio className="w-3 h-3 text-green-500 animate-pulse" />
                     <span className="text-orange-600 dark:text-orange-400 font-bold">
-                      {formatInning(game.inning)}
+                      {liveData.inning.state === 'Top' ? 'T' : 'B'}{liveData.inning.current}
                     </span>
                   </div>
-                ) : !isFinished && !isLive ? (
+                ) : !isFinished && !isActuallyLive ? (
                   <span className="text-gray-500 dark:text-gray-400">
                     {formatTime(game.startTime)}
                   </span>
@@ -793,18 +785,16 @@ function ScoreGameCard({
               </div>
               
               {/* Live details */}
-              {game.liveDetails && (
+              {isActuallyLive && liveData.count && (
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {game.liveDetails.balls !== undefined && game.liveDetails.strikes !== undefined && game.liveDetails.outs !== undefined && (
-                    <span>
-                      {game.liveDetails.balls}-{game.liveDetails.strikes}, {game.liveDetails.outs} out
-                    </span>
-                  )}
+                  <span>
+                    {liveData.count.balls}-{liveData.count.strikes}, {liveData.count.outs} out{liveData.count.outs !== 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
               
               {/* Click to view live indicator */}
-              {isLive && (
+              {isActuallyLive && (
                 <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
                   <Play className="w-3 h-3" />
                   <span>Click for live</span>
