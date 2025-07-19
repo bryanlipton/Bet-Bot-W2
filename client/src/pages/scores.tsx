@@ -399,8 +399,9 @@ export default function ScoresPage() {
           {/* Live Games Section */}
           {sortedGames.filter(game => {
             const status = game.status.toLowerCase();
-            return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
-                   !status.includes('final') && !status.includes('completed');
+            return (status.includes('live') || status.includes('progress') || status.includes('in progress') || 
+                   status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ')) && 
+                   !status.includes('final') && !status.includes('completed') && !status.includes('game over');
           }).length > 0 && (
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -410,8 +411,9 @@ export default function ScoresPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortedGames.filter(game => {
                   const status = game.status.toLowerCase();
-                  return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
-                         !status.includes('final') && !status.includes('completed');
+                  return (status.includes('live') || status.includes('progress') || status.includes('in progress') || 
+                         status.includes('top ') || status.includes('bot ') || status.includes('middle ') || status.includes('end ')) && 
+                         !status.includes('final') && !status.includes('completed') && !status.includes('game over');
                 }).map((game) => (
                   <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
@@ -506,7 +508,8 @@ function ScoreGameCard({
     // Check for final status first (including special final statuses)
     if (lowerStatus.includes('final') || lowerStatus.includes('completed') || lowerStatus.includes('game over')) {
       return <Badge className="bg-blue-600 text-white">Final</Badge>;
-    } else if (lowerStatus.includes('live') || lowerStatus.includes('progress') || lowerStatus.includes('in progress')) {
+    } else if (lowerStatus.includes('live') || lowerStatus.includes('progress') || lowerStatus.includes('in progress') || 
+               lowerStatus.includes('top ') || lowerStatus.includes('bot ') || lowerStatus.includes('middle ') || lowerStatus.includes('end ')) {
       return <Badge className="bg-green-600 text-white">Live</Badge>;
     } else {
       return <Badge className="bg-gray-600 text-white">Scheduled</Badge>;
@@ -528,7 +531,11 @@ function ScoreGameCard({
 
   const isLive = game.status.toLowerCase().includes('live') || 
                  game.status.toLowerCase().includes('progress') || 
-                 game.status.toLowerCase().includes('in progress');
+                 game.status.toLowerCase().includes('in progress') ||
+                 game.status.toLowerCase().includes('top ') ||
+                 game.status.toLowerCase().includes('bot ') ||
+                 game.status.toLowerCase().includes('middle ') ||
+                 game.status.toLowerCase().includes('end ');
 
   // Determine winner/loser for finished games
   const awayWon = isFinished && game.awayScore !== undefined && game.homeScore !== undefined && game.awayScore > game.homeScore;
