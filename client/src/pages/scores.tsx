@@ -636,7 +636,14 @@ function ScoreGameCard({
 
   // For live games, we need to fetch live data to show proper inning/outs info
   const { data: liveData } = useQuery({
-    queryKey: [`/api/mlb/game/${game.id}/live`],
+    queryKey: [`/api/mlb/game/${game.id}/live`, game.homeTeam, game.awayTeam],
+    queryFn: async () => {
+      const response = await fetch(`/api/mlb/game/${game.id.replace(/[^0-9]/g, '')}/live?homeTeam=${encodeURIComponent(game.homeTeam)}&awayTeam=${encodeURIComponent(game.awayTeam)}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
     enabled: isLive,
     refetchInterval: 5000, // Refresh every 5 seconds for live games
     retry: false,
