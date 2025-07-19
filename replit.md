@@ -16,6 +16,13 @@ Bet Bot is a sophisticated full-stack web application that provides AI-powered s
 
 **Units Selection in Manual Entry (July 18, 2025):** Added comprehensive units selection functionality to the manual pick entry modal. Users can now specify the number of units (0.5 increments) for both single bets and parlay bets, positioned between game selection and odds input as requested. The interface includes +/- buttons and direct input, displaying the calculated bet amount based on the user's bet unit setting (e.g., "1.5 units = $75 bet"). Updated Pick type definition to include units field for proper data tracking.
 
+**Daily Pick Business Logic (July 19, 2025):** Both Pick of the Day and Logged In Lock follow identical automated lifecycle:
+- **2 AM Generation**: Model generates new picks daily at 2 AM EST using ML analysis
+- **Display Period**: Picks visible until their respective games start
+- **Auto-Hide**: When games go live, tiles disappear and show "Game Already Started" message
+- **Daily Reset**: At 2 AM next day, new picks automatically appear with fresh ML analysis
+- **Pick Rotation Service**: Continuously monitors game status and triggers pick replacement when games start
+
 **Daily Pick Rotation System (July 18, 2025):** Implemented comprehensive automated pick rotation system that monitors game states and replaces picks when games start. The PickRotationService runs continuously with 5-minute status checks to detect when Pick of the Day or Lock Pick games begin. When games start, the system automatically generates new picks from upcoming games with odds. Scheduled daily rotation at 2 AM EST ensures fresh content for each day's games. Manual rotation endpoints provide testing and admin functionality. Game status monitoring differentiates between scheduled, in-progress, and completed games based on timing and duration calculations.
 
 **Safety Enhancement (July 18, 2025):** Removed the "Clear All" button from My Picks page header to prevent accidental deletion of all betting data. Users can still delete individual picks using per-pick delete buttons, maintaining data safety while preserving necessary functionality.
