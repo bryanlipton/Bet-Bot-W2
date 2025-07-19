@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import AvatarPicker from "@/components/AvatarPicker";
-import { getAvatarUrl, getRandomAnimalAvatar, isEmojiAvatar, getAnimalAvatarById } from '@/data/avatars';
+import { getAvatarUrl, getRandomAnimalAvatar, isEmojiAvatar, getAnimalAvatarById, getAnimalAvatarByEmoji } from '@/data/avatars';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
@@ -391,20 +391,41 @@ export default function ProfilePage() {
             <div className="flex items-start gap-6">
               {/* Profile Picture with Edit Button */}
               <div className="relative">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage 
-                    src={getAvatarUrl(userProfile.profileImage, userProfile.id)} 
-                    alt={userProfile.username}
-                  />
-                  <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
-                    {userProfile.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                {(() => {
+                  const avatarUrl = getAvatarUrl(userProfile.profileImage, userProfile.id);
+                  const avatarData = getAnimalAvatarByEmoji(avatarUrl);
+                  
+                  if (avatarData) {
+                    // Display emoji avatar with background
+                    return (
+                      <div 
+                        className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600"
+                        style={{ backgroundColor: avatarData.background }}
+                      >
+                        <span className="text-4xl">{avatarData.emoji}</span>
+                      </div>
+                    );
+                  } else {
+                    // Display regular image avatar
+                    return (
+                      <Avatar className="w-24 h-24">
+                        <AvatarImage 
+                          src={avatarUrl} 
+                          alt={userProfile.username}
+                        />
+                        <AvatarFallback className="bg-blue-600 text-white text-2xl font-bold">
+                          {userProfile.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    );
+                  }
+                })()}
                 {isEditingProfile && (
                   <Button
                     size="sm"
                     variant="outline"
                     className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                    onClick={() => setIsImagePickerOpen(true)}
                   >
                     <Camera className="w-4 h-4" />
                   </Button>
