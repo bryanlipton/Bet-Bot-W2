@@ -5,6 +5,29 @@ import { eq, and, or, ilike, ne, sql } from "drizzle-orm";
 import { isAuthenticated } from "./replitAuth";
 
 export function registerFriendsRoutes(app: Express) {
+  // Check username availability
+  app.get('/api/users/check-username', isAuthenticated, async (req, res) => {
+    try {
+      const { username } = req.query;
+      
+      if (!username || typeof username !== 'string') {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      
+      // Check if username exists
+      const existingUser = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1);
+      
+      res.json({ available: existingUser.length === 0 });
+    } catch (error) {
+      console.error('Error checking username:', error);
+      res.status(500).json({ message: 'Failed to check username availability' });
+    }
+  });
+
   // Search for users
   app.get('/api/users/search', isAuthenticated, async (req, res) => {
     try {

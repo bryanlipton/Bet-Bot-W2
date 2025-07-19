@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { 
   User, 
@@ -78,6 +79,7 @@ export default function ProfilePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
   const [editForm, setEditForm] = useState({
     username: '',
     bio: '',
@@ -252,6 +254,64 @@ export default function ProfilePage() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  // Debounced username validation
+  const usernameCheckTimeout = useRef<NodeJS.Timeout>();
+  
+  const handleUsernameChange = (username: string) => {
+    setUsernameError('');
+    
+    // Clear existing timeout
+    if (usernameCheckTimeout.current) {
+      clearTimeout(usernameCheckTimeout.current);
+    }
+    
+    // Basic validation first
+    if (!username.trim()) {
+      setUsernameError('Username is required');
+      return;
+    }
+    
+    if (username.length < 3) {
+      setUsernameError('Username must be at least 3 characters long');
+      return;
+    }
+    
+    if (username.length > 30) {
+      setUsernameError('Username must be less than 30 characters');
+      return;
+    }
+    
+    // Check for valid characters (alphanumeric, underscore, hyphen)
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+      setUsernameError('Username can only contain letters, numbers, underscores, and hyphens');
+      return;
+    }
+    
+    // Skip check if username hasn't changed
+    if (username === user?.username) {
+      return;
+    }
+    
+    // Debounced API call to check availability
+    usernameCheckTimeout.current = setTimeout(async () => {
+    
+      try {
+        const response = await fetch(`/api/users/check-username?username=${encodeURIComponent(username)}`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (!result.available) {
+            setUsernameError('Username is already taken');
+          }
+        }
+      } catch (error) {
+        console.error('Username check error:', error);
+      }
+    }, 500); // 500ms debounce
   };
 
   // Follow a user
@@ -625,7 +685,18 @@ export default function ProfilePage() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Edit Profile</DialogTitle>
+                        <div className="flex items-center justify-between">
+                          <DialogTitle>Edit Profile</DialogTitle>
+                          {/* Save/Cancel Buttons - Top Right */}
+                          <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
+                              Cancel
+                            </Button>
+                            <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
+                              {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                          </div>
+                        </div>
                       </DialogHeader>
                       
                       <div className="space-y-6">
@@ -682,9 +753,16 @@ export default function ProfilePage() {
                           <Input
                             id="username"
                             value={editForm.username}
-                            onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                            onChange={(e) => {
+                              setEditForm({...editForm, username: e.target.value});
+                              handleUsernameChange(e.target.value);
+                            }}
                             placeholder="Enter username"
+                            className={usernameError ? 'border-red-500' : ''}
                           />
+                          {usernameError && (
+                            <p className="text-sm text-red-500">{usernameError}</p>
+                          )}
                         </div>
                         
                         {/* Bio */}
@@ -766,15 +844,7 @@ export default function ProfilePage() {
 
                         </div>
                         
-                        {/* Save Button */}
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
-                            {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                          </Button>
-                        </div>
+
                       </div>
                     </DialogContent>
                   </Dialog>
