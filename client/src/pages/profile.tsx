@@ -1143,7 +1143,7 @@ export default function ProfilePage() {
                     variant="outline"
                     onClick={() => {
                       // Navigate to follower's profile
-                      window.open(`/profile/${follower.id}`, '_blank');
+                      window.open(`/user/${follower.id}`, '_blank');
                     }}
                     className="flex items-center gap-1"
                   >
@@ -1225,7 +1225,7 @@ export default function ProfilePage() {
                     variant="outline"
                     onClick={() => {
                       // Navigate to followed user's profile
-                      window.open(`/profile/${followedUser.id}`, '_blank');
+                      window.open(`/user/${followedUser.id}`, '_blank');
                     }}
                     className="flex items-center gap-1"
                   >

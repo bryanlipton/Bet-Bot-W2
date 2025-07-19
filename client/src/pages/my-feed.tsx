@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ActionStyleHeader } from '@/components/ActionStyleHeader';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Rss,
   TrendingUp,
@@ -16,27 +18,33 @@ import {
   BookOpen,
   Trophy,
   Target,
-  Zap
+  Zap,
+  Users,
+  Plus
 } from 'lucide-react';
 
-interface FeedItem {
+interface FeedPick {
   id: string;
-  type: 'pick' | 'article' | 'achievement' | 'social' | 'insight';
-  title: string;
-  content: string;
-  timestamp: string;
-  metadata?: {
-    sport?: string;
-    odds?: string;
-    status?: 'won' | 'lost' | 'pending';
-    author?: string;
-    likes?: number;
-    comments?: number;
-  };
+  userId: string;
+  username: string;
+  userAvatar?: string;
+  game: string;
+  selection: string;
+  market: string;
+  line?: string;
+  odds: number;
+  units: number;
+  bookmakerDisplayName: string;
+  status: 'pending' | 'win' | 'loss' | 'push';
+  winAmount?: number;
+  createdAt: string;
+  gameDate?: string;
+  gradedAt?: string;
 }
 
 export default function MyFeedPage() {
   const [darkMode, setDarkMode] = useState(false);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -58,126 +66,100 @@ export default function MyFeedPage() {
     localStorage.setItem('darkMode', newDarkMode.toString());
   };
 
-  // Mock feed data - in a real app this would come from an API
-  const mockFeedItems: FeedItem[] = [
-    {
-      id: '1',
-      type: 'pick',
-      title: 'New Pick Added',
-      content: 'You added Toronto Blue Jays ML (-154) to your picks',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      metadata: {
-        sport: 'MLB',
-        odds: '-154',
-        status: 'pending'
-      }
-    },
-    {
-      id: '2',
-      type: 'achievement',
-      title: 'Winning Streak!',
-      content: 'Congratulations! You hit your last 3 picks in a row.',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-    },
-    {
-      id: '3',
-      type: 'insight',
-      title: 'AI Insight',
-      content: 'The Yankees have a 78% win rate when Aaron Judge is in the lineup and the weather is above 70°F.',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-      metadata: {
-        sport: 'MLB'
-      }
-    },
-    {
-      id: '4',
-      type: 'article',
-      title: 'Weekly MLB Roundup',
-      content: 'Check out our latest analysis on this week\'s key matchups and betting opportunities.',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-      metadata: {
-        author: 'Bet Bot AI',
-        likes: 24,
-        comments: 8
-      }
-    },
-    {
-      id: '5',
-      type: 'pick',
-      title: 'Pick Result',
-      content: 'Your Red Sox vs Cubs Over 8.5 pick won! Payout: $95.00',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-      metadata: {
-        sport: 'MLB',
-        odds: '+105',
-        status: 'won'
-      }
-    }
-  ];
+  // Fetch social feed data from users you follow
+  const { data: feedPicks = [], isLoading: feedLoading, error: feedError } = useQuery({
+    queryKey: ['/api/users/feed'],
+    retry: false,
+    enabled: isAuthenticated,
+  });
 
-  const getIcon = (type: FeedItem['type']) => {
-    switch (type) {
-      case 'pick':
-        return <Target className="w-5 h-5" />;
-      case 'article':
-        return <BookOpen className="w-5 h-5" />;
-      case 'achievement':
-        return <Trophy className="w-5 h-5" />;
-      case 'insight':
-        return <Zap className="w-5 h-5" />;
-      case 'social':
-        return <MessageSquare className="w-5 h-5" />;
-      default:
-        return <Rss className="w-5 h-5" />;
-    }
+  // Helper functions for display
+  const formatOdds = (odds: number): string => {
+    if (odds > 0) return `+${odds}`;
+    return odds.toString();
   };
 
-  const getIconColor = (type: FeedItem['type']) => {
-    switch (type) {
-      case 'pick':
-        return 'text-blue-600 dark:text-blue-400';
-      case 'article':
-        return 'text-green-600 dark:text-green-400';
-      case 'achievement':
-        return 'text-yellow-600 dark:text-yellow-400';
-      case 'insight':
-        return 'text-purple-600 dark:text-purple-400';
-      case 'social':
-        return 'text-pink-600 dark:text-pink-400';
-      default:
-        return 'text-gray-600 dark:text-gray-400';
-    }
-  };
-
-  const getStatusBadge = (status?: string) => {
-    if (!status) return null;
-    
-    switch (status) {
-      case 'won':
-        return <Badge className="bg-green-600 text-white">Won</Badge>;
-      case 'lost':
-        return <Badge className="bg-red-600 text-white">Lost</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-600 text-white">Pending</Badge>;
-      default:
-        return null;
-    }
-  };
-
-  const formatTimeAgo = (timestamp: string) => {
+  const formatTimeAgo = (dateString: string): string => {
     const now = new Date();
-    const time = new Date(timestamp);
-    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
+    const date = new Date(dateString);
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'win': return 'text-green-600 dark:text-green-400';
+      case 'loss': return 'text-red-600 dark:text-red-400';
+      case 'push': return 'text-yellow-600 dark:text-yellow-400';
+      default: return 'text-blue-600 dark:text-blue-400';
     }
   };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'win': return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Won</Badge>;
+      case 'loss': return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Lost</Badge>;
+      case 'push': return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Push</Badge>;
+      default: return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Pending</Badge>;
+    }
+  };
+
+  if (!isAuthenticated && !authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Sign In Required
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Sign in to see picks from people you follow
+              </p>
+              <Button onClick={() => window.location.href = '/api/login'}>
+                Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (feedLoading || authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="bg-white dark:bg-gray-800">
+                <CardContent className="p-4">
+                  <div className="animate-pulse">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -190,99 +172,112 @@ export default function MyFeedPage() {
             <Rss className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Feed</h1>
           </div>
-          <Button variant="outline" size="sm">
-            <Star className="w-4 h-4 mr-2" />
-            Customize Feed
-          </Button>
         </div>
 
-        {/* Feed Items */}
-        <div className="space-y-4">
-          {mockFeedItems.map((item) => (
-            <Card key={item.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  {/* Icon */}
-                  <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-800 ${getIconColor(item.type)}`}>
-                    {getIcon(item.type)}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {item.title}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {getStatusBadge(item.metadata?.status)}
-                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {formatTimeAgo(item.timestamp)}
-                        </span>
-                      </div>
+        {/* Feed Content */}
+        {feedPicks.length === 0 ? (
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-8 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                No Picks to Show
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Follow other users to see their betting activity in your feed
+              </p>
+              <Button onClick={() => window.location.href = '/profile'}>
+                <Plus className="w-4 h-4 mr-2" />
+                Find People to Follow
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {feedPicks.map((pick: FeedPick) => (
+              <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    {/* User Avatar */}
+                    <div className="flex-shrink-0">
+                      {(() => {
+                        const avatarString = pick.userAvatar;
+                        
+                        if (avatarString?.includes('|')) {
+                          // New format: emoji|background
+                          const [emoji, backgroundClass] = avatarString.split('|');
+                          return (
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                              <span className="text-lg">{emoji}</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={avatarString} alt={pick.username} />
+                              <AvatarFallback className="bg-blue-600 text-white">
+                                {pick.username?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                          );
+                        }
+                      })()}
                     </div>
                     
-                    <p className="text-gray-700 dark:text-gray-300">
-                      {item.content}
-                    </p>
-                    
-                    {/* Metadata */}
-                    {item.metadata && (
-                      <div className="flex items-center gap-4 mt-2">
-                        {item.metadata.sport && (
-                          <Badge variant="outline" className="text-xs">
-                            {item.metadata.sport}
-                          </Badge>
-                        )}
-                        {item.metadata.odds && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {item.metadata.odds}
+                    {/* Pick Content */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
+                            className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          >
+                            {pick.username}
+                          </button>
+                          <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
+                          <span className="text-gray-500 dark:text-gray-400 text-sm">
+                            {formatTimeAgo(pick.createdAt)}
                           </span>
-                        )}
-                        {item.metadata.likes && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <Heart className="w-3 h-3" />
-                            {item.metadata.likes}
-                          </span>
-                        )}
-                        {item.metadata.comments && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" />
-                            {item.metadata.comments}
-                          </span>
-                        )}
+                        </div>
+                        {getStatusBadge(pick.status)}
                       </div>
-                    )}
+                      
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
+                        <div className="font-medium text-gray-900 dark:text-white mb-1">
+                          {pick.game}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="font-medium text-blue-600 dark:text-blue-400">
+                            {pick.selection}
+                          </span>
+                          {pick.line && (
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {pick.line}
+                            </span>
+                          )}
+                          <span className="font-mono font-medium">
+                            {formatOdds(pick.odds)}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          via {pick.bookmakerDisplayName}
+                        </div>
+                      </div>
+                      
+                      {pick.status === 'win' && pick.winAmount && (
+                        <div className="text-sm text-green-600 dark:text-green-400 font-medium">
+                          Won: ${pick.winAmount.toFixed(2)}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <Button variant="ghost" size="sm">
-                    <Heart className="w-4 h-4 mr-1" />
-                    Like
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <MessageSquare className="w-4 h-4 mr-1" />
-                    Comment
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="w-4 h-4 mr-1" />
-                    Share
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="flex justify-center pt-6">
-          <Button variant="outline">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Load More
-          </Button>
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

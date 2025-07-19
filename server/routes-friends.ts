@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { db } from "./db";
-import { users, userFollows } from "@shared/schema";
-import { eq, and, or, ilike, ne, sql } from "drizzle-orm";
+import { users, userFollows, userPicks } from "@shared/schema";
+import { eq, and, or, ilike, ne, sql, desc, inArray } from "drizzle-orm";
 import { isAuthenticated } from "./replitAuth";
 
 export function registerFriendsRoutes(app: Express) {
@@ -208,6 +208,64 @@ export function registerFriendsRoutes(app: Express) {
     } catch (error) {
       console.error('Error fetching following:', error);
       res.status(500).json({ message: 'Failed to fetch following' });
+    }
+  });
+
+  // Get social feed (picks from users you follow)
+  app.get('/api/users/feed', isAuthenticated, async (req, res) => {
+    try {
+      const currentUserId = req.user?.claims?.sub;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      // Get list of users the current user is following
+      const followingUsers = await db
+        .select({ userId: userFollows.followingId })
+        .from(userFollows)
+        .where(eq(userFollows.followerId, currentUserId));
+      
+      if (followingUsers.length === 0) {
+        return res.json([]);
+      }
+      
+      const followingIds = followingUsers.map(f => f.userId);
+      
+      // Get picks from followed users that have showOnFeed enabled
+      const feedPicks = await db
+        .select({
+          id: userPicks.id,
+          userId: userPicks.userId,
+          username: users.username,
+          userAvatar: users.profileImageUrl,
+          game: userPicks.game,
+          selection: userPicks.selection,
+          market: userPicks.market,
+          line: userPicks.line,
+          odds: userPicks.odds,
+          units: userPicks.units,
+          bookmakerDisplayName: userPicks.bookmakerDisplayName,
+          status: userPicks.status,
+          winAmount: userPicks.winAmount,
+          createdAt: userPicks.createdAt,
+          gameDate: userPicks.gameDate,
+          gradedAt: userPicks.gradedAt,
+        })
+        .from(userPicks)
+        .innerJoin(users, eq(userPicks.userId, users.id))
+        .where(
+          and(
+            inArray(userPicks.userId, followingIds),
+            eq(userPicks.showOnFeed, true)
+          )
+        )
+        .orderBy(desc(userPicks.createdAt))
+        .limit(limit)
+        .offset(offset);
+      
+      res.json(feedPicks);
+    } catch (error) {
+      console.error('Error fetching social feed:', error);
+      res.status(500).json({ message: 'Failed to fetch social feed' });
     }
   });
 }
