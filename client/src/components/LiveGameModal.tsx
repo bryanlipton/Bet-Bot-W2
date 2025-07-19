@@ -361,58 +361,7 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
             </Card>
           )}
 
-          {/* Enhanced Recent Plays */}
-          {liveData.status.inProgress && liveData.recentPlays && liveData.recentPlays.length > 0 && (
-            <Card className="border-purple-200 dark:border-purple-800">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-full">
-                    <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <span className="text-lg font-semibold text-purple-700 dark:text-purple-400">Play-by-Play</span>
-                </div>
-                
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {liveData.recentPlays.slice(0, 8).reverse().map((play, index) => (
-                    <div key={play.id || index} className="border-l-4 border-purple-500 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-r-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                            {play.halfInning} {play.inning}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {play.outs} out{play.outs !== 1 ? 's' : ''}
-                          </span>
-                        </div>
-                        {play.result && (
-                          <Badge variant="outline" className="text-xs bg-white dark:bg-gray-700">
-                            {play.result}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-900 dark:text-white leading-relaxed">
-                        {play.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          {/* No Recent Plays Available */}
-          {liveData.status.inProgress && (!liveData.recentPlays || liveData.recentPlays.length === 0) && (
-            <Card className="border-gray-200 dark:border-gray-700">
-              <CardContent className="p-5">
-                <div className="text-center py-4">
-                  <TrendingUp className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    Play-by-play data will appear here during live action
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Enhanced Auto-refresh indicator */}
           <div className="flex items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
