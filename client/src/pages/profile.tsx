@@ -503,21 +503,57 @@ export default function ProfilePage() {
       console.log('Success response:', result);
       return result;
     },
+    onMutate: async ({ pickId, showOnProfile, showOnFeed }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['/api/user/picks'] });
+
+      // Snapshot the previous value
+      const previousPicks = queryClient.getQueryData(['/api/user/picks']);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['/api/user/picks'], (old: any) => {
+        if (!old) return old;
+        return old.map((pick: any) => {
+          if (pick.id === pickId) {
+            return {
+              ...pick,
+              pick: {
+                ...pick.pick,
+                showOnProfile,
+                showOnFeed
+              }
+            };
+          }
+          return pick;
+        });
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousPicks };
+    },
     onSuccess: () => {
-      // Refetch user picks to update the display
+      // Refetch user picks to ensure server state is in sync
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
       toast({
         title: "Settings Updated",
         description: "Pick visibility settings have been saved.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousPicks) {
+        queryClient.setQueryData(['/api/user/picks'], context.previousPicks);
+      }
       console.error('Pick visibility update error:', error);
       toast({
         title: "Error", 
         description: error.message || "Failed to update pick visibility.",
         variant: "destructive",
       });
+    },
+    // Always refetch after error or success
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
     }
   });
 
