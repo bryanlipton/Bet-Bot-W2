@@ -483,9 +483,9 @@ export function ActionStyleGameCard({
       
       console.log('=== PICK BUTTON DEBUG ===');
       console.log('1. Pick button clicked:', { market, selection, line });
-      console.log('2. Event target:', event.target);
+      console.log('2. Event target type:', event.target?.constructor?.name || 'unknown');
       console.log('3. Current URL:', window.location.href);
-      console.log('4. User agent:', navigator.userAgent);
+      console.log('4. User agent:', navigator.userAgent.substring(0, 50) + '...');
       console.log('5. rawBookmakers available:', rawBookmakers?.length || 0);
       console.log('6. Current modal state - oddsModalOpen:', oddsModalOpen);
       
