@@ -4,16 +4,14 @@ import { Express } from "express";
 
 // Safe prediction function that uses analytics instead of the broken model
 function generateSafePrediction(homeTeam: string, awayTeam: string) {
-  // Team strength ratings based on 2024 performance
+  // Team strength ratings based on 2025 season winning percentages (updated July 19, 2025)
   const teamStrengths = {
-    'Yankees': 0.72, 'Dodgers': 0.70, 'Astros': 0.68, 'Braves': 0.67,
-    'Phillies': 0.65, 'Padres': 0.64, 'Mets': 0.62, 'Orioles': 0.61,
-    'Guardians': 0.60, 'Brewers': 0.59, 'Red Sox': 0.58, 'Cardinals': 0.57,
-    'Giants': 0.56, 'Mariners': 0.55, 'Tigers': 0.54, 'Cubs': 0.53,
-    'Twins': 0.52, 'Diamondbacks': 0.51, 'Rays': 0.50, 'Royals': 0.49,
-    'Blue Jays': 0.48, 'Rangers': 0.47, 'Angels': 0.46, 'Pirates': 0.45,
-    'Reds': 0.44, 'Nationals': 0.43, 'Athletics': 0.42, 'Marlins': 0.41,
-    'Rockies': 0.40, 'White Sox': 0.38
+    'Tigers': 0.602, 'Cubs': 0.598, 'Dodgers': 0.598, 'Brewers': 0.583, 'Astros': 0.583,
+    'Blue Jays': 0.577, 'Phillies': 0.567, 'Mets': 0.561, 'Yankees': 0.546, 'Padres': 0.546,
+    'Red Sox': 0.535, 'Giants': 0.531, 'Mariners': 0.531, 'Cardinals': 0.526, 'Rays': 0.520,
+    'Reds': 0.520, 'Rangers': 0.500, 'Angels': 0.495, 'Guardians': 0.490, 'Twins': 0.485,
+    'Diamondbacks': 0.485, 'Royals': 0.480, 'Marlins': 0.469, 'Orioles': 0.448, 'Braves': 0.448,
+    'Athletics': 0.414, 'Pirates': 0.398, 'Nationals': 0.392, 'White Sox': 0.337, 'Rockies': 0.237
   };
 
   const homeStrength = teamStrengths[homeTeam] || 0.50;
@@ -461,16 +459,14 @@ export function registerGPTExportRoutes(app: Express) {
       
       console.log('Generating isolated prediction for:', homeTeam, 'vs', awayTeam);
       
-      // Completely isolated team strength calculation - no external function calls
+      // 2025 season team strengths based on actual winning percentages (updated July 19, 2025)
       const teamStrengths = {
-        'Yankees': 0.72, 'Dodgers': 0.70, 'Astros': 0.68, 'Braves': 0.67,
-        'Phillies': 0.65, 'Padres': 0.64, 'Mets': 0.62, 'Orioles': 0.61,
-        'Guardians': 0.60, 'Brewers': 0.59, 'Red Sox': 0.58, 'Cardinals': 0.57,
-        'Giants': 0.56, 'Mariners': 0.55, 'Tigers': 0.54, 'Cubs': 0.53,
-        'Twins': 0.52, 'Diamondbacks': 0.51, 'Rays': 0.50, 'Royals': 0.49,
-        'Blue Jays': 0.48, 'Rangers': 0.47, 'Angels': 0.46, 'Pirates': 0.45,
-        'Reds': 0.44, 'Nationals': 0.43, 'Athletics': 0.42, 'Marlins': 0.41,
-        'Rockies': 0.40, 'White Sox': 0.38
+        'Tigers': 0.602, 'Cubs': 0.598, 'Dodgers': 0.598, 'Brewers': 0.583, 'Astros': 0.583,
+        'Blue Jays': 0.577, 'Phillies': 0.567, 'Mets': 0.561, 'Yankees': 0.546, 'Padres': 0.546,
+        'Red Sox': 0.535, 'Giants': 0.531, 'Mariners': 0.531, 'Cardinals': 0.526, 'Rays': 0.520,
+        'Reds': 0.520, 'Rangers': 0.500, 'Angels': 0.495, 'Guardians': 0.490, 'Twins': 0.485,
+        'Diamondbacks': 0.485, 'Royals': 0.480, 'Marlins': 0.469, 'Orioles': 0.448, 'Braves': 0.448,
+        'Athletics': 0.414, 'Pirates': 0.398, 'Nationals': 0.392, 'White Sox': 0.337, 'Rockies': 0.237
       };
 
       const homeStrength = teamStrengths[homeTeam] || 0.50;
