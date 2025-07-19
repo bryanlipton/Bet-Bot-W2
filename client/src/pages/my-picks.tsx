@@ -95,8 +95,35 @@ export default function MyPicksPage() {
         // Load from localStorage
         const localPicks = pickStorage.getPicks();
         
-        // Only show localStorage picks (no fake database data)
-        const allPicks = localPicks;
+        // Add your real picks from yesterday plus localStorage picks
+        const realPicks: Pick[] = [
+          {
+            id: 'blue_jays_ml',
+            timestamp: '2025-07-18T12:00:00Z',
+            gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
+            betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null },
+            bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
+            status: 'won'
+          },
+          {
+            id: 'orioles_mets_parlay',
+            timestamp: '2025-07-18T11:30:00Z',
+            gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
+            betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null },
+            bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
+            status: 'lost'
+          }
+        ];
+
+        // Sort picks: pending first, then settled by timestamp (newest first)
+        const pendingPicks = localPicks.filter(pick => pick.status === 'pending');
+        const settledPicks = realPicks.filter(pick => pick.status !== 'pending');
+        
+        // Sort settled picks by timestamp (newest first)
+        settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        
+        // Combine with pending picks first, then settled picks
+        const allPicks = [...pendingPicks, ...settledPicks];
         setPicks(allPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
         console.log('Total picks:', allPicks.length);

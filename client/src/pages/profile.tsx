@@ -190,8 +190,8 @@ export default function ProfilePage() {
       setPublicFeed(feedItems);
     }
     
-    // Add only pending picks from localStorage to public feed
-    const addPendingPicksToFeed = () => {
+    // Add pending picks from localStorage plus your real settled picks to public feed
+    const addPicksToFeed = () => {
       const localPicks = pickStorage.getPicks();
       const pendingFeedItems = localPicks
         .filter(pick => pick.status === 'pending')
@@ -209,7 +209,33 @@ export default function ProfilePage() {
           result: undefined // Pending picks have no result yet
         }));
 
-      setPublicFeed(pendingFeedItems);
+      // Add your real settled picks from yesterday
+      const realSettledPicks = [
+        {
+          id: 'blue_jays_ml',
+          type: 'pick' as const,
+          pick: {
+            gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
+            betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null, bookmaker: 'DraftKings' },
+          },
+          timestamp: '2025-07-18T12:00:00Z',
+          result: 'win'
+        },
+        {
+          id: 'orioles_mets_parlay',
+          type: 'pick' as const,
+          pick: {
+            gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
+            betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null, bookmaker: 'FanDuel' },
+          },
+          timestamp: '2025-07-18T11:30:00Z',
+          result: 'loss'
+        }
+      ];
+
+      // Combine pending picks first, then real settled picks
+      const combinedFeedItems = [...pendingFeedItems, ...realSettledPicks];
+      setPublicFeed(combinedFeedItems);
     };
     
     // Always load localStorage picks and add historical picks
@@ -229,28 +255,28 @@ export default function ProfilePage() {
         setPicks(localPicks);
       }
       
-      // Add pending picks to public feed
-      addPendingPicksToFeed();
+      // Add picks to public feed
+      addPicksToFeed();
     };
 
     loadLocalStoragePicks();
   }, [userPicks]);
 
-  // Calculate comprehensive stats with only pending localStorage picks
-  const dbPicksCount = 0; // No historical picks - removed fake data
-  const dbWins = 0; // No wins yet
-  const dbLosses = 0; // No losses yet
+  // Calculate comprehensive stats with your real picks + pending localStorage picks
+  const dbPicksCount = 2; // 2 real picks from yesterday: Blue Jays ML + Orioles/Mets parlay
+  const dbWins = 1; // Blue Jays ML win
+  const dbLosses = 1; // Orioles/Mets parlay loss
   const pendingPicks = picks.filter(p => p.status === 'pending').length;
   const totalCompletedPicks = dbWins + dbLosses;
   
   const profileStats = {
-    totalPicks: dbPicksCount + pendingPicks, // 0 from DB + pending picks
+    totalPicks: dbPicksCount + pendingPicks, // 2 real picks + pending picks
     pendingPicks: pendingPicks, // Pending picks from localStorage
-    wonPicks: dbWins, // No wins yet
-    lostPicks: dbLosses, // No losses yet
-    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // No completed picks yet
-    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0), // Only pending picks count
-    winStreak: 0 // No completed picks yet
+    wonPicks: dbWins, // 1 win: Blue Jays ML
+    lostPicks: dbLosses, // 1 loss: Orioles/Mets parlay
+    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 1/2 = 50%
+    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0) + 0.95, // +1.95 from Blue Jays win, -1.0 from parlay loss = +0.95 net
+    winStreak: 1 // Blue Jays ML was the most recent win
   };
 
   // Calculate current win streak
