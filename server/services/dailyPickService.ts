@@ -656,11 +656,30 @@ export class DailyPickService {
 
     // Generate a different pick from the regular daily pick
     const dailyPick = await this.getTodaysPick();
-    const availableGames = games.filter(game => 
-      !dailyPick || game.id !== dailyPick.gameId
-    );
+    const availableGames = games.filter(game => {
+      if (!dailyPick) return true;
+      
+      // Exclude same game ID
+      if (game.id === dailyPick.gameId || game.gameId === dailyPick.gameId) {
+        return false;
+      }
+      
+      // CRITICAL: Exclude games where teams are playing against each other
+      const gameTeams = [game.home_team, game.away_team, game.homeTeam, game.awayTeam].filter(Boolean);
+      const dailyPickTeams = [dailyPick.homeTeam, dailyPick.awayTeam].filter(Boolean);
+      
+      // Check if any team from the current game matches any team from the daily pick game
+      const hasCommonTeam = gameTeams.some(team => dailyPickTeams.includes(team));
+      if (hasCommonTeam) {
+        console.log(`🚫 Excluding game ${game.home_team || game.homeTeam} vs ${game.away_team || game.awayTeam} - teams playing against daily pick teams`);
+        return false;
+      }
+      
+      return true;
+    });
 
     if (availableGames.length === 0) {
+      console.log('⚠️ No available games for lock pick after excluding daily pick opponents');
       return null;
     }
 
@@ -669,6 +688,7 @@ export class DailyPickService {
       // Create a new ID for the lock pick
       newLockPick.id = `lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       await this.saveLockPick(newLockPick);
+      console.log(`✅ Lock pick generated: ${newLockPick.pickTeam} (avoiding daily pick opponents)`);
     }
 
     return newLockPick;

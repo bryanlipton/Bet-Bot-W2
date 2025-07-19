@@ -165,10 +165,28 @@ export class PickRotationService {
         console.log(`✅ New daily pick generated: ${newDailyPick.pickTeam} vs ${newDailyPick.awayTeam === newDailyPick.pickTeam ? newDailyPick.homeTeam : newDailyPick.awayTeam}`);
       }
 
-      // Generate new lock pick (exclude the daily pick game)
-      const lockGames = upcomingGames.filter((game: any) => 
-        game.id !== newDailyPick?.gameId && game.gameId !== newDailyPick?.gameId
-      );
+      // Generate new lock pick (exclude daily pick game and opponent teams)
+      const lockGames = upcomingGames.filter((game: any) => {
+        if (!newDailyPick) return true;
+        
+        // Exclude same game ID
+        if (game.id === newDailyPick.gameId || game.gameId === newDailyPick.gameId) {
+          return false;
+        }
+        
+        // CRITICAL: Exclude games where teams are playing against each other
+        const gameTeams = [game.home_team, game.away_team, game.homeTeam, game.awayTeam].filter(Boolean);
+        const dailyPickTeams = [newDailyPick.homeTeam, newDailyPick.awayTeam].filter(Boolean);
+        
+        // Check if any team from the current game matches any team from the daily pick game
+        const hasCommonTeam = gameTeams.some(team => dailyPickTeams.includes(team));
+        if (hasCommonTeam) {
+          console.log(`🚫 Rotation: Excluding game ${game.home_team || game.homeTeam} vs ${game.away_team || game.awayTeam} - teams playing against daily pick teams`);
+          return false;
+        }
+        
+        return true;
+      });
       
       if (lockGames.length > 0) {
         const newLockPick = await dailyPickService.generateLockPick(lockGames);
