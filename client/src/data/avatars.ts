@@ -1,23 +1,15 @@
-// Male-skewed avatar options for user profiles - targeting male demographic 
+// Cute animal avatar options based on the provided design
 export const animalAvatars = [
-  // Male-associated avatars (70% of list for target demographic)
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=bear&backgroundColor=c0aede',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=lion&backgroundColor=c0aede',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=tiger&backgroundColor=ffdfbf',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=wolf&backgroundColor=d1d4f9',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=eagle&backgroundColor=c0aede',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=shark&backgroundColor=ffdfbf',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=bull&backgroundColor=d1d4f9',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=rhino&backgroundColor=c0aede',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=gorilla&backgroundColor=ffdfbf',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=panther&backgroundColor=d1d4f9',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=buffalo&backgroundColor=c0aede',
-  // Neutral/mixed appeal (30% of list)
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=fox&backgroundColor=ffdfbf',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=owl&backgroundColor=d1d4f9',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=elephant&backgroundColor=d1d4f9',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=monkey&backgroundColor=c0aede',
-  'https://api.dicebear.com/9.x/adventurer/svg?seed=penguin&backgroundColor=d1d4f9'
+  // Fun emoji-style animal avatars with cute designs similar to your provided image
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=cat&backgroundColor=E78B9C',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=wolf&backgroundColor=4FACFF', 
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=panda&backgroundColor=9BD723',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=bear&backgroundColor=FFDA44',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=fox&backgroundColor=37495A',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=raccoon&backgroundColor=FF5A42',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=monkey&backgroundColor=4FACFF',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=koala&backgroundColor=FFA726',
+  'https://api.dicebear.com/9.x/fun-emoji/svg?seed=bull&backgroundColor=1CBE76'
 ];
 
 // Function to get a random animal avatar

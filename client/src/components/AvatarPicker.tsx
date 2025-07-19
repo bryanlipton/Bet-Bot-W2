@@ -62,7 +62,7 @@ export default function AvatarPicker({ isOpen, onClose, onSelect, currentAvatar 
 
           {/* Animal Avatars */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Choose an Animal Avatar</Label>
+            <Label className="text-base font-medium">Choose an avatar</Label>
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
               {animalAvatars.map((avatar, index) => (
                 <button
