@@ -363,17 +363,7 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
 
 
 
-          {/* Enhanced Auto-refresh indicator */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-            <Clock className="w-3 h-3" />
-            <span>Live updates every 5 seconds</span>
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            {liveData.lastUpdate && (
-              <span className="text-xs">
-                Last updated: {new Date(liveData.lastUpdate).toLocaleTimeString()}
-              </span>
-            )}
-          </div>
+
         </div>
       </DialogContent>
     </Dialog>
