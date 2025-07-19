@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   User, 
   Users, 
@@ -23,7 +24,8 @@ import {
   Clock,
   Lock,
   ArrowLeft,
-  UserCheck
+  UserCheck,
+  X
 } from "lucide-react";
 
 interface UserProfileData {
@@ -59,6 +61,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -103,6 +106,36 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
       setIsFollowing(followStatus.isFollowing);
     }
   }, [followStatus]);
+
+  // Delete pick mutation
+  const deletePick = useMutation({
+    mutationFn: async (pickId: string) => {
+      await apiRequest(`/api/user/picks/${pickId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pick deleted",
+        description: "Your pick has been removed successfully.",
+      });
+      // Refresh the public feed
+      queryClient.invalidateQueries({ queryKey: ['/api/public-feed', userId] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete pick. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeletePick = (pickId: string) => {
+    if (confirm("Are you sure you want to delete this pick?")) {
+      deletePick.mutate(pickId);
+    }
+  };
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
@@ -375,15 +408,27 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
                          item.result === 'loss' ? 'Lost' : 
                          'Pending'}
                       </Badge>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(item.timestamp).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(item.timestamp).toLocaleDateString()}
+                        </span>
+                        {isOwnProfile && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeletePick(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 h-auto"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {item.pick.selection}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.pick.game}
+                      {item.pick.gameInfo?.game || item.pick.game || 'Game info unavailable'}
                     </p>
                   </div>
                 ))}
