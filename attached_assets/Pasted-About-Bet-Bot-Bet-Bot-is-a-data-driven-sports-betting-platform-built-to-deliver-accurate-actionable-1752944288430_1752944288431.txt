@@ -1,0 +1,45 @@
+About Bet Bot
+Bet Bot is a data-driven sports betting platform built to deliver accurate, actionable insights.
+
+We use artificial intelligence, machine learning, and real-time data integration to help bettors make smarter decisions—without the need for spreadsheets or hours of research.
+
+What We Do
+Bet Bot provides users with reliable daily picks, odds comparisons from major sportsbooks, and tools to track performance—all powered by official data sources and advanced analytics.
+
+While sportsbooks rely on vast teams and proprietary models, everyday bettors often rely on instinct. Bet Bot aims to close that gap, giving individuals access to a professional-grade betting assistant.
+
+Key Features
+AI-Powered Daily Picks
+Picks are generated every morning at 2 AM EST using models built with 27+ statistical features, including data from Baseball Savant, official MLB APIs, and weather conditions.
+
+Live Odds Comparison
+Real-time odds from leading sportsbooks including DraftKings, FanDuel, Caesars, and BetMGM—refreshed every 15 minutes and linked directly to the bet slip.
+
+Transparent Confidence Grading
+Each pick is assigned a grade from A+ to D, reflecting confidence levels based on six analytical factors such as offensive production, pitching matchup, and market inefficiencies.
+
+Bet Tracking and History
+Log picks, track performance over time, and view detailed metrics like ROI, win rate, and betting trends. Parlay support and unit-based tracking included.
+
+User Profiles and Community
+Optional public profiles with follower systems, privacy controls, and performance visibility allow for connection without compromising data ownership.
+
+Mobile-First Design
+Bet Bot is optimized for mobile use, with touch-friendly layouts and responsive grids that adapt to any screen size.
+
+Data Integrity
+All data used by Bet Bot comes from official sources. No simulations, no biased inputs—just verified statistics and real-time game conditions. Picks update automatically as lineups change or games begin.
+
+Our Technology Stack
+Front-End: React, TypeScript
+
+Back-End: Node.js, Express
+
+Database: PostgreSQL
+
+Live Features: WebSockets for real-time updates
+
+AI/ML: TensorFlow.js
+
+Responsible Use
+Bet Bot is intended for informational and educational purposes. Betting carries risk, and past performance does not guarantee future outcomes. Users are encouraged to gamble responsibly.

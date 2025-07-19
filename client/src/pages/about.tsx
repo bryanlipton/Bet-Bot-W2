@@ -67,13 +67,12 @@ export default function AboutPage() {
         {/* Mission Statement */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-white">
-              Our Mission
-            </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-              Bet Bot is a comprehensive sports betting platform that combines artificial intelligence, 
-              real-time data analysis, and machine learning to provide intelligent betting insights and recommendations. 
-              We democratize access to professional-grade sports analytics, helping users make more informed betting decisions.
+              Bet Bot is a data-driven sports betting platform built to deliver accurate, actionable insights.
+            </p>
+            <br />
+            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+              We use artificial intelligence, machine learning, and real-time data integration to help bettors make smarter decisions—without the need for spreadsheets or hours of research.
             </p>
           </CardContent>
         </Card>
@@ -88,9 +87,10 @@ export default function AboutPage() {
               </h2>
             </div>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-              We're here to level the playing field. While sportsbooks have teams of analysts and massive data resources, 
-              most bettors are flying blind. Bet Bot gives you the same analytical edge that professionals use, 
-              but in a simple format that saves you hours of research.
+              Bet Bot provides users with reliable daily picks, odds comparisons from major sportsbooks, and tools to track performance—all powered by official data sources and advanced analytics.
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+              While sportsbooks rely on vast teams and proprietary models, everyday bettors often rely on instinct. Bet Bot aims to close that gap, giving individuals access to a professional-grade betting assistant.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -98,9 +98,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Target className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Expert Picks, Daily</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">AI-Powered Daily Picks</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Wake up to carefully analyzed picks with clear reasoning - no guesswork required
+                      Picks are generated every morning at 2 AM EST using models built with 27+ statistical features, including data from Baseball Savant, official MLB APIs, and weather conditions.
                     </p>
                   </div>
                 </div>
@@ -108,9 +108,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <BarChart3 className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Best Odds, Instantly</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Live Odds Comparison</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Compare odds across all major sportsbooks and place bets with one click
+                      Real-time odds from leading sportsbooks including DraftKings, FanDuel, Caesars, and BetMGM—refreshed every 15 minutes and linked directly to the bet slip.
                     </p>
                   </div>
                 </div>
@@ -118,9 +118,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <TrendingUp className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Track Your Success</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Transparent Confidence Grading</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      See exactly how you're performing and share your wins with the community
+                      Each pick is assigned a grade from A+ to D, reflecting confidence levels based on six analytical factors such as offensive production, pitching matchup, and market inefficiencies.
                     </p>
                   </div>
                 </div>
@@ -130,9 +130,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Database className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Real Sports Data</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Bet Tracking and History</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Everything is based on official MLB statistics - no made-up numbers or biased opinions
+                      Log picks, track performance over time, and view detailed metrics like ROI, win rate, and betting trends. Parlay support and unit-based tracking included.
                     </p>
                   </div>
                 </div>
@@ -140,9 +140,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Zap className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Always Fresh</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">User Profiles and Community</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Picks update automatically as games start, so you never miss an opportunity
+                      Optional public profiles with follower systems, privacy controls, and performance visibility allow for connection without compromising data ownership.
                     </p>
                   </div>
                 </div>
@@ -150,9 +150,9 @@ export default function AboutPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-600 mt-1" />
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Your Privacy Matters</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Mobile-First Design</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Choose what to share and what to keep private - it's your betting journey
+                      Bet Bot is optimized for mobile use, with touch-friendly layouts and responsive grids that adapt to any screen size.
                     </p>
                   </div>
                 </div>
@@ -161,161 +161,90 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* How You'll Use It */}
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Zap className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                How You'll Use It
-              </h2>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Check Your Picks</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Every morning, new picks are waiting for you. Our AI model generates each pick by analyzing 
-                    dozens of factors - team stats, pitcher matchups, weather, recent form, and more. Each comes with a clear grade (A+ to D) 
-                    and simple explanation of why it's a good bet. No spreadsheets, no complicated math - just the info you need.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Find the Best Odds</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Click any pick to see odds from all the major sportsbooks. We'll show you who's offering 
-                    the best payout and take you directly to place your bet. More money in your pocket, less time shopping around.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Track and Share</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Log your bets to see your win rate, profit, and hot streaks. Follow other successful bettors 
-                    and share your own wins. It's like social media, but for people who actually know sports.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Why You'll Love It */}
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Target className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Why You'll Love It
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4">
-                <Clock className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Save Hours Every Day</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  No more endless research or second-guessing. Fresh picks every morning at 2 AM, 
-                  updated automatically when games change
-                </p>
-              </div>
-              
-              <div className="text-center p-4">
-                <BarChart3 className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Never Miss the Best Odds</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Compare every major sportsbook instantly and place bets with one click. 
-                  More winnings, less hassle
-                </p>
-              </div>
-              
-              <div className="text-center p-4">
-                <TrendingUp className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Join the Community</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Follow successful bettors, share your wins, and learn from others. 
-                  Betting is more fun when you're not doing it alone
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Technology Stack */}
+        {/* Data Integrity */}
         <Card className="bg-white dark:bg-gray-800">
           <CardContent className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <Database className="w-6 h-6 text-blue-600" />
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                Technology & Data Sources
+                Data Integrity
+              </h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              All data used by Bet Bot comes from official sources. No simulations, no biased inputs—just verified statistics and real-time game conditions. Picks update automatically as lineups change or games begin.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Our Technology Stack */}
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Target className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                Our Technology Stack
               </h2>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Artificial Intelligence</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Powered by TensorFlow.js machine learning models with 27 advanced features including 
-                  Baseball Savant integration, weather analytics, and ballpark factors.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Official Data Sources</h3>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="secondary">MLB Stats API</Badge>
-                  <Badge variant="secondary">The Odds API</Badge>
-                  <Badge variant="secondary">Baseball Savant</Badge>
-                  <Badge variant="secondary">Weather Services</Badge>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Frontend</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">React</Badge>
+                  <Badge variant="outline">TypeScript</Badge>
                 </div>
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Modern Tech Stack</h3>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge variant="outline">React & TypeScript</Badge>
-                  <Badge variant="outline">Node.js & Express</Badge>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Backend</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">Node.js</Badge>
+                  <Badge variant="outline">Express</Badge>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Database</h3>
+                <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">PostgreSQL</Badge>
-                  <Badge variant="outline">WebSocket Real-time</Badge>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Live Features</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">WebSockets</Badge>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">AI/ML</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">TensorFlow.js</Badge>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Disclaimer */}
+        {/* Responsible Use */}
         <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-                  Important Disclaimer
+                  Responsible Use
                 </h3>
                 <p className="text-sm text-yellow-700 dark:text-yellow-300 leading-relaxed">
-                  <strong>Responsible Gaming:</strong> Bet Bot provides analysis and insights for educational purposes. 
-                  Sports betting involves risk and should be done responsibly. Past performance does not guarantee future results. 
-                  Please bet responsibly and within your means. If you have a gambling problem, seek help from appropriate resources.
+                  Bet Bot is intended for informational and educational purposes. Betting carries risk, and past performance does not guarantee future outcomes. Users are encouraged to gamble responsibly.
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+
       </main>
       
       <Footer />
