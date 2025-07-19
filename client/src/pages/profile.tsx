@@ -80,6 +80,8 @@ export default function ProfilePage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [editForm, setEditForm] = useState({
     username: '',
     bio: '',
@@ -128,6 +130,20 @@ export default function ProfilePage() {
   });
 
   const isAuthenticated = !!user;
+
+  // Fetch followers list
+  const { data: followers = [], isLoading: followersLoading } = useQuery({
+    queryKey: [`/api/users/${user?.id}/followers`],
+    enabled: !!user?.id && showFollowersModal,
+    retry: false,
+  });
+
+  // Fetch following list
+  const { data: following = [], isLoading: followingLoading } = useQuery({
+    queryKey: [`/api/users/${user?.id}/following`],
+    enabled: !!user?.id && showFollowingModal,
+    retry: false,
+  });
 
   // Load picks data
   useEffect(() => {
@@ -858,20 +874,26 @@ export default function ProfilePage() {
 
                 {/* Social Stats */}
                 <div className="flex items-center gap-6 mb-4">
-                  <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setShowFollowersModal(true)}
+                    className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                  >
                     <Users className="w-4 h-4 text-gray-500" />
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {userProfile.followers}
                     </span>
                     <span className="text-gray-600 dark:text-gray-400">followers</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                  </button>
+                  <button 
+                    onClick={() => setShowFollowingModal(true)}
+                    className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+                  >
                     <UserPlus className="w-4 h-4 text-gray-500" />
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {userProfile.following}
                     </span>
                     <span className="text-gray-600 dark:text-gray-400">following</span>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-500" />
                     <span className="text-gray-600 dark:text-gray-400">
@@ -1060,6 +1082,170 @@ export default function ProfilePage() {
         currentAvatar={editForm.profileImage}
         onAvatarChange={handleImageSelect}
       />
+
+      {/* Followers Modal */}
+      <Dialog open={showFollowersModal} onOpenChange={setShowFollowersModal}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Followers ({userProfile.followers})</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {followersLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : followers.length > 0 ? (
+              followers.map((follower: any) => (
+                <div key={follower.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const avatarString = follower.profileImageUrl;
+                      
+                      if (avatarString?.includes('|')) {
+                        // New format: emoji|background
+                        const [emoji, backgroundClass] = avatarString.split('|');
+                        return (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                            <span className="text-lg">{emoji}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={avatarString} alt={follower.username} />
+                            <AvatarFallback className="bg-blue-600 text-white text-sm">
+                              {follower.username?.charAt(0).toUpperCase() || follower.firstName?.charAt(0).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
+                      }
+                    })()}
+                    
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {follower.username || `${follower.firstName} ${follower.lastName}`.trim()}
+                      </p>
+                      {follower.bio && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                          {follower.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Navigate to follower's profile
+                      window.open(`/profile/${follower.id}`, '_blank');
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <User className="w-3 h-3" />
+                    View Profile
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No followers yet</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Following Modal */}
+      <Dialog open={showFollowingModal} onOpenChange={setShowFollowingModal}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Following ({userProfile.following})</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {followingLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : following.length > 0 ? (
+              following.map((followedUser: any) => (
+                <div key={followedUser.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const avatarString = followedUser.profileImageUrl;
+                      
+                      if (avatarString?.includes('|')) {
+                        // New format: emoji|background
+                        const [emoji, backgroundClass] = avatarString.split('|');
+                        return (
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                            <span className="text-lg">{emoji}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={avatarString} alt={followedUser.username} />
+                            <AvatarFallback className="bg-blue-600 text-white text-sm">
+                              {followedUser.username?.charAt(0).toUpperCase() || followedUser.firstName?.charAt(0).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                        );
+                      }
+                    })()}
+                    
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {followedUser.username || `${followedUser.firstName} ${followedUser.lastName}`.trim()}
+                      </p>
+                      {followedUser.bio && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                          {followedUser.bio}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Navigate to followed user's profile
+                      window.open(`/profile/${followedUser.id}`, '_blank');
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <User className="w-3 h-3" />
+                    View Profile
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <UserPlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Not following anyone yet</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
