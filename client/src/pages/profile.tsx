@@ -685,18 +685,7 @@ export default function ProfilePage() {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <div className="flex items-center justify-between">
-                          <DialogTitle>Edit Profile</DialogTitle>
-                          {/* Save/Cancel Buttons - Top Right */}
-                          <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
-                              Cancel
-                            </Button>
-                            <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
-                              {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                            </Button>
-                          </div>
-                        </div>
+                        <DialogTitle>Edit Profile</DialogTitle>
                       </DialogHeader>
                       
                       <div className="space-y-6">
@@ -735,15 +724,25 @@ export default function ProfilePage() {
                                 );
                               }
                             })()}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => setIsImagePickerOpen(true)}
-                              className="flex items-center gap-2"
-                            >
-                              <Camera className="w-4 h-4" />
-                              Choose Picture
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsImagePickerOpen(true)}
+                                className="flex items-center gap-2"
+                              >
+                                <Camera className="w-4 h-4" />
+                                Choose Picture
+                              </Button>
+                              
+                              {/* Save/Cancel Buttons */}
+                              <Button variant="outline" onClick={() => setIsEditingProfile(false)}>
+                                Cancel
+                              </Button>
+                              <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
+                                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                              </Button>
+                            </div>
                           </div>
                         </div>
                         
