@@ -35,7 +35,10 @@ import {
   EyeOff,
   Camera,
   Flame,
-  Lock
+  Lock,
+  Search,
+  UserCheck,
+  X
 } from "lucide-react";
 
 interface UserProfile {
@@ -71,6 +74,10 @@ export default function ProfilePage() {
   const [publicFeed, setPublicFeed] = useState<PublicFeedItem[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [isFriendSearchOpen, setIsFriendSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [editForm, setEditForm] = useState({
     username: '',
     bio: '',
@@ -220,6 +227,71 @@ export default function ProfilePage() {
   };
 
   // Update profile mutation
+  // Search for users
+  const handleSearch = async (searchTerm: string) => {
+    if (searchTerm.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const users = await response.json();
+        setSearchResults(users);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Follow a user
+  const handleFollowUser = async (userId: string) => {
+    try {
+      const response = await fetch('/api/users/follow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "User followed successfully!",
+        });
+        
+        // Remove from search results or update to show "Following"
+        setSearchResults(prev => prev.filter(user => user.id !== userId));
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.message || "Failed to follow user.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Follow error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to follow user. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
       console.log("Sending profile update:", profileData);
@@ -383,6 +455,104 @@ export default function ProfilePage() {
             <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
           </div>
+          
+          {/* Search for Friends Button */}
+          <Dialog open={isFriendSearchOpen} onOpenChange={setIsFriendSearchOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Search for friends...
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Search for Friends</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by username or name..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      handleSearch(e.target.value);
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Search Results */}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div className="flex items-center gap-3">
+                          {/* User Avatar */}
+                          {(() => {
+                            const avatarString = user.profileImageUrl;
+                            
+                            if (avatarString?.includes('|')) {
+                              const [emoji, backgroundClass] = avatarString.split('|');
+                              return (
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${backgroundClass}`}>
+                                  <span className="text-lg">{emoji}</span>
+                                </div>
+                              );
+                            } else {
+                              return (
+                                <Avatar className="w-10 h-10">
+                                  <AvatarImage src={avatarString} alt={user.username} />
+                                  <AvatarFallback className="bg-blue-600 text-white text-sm">
+                                    {user.username?.charAt(0).toUpperCase() || user.firstName?.charAt(0).toUpperCase() || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                              );
+                            }
+                          })()}
+                          
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {user.username || `${user.firstName} ${user.lastName}`.trim()}
+                            </p>
+                            {user.bio && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                                {user.bio}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Follow Button */}
+                        <Button
+                          size="sm"
+                          onClick={() => handleFollowUser(user.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <UserPlus className="w-3 h-3" />
+                          Follow
+                        </Button>
+                      </div>
+                    ))
+                  ) : searchTerm.length > 0 ? (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      No users found matching "{searchTerm}"
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      Start typing to search for friends
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Profile Info Card - Instagram/Twitter Style */}

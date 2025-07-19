@@ -44,6 +44,17 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User follows/friends relationship table
+export const userFollows = pgTable("user_follows", {
+  id: serial("id").primaryKey(),
+  followerId: text("follower_id").references(() => users.id).notNull(),
+  followingId: text("following_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_follower").on(table.followerId),
+  index("idx_following").on(table.followingId),
+]);
+
 export const games = pgTable("games", {
   id: serial("id").primaryKey(),
   externalId: text("external_id").notNull().unique(),
@@ -365,6 +376,7 @@ export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks
 export const insertUserPickSchema = createInsertSchema(userPicks).omit({ createdAt: true, gradedAt: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ updatedAt: true });
 export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserFollowSchema = createInsertSchema(userFollows).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -416,3 +428,5 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserBet = typeof userBets.$inferSelect;
 export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
+export type UserFollow = typeof userFollows.$inferSelect;
+export type InsertUserFollow = z.infer<typeof insertUserFollowSchema>;
