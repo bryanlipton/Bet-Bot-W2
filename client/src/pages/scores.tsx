@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { LiveGameModal } from "@/components/LiveGameModal";
+import { GameDetailsModal } from "@/components/GameDetailsModal";
 import { getTeamColor } from "@/utils/teamLogos";
 import { 
   Calendar,
@@ -75,6 +76,18 @@ export default function ScoresPage() {
     gameId: string;
     homeTeam: string;
     awayTeam: string;
+  } | null>(null);
+  
+  const [selectedScheduledGame, setSelectedScheduledGame] = useState<{
+    gameId: string;
+    homeTeam: string;
+    awayTeam: string;
+    startTime?: string;
+    venue?: string;
+    probablePitchers?: {
+      home: string | null;
+      away: string | null;
+    };
   } | null>(null);
 
   // Initialize dark mode from localStorage (default to dark mode)
@@ -400,7 +413,7 @@ export default function ScoresPage() {
                   return (status.includes('live') || status.includes('progress') || status.includes('in progress')) && 
                          !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
               </div>
             </div>
@@ -423,7 +436,7 @@ export default function ScoresPage() {
                   return !status.includes('live') && !status.includes('progress') && !status.includes('in progress') && 
                          !status.includes('final') && !status.includes('completed');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
               </div>
             </div>
@@ -444,7 +457,7 @@ export default function ScoresPage() {
                   const status = game.status.toLowerCase();
                   return status.includes('final') || status.includes('completed') || status.includes('game over');
                 }).map((game) => (
-                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} />
+                  <ScoreGameCard key={game.id} game={game} onLiveGameClick={setSelectedLiveGame} onScheduledGameClick={setSelectedScheduledGame} />
                 ))}
               </div>
             </div>
@@ -463,6 +476,17 @@ export default function ScoresPage() {
           onClose={() => setSelectedLiveGame(null)}
         />
       )}
+      
+      {/* Scheduled Game Details Modal */}
+      {selectedScheduledGame && (
+        <GameDetailsModal
+          gameId={selectedScheduledGame.gameId}
+          homeTeam={selectedScheduledGame.homeTeam}
+          awayTeam={selectedScheduledGame.awayTeam}
+          isOpen={!!selectedScheduledGame}
+          onClose={() => setSelectedScheduledGame(null)}
+        />
+      )}
     </div>
   );
 }
@@ -470,10 +494,12 @@ export default function ScoresPage() {
 // Score Game Card Component
 function ScoreGameCard({ 
   game, 
-  onLiveGameClick 
+  onLiveGameClick,
+  onScheduledGameClick 
 }: { 
   game: ScoreGame; 
   onLiveGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string }) => void;
+  onScheduledGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string; startTime?: string; venue?: string; probablePitchers?: { home: string | null; away: string | null; } }) => void;
 }) {
   const getStatusBadge = (status: string) => {
     const lowerStatus = status.toLowerCase();
@@ -535,19 +561,30 @@ function ScoreGameCard({
   };
 
   const handleCardClick = () => {
-    // Only open live modal for live games
     if (isLive) {
+      // Open live modal for live games
       onLiveGameClick({
         gameId: game.id,
         homeTeam: game.homeTeam,
         awayTeam: game.awayTeam
       });
+    } else if (!isFinished) {
+      // Open scheduled game modal for upcoming games
+      onScheduledGameClick({
+        gameId: game.id,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam,
+        startTime: game.startTime,
+        venue: undefined, // We'll fetch this from the API
+        probablePitchers: undefined // We'll fetch this from the API
+      });
     }
+    // Finished games don't open modals
   };
 
   return (
     <Card 
-      className={`bg-white dark:bg-gray-800 hover:shadow-md transition-shadow ${isLive ? 'cursor-pointer' : ''}`}
+      className={`bg-white dark:bg-gray-800 hover:shadow-md transition-shadow ${(isLive || !isFinished) ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
     >
       <CardContent className="p-4">
