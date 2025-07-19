@@ -376,12 +376,32 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                       <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                     )}
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {getFactorTooltip(score || 75, getFactorTitle(key)).split('\n\n')[0] || description || getFactorInfo(key)}
+                      {getFactorTooltip(score || 75, getFactorTitle(key), {
+                        isHomeGame: true,
+                        opponentHandedness: 'RHP' as const,
+                        starterERA: 4.2,
+                        last10Record: '5-5',
+                        offensiveStats: {
+                          xwOBA: 0.320,
+                          barrelRate: 6.0,
+                          exitVelo: 86.8
+                        }
+                      }).split('\n\n')[0] || description || getFactorInfo(key)}
                     </p>
                     {score !== null && score !== undefined && !isNaN(score) && score > 0 && (
                       <div className="border-t pt-2 mt-2 text-xs text-gray-500 dark:text-gray-500">
                         <div className="font-medium mb-1">Grade Meaning:</div>
-                        <div className="text-gray-700 dark:text-gray-300 mb-2">{getFactorTooltip(score, getFactorTitle(key)).split('\n\n')[1] || getGradeExplanation(score, getFactorTitle(key))}</div>
+                        <div className="text-gray-700 dark:text-gray-300 mb-2">{getFactorTooltip(score, getFactorTitle(key), {
+                          isHomeGame: true,
+                          opponentHandedness: 'RHP' as const,
+                          starterERA: 4.2,
+                          last10Record: '5-5',
+                          offensiveStats: {
+                            xwOBA: 0.320,
+                            barrelRate: 6.0,
+                            exitVelo: 86.8
+                          }
+                        }).split('\n\n')[1] || getGradeExplanation(score, getFactorTitle(key))}</div>
                         <div className="mt-2 text-[10px] text-gray-400 dark:text-gray-400">
                           90+ = Elite | 80-89 = Strong | 75 = Neutral baseline | &lt;75 = Disadvantage
                         </div>

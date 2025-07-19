@@ -1,0 +1,107 @@
+Here’s a clean, developer-ready **Replit prompt** you can drop into your workspace or share with your engineer. It explains **what to do, how to do it**, and gives room for creativity while locking in your black-box protection goals.
+
+---
+
+### ✅ Replit Prompt: Implement Professional Factor Score Narratives with Abstracted Analysis
+
+> 🎯 **Goal**: Create a system that explains each factor score (Offensive Production, Pitching Matchup, etc.) using **analyst-style narratives** that feel data-backed, serious, and credible — without revealing the exact model formulas or weights.
+
+---
+
+### 🛠️ Implementation Instructions:
+
+#### 1. **Narrative Generator per Factor**
+
+For each of the six analytical factors, build a function like:
+
+```ts
+function generateNarrative(factorName: string, stats: Record<string, number | string>): string
+```
+
+This should return a **short paragraph (2–3 sentences)** that explains *why* the factor score is high or low using contextual clues like:
+
+* Percentiles
+* Matchup context (e.g., RHP/LHP, home/away)
+* Trends (recent performance vs season-long)
+* Relative strengths/weaknesses
+
+**Example (Offensive Production: 91):**
+
+> “The lineup ranks in the 90th percentile for xwOBA against right-handed pitching, with elevated barrel rates and consistent exit velocity. Statcast trends reinforce a strong hitting profile, especially in hitter-friendly park conditions.”
+
+Avoid bullet points, and favor analyst-style tone.
+
+---
+
+#### 2. **Use Stat Triggers (Not Model Weights)**
+
+Create a `narrativeConfig.ts` that maps conditions → phrases.
+
+```ts
+// For Offensive Production
+if (xwOBA > 0.340) text += "Ranks top 10% in expected wOBA.";
+if (barrelRate > 7.0) text += "Shows strong barrel rates, indicating consistent hard contact.";
+if (exitVelo > 87.5) text += "Exit velocity remains above league average.";
+```
+
+Only show **qualitative triggers**, not raw numbers. These triggers don’t affect the model — they just **explain the surface score**.
+
+---
+
+#### 3. **Maintain Score Range Guidelines (For Reference Only)**
+
+All factors are normalized to 60–100:
+
+| Score  | Interpretation    |
+| ------ | ----------------- |
+| 90–100 | Elite             |
+| 80–89  | Strong            |
+| 75     | Baseline neutral  |
+| <75    | Relative weakness |
+
+You can refer to these when deciding how strong the narrative sounds — but don’t output the labels (like “Strong” or “Elite”) unless asked.
+
+---
+
+#### 4. **Allow Contextual Inputs per Game**
+
+Narrative should adjust to matchup context (e.g., “vs LHP”, “road game”, “high altitude park”).
+
+Use game data like:
+
+```ts
+{
+  opponentHandedness: "RHP",
+  isHomeGame: true,
+  parkFactor: 110,
+  starterERA: 3.12,
+  last10Record: "8-2",
+  offensiveStats: {
+    xwOBA: 0.347,
+    barrelRate: 8.1,
+    exitVelo: 88.4
+  }
+}
+```
+
+---
+
+#### 5. **Tone & Language Guidelines**
+
+* Use technical but readable tone.
+* Prioritize synthesis over raw stat listing.
+* Avoid “scorecard” feel — write like an analyst at a betting syndicate would speak.
+* Vary phrasing across picks to avoid repetition.
+
+---
+
+### 📦 Deliverables
+
+* [ ] `generateNarrative(factorName, stats)` with all 6 factors
+* [ ] `narrativeConfig.ts` with condition → phrase mappings
+* [ ] Integration into existing PickAnalysis UI
+* [ ] Test render for each factor at 91, 83, 75, and 68 to confirm variability
+
+---
+
+Let me know if you'd like a starter file or phrase bank to speed this up.

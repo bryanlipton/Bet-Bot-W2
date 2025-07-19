@@ -1,4 +1,5 @@
 // Utility functions for normalizing and color-coding analysis factors
+import { getFactorNarrative } from './narrativeGenerator';
 
 /**
  * Normalizes a factor score to the 60-100 range
@@ -93,6 +94,21 @@ export function getFactorExplanation(factorName: string): string {
   }
 }
 
+/**
+ * Gets professional analyst-style narrative for a factor score
+ * Uses the new narrative generator for more sophisticated explanations
+ */
+export function getFactorNarrative(factorName: string, score: number, context: any = {}): string {
+  // Import the narrative generator dynamically to avoid circular dependencies
+  try {
+    const { generateNarrative } = require('./narrativeGenerator');
+    return generateNarrative(factorName, score, context);
+  } catch (error) {
+    // Fallback to basic explanation if narrative generator isn't available
+    return getFactorExplanation(factorName);
+  }
+}
+
 function getGradeExplanation(score: number, factorName: string): string {
   const grade = scoreToGrade(score);
   
@@ -141,11 +157,12 @@ function getGradeExplanation(score: number, factorName: string): string {
   }
 }
 
-export function getFactorTooltip(normalizedScore: number, factorName: string): string {
-  const explanation = getFactorExplanation(factorName);
+export function getFactorTooltip(normalizedScore: number, factorName: string, context: any = {}): string {
+  // Use professional narrative for the main explanation
+  const narrative = getFactorNarrative(factorName, normalizedScore, context);
   const gradeExplanation = getGradeExplanation(normalizedScore, factorName);
   
-  return `${explanation}\n\n${gradeExplanation}`;
+  return `${narrative}\n\n${gradeExplanation}`;
 }
 
 /**

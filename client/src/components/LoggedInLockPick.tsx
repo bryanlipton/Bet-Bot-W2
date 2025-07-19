@@ -196,9 +196,9 @@ function ColoredProgress({ value, className }: { value: number | null; className
 }
 
 // Factor Score Component with Info Button
-function FactorScore({ title, score, info }: { title: string; score: number; info: string }) {
+function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
   const colorClasses = getFactorColorClasses(score);
-  const tooltip = getFactorTooltip(score, title);
+  const tooltip = getFactorTooltip(score, title, gameContext);
 
   return (
     <div className="flex items-center py-1">
@@ -865,9 +865,21 @@ export default function LoggedInLockPick() {
                     Analysis Factors
                   </h5>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                    {factors.map(({ key, title, score, info }) => (
-                      <FactorScore key={key} title={title} score={score} info={info} />
-                    ))}
+                    {factors.map(({ key, title, score, info }) => {
+                      // Create context for narrative generation
+                      const gameContext = {
+                        isHomeGame: lockPick.pickTeam === lockPick.homeTeam,
+                        opponentHandedness: 'LHP' as const,
+                        starterERA: 3.8,
+                        last10Record: '6-4',
+                        offensiveStats: {
+                          xwOBA: 0.325,
+                          barrelRate: 7.2,
+                          exitVelo: 88.5
+                        }
+                      };
+                      return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
+                    })}
                   </div>
                 </div>
               )}
@@ -882,9 +894,21 @@ export default function LoggedInLockPick() {
                   Analysis Factors
                 </h5>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {factors.map(({ key, title, score, info }) => (
-                    <FactorScore key={key} title={title} score={score} info={info} />
-                  ))}
+                  {factors.map(({ key, title, score, info }) => {
+                    // Create context for narrative generation
+                    const gameContext = {
+                      isHomeGame: lockPick.pickTeam === lockPick.homeTeam,
+                      opponentHandedness: 'LHP' as const,
+                      starterERA: 3.8,
+                      last10Record: '6-4',
+                      offensiveStats: {
+                        xwOBA: 0.325,
+                        barrelRate: 7.2,
+                        exitVelo: 88.5
+                      }
+                    };
+                    return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
+                  })}
                 </div>
               </div>
             )}
@@ -899,9 +923,21 @@ export default function LoggedInLockPick() {
               
               {/* 2 columns x 3 rows grid of factor scores */}
               <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-1">
-                {factors.map(({ key, title, score, info }) => (
-                  <FactorScore key={key} title={title} score={score} info={info} />
-                ))}
+                {factors.map(({ key, title, score, info }) => {
+                  // Create context for narrative generation
+                  const gameContext = {
+                    isHomeGame: lockPick.pickTeam === lockPick.homeTeam,
+                    opponentHandedness: 'LHP' as const,
+                    starterERA: 3.8,
+                    last10Record: '6-4',
+                    offensiveStats: {
+                      xwOBA: 0.325,
+                      barrelRate: 7.2,
+                      exitVelo: 88.5
+                    }
+                  };
+                  return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
+                })}
               </div>
               
               {/* Hide Analysis button for large screens */}
