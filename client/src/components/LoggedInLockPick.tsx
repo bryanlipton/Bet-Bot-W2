@@ -384,11 +384,23 @@ export default function LoggedInLockPick() {
     return `${type} ${sign}`;
   };
 
-  // Find current game score data
-  const currentGameScore = gameScore?.find((game: any) => 
-    game.gameId === parseInt(lockPick?.gameId || '0') ||
-    (game.homeTeam === lockPick?.homeTeam && game.awayTeam === lockPick?.awayTeam)
-  );
+  // Find current game score data with improved matching logic
+  const currentGameScore = gameScore?.find((game: any) => {
+    // Try multiple matching strategies
+    const gameIdMatch = game.gameId === parseInt(lockPick?.gameId || '0') || 
+                       game.gameId === lockPick?.gameId;
+    const teamMatch = game.homeTeam === lockPick?.homeTeam && 
+                     game.awayTeam === lockPick?.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
+
+  // Debug logging (remove in production)
+  // if (lockPick && gameScore && gameScore.length > 0) {
+  //   console.log('Lock pick game ID:', lockPick.gameId, typeof lockPick.gameId);
+  //   console.log('Lock pick teams:', lockPick.awayTeam, '@', lockPick.homeTeam);
+  //   console.log('Available scores data (first 2):', gameScore.slice(0, 2));
+  //   console.log('Found matching score:', currentGameScore);
+  // }
 
   // Get all 6 factors with their info descriptions in permanent order
   const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
@@ -752,21 +764,27 @@ export default function LoggedInLockPick() {
               </p>
             </div>
             <div className="mt-3">
-              {/* Live Score Display */}
-              {currentGameScore && currentGameScore.status && (
+              {/* Game Status Display */}
+              {currentGameScore && (
                 <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-4">
                       <div className="text-amber-600 dark:text-amber-400 font-semibold">
                         {currentGameScore.awayTeam}
                       </div>
-                      <div className="text-lg font-bold">
-                        {currentGameScore.awayScore ?? 0}
-                      </div>
-                      <div className="text-gray-400">-</div>
-                      <div className="text-lg font-bold">
-                        {currentGameScore.homeScore ?? 0}
-                      </div>
+                      {currentGameScore.status === 'Scheduled' ? (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">vs</div>
+                      ) : (
+                        <>
+                          <div className="text-lg font-bold">
+                            {currentGameScore.awayScore ?? 0}
+                          </div>
+                          <div className="text-gray-400">-</div>
+                          <div className="text-lg font-bold">
+                            {currentGameScore.homeScore ?? 0}
+                          </div>
+                        </>
+                      )}
                       <div className="text-amber-600 dark:text-amber-400 font-semibold">
                         {currentGameScore.homeTeam}
                       </div>
@@ -775,6 +793,7 @@ export default function LoggedInLockPick() {
                       {currentGameScore.status === 'Final' ? 'Final' : 
                        currentGameScore.status === 'In Progress' ? 
                          (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
+                       currentGameScore.status === 'Scheduled' ? 'Scheduled' :
                        currentGameScore.status}
                     </div>
                   </div>
