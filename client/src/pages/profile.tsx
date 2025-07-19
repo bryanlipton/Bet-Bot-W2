@@ -1175,14 +1175,41 @@ export default function ProfilePage() {
                         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="font-medium text-gray-900 dark:text-white">
-                                {item.pick.gameInfo?.awayTeam} @ {item.pick.gameInfo?.homeTeam}
-                              </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                {item.pick.betInfo?.selection}
-                                {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
-                                {item.pick.betInfo?.odds && ` (${formatOdds(item.pick.betInfo.odds)})`}
-                              </div>
+                              {/* Check if it's a parlay */}
+                              {item.pick.betInfo?.market === 'parlay' && item.pick.betInfo?.parlayLegs && item.pick.betInfo.parlayLegs.length > 0 ? (
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-white mb-2">
+                                    {item.pick.betInfo.parlayLegs.length}-Leg Parlay @ Multiple Games
+                                  </div>
+                                  <div className="space-y-2 mb-3">
+                                    {item.pick.betInfo.parlayLegs.map((leg, index) => (
+                                      <div key={index} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                        <div className="font-medium text-gray-900 dark:text-white">{leg.game}</div>
+                                        <div className="text-blue-600 dark:text-blue-400">
+                                          {leg.selection}
+                                          {leg.market === 'spread' && leg.line ? ` ${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
+                                          {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
+                                          {leg.market === 'moneyline' ? ' ML' : ''}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {item.pick.betInfo?.odds && `(${formatOdds(item.pick.betInfo.odds)})`}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-white">
+                                    {item.pick.gameInfo?.awayTeam} @ {item.pick.gameInfo?.homeTeam}
+                                  </div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {item.pick.betInfo?.selection}
+                                    {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
+                                    {item.pick.betInfo?.odds && ` (${formatOdds(item.pick.betInfo.odds)})`}
+                                  </div>
+                                </div>
+                              )}
                               <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                                 {item.pick.betInfo?.units || 1} units • {item.pick.bookmaker?.displayName}
                               </div>

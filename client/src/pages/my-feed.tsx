@@ -242,25 +242,57 @@ export default function MyFeedPage() {
                       </div>
                       
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
-                        <div className="font-medium text-gray-900 dark:text-white mb-1">
-                          {pick.game}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="font-medium text-blue-600 dark:text-blue-400">
-                            {pick.selection}
-                          </span>
-                          {pick.line && (
-                            <span className="text-gray-600 dark:text-gray-400">
-                              {pick.line}
-                            </span>
-                          )}
-                          <span className="font-mono font-medium">
-                            {formatOdds(pick.odds)}
-                          </span>
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {pick.units} unit{pick.units !== 1 ? 's' : ''}
-                          </span>
-                        </div>
+                        {/* Check if it's a parlay */}
+                        {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white mb-2">
+                              {pick.parlayLegs.length}-Leg Parlay @ Multiple Games
+                            </div>
+                            <div className="space-y-2 mb-3">
+                              {pick.parlayLegs.map((leg, index) => (
+                                <div key={index} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                  <div className="font-medium text-gray-900 dark:text-white">{leg.game}</div>
+                                  <div className="text-blue-600 dark:text-blue-400">
+                                    {leg.selection}
+                                    {leg.market === 'spread' && leg.line ? ` ${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
+                                    {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
+                                    {leg.market === 'moneyline' ? ' ML' : ''}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="font-mono font-medium">
+                                {formatOdds(pick.odds)}
+                              </span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white mb-1">
+                              {pick.game}
+                            </div>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="font-medium text-blue-600 dark:text-blue-400">
+                                {pick.selection}
+                              </span>
+                              {pick.line && (
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {pick.line}
+                                </span>
+                              )}
+                              <span className="font-mono font-medium">
+                                {formatOdds(pick.odds)}
+                              </span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           via {pick.bookmakerDisplayName}
                         </div>
