@@ -229,121 +229,13 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
 
 
 
-          {/* Current At-Bat Information */}
+          {/* Simple Game Status */}
           {liveData.status.inProgress && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Current Batter */}
-              <Card className="border-blue-200 dark:border-blue-800">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-                      <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-lg font-semibold text-blue-700 dark:text-blue-400">At Bat</span>
-                  </div>
-                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {liveData.currentBatter.name}
-                  </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {formatCount(liveData.count.balls, liveData.count.strikes)}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Balls - Strikes
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Current Pitcher */}
-              <Card className="border-green-200 dark:border-green-800">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                      <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <span className="text-lg font-semibold text-green-700 dark:text-green-400">Pitching</span>
-                  </div>
-                  <div className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {liveData.currentPitcher.name}
-                  </div>
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {liveData.currentPitcher.pitchCount}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Pitches Thrown
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="text-center py-4">
+              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                {formatInning(liveData.inning.current, liveData.inning.state)}, {liveData.count.outs} Out{liveData.count.outs !== 1 ? 's' : ''}
+              </div>
             </div>
-          )}
-
-          {/* Base Runners */}
-          {liveData.status.inProgress && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-4 h-4 bg-yellow-600 rounded-full" />
-                  <span className="font-semibold">Base Runners</span>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    {hasRunnerOnBase(liveData.baseRunners.third) ? (
-                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
-                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">3rd Base</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {liveData.baseRunners.third.fullName}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                        <div className="text-gray-500 dark:text-gray-400 text-sm">3rd Base</div>
-                        <div className="text-gray-400 text-sm">Empty</div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    {hasRunnerOnBase(liveData.baseRunners.second) ? (
-                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
-                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">2nd Base</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {liveData.baseRunners.second.fullName}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                        <div className="text-gray-500 dark:text-gray-400 text-sm">2nd Base</div>
-                        <div className="text-gray-400 text-sm">Empty</div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    {hasRunnerOnBase(liveData.baseRunners.first) ? (
-                      <div className="bg-yellow-100 dark:bg-yellow-900/20 p-3 rounded-lg">
-                        <div className="font-medium text-yellow-700 dark:text-yellow-400 text-sm mb-1">1st Base</div>
-                        <div className="text-sm font-bold text-gray-900 dark:text-white">
-                          {liveData.baseRunners.first.fullName}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                        <div className="text-gray-500 dark:text-gray-400 text-sm">1st Base</div>
-                        <div className="text-gray-400 text-sm">Empty</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           )}
 
           {/* Enhanced Recent Plays */}
