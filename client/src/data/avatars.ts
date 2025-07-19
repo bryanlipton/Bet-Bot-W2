@@ -1,62 +1,62 @@
 import animalAvatarsImage from '@assets/360_F_91764443_Km6nSUpkR6lo73DBolwLqMeSqmX2hQxs_1752891779225.jpg';
 
-// Animal avatar options with illustrated style matching your design
+// Clean, modern avatar options with the same color scheme
 export const animalAvatars = [
-  // Row 1: Cat (pink), Wolf (blue), Panda (green)
+  // Row 1: Friendly characters with pink, blue, green backgrounds
   {
-    id: 'cat',
-    name: 'Cat',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=cat&backgroundColor=E781A6&eyes=variant01&mouth=variant01',
+    id: 'alex',
+    name: 'Alex',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=alex&backgroundColor=E781A6&hair=shortFlat,shortRound&facialHair=none',
     background: '#E781A6'
   },
   {
-    id: 'wolf', 
-    name: 'Wolf',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=wolf&backgroundColor=4FB3D9&eyes=variant02&mouth=variant02',
+    id: 'blake', 
+    name: 'Blake',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=blake&backgroundColor=4FB3D9&hair=shortCurly,shortWaved&facialHair=none',
     background: '#4FB3D9'
   },
   {
-    id: 'panda',
-    name: 'Panda', 
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=panda&backgroundColor=9FD356&eyes=variant03&mouth=variant03',
+    id: 'casey',
+    name: 'Casey', 
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=casey&backgroundColor=9FD356&hair=longStraight,mediumStraight&facialHair=none',
     background: '#9FD356'
   },
-  // Row 2: Bear (yellow), Fox (dark blue), Raccoon (coral)
+  // Row 2: More characters with yellow, dark blue, coral backgrounds
   {
-    id: 'bear',
-    name: 'Bear',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=bear&backgroundColor=F7D060&eyes=variant04&mouth=variant04',
+    id: 'drew',
+    name: 'Drew',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=drew&backgroundColor=F7D060&hair=shortSides,shortFlat&facialHair=none',
     background: '#F7D060'
   },
   {
-    id: 'fox',
-    name: 'Fox',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=fox&backgroundColor=3F5F7F&eyes=variant05&mouth=variant05',
+    id: 'emery',
+    name: 'Emery',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=emery&backgroundColor=3F5F7F&hair=longCurly,mediumCurly&facialHair=none',
     background: '#3F5F7F'
   },
   {
-    id: 'raccoon',
-    name: 'Raccoon',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=raccoon&backgroundColor=F56565&eyes=variant06&mouth=variant06',
+    id: 'finley',
+    name: 'Finley',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=finley&backgroundColor=F56565&hair=shortWaved,shortRound&facialHair=none',
     background: '#F56565'
   },
-  // Row 3: Monkey (light blue), Koala (orange), Bull (teal)
+  // Row 3: Final characters with light blue, orange, teal backgrounds
   {
-    id: 'monkey',
-    name: 'Monkey',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=monkey&backgroundColor=87CEEB&eyes=variant07&mouth=variant07',
+    id: 'gray',
+    name: 'Gray',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=gray&backgroundColor=87CEEB&hair=shortFlat,shortSides&facialHair=none',
     background: '#87CEEB'
   },
   {
-    id: 'koala',
-    name: 'Koala',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=koala&backgroundColor=FFA500&eyes=variant08&mouth=variant08',
+    id: 'harper',
+    name: 'Harper',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=harper&backgroundColor=FFA500&hair=longStraight,longCurly&facialHair=none',
     background: '#FFA500'
   },
   {
-    id: 'bull',
-    name: 'Bull',
-    url: 'https://api.dicebear.com/9.x/croodles/svg?seed=bull&backgroundColor=1DD1A1&eyes=variant09&mouth=variant09',
+    id: 'indie',
+    name: 'Indie',
+    url: 'https://api.dicebear.com/9.x/avataaars/svg?seed=indie&backgroundColor=1DD1A1&hair=mediumStraight,mediumCurly&facialHair=none',
     background: '#1DD1A1'
   }
 ];
