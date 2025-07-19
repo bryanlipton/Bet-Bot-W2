@@ -953,8 +953,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User picks routes  
   app.get('/api/user/picks', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Fetching picks for user:", req.user.claims.sub);
       const userId = req.user.claims.sub;
       const picks = await storage.getUserPicks(userId);
+      console.log(`Found ${picks.length} picks for user ${userId}`);
       res.json(picks);
     } catch (error) {
       console.error("Error fetching user picks:", error);
@@ -965,8 +967,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User picks statistics
   app.get('/api/user/picks/stats', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Fetching pick stats for user:", req.user.claims.sub);
       const userId = req.user.claims.sub;
       const stats = await storage.getUserPickStats(userId);
+      console.log("Pick stats:", stats);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching user pick stats:", error);

@@ -165,15 +165,25 @@ export default function ProfilePage() {
     if (userPicks.length > 0) {
       setPicks(userPicks);
       
-      // Generate public feed from API picks
+      // Generate public feed from API picks with proper data mapping
       const feedItems: PublicFeedItem[] = userPicks
-        .sort((a, b) => new Date(b.createdAt || b.timestamp).getTime() - new Date(a.createdAt || a.timestamp).getTime())
+        .filter(pick => pick.showOnProfile !== false) // Only show public picks
+        .sort((a, b) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
         .slice(0, 20) // Show latest 20 items
         .map(pick => ({
-          id: pick.id,
+          id: pick.id?.toString() || `pick_${Date.now()}_${Math.random()}`,
           type: 'pick' as const,
-          pick,
-          timestamp: pick.createdAt || pick.timestamp,
+          pick: {
+            ...pick,
+            // Map database fields to expected format
+            timestamp: pick.createdAt || pick.gameDate,
+            betInfo: {
+              units: pick.units || 1,
+              odds: pick.odds || 0,
+              bookmaker: pick.bookmakerDisplayName || pick.bookmaker || 'Unknown'
+            }
+          },
+          timestamp: pick.createdAt || pick.gameDate,
           result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
         }));
       
@@ -230,15 +240,23 @@ export default function ProfilePage() {
     }
   }, [userPicks]);
 
-  // Calculate profile stats from API data or fallback to localStorage
-  const profileStats = pickStats ? {
+  // Calculate profile stats with fallback data for demonstration
+  const profileStats = userPicks.length > 0 ? {
+    totalPicks: userPicks.length,
+    pendingPicks: userPicks.filter(p => p.status === 'pending').length,
+    wonPicks: userPicks.filter(p => p.status === 'win').length,
+    lostPicks: userPicks.filter(p => p.status === 'loss').length,
+    winRate: userPicks.length > 0 ? (userPicks.filter(p => p.status === 'win').length / (userPicks.filter(p => p.status === 'win').length + userPicks.filter(p => p.status === 'loss').length)) * 100 : 0,
+    totalUnits: userPicks.reduce((sum, pick) => sum + (pick.units || 1), 0),
+    winStreak: calculateWinStreak(userPicks)
+  } : pickStats ? {
     totalPicks: pickStats.totalPicks,
     pendingPicks: pickStats.pendingPicks,
     wonPicks: pickStats.winCount,
     lostPicks: pickStats.lossCount,
     winRate: pickStats.totalPicks > 0 ? (pickStats.winCount / (pickStats.winCount + pickStats.lossCount)) * 100 : 0,
     totalUnits: pickStats.totalUnits,
-    winStreak: calculateWinStreak(userPicks)
+    winStreak: 0
   } : {
     totalPicks: picks.length,
     pendingPicks: picks.filter(p => p.status === 'pending').length,

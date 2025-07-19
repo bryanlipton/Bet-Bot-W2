@@ -895,7 +895,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(userPicks.createdAt));
   }
 
-  async updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick> {
+  async updateUserPick(pickId: number, updates: Partial<UserPick>): Promise<UserPick> {
     const [pick] = await db.update(userPicks)
       .set({
         ...updates,
@@ -906,7 +906,7 @@ export class DatabaseStorage implements IStorage {
     return pick;
   }
 
-  async deleteUserPick(pickId: string): Promise<void> {
+  async deleteUserPick(pickId: number): Promise<void> {
     await db.delete(userPicks).where(eq(userPicks.id, pickId));
   }
 
