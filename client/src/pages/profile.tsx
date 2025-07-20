@@ -532,8 +532,7 @@ export default function ProfilePage() {
       return { previousPicks };
     },
     onSuccess: () => {
-      // Refetch user picks to ensure server state is in sync
-      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      // Don't immediately invalidate - let optimistic update stay
       toast({
         title: "Settings Updated",
         description: "Pick visibility settings have been saved.",
@@ -550,9 +549,7 @@ export default function ProfilePage() {
         description: error.message || "Failed to update pick visibility.",
         variant: "destructive",
       });
-    },
-    // Always refetch after error or success
-    onSettled: () => {
+      // Only invalidate on error to refresh from server
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
     }
   });
@@ -1257,6 +1254,7 @@ export default function ProfilePage() {
                                     id={`profile-${item.id}`}
                                     checked={item.pick.showOnProfile !== false}
                                     onCheckedChange={(checked) => {
+                                      console.log(`Toggle profile for ${item.id}: current=${item.pick.showOnProfile}, new=${checked}`);
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: checked,
@@ -1274,6 +1272,7 @@ export default function ProfilePage() {
                                     id={`feed-${item.id}`}
                                     checked={item.pick.showOnFeed !== false}
                                     onCheckedChange={(checked) => {
+                                      console.log(`Toggle feed for ${item.id}: current=${item.pick.showOnFeed}, new=${checked}`);
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: item.pick.showOnProfile !== false,
