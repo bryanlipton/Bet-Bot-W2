@@ -912,7 +912,12 @@ export default function MyPicksPage() {
                     {/* Game Info */}
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                        {pick.gameInfo.awayTeam} @ {pick.gameInfo.homeTeam}
+                        {/* Show parlay team names if it's a parlay, otherwise show single game */}
+                        {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
+                          `${pick.parlayLegs.length}-Leg Parlay: ${pick.parlayLegs.map((leg: any) => leg.team).join(' + ')}`
+                        ) : (
+                          `${pick.gameInfo.awayTeam} @ ${pick.gameInfo.homeTeam}`
+                        )}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Placed: {new Date(pick.timestamp).toLocaleString()}

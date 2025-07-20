@@ -1248,12 +1248,28 @@ export default function ProfilePage() {
                               ) : (
                                 <div>
                                   <div className="font-medium text-gray-900 dark:text-white">
-                                    {item.pick.awayTeam || item.pick.gameInfo?.awayTeam} @ {item.pick.homeTeam || item.pick.gameInfo?.homeTeam}
+                                    {/* Show parlay team names if it's a parlay, otherwise show single game matchup */}
+                                    {item.pick.parlayLegs && item.pick.parlayLegs.length > 0 ? (
+                                      `${item.pick.parlayLegs.length}-Leg Parlay: ${item.pick.parlayLegs.map((leg: any) => leg.team).join(' + ')}`
+                                    ) : (
+                                      `${item.pick.awayTeam || item.pick.gameInfo?.awayTeam} @ ${item.pick.homeTeam || item.pick.gameInfo?.homeTeam}`
+                                    )}
                                   </div>
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    {item.pick.selection || item.pick.betInfo?.selection}
-                                    {item.pick.line && ` ${item.pick.line}`}
-                                    {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
+                                    {/* Show parlay details if it's a parlay */}
+                                    {item.pick.parlayLegs && item.pick.parlayLegs.length > 0 ? (
+                                      item.pick.parlayLegs.map((leg: any, index: number) => (
+                                        <div key={index} className="text-xs">
+                                          {leg.team} {leg.market === 'moneyline' ? 'ML' : leg.market}
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <>
+                                        {item.pick.selection || item.pick.betInfo?.selection}
+                                        {item.pick.line && ` ${item.pick.line}`}
+                                        {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
+                                      </>
+                                    )}
                                     {(item.pick.odds || item.pick.betInfo?.odds) && ` (${formatOdds(item.pick.odds || item.pick.betInfo.odds)})`}
                                   </div>
                                 </div>
