@@ -949,17 +949,22 @@ export class DailyPickService {
 
     // Generate a different pick from the regular daily pick
     const dailyPick = await this.getTodaysPick();
+    console.log(`🏈 Current daily pick: ${dailyPick?.homeTeam || dailyPick?.home_team} vs ${dailyPick?.awayTeam || dailyPick?.away_team}, picking ${dailyPick?.pickTeam || 'none'}`);
+    
     const availableGames = games.filter(game => {
       if (!dailyPick) return true;
       
       // Exclude same game ID
       if (game.id === dailyPick.gameId || game.gameId === dailyPick.gameId) {
+        console.log(`🚫 Excluding game by ID: ${game.id || game.gameId}`);
         return false;
       }
       
       // CRITICAL: Exclude games where teams are playing against each other
       const gameTeams = [game.home_team, game.away_team, game.homeTeam, game.awayTeam].filter(Boolean);
-      const dailyPickTeams = [dailyPick.homeTeam, dailyPick.awayTeam].filter(Boolean);
+      const dailyPickTeams = [dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.home_team, dailyPick.away_team].filter(Boolean);
+      
+      console.log(`🔍 Checking game: ${gameTeams.join(' vs ')} against daily pick teams: ${dailyPickTeams.join(', ')}`);
       
       // Check if any team from the current game matches any team from the daily pick game
       const hasCommonTeam = gameTeams.some(team => dailyPickTeams.includes(team));
@@ -968,6 +973,7 @@ export class DailyPickService {
         return false;
       }
       
+      console.log(`✅ Game ${gameTeams.join(' vs ')} is eligible for lock pick`);
       return true;
     });
 

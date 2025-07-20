@@ -290,11 +290,15 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+
+
   // Generate new lock pick (admin/testing endpoint)
-  app.post("/api/daily-pick/lock/generate", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/daily-pick/lock/test-generate", async (req: Request, res: Response) => {
     try {
+      console.log('🔧 Lock pick test generation endpoint called');
       const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
       const games = await gamesResponse.json();
+      console.log(`📊 Retrieved ${games.length} games for lock pick generation`);
       
       const today = new Date();
       const todaysGames = games.filter((game: any) => {
