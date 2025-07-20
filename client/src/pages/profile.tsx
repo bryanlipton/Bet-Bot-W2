@@ -530,8 +530,9 @@ export default function ProfilePage() {
     },
     onSuccess: () => {
       // Silent success - no toast needed for simple toggle actions
-      // Invalidate and refetch picks to ensure UI stays in sync
+      // Force immediate refetch to ensure UI stays in sync
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      queryClient.refetchQueries({ queryKey: ['/api/user/picks'] });
     },
     onError: (error: any, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
