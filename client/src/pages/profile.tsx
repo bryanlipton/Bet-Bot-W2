@@ -153,12 +153,22 @@ export default function ProfilePage() {
     retry: false,
   });
 
-  // Fetch user picks from API
+  // Fetch user picks from API with no caching to ensure fresh data
   const { data: userPicks = [], isLoading: picksLoading } = useQuery({
     queryKey: ['/api/user/picks'],
     enabled: isAuthenticated,
     retry: false,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache the results
   });
+
+  // Force cache invalidation on component mount to ensure fresh data
+  useEffect(() => {
+    if (isAuthenticated) {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      queryClient.refetchQueries({ queryKey: ['/api/user/picks'] });
+    }
+  }, [isAuthenticated, queryClient]);
 
   // Load picks data
   useEffect(() => {
@@ -637,10 +647,10 @@ export default function ProfilePage() {
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
 
-  const getResultBadge = (result: string | undefined) => {
-    if (result === 'win') return <Badge className="bg-green-600 text-white">Won</Badge>;
-    if (result === 'loss') return <Badge className="bg-red-600 text-white">Lost</Badge>;
-    if (result === 'push') return <Badge className="bg-gray-600 text-white">Push</Badge>;
+  const getResultBadge = (status: string | undefined) => {
+    if (status === 'win') return <Badge className="bg-green-600 text-white">Won</Badge>;
+    if (status === 'loss') return <Badge className="bg-red-600 text-white">Lost</Badge>;
+    if (status === 'push') return <Badge className="bg-gray-600 text-white">Push</Badge>;
     return <Badge className="bg-blue-600 text-white">Pending</Badge>;
   };
 
@@ -1284,7 +1294,7 @@ export default function ProfilePage() {
                               </div>
                             </div>
                             <div className="text-right ml-4">
-                              {getResultBadge(item.result)}
+                              {getResultBadge(item.status)}
                             </div>
                           </div>
                         </div>
