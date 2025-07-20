@@ -513,15 +513,18 @@ export default function ProfilePage() {
       // Optimistically update to the new value
       queryClient.setQueryData(['/api/user/picks'], (old: any) => {
         if (!old) return old;
-        return old.map((pick: any) => {
-          if (pick.id === pickId) {
+        return old.map((item: any) => {
+          if (item.id === pickId) {
             return {
-              ...pick,
-              showOnProfile,
-              showOnFeed
+              ...item,
+              pick: {
+                ...item.pick,
+                showOnProfile,
+                showOnFeed
+              }
             };
           }
-          return pick;
+          return item;
         });
       });
 
