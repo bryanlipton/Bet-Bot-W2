@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { isAuthenticated } from "./replitAuth";
 import { pickGradingService } from "./services/pickGradingService";
+import { automaticGradingService } from "./services/automaticGradingService";
 
 export function registerPickGradingRoutes(app: Express) {
   // Manually grade picks for a specific date (admin/testing)
@@ -69,6 +70,25 @@ export function registerPickGradingRoutes(app: Express) {
     } catch (error) {
       console.error("Error grading picks for date range:", error);
       res.status(500).json({ message: "Failed to grade picks for date range" });
+    }
+  });
+
+  // Manual trigger for automatic grading (for testing or immediate processing)
+  app.post('/api/admin/manual-grade', async (req, res) => {
+    try {
+      const { days = 1 } = req.body;
+      
+      const gradedCount = await automaticGradingService.manualGrade(days);
+      
+      res.json({ 
+        message: `Manual grading completed: ${gradedCount} picks graded`,
+        gradedCount,
+        daysProcessed: days
+      });
+      
+    } catch (error) {
+      console.error("Error in manual grading:", error);
+      res.status(500).json({ message: "Failed to run manual grading" });
     }
   });
 

@@ -1252,13 +1252,13 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`profile-${item.id}`}
-                                    checked={item.pick.showOnProfile !== false}
+                                    checked={item.pick.showOnProfile ?? true}
                                     onCheckedChange={(checked) => {
                                       console.log(`Toggle profile for ${item.id}: current=${item.pick.showOnProfile}, new=${checked}`);
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: checked,
-                                        showOnFeed: item.pick.showOnFeed !== false
+                                        showOnFeed: item.pick.showOnFeed ?? true
                                       });
                                     }}
                                     disabled={updatePickVisibilityMutation.isPending}
@@ -1270,12 +1270,12 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`feed-${item.id}`}
-                                    checked={item.pick.showOnFeed !== false}
+                                    checked={item.pick.showOnFeed ?? true}
                                     onCheckedChange={(checked) => {
                                       console.log(`Toggle feed for ${item.id}: current=${item.pick.showOnFeed}, new=${checked}`);
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
-                                        showOnProfile: item.pick.showOnProfile !== false,
+                                        showOnProfile: item.pick.showOnProfile ?? true,
                                         showOnFeed: checked
                                       });
                                     }}

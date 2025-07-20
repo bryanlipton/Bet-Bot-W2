@@ -5,6 +5,7 @@ import { registerMLBRoutes } from "./mlb-api";
 import { registerArticleRoutes } from "./article-generator";
 import { dailyScheduler } from "./daily-scheduler";
 import { pickRotationService } from "./services/pickRotationService";
+import { automaticGradingService } from "./services/automaticGradingService";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Set API key from environment or direct value
@@ -269,5 +270,9 @@ app.post('/api/gpt/matchup', async (req, res) => {
     // Start pick rotation service for automatic daily pick updates
     console.log('🔄 Starting pick rotation service...');
     // Note: pickRotationService is already initialized when imported
+    
+    // Start automatic grading service
+    console.log('🎯 Starting automatic pick grading service...');
+    automaticGradingService.start();
   });
 })();
