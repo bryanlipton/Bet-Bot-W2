@@ -85,6 +85,7 @@ export class PickGradingService {
       const winAmount = this.calculateWinAmount(odds, units);
       return { status: 'win', winAmount };
     } else {
+      const units = pick.units || 1;
       return { status: 'loss', winAmount: -units };
     }
   }
