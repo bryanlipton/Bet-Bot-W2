@@ -944,11 +944,14 @@ export class DatabaseStorage implements IStorage {
     return pick;
   }
 
-  async updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+  async updatePickVisibility(userId: string, pickId: number | string, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+    // Handle both integer IDs and string-based UUIDs
+    const actualPickId = typeof pickId === 'string' && !isNaN(parseInt(pickId)) ? parseInt(pickId) : pickId;
+    
     const [pick] = await db.update(userPicks)
       .set(visibility)
       .where(and(
-        eq(userPicks.id, pickId),
+        eq(userPicks.id, actualPickId as number),
         eq(userPicks.userId, userId)
       ))
       .returning();

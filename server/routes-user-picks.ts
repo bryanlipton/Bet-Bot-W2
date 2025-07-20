@@ -86,25 +86,30 @@ export function registerUserPicksRoutes(app: Express) {
       const { pickId } = req.params;
       const { showOnProfile, showOnFeed } = req.body;
       
-      // Check if this is a sample pick (string ID) or database pick (integer ID)
-      const isStringId = isNaN(parseInt(pickId));
+      // Check if this is a sample pick (simple string ID) or database pick (integer or uuid-style ID)
+      // Only treat very simple IDs as sample picks (like "blue_jays_ml"), not uuid-style IDs
+      const isSimpleSampleId = /^[a-z_]+$/.test(pickId) && pickId.length < 20;
       
-      if (isStringId) {
+      if (isSimpleSampleId) {
         // Sample picks (like "blue_jays_ml", "orioles_mets_parlay") exist only in frontend
         console.log(`Sample pick ${pickId} visibility update - frontend only`);
         return res.json({ success: true, message: "Sample pick visibility updated (frontend only)" });
       }
       
-      // For database picks, ensure user owns the pick
+      // For database picks, ensure user owns the pick  
       const existingPicks = await storage.getUserPicks(userId);
-      const numericPickId = parseInt(pickId);
-      const userOwnsPick = existingPicks.some(pick => pick.id === numericPickId);
+      // Handle both integer IDs and string-based UUIDs
+      const userOwnsPick = existingPicks.some(pick => 
+        pick.id.toString() === pickId || pick.id === parseInt(pickId)
+      );
       
       if (!userOwnsPick) {
         return res.status(403).json({ message: "Not authorized to update this pick" });
       }
       
-      const updatedPick = await storage.updatePickVisibility(userId, numericPickId, { 
+      // Use the pickId as-is for UUID-style IDs, or convert to number for integer IDs
+      const actualPickId = isNaN(parseInt(pickId)) ? pickId : parseInt(pickId);
+      const updatedPick = await storage.updatePickVisibility(userId, actualPickId, { 
         showOnProfile, 
         showOnFeed 
       });

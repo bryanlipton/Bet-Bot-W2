@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { userPicks, baseballGames } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 interface GameResult {
   gameId: string;
@@ -228,7 +228,7 @@ export class PickGradingService {
         .where(
           and(
             eq(userPicks.status, 'pending'),
-            eq(userPicks.gameDate, new Date(date))
+            sql`DATE(game_date) = ${date}`
           )
         );
       
@@ -237,9 +237,11 @@ export class PickGradingService {
       let gradedCount = 0;
       
       for (const pick of pendingPicks) {
-        // Find matching game result
+        // Find matching game result - handle both string and numeric game IDs
         const gameResult = completedGames.find(game => 
-          game.gameId === pick.gameId ||
+          game.gameId.toString() === pick.gameId ||
+          game.gameId.toString() === pick.gameId?.replace('mlb_', '') ||
+          (game.homeTeam === pick.homeTeam && game.awayTeam === pick.awayTeam) ||
           (game.homeTeam === pick.game?.split(' @ ')[1] && 
            game.awayTeam === pick.game?.split(' @ ')[0])
         );
