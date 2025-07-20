@@ -79,6 +79,47 @@ export function registerUserPicksRoutes(app: Express) {
     }
   });
 
+  // Update pick visibility settings
+  app.patch('/api/user/picks/:pickId/visibility', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      const { showOnProfile, showOnFeed } = req.body;
+      
+      // Check if this is a sample pick (string ID) or database pick (integer ID)
+      const isStringId = isNaN(parseInt(pickId));
+      
+      if (isStringId) {
+        // Sample picks (like "blue_jays_ml", "orioles_mets_parlay") exist only in frontend
+        console.log(`Sample pick ${pickId} visibility update - frontend only`);
+        return res.json({ success: true, message: "Sample pick visibility updated (frontend only)" });
+      }
+      
+      // For database picks, ensure user owns the pick
+      const existingPicks = await storage.getUserPicks(userId);
+      const numericPickId = parseInt(pickId);
+      const userOwnsPick = existingPicks.some(pick => pick.id === numericPickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to update this pick" });
+      }
+      
+      const updatedPick = await storage.updatePickVisibility(userId, numericPickId, { 
+        showOnProfile, 
+        showOnFeed 
+      });
+      
+      if (!updatedPick) {
+        return res.status(404).json({ message: "Pick not found" });
+      }
+      
+      res.json({ success: true, pick: updatedPick });
+    } catch (error) {
+      console.error("Error updating pick visibility:", error);
+      res.status(500).json({ message: "Failed to update pick visibility" });
+    }
+  });
+
   // Delete a user pick
   app.delete('/api/user/picks/:pickId', isAuthenticated, async (req: any, res) => {
     try {
