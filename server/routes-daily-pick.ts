@@ -192,6 +192,14 @@ export function registerDailyPickRoutes(app: Express) {
           confidence: pick.confidence,
           reasoning: pick.reasoning
         },
+        // Frontend expects direct numerical properties on the analysis object
+        offensiveProduction: pick.analysis.offensiveEdge || 75,
+        pitchingMatchup: pick.analysis.pitchingEdge || 75, 
+        situationalEdge: pick.analysis.recentForm || 75,
+        teamMomentum: pick.analysis.recentForm || 75,
+        marketInefficiency: pick.analysis.bettingValue || 75,
+        systemConfidence: pick.analysis.confidence || 75,
+        confidence: pick.analysis.confidence || 75,
         factors: {
           offensiveEdge: {
             score: pick.analysis.offensiveEdge,
