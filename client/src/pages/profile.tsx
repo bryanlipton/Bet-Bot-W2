@@ -1248,17 +1248,18 @@ export default function ProfilePage() {
                               ) : (
                                 <div>
                                   <div className="font-medium text-gray-900 dark:text-white">
-                                    {item.pick.gameInfo?.awayTeam} @ {item.pick.gameInfo?.homeTeam}
+                                    {item.pick.awayTeam || item.pick.gameInfo?.awayTeam} @ {item.pick.homeTeam || item.pick.gameInfo?.homeTeam}
                                   </div>
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                                    {item.pick.betInfo?.selection}
+                                    {item.pick.selection || item.pick.betInfo?.selection}
+                                    {item.pick.line && ` ${item.pick.line}`}
                                     {item.pick.betInfo?.line && ` ${item.pick.betInfo.line}`}
-                                    {item.pick.betInfo?.odds && ` (${formatOdds(item.pick.betInfo.odds)})`}
+                                    {(item.pick.odds || item.pick.betInfo?.odds) && ` (${formatOdds(item.pick.odds || item.pick.betInfo.odds)})`}
                                   </div>
                                 </div>
                               )}
                               <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                                {item.pick.betInfo?.units || 1} units • {item.pick.bookmaker?.displayName}
+                                {item.pick.units || item.pick.betInfo?.units || 1} units • {item.pick.bookmakerDisplayName || item.pick.bookmaker?.displayName || 'Manual Entry'}
                               </div>
                               
                               {/* Individual bet visibility controls */}
