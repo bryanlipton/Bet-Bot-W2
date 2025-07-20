@@ -532,11 +532,8 @@ export default function ProfilePage() {
       return { previousPicks };
     },
     onSuccess: () => {
-      // Don't immediately invalidate - let optimistic update stay
-      toast({
-        title: "Settings Updated",
-        description: "Pick visibility settings have been saved.",
-      });
+      // Silent success - no toast needed for simple toggle actions
+      // The optimistic update already provides immediate visual feedback
     },
     onError: (error: any, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
@@ -1254,7 +1251,7 @@ export default function ProfilePage() {
                                     id={`profile-${item.id}`}
                                     checked={item.pick.showOnProfile ?? true}
                                     onCheckedChange={(checked) => {
-                                      console.log(`Toggle profile for ${item.id}: current=${item.pick.showOnProfile}, new=${checked}`);
+                                      // Toggle profile visibility
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: checked,
@@ -1272,7 +1269,7 @@ export default function ProfilePage() {
                                     id={`feed-${item.id}`}
                                     checked={item.pick.showOnFeed ?? true}
                                     onCheckedChange={(checked) => {
-                                      console.log(`Toggle feed for ${item.id}: current=${item.pick.showOnFeed}, new=${checked}`);
+                                      // Toggle feed visibility
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: item.pick.showOnProfile ?? true,
