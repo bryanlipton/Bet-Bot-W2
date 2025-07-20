@@ -21,7 +21,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
   const navigationTabs = [
     { path: "/", name: "Odds", active: location === "/" },
     { path: "/scores", name: "Scores", active: location === "/scores" },
-    { path: "/my-picks", name: "My Picks", active: location === "/my-picks" },
+    { path: "/my-picks", name: "My Picks & Data", active: location === "/my-picks" },
     { path: "/my-feed", name: "My Feed", active: location === "/my-feed" },
     { path: "/profile", name: "My Profile", active: location === "/profile" },
   ];
