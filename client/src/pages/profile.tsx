@@ -68,6 +68,7 @@ interface PublicFeedItem {
   pick: Pick;
   timestamp: string;
   result?: 'win' | 'loss' | 'push';
+  status?: 'win' | 'loss' | 'push' | 'pending';
 }
 
 export default function ProfilePage() {
@@ -196,14 +197,21 @@ export default function ProfilePage() {
             }
           },
           timestamp: pick.createdAt || pick.gameDate,
-          result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
+          result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined,
+          status: pick.status // Add status to the feed item directly
         }));
       
       setPublicFeed(feedItems);
     }
     
-    // Add pending picks from localStorage plus your real settled picks to public feed
+    // Don't mix localStorage picks with API picks to avoid confusion
+    // The API should be the single source of truth for authenticated users
     const addPicksToFeed = () => {
+      // Skip localStorage picks for authenticated users - use API data only
+      if (isAuthenticated) {
+        return;
+      }
+      
       const localPicks = pickStorage.getPicks();
       const pendingFeedItems = localPicks
         .filter(pick => pick.status === 'pending')
@@ -1294,7 +1302,7 @@ export default function ProfilePage() {
                               </div>
                             </div>
                             <div className="text-right ml-4">
-                              {getResultBadge(item.status)}
+                              {getResultBadge(item.status || item.pick.status)}
                             </div>
                           </div>
                         </div>
