@@ -517,11 +517,8 @@ export default function ProfilePage() {
           if (item.id === pickId) {
             return {
               ...item,
-              pick: {
-                ...item.pick,
-                showOnProfile,
-                showOnFeed
-              }
+              showOnProfile,
+              showOnFeed
             };
           }
           return item;
@@ -533,7 +530,8 @@ export default function ProfilePage() {
     },
     onSuccess: () => {
       // Silent success - no toast needed for simple toggle actions
-      // The optimistic update already provides immediate visual feedback
+      // Invalidate and refetch picks to ensure UI stays in sync
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
     },
     onError: (error: any, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
@@ -1249,13 +1247,13 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`profile-${item.id}`}
-                                    checked={item.pick.showOnProfile ?? true}
+                                    checked={item.showOnProfile ?? true}
                                     onCheckedChange={(checked) => {
                                       // Toggle profile visibility
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
                                         showOnProfile: checked,
-                                        showOnFeed: item.pick.showOnFeed ?? true
+                                        showOnFeed: item.showOnFeed ?? true
                                       });
                                     }}
                                     disabled={updatePickVisibilityMutation.isPending}
@@ -1267,12 +1265,12 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2">
                                   <Switch
                                     id={`feed-${item.id}`}
-                                    checked={item.pick.showOnFeed ?? true}
+                                    checked={item.showOnFeed ?? true}
                                     onCheckedChange={(checked) => {
                                       // Toggle feed visibility
                                       updatePickVisibilityMutation.mutate({
                                         pickId: item.id,
-                                        showOnProfile: item.pick.showOnProfile ?? true,
+                                        showOnProfile: item.showOnProfile ?? true,
                                         showOnFeed: checked
                                       });
                                     }}
