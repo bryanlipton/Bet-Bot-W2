@@ -700,18 +700,21 @@ export default function MyPicksPage() {
     push: picks.filter(p => p.status === 'push').length,
     winRate: picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length > 0 ? 
       (picks.filter(p => p.status === 'won' || p.status === 'win').length / picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
-    totalUnits: picks.reduce((sum, p) => {
+    totalMoneyWonLost: picks.reduce((sum, p) => {
       if (p.status === 'won' || p.status === 'win') {
         // Calculate winnings based on odds and units
         const odds = p.betInfo?.odds || 0;
         const units = p.betInfo?.units || 0;
+        const wagerAmount = units * betUnit;
         if (odds > 0) {
-          return sum + (odds / 100) * units;
+          return sum + (odds / 100) * wagerAmount; // Profit only
         } else if (odds < 0) {
-          return sum + (100 / Math.abs(odds)) * units;
+          return sum + (100 / Math.abs(odds)) * wagerAmount; // Profit only
         }
       } else if (p.status === 'lost' || p.status === 'loss') {
-        return sum - (p.betInfo?.units || 0);
+        const units = p.betInfo?.units || 0;
+        const wagerAmount = units * betUnit;
+        return sum - wagerAmount; // Loss of wagered amount
       }
       return sum;
     }, 0)
@@ -759,22 +762,10 @@ export default function MyPicksPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-600" />
+                <TrendingUp className="w-4 h-4 text-slate-600" />
                 <div>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.won}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Won</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-                <div>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.lost}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Lost</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Record</p>
                 </div>
               </div>
             </CardContent>
@@ -789,6 +780,20 @@ export default function MyPicksPage() {
                     {stats.winRate.toFixed(1)}%
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <div>
+                  <p className={`text-2xl font-bold ${stats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {stats.totalMoneyWonLost >= 0 ? '+' : ''}${stats.totalMoneyWonLost.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Win/Loss</p>
                 </div>
               </div>
             </CardContent>
@@ -858,7 +863,7 @@ export default function MyPicksPage() {
             >
               {status} ({status === 'all' ? stats.total : 
                 status === 'pending' ? stats.pending :
-                stats.won + stats.lost})
+                stats.won + stats.lost + stats.push})
             </button>
           ))}
         </div>

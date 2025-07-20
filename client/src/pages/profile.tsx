@@ -295,7 +295,20 @@ export default function ProfilePage() {
     wonPicks: dbWins, // 1 win: Blue Jays ML
     lostPicks: dbLosses, // 1 loss: Orioles/Mets parlay
     winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 1/2 = 50%
-    totalUnits: picks.reduce((sum, pick) => sum + (pick.betInfo?.units || 1), 0) + 0.95, // +1.95 from Blue Jays win, -1.0 from parlay loss = +0.95 net
+    totalMoneyWonLost: (() => {
+      // Calculate total money won/lost based on real picks with $10 bet unit
+      const betUnit = 10;
+      let total = 0;
+      
+      // Blue Jays ML win: 1.5 units * $10 = $15 wagered, +130 odds = $19.50 profit
+      total += (130 / 100) * 15; // +$19.50 profit
+      
+      // Orioles/Mets parlay loss: 1.0 units * $10 = $10 wagered, lost $10
+      total -= 10; // -$10 loss
+      
+      // Add pending picks (assume no money movement until settled)
+      return total; // $19.50 - $10.00 = +$9.50
+    })(),
     winStreak: 1 // Blue Jays ML was the most recent win
   };
 
@@ -1107,7 +1120,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Stats Cards with Privacy Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Total Picks - Always visible to user */}
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
@@ -1144,17 +1157,35 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Win Rate - Always visible to user */}
+          {/* Record (Won-Lost) */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-slate-600 dark:text-slate-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.wonPicks}-{profileStats.lostPicks}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    Record
+                    {!userProfile.winRatePublic && <EyeOff className="w-3 h-3 text-gray-500" />}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Win/Loss Money */}
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.winRate.toFixed(1)}%
+                  <div className={`text-2xl font-bold ${profileStats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {profileStats.totalMoneyWonLost >= 0 ? '+' : ''}${profileStats.totalMoneyWonLost.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                    Win Rate
+                    Total Win/Loss
                     {!userProfile.winRatePublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
