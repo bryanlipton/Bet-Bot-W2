@@ -273,6 +273,13 @@ export default function DailyPick() {
     enabled: !!dailyPick?.gameId,
   });
 
+  // Fetch live scores for the game
+  const { data: gameScore } = useQuery({
+    queryKey: ['/api/mlb/scores', dailyPick?.gameTime ? new Date(dailyPick.gameTime).toISOString().split('T')[0] : ''],
+    enabled: !!dailyPick?.gameTime,
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
+  });
+
   // Get current pitcher information from the latest game data
   const getCurrentPitchers = () => {
     if (!dailyPick || !gamesData) {
@@ -463,6 +470,16 @@ export default function DailyPick() {
       };
     }
   };
+
+  // Find current game score data with improved matching logic
+  const currentGameScore = gameScore?.find((game: any) => {
+    // Try multiple matching strategies
+    const gameIdMatch = game.gameId === parseInt(dailyPick?.gameId || '0') || 
+                       game.gameId === dailyPick?.gameId;
+    const teamMatch = game.homeTeam === dailyPick?.homeTeam && 
+                     game.awayTeam === dailyPick?.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
 
   const currentPitchers = getCurrentPitchers();
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
@@ -730,6 +747,42 @@ export default function DailyPick() {
               </p>
             </div>
             <div className="mt-3">
+              {/* Game Status Display */}
+              {currentGameScore && (
+                <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-blue-600 dark:text-blue-400 font-semibold">
+                        {currentGameScore.awayTeam}
+                      </div>
+                      {currentGameScore.status === 'Scheduled' ? (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">vs</div>
+                      ) : (
+                        <>
+                          <div className="text-lg font-bold">
+                            {currentGameScore.awayScore ?? 0}
+                          </div>
+                          <div className="text-gray-400">-</div>
+                          <div className="text-lg font-bold">
+                            {currentGameScore.homeScore ?? 0}
+                          </div>
+                        </>
+                      )}
+                      <div className="text-blue-600 dark:text-blue-400 font-semibold">
+                        {currentGameScore.homeTeam}
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {currentGameScore.status === 'Final' ? 'Final' : 
+                       currentGameScore.status === 'In Progress' ? 
+                         (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
+                       currentGameScore.status === 'Scheduled' ? 'Scheduled' :
+                       currentGameScore.status}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
