@@ -47,8 +47,12 @@ class DatabasePickStorageService implements PickStorageService {
       const response = await apiRequest('GET', '/api/user/picks');
       const dbPicks = await response.json();
       
-      // Convert database picks to frontend Pick format
-      return dbPicks.map((dbPick: any) => ({
+      console.log('Raw database picks:', dbPicks);
+      
+      // Convert database picks to frontend Pick format  
+      return dbPicks.map((dbPick: any) => {
+        console.log('Processing pick:', dbPick);
+        const mappedPick = {
         id: dbPick.id.toString(),
         timestamp: new Date(dbPick.createdAt || dbPick.created_at).getTime(),
         gameInfo: {
@@ -78,7 +82,10 @@ class DatabasePickStorageService implements PickStorageService {
           payout: (dbPick.winAmount || dbPick.win_amount)?.toString() || '0',
           details: dbPick.result
         } : undefined
-      }));
+        };
+        console.log('Mapped pick:', mappedPick);
+        return mappedPick;
+      });
     } catch (error) {
       console.error('Error fetching picks from database:', error);
       return [];
