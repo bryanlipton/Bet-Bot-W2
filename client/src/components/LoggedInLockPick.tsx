@@ -216,19 +216,9 @@ export default function LoggedInLockPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
-  // Listen for events to collapse both when one collapses (only for large screens)
-  useEffect(() => {
-    const handleCollapseAnalysis = (e: any) => {
-      if (e.detail?.source === 'daily') {
-        console.log('LoggedInLockPick: Received collapse event from DailyPick, collapsing both');
-        setLockPickLargeOpen(false);
-      }
-    };
-    
-    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
-    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
-  }, []);
+  const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch lock pick only for authenticated users
@@ -237,24 +227,6 @@ export default function LoggedInLockPick() {
     enabled: !authLoading && isAuthenticated, // Only fetch when authenticated
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
-
-  // Check if game has started to hide the tile
-  const isGameStarted = (gameTime: string) => {
-    const now = new Date();
-    const game = new Date(gameTime);
-    return now > game;
-  };
-
-  // Track visits for analytics (but don't use for collapsing)
-  useEffect(() => {
-    if (lockPick?.id) {
-      // Clean up old visits on component mount
-      cleanupOldVisits();
-      
-      // Track this visit for analytics
-      trackPickVisit(lockPick.id);
-    }
-  }, [lockPick?.id]);
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
     queryKey: [`/api/daily-pick/${lockPick?.id}/analysis`],
@@ -272,6 +244,37 @@ export default function LoggedInLockPick() {
     enabled: !!lockPick?.gameTime,
     refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
   });
+
+  // Listen for events to collapse both when one collapses (only for large screens)
+  useEffect(() => {
+    const handleCollapseAnalysis = (e: any) => {
+      if (e.detail?.source === 'daily') {
+        console.log('LoggedInLockPick: Received collapse event from DailyPick, collapsing both');
+        setLockPickLargeOpen(false);
+      }
+    };
+    
+    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+  }, []);
+
+  // Track visits for analytics (but don't use for collapsing)
+  useEffect(() => {
+    if (lockPick?.id) {
+      // Clean up old visits on component mount
+      cleanupOldVisits();
+      
+      // Track this visit for analytics
+      trackPickVisit(lockPick.id);
+    }
+  }, [lockPick?.id]);
+
+  // Check if game has started to hide the tile
+  const isGameStarted = (gameTime: string) => {
+    const now = new Date();
+    const game = new Date(gameTime);
+    return now > game;
+  };
 
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
@@ -367,8 +370,7 @@ export default function LoggedInLockPick() {
   };
 
   // When game starts, show collapsed view by default
-  const gameStarted = isGameStarted(lockPick.gameTime);
-  const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
+  const gameStarted = lockPick ? isGameStarted(lockPick.gameTime) : false;
 
   // Find current game score data with improved matching logic
   const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
