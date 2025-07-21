@@ -581,7 +581,7 @@ export default function LoggedInLockPick() {
   //   console.log('Lock pick game ID:', lockPick.gameId, typeof lockPick.gameId);
   //   console.log('Lock pick teams:', lockPick.awayTeam, '@', lockPick.homeTeam);
   //   console.log('Available scores data (first 2):', gameScore.slice(0, 2));
-  //   console.log('Found matching score:', currentGameScore);
+  //   console.log('Found matching score:', liveLockGameScore);
   // }
 
   // Get all 6 factors with their info descriptions in permanent order
@@ -900,36 +900,36 @@ export default function LoggedInLockPick() {
             </div>
             <div className="mt-3">
               {/* Game Status Display */}
-              {currentGameScore && (
+              {liveLockGameScore && (
                 <div className="mb-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-4">
                       <div className="text-amber-600 dark:text-amber-400 font-semibold">
-                        {currentGameScore.awayTeam}
+                        {liveLockGameScore.awayTeam}
                       </div>
-                      {currentGameScore.status === 'Scheduled' ? (
+                      {liveLockGameScore.status === 'Scheduled' ? (
                         <div className="text-sm text-gray-500 dark:text-gray-400">vs</div>
                       ) : (
                         <>
                           <div className="text-lg font-bold">
-                            {currentGameScore.awayScore ?? 0}
+                            {liveLockGameScore.awayScore ?? 0}
                           </div>
                           <div className="text-gray-400">-</div>
                           <div className="text-lg font-bold">
-                            {currentGameScore.homeScore ?? 0}
+                            {liveLockGameScore.homeScore ?? 0}
                           </div>
                         </>
                       )}
                       <div className="text-amber-600 dark:text-amber-400 font-semibold">
-                        {currentGameScore.homeTeam}
+                        {liveLockGameScore.homeTeam}
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {currentGameScore.status === 'Final' ? 'Final' : 
-                       currentGameScore.status === 'In Progress' ? 
-                         (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
-                       currentGameScore.status === 'Scheduled' ? 'Scheduled' :
-                       currentGameScore.status}
+                      {liveLockGameScore.status === 'Final' ? 'Final' : 
+                       liveLockGameScore.status === 'In Progress' ? 
+                         (liveLockGameScore.inning ? `${liveLockGameScore.inning}` : 'Live') : 
+                       liveLockGameScore.status === 'Scheduled' ? 'Scheduled' :
+                       liveLockGameScore.status}
                     </div>
                   </div>
                 </div>
