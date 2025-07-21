@@ -50,11 +50,11 @@ class DatabasePickStorageService implements PickStorageService {
       // Convert database picks to frontend Pick format
       return dbPicks.map((dbPick: any) => ({
         id: dbPick.id.toString(),
-        timestamp: new Date(dbPick.createdAt).getTime(),
+        timestamp: new Date(dbPick.createdAt || dbPick.created_at).getTime(),
         gameInfo: {
-          awayTeam: dbPick.awayTeam,
-          homeTeam: dbPick.homeTeam,
-          gameTime: dbPick.gameTime || dbPick.gameDate,
+          awayTeam: dbPick.awayTeam || dbPick.away_team,
+          homeTeam: dbPick.homeTeam || dbPick.home_team,
+          gameTime: dbPick.gameTime || dbPick.game_time || dbPick.gameDate || dbPick.game_date,
           sport: 'baseball_mlb',
           venue: 'TBD'
         },
@@ -64,18 +64,18 @@ class DatabasePickStorageService implements PickStorageService {
           line: dbPick.line,
           odds: parseFloat(dbPick.odds) || 0,
           units: parseFloat(dbPick.units) || 1,
-          parlayLegs: dbPick.parlayLegs ? JSON.parse(dbPick.parlayLegs) : undefined
+          parlayLegs: dbPick.parlayLegs || dbPick.parlay_legs ? JSON.parse(dbPick.parlayLegs || dbPick.parlay_legs) : undefined
         },
         bookmaker: {
           key: dbPick.bookmaker,
-          title: dbPick.bookmakerDisplayName,
-          displayName: dbPick.bookmakerDisplayName,
+          title: dbPick.bookmakerDisplayName || dbPick.bookmaker_display_name || 'Manual Entry',
+          displayName: dbPick.bookmakerDisplayName || dbPick.bookmaker_display_name || 'Manual Entry',
           url: '#'
         },
         status: dbPick.status,
         result: dbPick.result ? {
           outcome: dbPick.status,
-          payout: dbPick.winAmount?.toString() || '0',
+          payout: (dbPick.winAmount || dbPick.win_amount)?.toString() || '0',
           details: dbPick.result
         } : undefined
       }));
