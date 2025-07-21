@@ -84,7 +84,7 @@ function GradeBadge({ grade }: { grade: string }) {
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-3 py-1 text-lg cursor-pointer border`}
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -722,6 +722,14 @@ export default function DailyPick() {
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                   {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)} • Grade {dailyPick.grade}
                 </p>
+                {/* Show live score when game has started */}
+                {currentGameScore && isGameStarted(dailyPick.gameTime) && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {dailyPick.awayTeam} {currentGameScore.awayScore || 0} - {currentGameScore.homeScore || 0} {dailyPick.homeTeam}
+                    {currentGameScore.status === 'Final' ? ' (Final)' : 
+                     currentGameScore.status === 'In Progress' ? ` (${currentGameScore.inning || 'Live'})` : ' (Live)'}
+                  </p>
+                )}
               </div>
             </div>
             <ChevronDown className="w-5 h-5 text-gray-400" />

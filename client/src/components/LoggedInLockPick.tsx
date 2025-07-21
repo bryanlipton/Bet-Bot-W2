@@ -79,7 +79,7 @@ function GradeBadge({ grade }: { grade: string }) {
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-3 py-1 text-lg cursor-pointer border`}
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -217,6 +217,7 @@ export default function LoggedInLockPick() {
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false); // Manual collapse state
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -448,80 +449,44 @@ export default function LoggedInLockPick() {
 
   const gameResult = getGameResult();
 
-  // Show collapsed view when game has started
-  if (gameStarted && gameStartedCollapsed) {
+
+
+  // Show collapsed view when manually collapsed or when game has started
+  if (isCollapsed || (gameStarted && gameStartedCollapsed)) {
     return (
-      <Card className="w-full relative">
-        {isGameFinished && gameResult && (
-          <div className="absolute top-2 right-2 z-10">
-            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
-              gameResult === 'won' ? 'bg-green-500' : 
-              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
-            }`}>
-              {gameResult.toUpperCase()}
-            </div>
-          </div>
-        )}
+      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between cursor-pointer" onClick={() => {setIsCollapsed(false); setGameStartedCollapsed(false);}}>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-1">
                 <BetBotIcon className="w-8 h-8" />
                 <Lock className="w-4 h-4 text-amber-500" />
               </div>
               <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
-                  <span className="text-xs text-gray-500">
-                    {lockPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
-                    lockPick.grade === 'A+' ? 'bg-blue-500' :
-                    lockPick.grade === 'A' ? 'bg-blue-400' :
-                    lockPick.grade.startsWith('B') ? 'bg-blue-300' :
-                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                  }`}>
-                    Grade {lockPick.grade}
-                  </div>
-                </div>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                  Logged In Lock
+                </h3>
+                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)} • Grade {lockPick.grade}
+                </p>
+                {/* Show live score when game has started */}
+                {liveLockGameScore && gameStarted && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    {lockPick.awayTeam} {liveLockGameScore.awayScore || 0} - {liveLockGameScore.homeScore || 0} {lockPick.homeTeam}
+                    {liveLockGameScore.status === 'Final' ? ' (Final)' : 
+                     liveLockGameScore.status === 'In Progress' ? ` (${liveLockGameScore.inning || 'Live'})` : ' (Live)'}
+                  </p>
+                )}
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              {liveLockGameScore && (
-                <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">
-                    {liveLockGameScore.status === 'Final' ? 'Final' : 
-                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
-                  </div>
-                  <div className="font-mono text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>
-                      <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{lockPick.homeTeam}</span>
-                      <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setGameStartedCollapsed(false)}
-                className="p-1"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </div>
+            <ChevronDown className="w-5 h-5 text-gray-400" />
           </div>
         </CardContent>
       </Card>
     );
   }
+
+
 
   // Show expanded view for live games
   if (gameStarted && !gameStartedCollapsed) {
@@ -824,6 +789,15 @@ export default function LoggedInLockPick() {
               </div>
             </div>
             <div className="flex flex-col items-end space-y-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                onClick={() => setIsCollapsed(true)}
+                title="Hide pick"
+              >
+                <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </Button>
               <div className="flex items-center space-x-2">
                 <GradeBadge grade={lockPick.grade} />
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
