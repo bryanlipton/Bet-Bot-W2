@@ -926,12 +926,25 @@ export class DailyPickService {
         .where(eq(dailyPicks.pickDate, new Date(today)))
         .limit(1);
       
-      return pick ? {
-        ...pick,
-        pickType: pick.pickType as 'moneyline',
-        gameTime: pick.gameTime.toISOString(),
-        pickDate: pick.pickDate.toISOString().split('T')[0]
-      } : null;
+      if (pick) {
+        // Validate dates before converting to ISO string
+        const gameTime = pick.gameTime instanceof Date && !isNaN(pick.gameTime.getTime()) 
+          ? pick.gameTime.toISOString() 
+          : new Date().toISOString();
+        
+        const pickDate = pick.pickDate instanceof Date && !isNaN(pick.pickDate.getTime())
+          ? pick.pickDate.toISOString().split('T')[0]
+          : today;
+        
+        return {
+          ...pick,
+          pickType: pick.pickType as 'moneyline',
+          grade: pick.grade as any, // Type casting for compatibility
+          gameTime,
+          pickDate
+        };
+      }
+      return null;
     } catch (error) {
       console.log('Failed to get daily pick from database');
       return null;
@@ -991,11 +1004,22 @@ export class DailyPickService {
       
       if (pick) {
         console.log(`✅ Found existing lock pick in database: ${pick.pickTeam} (${pick.grade})`);
+        
+        // Validate dates before converting to ISO string
+        const gameTime = pick.gameTime instanceof Date && !isNaN(pick.gameTime.getTime()) 
+          ? pick.gameTime.toISOString() 
+          : new Date().toISOString();
+        
+        const pickDate = pick.pickDate instanceof Date && !isNaN(pick.pickDate.getTime())
+          ? pick.pickDate.toISOString().split('T')[0]
+          : today;
+        
         return {
           ...pick,
           pickType: pick.pickType as 'moneyline',
-          gameTime: pick.gameTime.toISOString(),
-          pickDate: pick.pickDate.toISOString().split('T')[0]
+          grade: pick.grade as any, // Type casting for compatibility
+          gameTime,
+          pickDate
         };
       } else {
         console.log(`❌ No lock pick found in database for ${today}`);
