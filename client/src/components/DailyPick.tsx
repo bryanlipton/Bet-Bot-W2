@@ -695,9 +695,9 @@ export default function DailyPick() {
             </div>
         </div>
 
-        <div className="flex items-start justify-between space-x-6">
-          {/* Left side - Team matchup and odds (scorebug) */}
-          <div className="flex-1 space-y-2">
+        <div className="space-y-4">
+          {/* Team matchup and odds (full width) */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <h4 className="font-bold text-sm md:text-lg text-blue-600 dark:text-blue-400 whitespace-nowrap">
@@ -787,9 +787,9 @@ export default function DailyPick() {
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
                 </p>
-                {/* Mobile dropdown toggle (sm and below) */}
+                {/* Analysis dropdown toggle for all screen sizes */}
                 <button
-                  className="sm:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
                   {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
@@ -799,27 +799,15 @@ export default function DailyPick() {
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
                 </button>
-                {/* Medium size dropdown toggle (md-xl when stacked) */}
-                <button
-                  className="hidden sm:flex xl:hidden items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
-                  onClick={() => setDailyPickMediumOpen(!dailyPickMediumOpen)}
-                >
-                  {dailyPickMediumOpen ? 'Hide' : 'Show'} Analysis
-                  {dailyPickMediumOpen ? (
-                    <ChevronUp className="w-3 h-3 ml-1" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  )}
-                </button>
               </div>
 
-              {/* Mobile analysis factors dropdown (sm and below) */}
+              {/* Analysis factors dropdown (all screen sizes) */}
               {mobileAnalysisOpen && (
-                <div className="sm:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <h5 className="font-semibold text-xs text-gray-600 dark:text-gray-400 mb-2">
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
                     {factors.map(({ key, title, score, info }) => {
                       // Create context for narrative generation
                       const gameContext = {
@@ -842,76 +830,7 @@ export default function DailyPick() {
 
             </div>
 
-            {/* Medium size analysis factors dropdown (md-xl when stacked) - Below buttons */}
-            {dailyPickMediumOpen && (
-              <div className="hidden sm:block xl:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-3 text-center">
-                  Analysis Factors
-                </h5>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {factors.map(({ key, title, score, info }) => {
-                    // Create context for narrative generation
-                    const gameContext = {
-                      isHomeGame: dailyPick.pickTeam === dailyPick.homeTeam,
-                      opponentHandedness: 'RHP' as const,
-                      starterERA: 4.0,
-                      last10Record: '7-3',
-                      offensiveStats: {
-                        xwOBA: 0.330,
-                        barrelRate: 6.5,
-                        exitVelo: 87.2
-                      }
-                    };
-                    return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
-                  })}
-                </div>
-              </div>
-            )}
           </div>
-
-          {/* Right side - Analysis Factors (xl screens side-by-side) */}
-          {dailyPickLargeOpen && (
-            <div className="w-80 hidden xl:block">
-              <h5 className="font-semibold text-sm text-gray-600 dark:text-gray-400 mb-2 mt-1 text-center">
-                Analysis Factors
-              </h5>
-              
-              {/* 2 columns x 3 rows grid of factor scores */}
-              <div className="grid grid-cols-2 grid-rows-3 gap-x-4 gap-y-1">
-                {factors.map(({ key, title, score, info }) => {
-                  // Create context for narrative generation
-                  const gameContext = {
-                    isHomeGame: dailyPick.pickTeam === dailyPick.homeTeam,
-                    opponentHandedness: 'RHP' as const,
-                    starterERA: 4.0,
-                    last10Record: '7-3',
-                    offensiveStats: {
-                      xwOBA: 0.330,
-                      barrelRate: 6.5,
-                      exitVelo: 87.2
-                    }
-                  };
-                  return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
-                })}
-              </div>
-              
-              {/* Hide Analysis button for large screens */}
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  className="flex items-center justify-center w-full text-xs text-blue-600 dark:text-blue-400 py-2"
-                  onClick={() => {
-                    console.log('DailyPick: Collapsing analysis, will trigger LoggedInLockPick to collapse too');
-                    setDailyPickLargeOpen(false);
-                    // Send custom event to collapse both analysis sections
-                    window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { detail: { source: 'daily' } }));
-                  }}
-                >
-                  Hide Analysis
-                  <ChevronUp className="w-3 h-3 ml-1" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
       </CardContent>
