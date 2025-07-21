@@ -428,7 +428,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
                       {item.pick.selection}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.pick.gameInfo?.game || item.pick.game || 'Game info unavailable'}
+                      {item.pick.gameInfo?.game || `${item.pick.gameInfo?.awayTeam} @ ${item.pick.gameInfo?.homeTeam}` || 'Game info unavailable'}
                     </p>
                   </div>
                 ))}
