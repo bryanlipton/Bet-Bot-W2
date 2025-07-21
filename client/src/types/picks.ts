@@ -30,6 +30,7 @@ export interface Pick {
     url: string;
   };
   status: 'pending' | 'won' | 'lost' | 'void' | 'cancelled';
+  betUnitAtTime?: number; // Bet unit value when pick was created
   showOnProfile?: boolean; // Whether to show this pick on user profile
   showOnFeed?: boolean; // Whether to show this pick on public feed
   result?: {

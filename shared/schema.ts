@@ -309,6 +309,7 @@ export const userPicks = pgTable("user_picks", {
   line: text("line"), // Point spread or total line (e.g., "-1.5", "8.5")
   odds: integer("odds").default(0), // American odds format
   units: real("units").notNull().default(1), // Number of units bet
+  betUnitAtTime: real("bet_unit_at_time").default(10.00), // Bet unit value when pick was created
   bookmaker: text("bookmaker").notNull().default("manual"), // Bookmaker key or "manual"
   bookmakerDisplayName: text("bookmaker_display_name").notNull().default("Manual Entry"),
   status: text("status").notNull().default("pending"), // "pending", "win", "loss", "push"

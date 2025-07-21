@@ -565,7 +565,8 @@ export function ActionStyleGameCard({
         displayName: 'Manual Entry',
         url: '#'
       },
-      status: 'pending'
+      status: 'pending',
+      betUnitAtTime: betUnit // Store current bet unit value for this pick
     };
 
     try {
@@ -577,6 +578,7 @@ export function ActionStyleGameCard({
         market: manualEntry.market,
         line: manualEntry.line || null,
         units: manualEntry.units,
+        betUnitAtTime: betUnit, // Store current bet unit value
         bookmaker: 'manual',
         bookmakerDisplayName: 'Manual Entry',
         gameDate: startTime?.split('T')[0] || new Date().toISOString().split('T')[0],

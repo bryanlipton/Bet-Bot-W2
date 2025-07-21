@@ -2,12 +2,29 @@
 import { apiRequest } from '@/lib/queryClient';
 import { Pick, PickStorageService } from '@/types/picks';
 
+interface DatabasePickData {
+  gameId: string;
+  homeTeam: string;
+  awayTeam: string;
+  selection: string;
+  market: string;
+  line?: number | null;
+  units: number;
+  betUnitAtTime?: number;
+  bookmaker: string;
+  bookmakerDisplayName: string;
+  gameDate: string;
+  gameTime?: string | null;
+  odds: string;
+  parlayLegs?: any[] | null;
+}
+
 class DatabasePickStorageService implements PickStorageService {
   private generateId(): string {
     return `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  async savePick(pickData: Omit<Pick, 'id' | 'timestamp'>): Promise<void> {
+  async savePick(pickData: DatabasePickData): Promise<void> {
     try {
       // Convert Pick data to match database schema
       const dbPickData = {
@@ -18,6 +35,7 @@ class DatabasePickStorageService implements PickStorageService {
         market: pickData.market,
         line: pickData.line || null,
         units: pickData.units || 1,
+        betUnitAtTime: pickData.betUnitAtTime || 10.00,
         bookmaker: pickData.bookmaker || 'manual',
         bookmakerDisplayName: pickData.bookmakerDisplayName || 'Manual Entry',
         gameDate: pickData.gameDate,
@@ -28,12 +46,33 @@ class DatabasePickStorageService implements PickStorageService {
 
       await apiRequest('POST', '/api/user/picks', dbPickData);
 
-      // Trigger custom event for pick tracking
+      // Trigger custom event for pick tracking - create a proper Pick object
       const pick: Pick = {
-        ...pickData,
         id: this.generateId(),
         timestamp: Date.now(),
-        status: 'pending'
+        gameInfo: {
+          awayTeam: pickData.awayTeam,
+          homeTeam: pickData.homeTeam,
+          gameTime: pickData.gameTime || '',
+          sport: 'baseball_mlb',
+          venue: 'TBD'
+        },
+        betInfo: {
+          market: pickData.market,
+          selection: pickData.selection,
+          line: pickData.line || undefined,
+          odds: parseFloat(pickData.odds) || 0,
+          units: pickData.units,
+          parlayLegs: pickData.parlayLegs || undefined
+        },
+        bookmaker: {
+          key: pickData.bookmaker,
+          title: pickData.bookmakerDisplayName,
+          displayName: pickData.bookmakerDisplayName,
+          url: '#'
+        },
+        status: 'pending',
+        betUnitAtTime: pickData.betUnitAtTime
       };
       window.dispatchEvent(new CustomEvent('pickSaved', { detail: pick }));
     } catch (error) {

@@ -255,9 +255,11 @@ export default function MyPicksPage() {
     return odds > 0 ? `+${odds}` : odds.toString();
   };
 
-  // Calculate wager amount based on units and bet unit
-  const calculateWagerAmount = (units: number): number => {
-    return units * betUnit;
+  // Calculate wager amount based on units and stored bet unit at time of pick creation
+  const calculateWagerAmount = (units: number, betUnitAtTime?: number): number => {
+    // Use stored bet unit value if available, otherwise fall back to current bet unit
+    const effectiveBetUnit = betUnitAtTime !== undefined ? betUnitAtTime : betUnit;
+    return units * effectiveBetUnit;
   };
 
   // Calculate potential payout based on wager and odds
@@ -462,6 +464,7 @@ export default function MyPicksPage() {
         market: manualEntry.market,
         line: manualEntry.line || null,
         units: manualEntry.units,
+        betUnitAtTime: betUnit, // Store current bet unit value
         bookmaker: 'manual',
         bookmakerDisplayName: 'Manual Entry',
         gameDate: selectedGame.commence_time?.split('T')[0] || new Date().toISOString().split('T')[0],
@@ -528,6 +531,7 @@ export default function MyPicksPage() {
         market: 'parlay',
         line: null,
         units: parlayUnits,
+        betUnitAtTime: betUnit, // Store current bet unit value
         bookmaker: 'manual',
         bookmakerDisplayName: 'Manual Entry',
         gameDate: new Date().toISOString().split('T')[0],
@@ -737,7 +741,7 @@ export default function MyPicksPage() {
         }
       } else if (p.status === 'lost' || p.status === 'loss') {
         const units = p.betInfo?.units || 0;
-        const wagerAmount = units * betUnit;
+        const wagerAmount = calculateWagerAmount(units, p.betUnitAtTime);
         return sum - wagerAmount; // Loss of wagered amount
       }
       return sum;
@@ -1023,7 +1027,7 @@ export default function MyPicksPage() {
                                           ? 'text-red-900 dark:text-red-100'
                                           : 'text-blue-900 dark:text-blue-100'
                                       }`}>
-                                        Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
+                                        Wager: ${calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime).toFixed(2)}
                                       </span>
                                       <span className={`text-xs ${
                                         (pick.status === 'loss' || pick.status === 'lost')
@@ -1047,7 +1051,7 @@ export default function MyPicksPage() {
                                     Payout: ${
                                       (pick.status === 'loss' || pick.status === 'lost')
                                         ? '0.00'
-                                        : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)
+                                        : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime), pick.betInfo.odds).toFixed(2)
                                     }
                                   </span>
                                 </div>
@@ -1108,7 +1112,7 @@ export default function MyPicksPage() {
                                       ? 'text-red-900 dark:text-red-100'
                                       : 'text-green-900 dark:text-green-100'
                                   }`}>
-                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1).toFixed(2)}
+                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime).toFixed(2)}
                                   </span>
                                   <span className={`text-xs ${
                                     (pick.status === 'loss' || pick.status === 'lost')
@@ -1132,7 +1136,7 @@ export default function MyPicksPage() {
                                 Payout: ${
                                   (pick.status === 'loss' || pick.status === 'lost')
                                     ? '0.00'
-                                    : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1), pick.betInfo.odds).toFixed(2)
+                                    : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime), pick.betInfo.odds).toFixed(2)
                                 }
                               </span>
                             </div>
