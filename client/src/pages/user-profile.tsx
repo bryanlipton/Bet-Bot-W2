@@ -414,12 +414,14 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
                         </span>
                         {isOwnProfile && (
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => handleDeletePick(item.id)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 h-auto"
+                            className="text-red-500 border-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            title="Delete this bet"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-4 h-4 mr-1" />
+                            Delete Bet
                           </Button>
                         )}
                       </div>
