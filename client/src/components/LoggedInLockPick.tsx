@@ -218,6 +218,7 @@ export default function LoggedInLockPick() {
   const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false); // Manual collapse state
+  const [currentOddsIndex, setCurrentOddsIndex] = useState(0); // For cycling through best odds
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -284,39 +285,76 @@ export default function LoggedInLockPick() {
     return now > game;
   };
 
-  // Get current odds from live odds API
-  const getCurrentOdds = () => {
-    if (!lockPick || !liveOdds || !Array.isArray(liveOdds)) {
-      return {
-        homeOdds: lockPick?.odds || null,
-        awayOdds: lockPick?.odds || null,
-        pickTeamOdds: lockPick?.odds || null
-      };
+  // Get best odds from all available bookmakers
+  const getBestOddsFromBookmakers = () => {
+    if (!lockPick || !gamesData || !Array.isArray(gamesData)) {
+      return [];
     }
 
-    // Find the matching game in live odds
-    const matchingGame = liveOdds.find((game: any) => {
-      return (game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam) ||
-             (game.home_team === lockPick.homeTeam && game.away_team === lockPick.awayTeam);
+    const currentGame = gamesData.find((game: any) => game.id === lockPick.gameId);
+    if (!currentGame?.bookmakers || !Array.isArray(currentGame.bookmakers)) {
+      return [];
+    }
+
+    const bestOdds: Array<{bookmaker: string, odds: number}> = [];
+
+    // Extract odds for the pick team from each bookmaker
+    currentGame.bookmakers.forEach((bookmaker: any) => {
+      const moneylineMarket = bookmaker.markets?.find((m: any) => m.key === 'h2h');
+      if (moneylineMarket?.outcomes) {
+        const pickTeamOutcome = moneylineMarket.outcomes.find((o: any) => o.name === lockPick.pickTeam);
+        if (pickTeamOutcome?.price) {
+          bestOdds.push({
+            bookmaker: bookmaker.title || bookmaker.key,
+            odds: pickTeamOutcome.price
+          });
+        }
+      }
     });
 
-    if (matchingGame) {
-      const homeOdds = matchingGame.homeOdds || matchingGame.home_odds;
-      const awayOdds = matchingGame.awayOdds || matchingGame.away_odds;
-      const pickTeamOdds = lockPick.pickTeam === lockPick.homeTeam ? homeOdds : awayOdds;
-      
+    // Sort by best odds (highest positive for favorites, lowest negative for underdogs)
+    return bestOdds.sort((a, b) => {
+      // For positive odds (underdogs), higher is better
+      if (a.odds > 0 && b.odds > 0) return b.odds - a.odds;
+      // For negative odds (favorites), closer to 0 is better
+      if (a.odds < 0 && b.odds < 0) return b.odds - a.odds;
+      // Mixed: positive odds (underdog) is always better than negative
+      if (a.odds > 0 && b.odds < 0) return -1;
+      if (a.odds < 0 && b.odds > 0) return 1;
+      return 0;
+    });
+  };
+
+  // Handle clicking on ML odds to cycle through bookmakers
+  const handleOddsClick = () => {
+    const bestOdds = getBestOddsFromBookmakers();
+    if (bestOdds.length > 1) {
+      setCurrentOddsIndex((prev) => (prev + 1) % bestOdds.length);
+    }
+  };
+
+  // Get current odds with cycling capability
+  const getCurrentOdds = () => {
+    const bestOdds = getBestOddsFromBookmakers();
+    
+    if (bestOdds.length > 0) {
+      const currentOdds = bestOdds[currentOddsIndex % bestOdds.length];
       return {
-        homeOdds: homeOdds || null,
-        awayOdds: awayOdds || null,
-        pickTeamOdds: pickTeamOdds || lockPick.odds || null
+        homeOdds: lockPick?.pickTeam === lockPick?.homeTeam ? currentOdds.odds : null,
+        awayOdds: lockPick?.pickTeam !== lockPick?.homeTeam ? currentOdds.odds : null,
+        pickTeamOdds: currentOdds.odds,
+        bookmaker: currentOdds.bookmaker,
+        totalBooks: bestOdds.length
       };
     }
 
     // Fallback to stored odds
     return {
-      homeOdds: lockPick.odds || null,
-      awayOdds: lockPick.odds || null,
-      pickTeamOdds: lockPick.odds || null
+      homeOdds: lockPick?.odds || null,
+      awayOdds: lockPick?.odds || null,
+      pickTeamOdds: lockPick?.odds || null,
+      bookmaker: 'Stored',
+      totalBooks: 0
     };
   };
 
@@ -883,9 +921,13 @@ export default function LoggedInLockPick() {
                 <h4 className="font-bold text-sm md:text-lg text-amber-600 dark:text-amber-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
+                <button 
+                  className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap hover:opacity-80 transition-opacity cursor-pointer"
+                  onClick={handleOddsClick}
+                  title={`Click to cycle through ${getCurrentOdds().totalBooks || 1} bookmaker${(getCurrentOdds().totalBooks || 1) > 1 ? 's' : ''} (${getCurrentOdds().bookmaker || 'Current'})`}
+                >
                   {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}
-                </span>
+                </button>
               </div>
               <div className="flex-shrink-0 ml-4">
                 {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (

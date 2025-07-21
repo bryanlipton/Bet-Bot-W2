@@ -225,6 +225,7 @@ export default function DailyPick() {
   const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
+  const [currentOddsIndex, setCurrentOddsIndex] = useState(0); // For cycling through best odds
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
@@ -307,39 +308,76 @@ export default function DailyPick() {
     return dailyPick.probablePitchers;
   };
 
-  // Get current odds from live odds API
-  const getCurrentOdds = () => {
-    if (!dailyPick || !liveOdds || !Array.isArray(liveOdds)) {
-      return {
-        homeOdds: dailyPick?.odds || null,
-        awayOdds: dailyPick?.odds || null,
-        pickTeamOdds: dailyPick?.odds || null
-      };
+  // Get best odds from all available bookmakers
+  const getBestOddsFromBookmakers = () => {
+    if (!dailyPick || !gamesData || !Array.isArray(gamesData)) {
+      return [];
     }
 
-    // Find the matching game in live odds
-    const matchingGame = liveOdds.find((game: any) => {
-      return (game.homeTeam === dailyPick.homeTeam && game.awayTeam === dailyPick.awayTeam) ||
-             (game.home_team === dailyPick.homeTeam && game.away_team === dailyPick.awayTeam);
+    const currentGame = gamesData.find((game: any) => game.id === dailyPick.gameId);
+    if (!currentGame?.bookmakers || !Array.isArray(currentGame.bookmakers)) {
+      return [];
+    }
+
+    const bestOdds: Array<{bookmaker: string, odds: number}> = [];
+
+    // Extract odds for the pick team from each bookmaker
+    currentGame.bookmakers.forEach((bookmaker: any) => {
+      const moneylineMarket = bookmaker.markets?.find((m: any) => m.key === 'h2h');
+      if (moneylineMarket?.outcomes) {
+        const pickTeamOutcome = moneylineMarket.outcomes.find((o: any) => o.name === dailyPick.pickTeam);
+        if (pickTeamOutcome?.price) {
+          bestOdds.push({
+            bookmaker: bookmaker.title || bookmaker.key,
+            odds: pickTeamOutcome.price
+          });
+        }
+      }
     });
 
-    if (matchingGame) {
-      const homeOdds = matchingGame.homeOdds || matchingGame.home_odds;
-      const awayOdds = matchingGame.awayOdds || matchingGame.away_odds;
-      const pickTeamOdds = dailyPick.pickTeam === dailyPick.homeTeam ? homeOdds : awayOdds;
-      
+    // Sort by best odds (highest positive for favorites, lowest negative for underdogs)
+    return bestOdds.sort((a, b) => {
+      // For positive odds (underdogs), higher is better
+      if (a.odds > 0 && b.odds > 0) return b.odds - a.odds;
+      // For negative odds (favorites), closer to 0 is better
+      if (a.odds < 0 && b.odds < 0) return b.odds - a.odds;
+      // Mixed: positive odds (underdog) is always better than negative
+      if (a.odds > 0 && b.odds < 0) return -1;
+      if (a.odds < 0 && b.odds > 0) return 1;
+      return 0;
+    });
+  };
+
+  // Handle clicking on ML odds to cycle through bookmakers
+  const handleOddsClick = () => {
+    const bestOdds = getBestOddsFromBookmakers();
+    if (bestOdds.length > 1) {
+      setCurrentOddsIndex((prev) => (prev + 1) % bestOdds.length);
+    }
+  };
+
+  // Get current odds with cycling capability
+  const getCurrentOdds = () => {
+    const bestOdds = getBestOddsFromBookmakers();
+    
+    if (bestOdds.length > 0) {
+      const currentOdds = bestOdds[currentOddsIndex % bestOdds.length];
       return {
-        homeOdds: homeOdds || null,
-        awayOdds: awayOdds || null,
-        pickTeamOdds: pickTeamOdds || dailyPick.odds || null
+        homeOdds: dailyPick?.pickTeam === dailyPick?.homeTeam ? currentOdds.odds : null,
+        awayOdds: dailyPick?.pickTeam !== dailyPick?.homeTeam ? currentOdds.odds : null,
+        pickTeamOdds: currentOdds.odds,
+        bookmaker: currentOdds.bookmaker,
+        totalBooks: bestOdds.length
       };
     }
 
     // Fallback to stored odds
     return {
-      homeOdds: dailyPick.odds || null,
-      awayOdds: dailyPick.odds || null,
-      pickTeamOdds: dailyPick.odds || null
+      homeOdds: dailyPick?.odds || null,
+      awayOdds: dailyPick?.odds || null,
+      pickTeamOdds: dailyPick?.odds || null,
+      bookmaker: 'Stored',
+      totalBooks: 0
     };
   };
 
@@ -643,7 +681,7 @@ export default function DailyPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? analysis.pitchingMatchup : null,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? null) : null,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
@@ -694,14 +732,14 @@ export default function DailyPick() {
   };
 
   // Find current game score data with improved matching logic
-  const currentGameScore = gameScore?.find((game: any) => {
+  const currentGameScore = (gameScore && Array.isArray(gameScore)) ? gameScore.find((game: any) => {
     // Try multiple matching strategies
     const gameIdMatch = game.gameId === parseInt(dailyPick?.gameId || '0') || 
                        game.gameId === dailyPick?.gameId;
     const teamMatch = game.homeTeam === dailyPick?.homeTeam && 
                      game.awayTeam === dailyPick?.awayTeam;
     return gameIdMatch || teamMatch;
-  });
+  }) : null;
 
   const currentPitchers = getCurrentPitchers();
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
@@ -933,9 +971,13 @@ export default function DailyPick() {
                 <h4 className="font-bold text-sm md:text-lg text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
+                <button 
+                  className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap hover:opacity-80 transition-opacity cursor-pointer"
+                  onClick={handleOddsClick}
+                  title={`Click to cycle through ${getCurrentOdds().totalBooks || 1} bookmaker${(getCurrentOdds().totalBooks || 1) > 1 ? 's' : ''} (${getCurrentOdds().bookmaker || 'Current'})`}
+                >
                   {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
-                </span>
+                </button>
               </div>
               <div className="flex-shrink-0 ml-4">
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
@@ -1080,7 +1122,7 @@ export default function DailyPick() {
             sport: 'baseball_mlb',
             gameTime: dailyPick.gameTime
           }}
-          bookmakers={gamesData?.find((game: any) => game.id === dailyPick.gameId)?.bookmakers || []}
+          bookmakers={(Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === dailyPick.gameId)?.bookmakers || []}
           selectedBet={selectedBet}
         />
       )}
