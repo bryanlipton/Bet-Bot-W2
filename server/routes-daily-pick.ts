@@ -193,57 +193,57 @@ export function registerDailyPickRoutes(app: Express) {
           reasoning: pick.reasoning
         },
         // Frontend expects direct numerical properties on the analysis object
-        offensiveProduction: pick.analysis.offensiveEdge || 75,
-        pitchingMatchup: pick.analysis.pitchingEdge || 75, 
-        situationalEdge: pick.analysis.recentForm || 75,
-        teamMomentum: pick.analysis.recentForm || 75,
-        marketInefficiency: pick.analysis.bettingValue || 75,
-        systemConfidence: pick.analysis.confidence || 75,
+        offensiveProduction: pick.analysis.offensiveProduction || 75,
+        pitchingMatchup: pick.analysis.pitchingMatchup || 75, 
+        situationalEdge: pick.analysis.situationalEdge || 75,
+        teamMomentum: pick.analysis.teamMomentum || 75,
+        marketInefficiency: pick.analysis.marketInefficiency || 75,
+        systemConfidence: pick.analysis.systemConfidence || 75,
         confidence: pick.analysis.confidence || 75,
         factors: {
           offensiveEdge: {
-            score: pick.analysis.offensiveEdge,
-            description: pick.analysis.offensiveEdge > 65 
+            score: pick.analysis.offensiveProduction,
+            description: pick.analysis.offensiveProduction > 65 
               ? "Strong offensive edge with above-average contact quality"
-              : pick.analysis.offensiveEdge < 45 
+              : pick.analysis.offensiveProduction < 45 
               ? "Below-average offensive production and contact quality"
               : "Average offensive capabilities"
           },
           pitchingMatchup: {
-            score: pick.analysis.pitchingEdge,
-            description: pick.analysis.pitchingEdge > 60
+            score: pick.analysis.pitchingMatchup,
+            description: pick.analysis.pitchingMatchup > 60
               ? "Favorable pitching matchup with recent form advantage"
-              : pick.analysis.pitchingEdge < 40
+              : pick.analysis.pitchingMatchup < 40
               ? "Challenging pitching matchup against quality starter"
               : "Neutral pitching matchup"
           },
           ballparkFactor: {
-            score: pick.analysis.ballparkAdvantage,
+            score: pick.analysis.situationalEdge,
             description: pick.venue === 'Coors Field'
               ? "Coors Field environment favors teams that can handle offensive conditions"
-              : pick.analysis.ballparkAdvantage > 55
+              : pick.analysis.situationalEdge > 55
               ? "Hitter-friendly ballpark environment"
-              : pick.analysis.ballparkAdvantage < 45
+              : pick.analysis.situationalEdge < 45
               ? "Pitcher-friendly ballpark environment"
               : "Neutral ballpark environment"
           },
           weatherImpact: {
-            score: pick.analysis.weatherConditions,
+            score: pick.analysis.systemConfidence,
             description: "Weather conditions factored into analysis"
           },
           situationalEdge: {
-            score: pick.analysis.recentForm,
-            description: pick.analysis.recentForm > 60
+            score: pick.analysis.teamMomentum,
+            description: pick.analysis.teamMomentum > 60
               ? "Strong recent form and situational advantages"
-              : pick.analysis.recentForm < 40
+              : pick.analysis.teamMomentum < 40
               ? "Recent struggles or situational disadvantages"
               : "Neutral recent form and situation"
           },
           valueScore: {
-            score: pick.analysis.bettingValue,
-            description: pick.analysis.bettingValue > 65
+            score: pick.analysis.marketInefficiency,
+            description: pick.analysis.marketInefficiency > 65
               ? "Excellent betting value - market appears to undervalue this team"
-              : pick.analysis.bettingValue > 55
+              : pick.analysis.marketInefficiency > 55
               ? "Good betting value identified"
               : "Fair market pricing"
           }
