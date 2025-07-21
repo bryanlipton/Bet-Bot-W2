@@ -687,7 +687,7 @@ export class DailyPickService {
     return finalReasoning;
   }
 
-  async generateDailyPick(games: any[]): Promise<DailyPick | null> {
+  async generateAllGamePicks(games: any[]): Promise<DailyPick[]> {
     const eligibleGames = games.filter(game => 
       game.hasOdds && 
       game.bookmakers?.length > 0 &&
@@ -695,17 +695,19 @@ export class DailyPickService {
     );
 
     if (eligibleGames.length === 0) {
-      return null;
+      return [];
     }
 
-    let bestPick: DailyPick | null = null;
-    let bestScore = 0;
+    const allPicks: DailyPick[] = [];
 
     for (const game of eligibleGames) {
       const h2hMarket = game.bookmakers[0].markets.find((m: any) => m.key === 'h2h');
       if (!h2hMarket || !h2hMarket.outcomes) continue;
 
-      // Analyze both teams as potential picks
+      // Analyze both teams as potential picks and choose the better one
+      let bestGamePick: DailyPick | null = null;
+      let bestGameScore = 0;
+
       for (const outcome of h2hMarket.outcomes) {
         const isHomePick = outcome.name === game.home_team;
         const pickTeam = outcome.name;
@@ -737,8 +739,6 @@ export class DailyPickService {
         };
         const systemConfidence = this.calculateSystemConfidence(dataQuality);
         
-
-        
         // Normalize all factors to 60-100 range
         const normalizeScore = (score: number) => Math.round(60 + (Math.max(0, Math.min(100, score)) * 0.4));
         
@@ -757,9 +757,9 @@ export class DailyPickService {
         
         const overallScore = analysis.confidence;
         
-        if (overallScore > bestScore && analysis.confidence > 55) {
-          bestScore = overallScore;
-          bestPick = {
+        if (overallScore > bestGameScore && analysis.confidence > 55) {
+          bestGameScore = overallScore;
+          bestGamePick = {
             id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             gameId: game.id,
             homeTeam: game.home_team,
@@ -782,9 +782,57 @@ export class DailyPickService {
           };
         }
       }
+
+      // Add the best pick for this game
+      if (bestGamePick) {
+        allPicks.push(bestGamePick);
+      }
     }
 
-    return bestPick;
+    console.log(`Generated ${allPicks.length} picks from ${eligibleGames.length} games`);
+    return allPicks;
+  }
+
+  async generateDailyPick(games: any[]): Promise<DailyPick | null> {
+    // Generate picks for all games
+    const allPicks = await this.generateAllGamePicks(games);
+    
+    if (allPicks.length === 0) {
+      return null;
+    }
+
+    // Filter picks that meet minimum grade requirement (C or better)
+    const eligiblePicks = allPicks.filter(pick => {
+      const gradeValue = this.getGradeValue(pick.grade);
+      const minGradeValue = this.getGradeValue('C');
+      return gradeValue >= minGradeValue;
+    });
+
+    console.log(`Filtered to ${eligiblePicks.length} eligible picks (grade C or better) from ${allPicks.length} total picks`);
+
+    if (eligiblePicks.length === 0) {
+      console.log('No picks meet minimum grade C requirement, returning best available pick');
+      // If no picks meet minimum requirement, return the best available
+      return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
+    }
+
+    // Randomly select one from eligible picks
+    const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
+    const selectedPick = eligiblePicks[randomIndex];
+    
+    console.log(`Randomly selected pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
+    
+    return selectedPick;
+  }
+
+  private getGradeValue(grade: string): number {
+    const gradeMap: { [key: string]: number } = {
+      'A+': 12, 'A': 11, 'A-': 10,
+      'B+': 9, 'B': 8, 'B-': 7,
+      'C+': 6, 'C': 5, 'C-': 4,
+      'D+': 3, 'D': 2, 'F': 1
+    };
+    return gradeMap[grade] || 0;
   }
 
   async generateGameAnalysis(homeTeam: string, awayTeam: string, pickTeam: string, odds: number, gameTime: string, venue: string): Promise<{
@@ -878,7 +926,12 @@ export class DailyPickService {
         .where(eq(dailyPicks.pickDate, new Date(today)))
         .limit(1);
       
-      return pick || null;
+      return pick ? {
+        ...pick,
+        pickType: pick.pickType as 'moneyline',
+        gameTime: pick.gameTime.toISOString(),
+        pickDate: pick.pickDate.toISOString().split('T')[0]
+      } : null;
     } catch (error) {
       console.log('Failed to get daily pick from database');
       return null;
@@ -934,7 +987,12 @@ export class DailyPickService {
         .where(eq(loggedInLockPicks.pickDate, new Date(today)))
         .limit(1);
       
-      return pick || null;
+      return pick ? {
+        ...pick,
+        pickType: pick.pickType as 'moneyline',
+        gameTime: pick.gameTime.toISOString(),
+        pickDate: pick.pickDate.toISOString().split('T')[0]
+      } : null;
     } catch (error) {
       console.log('Failed to get lock pick from database');
       return null;
@@ -947,55 +1005,111 @@ export class DailyPickService {
       return existingLockPick;
     }
 
-    // Generate a different pick from the regular daily pick
-    const dailyPick = await this.getTodaysPick();
-    console.log(`🏈 Current daily pick: ${dailyPick?.homeTeam || dailyPick?.home_team} vs ${dailyPick?.awayTeam || dailyPick?.away_team}, picking ${dailyPick?.pickTeam || 'none'}`);
+    // Generate picks for all games first
+    const allPicks = await this.generateAllGamePicks(games);
     
-    const availableGames = games.filter(game => {
+    if (allPicks.length === 0) {
+      console.log('⚠️ No games available for lock pick generation');
+      return null;
+    }
+
+    // Get the current daily pick to avoid duplicates
+    const dailyPick = await this.getTodaysPick();
+    console.log(`🏈 Current daily pick: ${dailyPick?.homeTeam} vs ${dailyPick?.awayTeam}, picking ${dailyPick?.pickTeam || 'none'}`);
+    
+    // Filter out the daily pick game and any games involving the same teams
+    const availablePicks = allPicks.filter(pick => {
       if (!dailyPick) return true;
       
       // Exclude same game ID
-      if (game.id === dailyPick.gameId || game.gameId === dailyPick.gameId) {
-        console.log(`🚫 Excluding game by ID: ${game.id || game.gameId}`);
+      if (pick.gameId === dailyPick.gameId) {
+        console.log(`🚫 Excluding pick by game ID: ${pick.gameId}`);
         return false;
       }
       
       // CRITICAL: Exclude games where teams are playing against each other
-      const gameTeams = [game.home_team, game.away_team, game.homeTeam, game.awayTeam].filter(Boolean);
-      const dailyPickTeams = [dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.home_team, dailyPick.away_team].filter(Boolean);
+      const pickTeams = [pick.homeTeam, pick.awayTeam];
+      const dailyPickTeams = [dailyPick.homeTeam, dailyPick.awayTeam];
       
-      console.log(`🔍 Checking game: ${gameTeams.join(' vs ')} against daily pick teams: ${dailyPickTeams.join(', ')}`);
+      console.log(`🔍 Checking pick: ${pickTeams.join(' vs ')} against daily pick teams: ${dailyPickTeams.join(', ')}`);
       
-      // Check if any team from the current game matches any team from the daily pick game
-      const hasCommonTeam = gameTeams.some(team => dailyPickTeams.includes(team));
+      // Check if any team from the current pick matches any team from the daily pick game
+      const hasCommonTeam = pickTeams.some(team => dailyPickTeams.includes(team));
       if (hasCommonTeam) {
-        console.log(`🚫 Excluding game ${game.home_team || game.homeTeam} vs ${game.away_team || game.awayTeam} - teams playing against daily pick teams`);
+        console.log(`🚫 Excluding pick ${pick.homeTeam} vs ${pick.awayTeam} - teams playing against daily pick teams`);
         return false;
       }
       
-      console.log(`✅ Game ${gameTeams.join(' vs ')} is eligible for lock pick`);
+      console.log(`✅ Pick ${pickTeams.join(' vs ')} is eligible for lock pick`);
       return true;
     });
 
-    if (availableGames.length === 0) {
-      console.log('⚠️ No available games for lock pick after excluding daily pick opponents');
+    if (availablePicks.length === 0) {
+      console.log('⚠️ No available picks for lock pick after excluding daily pick opponents');
       return null;
     }
 
-    const newLockPick = await this.generateDailyPick(availableGames);
-    if (newLockPick) {
-      // Create a new ID for the lock pick
-      newLockPick.id = `lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      await this.saveLockPick(newLockPick);
-      console.log(`✅ Lock pick generated: ${newLockPick.pickTeam} (avoiding daily pick opponents)`);
+    // Filter picks that meet minimum grade requirement (C or better)
+    const eligiblePicks = availablePicks.filter(pick => {
+      const gradeValue = this.getGradeValue(pick.grade);
+      const minGradeValue = this.getGradeValue('C');
+      return gradeValue >= minGradeValue;
+    });
+
+    console.log(`Filtered to ${eligiblePicks.length} eligible lock picks (grade C or better) from ${availablePicks.length} available picks`);
+
+    let selectedPick: DailyPick;
+    
+    if (eligiblePicks.length === 0) {
+      console.log('No lock picks meet minimum grade C requirement, selecting best available pick');
+      // If no picks meet minimum requirement, return the best available
+      selectedPick = availablePicks.sort((a, b) => b.confidence - a.confidence)[0];
+    } else {
+      // Randomly select one from eligible picks
+      const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
+      selectedPick = eligiblePicks[randomIndex];
+      console.log(`Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
     }
 
-    return newLockPick;
+    // Create a new ID for the lock pick
+    selectedPick.id = `lock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await this.saveLockPick(selectedPick);
+    console.log(`✅ Lock pick generated: ${selectedPick.pickTeam} (grade: ${selectedPick.grade})`);
+
+    return selectedPick;
   }
 
   // New method specifically for generating lock picks (used by rotation service)
   async generateLockPick(games: any[]): Promise<DailyPick | null> {
-    return await this.generateDailyPick(games);
+    // Generate picks for all games first
+    const allPicks = await this.generateAllGamePicks(games);
+    
+    if (allPicks.length === 0) {
+      return null;
+    }
+
+    // Filter picks that meet minimum grade requirement (C or better)
+    const eligiblePicks = allPicks.filter(pick => {
+      const gradeValue = this.getGradeValue(pick.grade);
+      const minGradeValue = this.getGradeValue('C');
+      return gradeValue >= minGradeValue;
+    });
+
+    console.log(`Rotation: Filtered to ${eligiblePicks.length} eligible lock picks (grade C or better) from ${allPicks.length} total picks`);
+
+    if (eligiblePicks.length === 0) {
+      console.log('Rotation: No picks meet minimum grade C requirement, returning best available pick');
+      // If no picks meet minimum requirement, return the best available
+      return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
+    }
+
+    // Randomly select one from eligible picks
+    const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
+    const selectedPick = eligiblePicks[randomIndex];
+    
+    console.log(`Rotation: Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
+    
+    return selectedPick;
   }
 
   // Method to invalidate current picks (used when games start)

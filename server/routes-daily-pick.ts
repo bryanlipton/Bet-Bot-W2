@@ -348,6 +348,54 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+  // Get all MLB picks for today (Pro users only)
+  app.get("/api/daily-pick/all-picks", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      console.log('📊 Fetching all MLB picks for Pro user');
+      
+      // Get today's games
+      const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
+      const games = await gamesResponse.json();
+      
+      // Filter for today's games with odds
+      const today = new Date();
+      const todaysGames = games.filter((game: any) => {
+        const gameDate = new Date(game.commence_time);
+        const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff >= 0 && daysDiff <= 1 && game.hasOdds; // Today's games
+      });
+
+      if (todaysGames.length === 0) {
+        return res.json([]);
+      }
+
+      // Generate picks for all games
+      const allPicks = await dailyPickService.generateAllGamePicks(todaysGames);
+      
+      console.log(`Generated ${allPicks.length} picks for Pro user view`);
+      
+      // Return all picks sorted by grade (best first)
+      const sortedPicks = allPicks.sort((a, b) => {
+        const getGradeValue = (grade: string): number => {
+          const gradeMap: { [key: string]: number } = {
+            'A+': 12, 'A': 11, 'A-': 10,
+            'B+': 9, 'B': 8, 'B-': 7,
+            'C+': 6, 'C': 5, 'C-': 4,
+            'D+': 3, 'D': 2, 'F': 1
+          };
+          return gradeMap[grade] || 0;
+        };
+        
+        return getGradeValue(b.grade) - getGradeValue(a.grade);
+      });
+
+      res.json(sortedPicks);
+    } catch (error) {
+      console.error("Failed to get all picks:", error);
+      res.status(500).json({ error: "Failed to get all picks" });
+    }
+  });
+
   // Get rotation status endpoint
   app.get("/api/daily-pick/status", async (req: Request, res: Response) => {
     try {
