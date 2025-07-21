@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   },
   {
     id: "picks",
-    label: "My Picks & Data",
+    label: "My Picks",
     icon: Trophy,
     path: "/my-picks",
   },
