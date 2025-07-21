@@ -128,15 +128,15 @@ export default function MyPicksPage() {
           pickStorage.updateAllPicks(uniqueLocalPicks);
         }
         
-        // Sort picks: pending (localStorage only) first, then settled (database) by timestamp
-        const pendingPicks = uniqueLocalPicks.filter(pick => pick.status === 'pending');
-        const settledPicks = databasePicks; // All database picks are already graded
+        // Combine all picks and sort by timestamp (newest first)
+        const allPicks = [...uniqueLocalPicks, ...databasePicks];
         
-        // Sort settled picks by timestamp (newest first)
-        settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        
-        // Combine with pending picks first, then settled picks
-        const allPicks = [...pendingPicks, ...settledPicks];
+        // Sort all picks by timestamp/createdAt (newest first)
+        allPicks.sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.gameInfo?.gameTime || 0).getTime();
+          const timeB = new Date(b.timestamp || b.gameInfo?.gameTime || 0).getTime();
+          return timeB - timeA;
+        });
         setPicks(allPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
         console.log('Loaded picks from database:', databasePicks.length);
