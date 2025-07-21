@@ -147,6 +147,13 @@ export default function ProfilePage() {
     retry: false,
   });
 
+  // Fetch following list for search badge check
+  const { data: userFollowingList = [] } = useQuery({
+    queryKey: [`/api/users/${user?.id}/following`],
+    enabled: !!user?.id,
+    retry: false,
+  });
+
   // Fetch user pick statistics from API
   const { data: pickStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/user/picks/stats'],
@@ -818,15 +825,26 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         
-                        {/* Follow Button */}
-                        <Button
-                          size="sm"
-                          onClick={() => handleFollowUser(user.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <UserPlus className="w-3 h-3" />
-                          Follow
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {/* Following Badge */}
+                          {userFollowingList.some((followedUser: any) => followedUser.id === user.id) && (
+                            <Badge variant="secondary" className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                              Following
+                            </Badge>
+                          )}
+                          
+                          {/* Follow Button - hide if already following */}
+                          {!userFollowingList.some((followedUser: any) => followedUser.id === user.id) && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleFollowUser(user.id)}
+                              className="flex items-center gap-1"
+                            >
+                              <UserPlus className="w-3 h-3" />
+                              Follow
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : searchTerm.length > 0 ? (
