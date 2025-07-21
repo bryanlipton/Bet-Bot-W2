@@ -52,12 +52,22 @@ class DatabasePickStorageService implements PickStorageService {
       // Convert database picks to frontend Pick format  
       return dbPicks.map((dbPick: any) => {
         console.log('Processing pick:', dbPick);
+        
+        // Parse team names from game field (e.g., "Cincinnati Reds @ New York Mets")
+        let awayTeam = 'TBD';
+        let homeTeam = 'TBD';
+        if (dbPick.game && dbPick.game.includes(' @ ')) {
+          const teams = dbPick.game.split(' @ ');
+          awayTeam = teams[0]?.trim() || 'TBD';
+          homeTeam = teams[1]?.trim() || 'TBD';
+        }
+        
         const mappedPick = {
         id: dbPick.id.toString(),
         timestamp: new Date(dbPick.createdAt || dbPick.created_at).getTime(),
         gameInfo: {
-          awayTeam: dbPick.awayTeam || dbPick.away_team,
-          homeTeam: dbPick.homeTeam || dbPick.home_team,
+          awayTeam: awayTeam,
+          homeTeam: homeTeam,
           gameTime: dbPick.gameTime || dbPick.game_time || dbPick.gameDate || dbPick.game_date,
           sport: 'baseball_mlb',
           venue: 'TBD'
