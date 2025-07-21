@@ -47,20 +47,24 @@ function scoreToGrade(score: number): string {
  * @returns Object with text and background color classes
  */
 export function getFactorColorClasses(normalizedScore: number): { text: string; bg: string; border: string } {
-  // Blue (90-100): Excellent/Elite performance
-  if (normalizedScore >= 90) {
+  // Blue (80-100): High performance
+  if (normalizedScore >= 80) {
     return { text: 'text-white', bg: 'bg-blue-500', border: 'border-blue-600' };
   }
-  // Green (75-89): Good performance  
-  if (normalizedScore >= 75) {
-    return { text: 'text-white', bg: 'bg-green-500', border: 'border-green-600' };
+  // Light Blue (70-79): Good performance  
+  if (normalizedScore >= 70) {
+    return { text: 'text-white', bg: 'bg-blue-400', border: 'border-blue-500' };
   }
-  // Yellow (65-74): Average/Below average performance
-  if (normalizedScore >= 65) {
-    return { text: 'text-black', bg: 'bg-yellow-400', border: 'border-yellow-500' };
+  // Grey (60-69): Average performance
+  if (normalizedScore >= 60) {
+    return { text: 'text-white', bg: 'bg-gray-500', border: 'border-gray-600' };
   }
-  // Red (60-64): Poor performance
-  return { text: 'text-white', bg: 'bg-red-500', border: 'border-red-600' };
+  // Light Orange (50-59): Below average performance
+  if (normalizedScore >= 50) {
+    return { text: 'text-white', bg: 'bg-orange-400', border: 'border-orange-500' };
+  }
+  // Orange (below 50): Poor performance
+  return { text: 'text-white', bg: 'bg-orange-500', border: 'border-orange-600' };
 }
 
 /**
