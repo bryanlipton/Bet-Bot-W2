@@ -623,29 +623,29 @@ export function ActionStyleGameCard({
     <Card 
       className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
     >
+      {/* Mobile-optimized card content */}
       <CardContent className="p-3 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+        {/* Mobile-first header layout */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 gap-1 sm:gap-2">
           <div className="flex items-center gap-2">
             {isLive && (
-              <Badge variant="destructive" className="text-xs px-2">
+              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                 LIVE
               </Badge>
             )}
             <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {startTime || "TBD"}
+              {startTime ? new Date(startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD"}
             </span>
           </div>
-          
-
         </div>
 
-        {/* Header with Pick Column */}
-        <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
-          <div className="col-span-2 text-xs sm:text-sm">Teams</div>
+        {/* Mobile-optimized Header with Pick Column */}
+        <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="col-span-2 text-xs">Teams</div>
           <div className="text-center text-xs sm:text-sm">Odds</div>
           <div className="text-center text-xs sm:text-sm">Pick</div>
-          <div className="text-center text-xs sm:text-sm">Bet Bot Pick</div>
+          <div className="text-center text-xs">AI Pick</div>
         </div>
 
         {/* Teams and Odds */}

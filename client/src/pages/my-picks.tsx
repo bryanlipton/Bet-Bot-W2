@@ -751,139 +751,141 @@ export default function MyPicksPage() {
   return (
     <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Mobile-first responsive container with proper padding for mobile nav */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
         
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Mobile-optimized Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
           <div className="flex items-center gap-2">
-            <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+        {/* Mobile-optimized Stats Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-600" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Picks</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <BarChart3 className="w-4 h-4 text-blue-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Picks</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-yellow-600" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <Clock className="w-4 h-4 text-yellow-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Pending</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-slate-600" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Record</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <TrendingUp className="w-4 h-4 text-slate-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Record</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-purple-600" />
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <DollarSign className="w-4 h-4 text-purple-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.winRate.toFixed(1)}%
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                <div>
-                  <p className={`text-2xl font-bold ${stats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <DollarSign className="w-4 h-4 text-emerald-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
+                  <p className={`text-lg sm:text-2xl font-bold ${stats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {stats.totalMoneyWonLost >= 0 ? '+' : ''}${stats.totalMoneyWonLost.toFixed(2)}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Total Win/Loss</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">P&L</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-                <div>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <DollarSign className="w-4 h-4 text-emerald-600 mb-1 sm:mb-0" />
+                <div className="text-center sm:text-left">
                   {editingBetUnit ? (
-                    <div className="flex items-center gap-1">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">$</span>
+                    <div className="flex items-center justify-center sm:justify-start gap-1">
+                      <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">$</span>
                       <Input
                         value={tempBetUnit}
                         onChange={(e) => setTempBetUnit(e.target.value)}
-                        className="w-16 h-8 text-lg font-bold p-1"
+                        className="w-12 sm:w-16 h-6 sm:h-8 text-sm sm:text-lg font-bold p-1 text-center"
                         type="number"
                         step="0.01"
                         min="0"
                       />
-                      <Button size="sm" onClick={handleSaveBetUnit} className="h-6 w-6 p-0">
-                        <Save className="w-3 h-3" />
+                      <Button size="sm" onClick={handleSaveBetUnit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
+                        <Save className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit} className="h-6 w-6 p-0">
-                        <X className="w-3 h-3" />
+                      <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
+                        <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1">
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-center sm:justify-start gap-1">
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                         ${betUnit}
                       </p>
-                      <Button size="sm" variant="ghost" onClick={handleEditBetUnit} className="h-6 w-6 p-0">
-                        <Edit3 className="w-3 h-3" />
+                      <Button size="sm" variant="ghost" onClick={handleEditBetUnit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
+                        <Edit3 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       </Button>
                     </div>
                   )}
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Bet Unit</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Bet Unit</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Enter Manually Button */}
+        {/* Mobile-optimized Enter Manually Button */}
         <div className="flex justify-center">
           <Button
             onClick={() => setShowManualEntry(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 shadow-sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-6 py-2 shadow-sm text-sm sm:text-base w-full sm:w-auto max-w-xs"
           >
+            <Plus className="w-4 h-4 mr-2 sm:mr-1" />
             Enter Manually
           </Button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700">
+        {/* Mobile-optimized Filter Tabs */}
+        <div className="flex items-center gap-1 sm:gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
           {(['all', 'pending', 'past'] as const).map((status) => (
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
-              className={`py-3 px-4 font-medium text-sm border-b-2 transition-colors capitalize ${
+              className={`py-3 px-3 sm:px-4 font-medium text-xs sm:text-sm border-b-2 transition-colors capitalize whitespace-nowrap ${
                 selectedStatus === status
                   ? "border-blue-500 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -919,14 +921,15 @@ export default function MyPicksPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredPicks.map((pick) => (
               <Card key={pick.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
+                <CardContent className="p-3 sm:p-4">
+                  {/* Mobile-optimized header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       {getStatusBadge(pick.status)}
-                      <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(pick.timestamp).toLocaleDateString()}
                       </span>
@@ -935,13 +938,14 @@ export default function MyPicksPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => deletePick(pick.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 self-end sm:self-auto"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* Mobile-stacked layout */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     {/* Game Info */}
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white mb-1">

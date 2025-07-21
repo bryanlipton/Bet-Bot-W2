@@ -256,12 +256,13 @@ export function ActionStyleDashboard() {
   return (
     <>
       <MobileHeader />
-      <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Mobile-first container with proper mobile navigation padding */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">
 
       {/* Pick of the Day Section - Always visible above sports */}
       <div className="space-y-4">
         {!authLoading && !isAuthenticated && (
-          <div className="mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
+          <div className="mb-3 sm:mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
             <h4 className="font-semibold text-white text-sm sm:text-base">Tired of guessing?</h4>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
               Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
@@ -278,8 +279,8 @@ export function ActionStyleDashboard() {
             Free Users
           </Badge>
         </div>
-        {/* Responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-4 xl:gap-6">
+        {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
           <DailyPick key="daily-pick-component" />
           <LoggedInLockPick key="lock-pick-component" />
         </div>
@@ -304,16 +305,17 @@ export function ActionStyleDashboard() {
 
       {/* Featured Games */}
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
+        {/* Mobile-optimized games header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3 sm:mb-4">
           <div className="flex-1">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
               {selectedSport === 'baseball_mlb' ? 'MLB Game Odds' : 
                selectedSport === 'americanfootball_nfl' ? 'NFL Game Odds' :
                selectedSport === 'basketball_nba' ? 'NBA Game Odds' : 
                `${sports.find(s => s.key === selectedSport)?.name} Game Odds`}
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Showing {featuredGames.length} upcoming games
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
+              {featuredGames.length} games
               {featuredGames.length < 10 && (
                 <span className="hidden sm:inline ml-1">
                   • Some games may have TBD betting lines • Started games automatically removed
@@ -321,18 +323,18 @@ export function ActionStyleDashboard() {
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetchOdds()}
               disabled={oddsLoading}
-              className="flex items-center gap-1 text-xs sm:text-sm"
+              className="flex items-center gap-1 text-xs px-2 sm:px-3 h-7 sm:h-8"
             >
               <RefreshCw className={`w-3 h-3 ${oddsLoading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Badge variant="outline" className="flex items-center gap-1 text-xs">
+            <Badge variant="outline" className="flex items-center gap-1 text-xs px-1.5 sm:px-2">
               <Star className="w-3 h-3" />
               <span className="hidden sm:inline">Live</span> Odds
             </Badge>
@@ -344,18 +346,18 @@ export function ActionStyleDashboard() {
             {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-3 sm:p-4">
-                  <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-5 sm:h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-5 sm:h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : featuredGames.length > 0 ? (
-          <div className="space-y-4">
-
+          <div className="space-y-3 sm:space-y-4">
+            {/* Mobile-optimized game cards grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {featuredGames.map((game) => (
                 <ActionStyleGameCard
