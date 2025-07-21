@@ -709,29 +709,134 @@ export default function LoggedInLockPick() {
   const factors = getFactors(lockPick.analysis, lockPick.probablePitchers);
 
   return (
-    <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
-      <CardContent className="p-4 sm:p-6 relative">
-        {/* Blur overlay for non-authenticated users */}
-        {!isAuthenticated && (
-          <div 
-            className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
-            onClick={() => window.location.href = '/api/login'}
-          >
-            <div className="text-center">
-              <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
-              <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
-                Login for a Lock
+    <>
+      {/* Mobile-first wireframe design */}
+      <div className="md:hidden">
+        <Card className="w-full bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700 relative">
+          {/* Blur overlay for non-authenticated users */}
+          {!isAuthenticated && (
+            <div 
+              className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              <div className="text-center">
+                <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
+                  Login for a Lock
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Click here to access your exclusive lock pick
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <CardContent className={`p-4 space-y-4 ${!isAuthenticated ? 'blur-sm' : ''}`}>
+            {/* Header: Title and Grade Badge */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
+              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-full text-sm font-bold">
+                {lockPick.grade}
+              </div>
+            </div>
+
+            {/* Matchup Title */}
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-white font-sans">
+                {lockPick.awayTeam} vs {lockPick.homeTeam}
               </h3>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Click here to access your exclusive lock pick
+              
+              {/* Pitchers */}
+              {lockPick.probablePitchers?.away && lockPick.probablePitchers?.home && (
+                <p className="text-sm text-gray-300 font-sans">
+                  {lockPick.probablePitchers.away} vs {lockPick.probablePitchers.home}
+                </p>
+              )}
+              
+              {/* Game Info */}
+              <p className="text-xs text-gray-400 font-sans">
+                {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
               </p>
             </div>
-          </div>
-        )}
-        
-        <div className={`relative ${!isAuthenticated ? 'blur-sm' : ''}`}>
-          {/* Mobile Layout */}
-          <div className="md:hidden">
+
+            {/* Analysis Section with Dropdown */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white">🧠 Analysis:</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+                  className="p-1 h-6 w-6 text-gray-400 hover:text-white"
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </div>
+              
+              {/* Always visible analysis summary */}
+              <p className="text-sm text-gray-300 font-sans leading-relaxed">
+                {lockPick.reasoning || `The ${lockPick.pickTeam} show strong potential in this matchup with favorable odds and recent momentum. Advanced analytics support this selection.`}
+              </p>
+
+              {/* Dropdown Analysis Factors */}
+              {mobileAnalysisOpen && (
+                <div className="mt-3 space-y-2 bg-gray-800/50 rounded-lg p-3">
+                  {factors.map((factor) => (
+                    <FactorScore 
+                      key={factor.key}
+                      title={factor.title}
+                      score={factor.score || 0}
+                      info={factor.info}
+                      gameContext={lockPick}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons - Always Visible */}
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam)}
+                className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Pick ✅
+              </button>
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
+                className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Fade ❌
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Desktop Layout */}
+      <Card className="hidden md:block w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+        <CardContent className="p-4 sm:p-6 relative">
+          {/* Blur overlay for non-authenticated users */}
+          {!isAuthenticated && (
+            <div 
+              className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
+              onClick={() => window.location.href = '/api/login'}
+            >
+              <div className="text-center">
+                <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
+                  Login for a Lock
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Click here to access your exclusive lock pick
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className={`relative ${!isAuthenticated ? 'blur-sm' : ''}`}>
+            {/* Desktop Layout */}
+            <div className="hidden md:block">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-3">
                 <BetBotIcon className="w-10 h-10 flex-shrink-0" />
@@ -1052,7 +1157,8 @@ export default function LoggedInLockPick() {
           </div>
         </div>
         </div>
-      </CardContent>
+        </CardContent>
+      </Card>
       
       {/* Odds Comparison Modal */}
       {selectedBet && (
@@ -1073,6 +1179,6 @@ export default function LoggedInLockPick() {
           selectedBet={selectedBet}
         />
       )}
-    </Card>
+    </>
   );
 }

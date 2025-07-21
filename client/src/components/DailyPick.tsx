@@ -778,11 +778,98 @@ export default function DailyPick() {
   }
 
   return (
-    <Card className="w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
-      <CardContent className="p-4 sm:p-6">
-        <div className="relative">
-          {/* Mobile Layout */}
-          <div className="md:hidden">
+    <>
+      {/* Mobile-first wireframe design */}
+      <div className="md:hidden">
+        <Card className="w-full bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700">
+          <CardContent className="p-4 space-y-4">
+            {/* Header: Title and Grade Badge */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-blue-400 font-sans">Pick of the Day</h2>
+              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-full text-sm font-bold">
+                {dailyPick.grade}
+              </div>
+            </div>
+
+            {/* Matchup Title */}
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-white font-sans">
+                {dailyPick.awayTeam} vs {dailyPick.homeTeam}
+              </h3>
+              
+              {/* Pitchers */}
+              {currentPitchers.away && currentPitchers.home && (
+                <p className="text-sm text-gray-300 font-sans">
+                  {currentPitchers.away} vs {currentPitchers.home}
+                </p>
+              )}
+              
+              {/* Game Info */}
+              <p className="text-xs text-gray-400 font-sans">
+                {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
+              </p>
+            </div>
+
+            {/* Analysis Section with Dropdown */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white">🧠 Analysis:</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
+                  className="p-1 h-6 w-6 text-gray-400 hover:text-white"
+                >
+                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </div>
+              
+              {/* Always visible analysis summary */}
+              <p className="text-sm text-gray-300 font-sans leading-relaxed">
+                {analysisDetails?.reasoning || `The ${dailyPick.pickTeam} are favored based on recent form and matchup advantages. Strong offensive metrics give them an edge in this contest.`}
+              </p>
+
+              {/* Dropdown Analysis Factors */}
+              {mobileAnalysisOpen && (
+                <div className="mt-3 space-y-2 bg-gray-800/50 rounded-lg p-3">
+                  {factors.map((factor) => (
+                    <FactorScore 
+                      key={factor.key}
+                      title={factor.title}
+                      score={factor.score || 0}
+                      info={factor.info}
+                      gameContext={dailyPick}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons - Always Visible */}
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
+                className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Pick ✅
+              </button>
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Fade ❌
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Desktop Layout */}
+      <Card className="hidden md:block w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4 sm:p-6">
+          <div className="relative">
+            {/* Desktop Layout */}
+            <div className="hidden md:block">
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-3">
                 <BetBotIcon className="w-10 h-10 flex-shrink-0" />
@@ -1105,7 +1192,8 @@ export default function DailyPick() {
           </div>
         </div>
       </div>
-      </CardContent>
+        </CardContent>
+      </Card>
       
       {/* Odds Comparison Modal */}
       {selectedBet && (
@@ -1126,6 +1214,6 @@ export default function DailyPick() {
           selectedBet={selectedBet}
         />
       )}
-    </Card>
+    </>
   );
 }
