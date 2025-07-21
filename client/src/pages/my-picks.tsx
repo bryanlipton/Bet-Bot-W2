@@ -115,9 +115,32 @@ export default function MyPicksPage() {
           }
         ];
 
-        // Sort picks: pending first, then settled by timestamp (newest first)
-        const pendingPicks = localPicks.filter(pick => pick.status === 'pending');
-        const settledPicks = realPicks.filter(pick => pick.status !== 'pending');
+        // Merge picks: prioritize database picks over localStorage picks
+        // Remove localStorage picks that have corresponding database entries
+        const databasePickIds = new Set();
+        realPicks.forEach(pick => {
+          // Create multiple match patterns for robust deduplication
+          const gameId = pick.gameInfo?.awayTeam + '@' + pick.gameInfo?.homeTeam;
+          const selectionMatch = pick.betInfo?.selection + ':' + pick.betInfo?.market;
+          const combinedId = gameId + ':' + selectionMatch;
+          databasePickIds.add(combinedId);
+        });
+        
+        const uniqueLocalPicks = localPicks.filter(localPick => {
+          const localGameId = localPick.gameInfo?.awayTeam + '@' + localPick.gameInfo?.homeTeam;
+          const localSelectionMatch = localPick.betInfo?.selection + ':' + localPick.betInfo?.market;
+          const localCombinedId = localGameId + ':' + localSelectionMatch;
+          return !databasePickIds.has(localCombinedId);
+        });
+        
+        // Clean up localStorage by removing picks that now exist in database
+        if (uniqueLocalPicks.length < localPicks.length) {
+          pickStorage.updateAllPicks(uniqueLocalPicks);
+        }
+        
+        // Sort picks: pending (localStorage only) first, then settled (database) by timestamp
+        const pendingPicks = uniqueLocalPicks.filter(pick => pick.status === 'pending');
+        const settledPicks = realPicks; // All database picks are already graded
         
         // Sort settled picks by timestamp (newest first)
         settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
