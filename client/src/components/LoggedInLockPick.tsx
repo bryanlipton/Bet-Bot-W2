@@ -13,7 +13,12 @@ import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 import { trackPickVisit, cleanupOldVisits } from "@/lib/visitTracker";
 import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
+
 import { useAuth } from "@/hooks/useAuth";
+
+const BetBotIcon = ({ className }: { className?: string }) => (
+  <img src={betbotLogo} alt="Bet Bot" className={className} />
+);
 
 import { DailyPickAnalysis } from '@shared/schema';
 
@@ -66,16 +71,7 @@ interface PickAnalysisDetails {
   };
 }
 
-// BetBot Icon Component
-function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
-  return (
-    <img 
-      src={betbotLogo} 
-      alt="BetBot Logo" 
-      className={`${className} object-contain`}
-    />
-  );
-}
+
 
 // Grade Badge Component
 function GradeBadge({ grade }: { grade: string }) {
@@ -355,30 +351,7 @@ export default function LoggedInLockPick() {
     );
   }
 
-  // Check if game has started to show different message
-  if (isGameStarted(lockPick.gameTime)) {
-    return (
-      <Card className="w-full border-dashed">
-        <CardContent className="p-6 text-center">
-          <div className="flex flex-col items-center space-y-3">
-            <div className="flex items-center space-x-2">
-              <BetBotIcon className="w-12 h-12 opacity-50" />
-              <Lock className="w-6 h-6 text-gray-400" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-gray-600 dark:text-gray-400">
-                Game Already Started
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                New picks will be available at 2:00 AM EST
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Helper function definition
   const formatGameTime = (gameTime: string) => {
     const date = new Date(gameTime);
     const gameDate = date.toLocaleDateString('en-US', { 
@@ -393,6 +366,206 @@ export default function LoggedInLockPick() {
     return `${gameDate} at ${time}`;
   };
 
+  // When game starts, show collapsed view by default
+  const gameStarted = isGameStarted(lockPick.gameTime);
+  const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
+
+  // Find current game score data with improved matching logic
+  const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
+    if (!lockPick) return false;
+    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
+                       game.gameId === lockPick.gameId;
+    const teamMatch = game.homeTeam === lockPick.homeTeam && 
+                     game.awayTeam === lockPick.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
+
+  // Check if game is finished
+  const isGameFinished = liveLockGameScore?.status === 'Final' || liveLockGameScore?.status === 'Completed';
+  
+  // Determine win/loss for finished games
+  const getGameResult = () => {
+    if (!isGameFinished || !liveLockGameScore) return null;
+    
+    const pickTeamScore = lockPick.pickTeam === lockPick.homeTeam 
+      ? liveLockGameScore.homeScore 
+      : liveLockGameScore.awayScore;
+    const opponentScore = lockPick.pickTeam === lockPick.homeTeam 
+      ? liveLockGameScore.awayScore 
+      : liveLockGameScore.homeScore;
+    
+    if (pickTeamScore > opponentScore) return 'won';
+    if (pickTeamScore < opponentScore) return 'lost';
+    return 'tied';
+  };
+
+  const gameResult = getGameResult();
+
+  // Show collapsed view when game has started
+  if (gameStarted && gameStartedCollapsed) {
+    return (
+      <Card className="w-full relative">
+        {isGameFinished && gameResult && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              gameResult === 'won' ? 'bg-green-500' : 
+              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+            }`}>
+              {gameResult.toUpperCase()}
+            </div>
+          </div>
+        )}
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1">
+                <BetBotIcon className="w-8 h-8" />
+                <Lock className="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
+                  <span className="text-xs text-gray-500">
+                    {lockPick.pickTeam} ML {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                    lockPick.grade === 'A+' ? 'bg-blue-500' :
+                    lockPick.grade === 'A' ? 'bg-blue-400' :
+                    lockPick.grade.startsWith('B') ? 'bg-blue-300' :
+                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                  }`}>
+                    Grade {lockPick.grade}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              {liveLockGameScore && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
+                  </div>
+                  <div className="font-mono text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.homeTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setGameStartedCollapsed(false)}
+                className="p-1"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show expanded view for live games
+  if (gameStarted && !gameStartedCollapsed) {
+    return (
+      <Card className="w-full relative">
+        {isGameFinished && gameResult && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              gameResult === 'won' ? 'bg-green-500' : 
+              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+            }`}>
+              {gameResult.toUpperCase()}
+            </div>
+          </div>
+        )}
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1">
+                <BetBotIcon className="w-12 h-12" />
+                <Lock className="w-6 h-6 text-amber-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-amber-600 dark:text-amber-400">Logged In Lock</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setGameStartedCollapsed(true)}
+              className="p-1"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Game status and score */}
+          {liveLockGameScore && (
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg font-bold">{lockPick.awayTeam}</span>
+                    <span className="text-2xl font-bold">{liveLockGameScore.awayScore || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold">{lockPick.homeTeam}</span>
+                    <span className="text-2xl font-bold">{liveLockGameScore.homeScore || 0}</span>
+                  </div>
+                </div>
+                <div className="ml-4 text-right">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || 'Live'}` : 'Live'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Pick details */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Our Pick: {lockPick.pickTeam}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Moneyline {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} • Grade {lockPick.grade}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
+                lockPick.grade === 'A+' ? 'bg-blue-500' :
+                lockPick.grade === 'A' ? 'bg-blue-400' :
+                lockPick.grade.startsWith('B') ? 'bg-blue-300' :
+                lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+              }`}>
+                Grade {lockPick.grade}
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Reasoning:</strong> {lockPick.reasoning}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const formatOdds = (odds: number, pickType: string) => {
     const sign = odds > 0 ? `+${odds}` : `${odds}`;
     const type = pickType === 'moneyline' ? 'ML' : 
@@ -400,17 +573,6 @@ export default function LoggedInLockPick() {
                  pickType === 'over_under' ? 'O/U' : 'ML';
     return `${type} ${sign}`;
   };
-
-  // Find current game score data with improved matching logic
-  const currentGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!lockPick) return false;
-    // Try multiple matching strategies
-    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
-                       game.gameId === lockPick.gameId;
-    const teamMatch = game.homeTeam === lockPick.homeTeam && 
-                     game.awayTeam === lockPick.awayTeam;
-    return gameIdMatch || teamMatch;
-  });
 
   // Debug logging (remove in production)
   // if (lockPick && gameScore && gameScore.length > 0) {

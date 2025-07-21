@@ -9,10 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
-import { savePick } from "@/services/pickStorage";
+// import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
 import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
+
+
 
 import { DailyPickAnalysis } from '@shared/schema';
 
@@ -222,46 +224,13 @@ export default function DailyPick() {
   const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
+  const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
 
-  // Listen for events to collapse both when one collapses (only for large screens)
-  useEffect(() => {
-    const handleCollapseAnalysis = (e: any) => {
-      if (e.detail?.source === 'lock') {
-        console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
-        setDailyPickLargeOpen(false);
-      }
-    };
-    
-    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
-    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
-  }, []);
-  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
-
-  // Check if game has started to hide the tile
-  const isGameStarted = (gameTime: string) => {
-    const now = new Date();
-    const game = new Date(gameTime);
-    return now > game;
-  };
-
-  // Track visits and determine if should be collapsed
-  useEffect(() => {
-    if (dailyPick?.id) {
-      // Clean up old visits on component mount
-      cleanupOldVisits();
-      
-      // Track this visit
-      trackPickVisit(dailyPick.id);
-      
-      // Check if should be collapsed
-      const shouldCollapse = shouldCollapsePickForUser(dailyPick.id);
-      setIsCollapsed(shouldCollapse);
-    }
-  }, [dailyPick?.id]);
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
     queryKey: [`/api/daily-pick/${dailyPick?.id}/analysis`],
@@ -279,6 +248,41 @@ export default function DailyPick() {
     enabled: !!dailyPick?.gameTime,
     refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
   });
+
+  // Listen for events to collapse both when one collapses (only for large screens)
+  useEffect(() => {
+    const handleCollapseAnalysis = (e: any) => {
+      if (e.detail?.source === 'lock') {
+        console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
+        setDailyPickLargeOpen(false);
+      }
+    };
+    
+    window.addEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+    return () => window.removeEventListener('collapseBothAnalysis', handleCollapseAnalysis);
+  }, []);
+
+  // Track visits and determine if should be collapsed
+  useEffect(() => {
+    if (dailyPick?.id) {
+      // Clean up old visits on component mount
+      cleanupOldVisits();
+      
+      // Track this visit
+      trackPickVisit(dailyPick.id);
+      
+      // Check if should be collapsed
+      const shouldCollapse = shouldCollapsePickForUser(dailyPick.id);
+      setIsCollapsed(shouldCollapse);
+    }
+  }, [dailyPick?.id]);
+
+  // Check if game has started to hide the tile
+  const isGameStarted = (gameTime: string) => {
+    const now = new Date();
+    const game = new Date(gameTime);
+    return now > game;
+  };
 
   // Get current pitcher information from the latest game data
   const getCurrentPitchers = () => {
@@ -354,27 +358,7 @@ export default function DailyPick() {
     );
   }
 
-  // Hide pick if game has started and it's before 2 AM next day
-  if (shouldHideStartedPick(dailyPick.gameTime)) {
-    return (
-      <Card className="w-full border-dashed">
-        <CardContent className="p-6 text-center">
-          <div className="flex flex-col items-center space-y-3">
-            <BetBotIcon className="w-12 h-12 opacity-50" />
-            <div className="space-y-1">
-              <h3 className="font-semibold text-gray-600 dark:text-gray-400">
-                Game Already Started
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                New picks will be available at 2:00 AM EST
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Helper function definition
   const formatGameTime = (gameTime: string) => {
     const date = new Date(gameTime);
     const gameDate = date.toLocaleDateString('en-US', { 
@@ -388,6 +372,199 @@ export default function DailyPick() {
     });
     return `${gameDate} at ${time}`;
   };
+
+  // When game starts, show collapsed view by default
+  const gameStarted = dailyPick ? isGameStarted(dailyPick.gameTime) : false;
+
+  // Find current game score data
+  const liveGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
+    if (!dailyPick) return false;
+    const gameIdMatch = game.gameId === parseInt(dailyPick.gameId || '0') || 
+                       game.gameId === dailyPick.gameId;
+    const teamMatch = game.homeTeam === dailyPick.homeTeam && 
+                     game.awayTeam === dailyPick.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
+
+  // Check if game is finished
+  const isGameFinished = liveGameScore?.status === 'Final' || liveGameScore?.status === 'Completed';
+  
+  // Determine win/loss for finished games
+  const getGameResult = () => {
+    if (!isGameFinished || !liveGameScore) return null;
+    
+    const pickTeamScore = dailyPick.pickTeam === dailyPick.homeTeam 
+      ? liveGameScore.homeScore 
+      : liveGameScore.awayScore;
+    const opponentScore = dailyPick.pickTeam === dailyPick.homeTeam 
+      ? liveGameScore.awayScore 
+      : liveGameScore.homeScore;
+    
+    if (pickTeamScore > opponentScore) return 'won';
+    if (pickTeamScore < opponentScore) return 'lost';
+    return 'tied';
+  };
+
+  const gameResult = getGameResult();
+
+  // Show collapsed view when game has started
+  if (gameStarted && gameStartedCollapsed) {
+    return (
+      <Card className="w-full relative">
+        {isGameFinished && gameResult && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              gameResult === 'won' ? 'bg-green-500' : 
+              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+            }`}>
+              {gameResult.toUpperCase()}
+            </div>
+          </div>
+        )}
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <BetBotIcon className="w-8 h-8" />
+              <div>
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
+                  <span className="text-xs text-gray-500">
+                    {dailyPick.pickTeam} ML {dailyPick.odds > 0 ? `+${dailyPick.odds}` : dailyPick.odds}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                    dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                    dailyPick.grade === 'A' ? 'bg-blue-400' :
+                    dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                    dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                  }`}>
+                    Grade {dailyPick.grade}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              {liveGameScore && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {liveGameScore.status === 'Final' ? 'Final' : 
+                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || ''}` : 'Live'}
+                  </div>
+                  <div className="font-mono text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.awayTeam}</span>
+                      <span className="font-bold">{liveGameScore.awayScore || 0}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.homeTeam}</span>
+                      <span className="font-bold">{liveGameScore.homeScore || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setGameStartedCollapsed(false)}
+                className="p-1"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show expanded view for live games
+  if (gameStarted && !gameStartedCollapsed) {
+    return (
+      <Card className="w-full relative">
+        {isGameFinished && gameResult && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              gameResult === 'won' ? 'bg-green-500' : 
+              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+            }`}>
+              {gameResult.toUpperCase()}
+            </div>
+          </div>
+        )}
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <BetBotIcon className="w-12 h-12" />
+              <div>
+                <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400">Pick of the Day</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setGameStartedCollapsed(true)}
+              className="p-1"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Game status and score */}
+          {liveGameScore && (
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg font-bold">{dailyPick.awayTeam}</span>
+                    <span className="text-2xl font-bold">{liveGameScore.awayScore || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold">{dailyPick.homeTeam}</span>
+                    <span className="text-2xl font-bold">{liveGameScore.homeScore || 0}</span>
+                  </div>
+                </div>
+                <div className="ml-4 text-right">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {liveGameScore.status === 'Final' ? 'Final' : 
+                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || 'Live'}` : 'Live'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Pick details */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Moneyline {dailyPick.odds > 0 ? `+${dailyPick.odds}` : dailyPick.odds} • Grade {dailyPick.grade}
+                </p>
+              </div>
+              <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
+                dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                dailyPick.grade === 'A' ? 'bg-blue-400' :
+                dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+              }`}>
+                Grade {dailyPick.grade}
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Reasoning:</strong> {dailyPick.reasoning}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const formatOdds = (odds: number, pickType: string) => {
     const sign = odds > 0 ? `+${odds}` : `${odds}`;
