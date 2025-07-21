@@ -833,6 +833,19 @@ export default function ProfilePage() {
                             </Badge>
                           )}
                           
+                          {/* View Profile Button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              window.open(`/user/${user.id}`, '_blank');
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <User className="w-3 h-3" />
+                            View Profile
+                          </Button>
+                          
                           {/* Follow Button - hide if already following */}
                           {!userFollowingList.some((followedUser: any) => followedUser.id === user.id) && (
                             <Button
