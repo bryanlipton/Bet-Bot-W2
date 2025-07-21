@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
-import { savePick } from "@/services/pickStorage";
+// import { savePick } from "@/services/pickStorage"; // Unused import removed
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
 import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
@@ -408,12 +408,13 @@ export default function LoggedInLockPick() {
   };
 
   // Find current game score data with improved matching logic
-  const currentGameScore = gameScore?.find((game: any) => {
+  const currentGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
+    if (!lockPick) return false;
     // Try multiple matching strategies
-    const gameIdMatch = game.gameId === parseInt(lockPick?.gameId || '0') || 
-                       game.gameId === lockPick?.gameId;
-    const teamMatch = game.homeTeam === lockPick?.homeTeam && 
-                     game.awayTeam === lockPick?.awayTeam;
+    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
+                       game.gameId === lockPick.gameId;
+    const teamMatch = game.homeTeam === lockPick.homeTeam && 
+                     game.awayTeam === lockPick.awayTeam;
     return gameIdMatch || teamMatch;
   });
 
@@ -449,7 +450,7 @@ export default function LoggedInLockPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? analysis.pitchingMatchup : null,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : null,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
@@ -755,7 +756,7 @@ export default function LoggedInLockPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {lockPick.probablePitchers[matchup.topTeamPitcher] || 'TBD'}
+                P: {matchup.topTeamPitcher === 'home' ? lockPick.probablePitchers.home : lockPick.probablePitchers.away || 'TBD'}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -777,7 +778,7 @@ export default function LoggedInLockPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {lockPick.probablePitchers[matchup.bottomTeamPitcher] || 'TBD'}
+                P: {matchup.bottomTeamPitcher === 'home' ? lockPick.probablePitchers.home : lockPick.probablePitchers.away || 'TBD'}
               </p>
             </div>
             <div className="mt-3">
@@ -966,7 +967,7 @@ export default function LoggedInLockPick() {
             sport: 'baseball_mlb',
             gameTime: lockPick.gameTime
           }}
-          bookmakers={gamesData?.find((game: any) => game.id === lockPick.gameId)?.bookmakers || []}
+          bookmakers={(Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === lockPick.gameId)?.bookmakers || []}
           selectedBet={selectedBet}
         />
       )}
