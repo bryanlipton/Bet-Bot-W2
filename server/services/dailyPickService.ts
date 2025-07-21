@@ -955,6 +955,7 @@ export class DailyPickService {
   // Methods for logged-in lock picks
   async saveLockPick(pick: DailyPick): Promise<void> {
     try {
+      console.log(`💾 Saving lock pick to database: ${pick.pickTeam} (${pick.grade}) for date ${pick.pickDate}`);
       await db.insert(loggedInLockPicks).values({
         id: pick.id,
         gameId: pick.gameId,
@@ -972,8 +973,9 @@ export class DailyPickService {
         probablePitchers: pick.probablePitchers,
         pickDate: new Date(pick.pickDate)
       });
+      console.log(`✅ Successfully saved lock pick to database: ${pick.pickTeam}`);
     } catch (error) {
-      console.log('Failed to save lock pick to database');
+      console.log('❌ Failed to save lock pick to database:', error);
     }
   }
 
@@ -987,14 +989,20 @@ export class DailyPickService {
         .where(eq(loggedInLockPicks.pickDate, new Date(today)))
         .limit(1);
       
-      return pick ? {
-        ...pick,
-        pickType: pick.pickType as 'moneyline',
-        gameTime: pick.gameTime.toISOString(),
-        pickDate: pick.pickDate.toISOString().split('T')[0]
-      } : null;
+      if (pick) {
+        console.log(`✅ Found existing lock pick in database: ${pick.pickTeam} (${pick.grade})`);
+        return {
+          ...pick,
+          pickType: pick.pickType as 'moneyline',
+          gameTime: pick.gameTime.toISOString(),
+          pickDate: pick.pickDate.toISOString().split('T')[0]
+        };
+      } else {
+        console.log(`❌ No lock pick found in database for ${today}`);
+        return null;
+      }
     } catch (error) {
-      console.log('Failed to get lock pick from database');
+      console.log('Failed to get lock pick from database:', error);
       return null;
     }
   }
