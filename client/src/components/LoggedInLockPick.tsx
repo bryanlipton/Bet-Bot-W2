@@ -355,8 +355,8 @@ export default function LoggedInLockPick() {
     );
   }
 
-  // Hide pick if game has started and it's before 2 AM next day
-  if (shouldHideStartedPick(lockPick.gameTime)) {
+  // Check if game has started to show different message
+  if (isGameStarted(lockPick.gameTime)) {
     return (
       <Card className="w-full border-dashed">
         <CardContent className="p-6 text-center">
@@ -444,7 +444,7 @@ export default function LoggedInLockPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : null,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : 0,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
