@@ -226,7 +226,7 @@ export default function MyPicksPage() {
 
   const filteredPicks = picks.filter(pick => {
     if (selectedStatus === 'all') return true;
-    if (selectedStatus === 'past') return pick.status === 'won' || pick.status === 'lost';
+    if (selectedStatus === 'past') return pick.status === 'won' || pick.status === 'lost' || pick.status === 'win' || pick.status === 'loss' || pick.status === 'push';
     return pick.status === selectedStatus;
   });
 
@@ -235,9 +235,13 @@ export default function MyPicksPage() {
       case 'pending':
         return <Badge className="bg-yellow-600 text-white">Pending</Badge>;
       case 'won':
+      case 'win':
         return <Badge className="bg-green-600 text-white">Won</Badge>;
       case 'lost':
+      case 'loss':
         return <Badge className="bg-red-600 text-white">Lost</Badge>;
+      case 'push':
+        return <Badge className="bg-gray-600 text-white">Push</Badge>;
       case 'void':
         return <Badge className="bg-gray-600 text-white">Void</Badge>;
       case 'cancelled':
@@ -716,7 +720,11 @@ export default function MyPicksPage() {
       (picks.filter(p => p.status === 'won' || p.status === 'win').length / picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
     totalMoneyWonLost: picks.reduce((sum, p) => {
       if (p.status === 'won' || p.status === 'win') {
-        // Calculate winnings based on odds and units
+        // For graded picks, use the calculated win amount from database if available
+        if (p.result && typeof p.result.payout === 'string' && !isNaN(parseFloat(p.result.payout))) {
+          return sum + parseFloat(p.result.payout);
+        }
+        // Fallback to calculation based on odds and units
         const odds = p.betInfo?.odds || 0;
         const units = p.betInfo?.units || 0;
         const wagerAmount = units * betUnit;
@@ -1100,6 +1108,42 @@ export default function MyPicksPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                           Awaiting result
                         </p>
+                      )}
+                      {(pick.status === 'win' || pick.status === 'won') && (
+                        <div>
+                          <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                            ✓ Won
+                          </p>
+                          {pick.result?.details && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {pick.result.details}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {(pick.status === 'loss' || pick.status === 'lost') && (
+                        <div>
+                          <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                            ✗ Lost
+                          </p>
+                          {pick.result?.details && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {pick.result.details}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {pick.status === 'push' && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            ↔ Push
+                          </p>
+                          {pick.result?.details && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {pick.result.details}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
