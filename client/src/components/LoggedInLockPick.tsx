@@ -761,35 +761,33 @@ export default function LoggedInLockPick() {
 
             {/* Analysis Section with Dropdown */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-white">🧠 Analysis:</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
-                  className="p-1 h-6 w-6 text-gray-400 hover:text-white"
-                >
-                  <ChevronDown className={`h-4 w-4 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
-                </Button>
+              <div className="flex items-center justify-between cursor-pointer" onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}>
+                <span className="text-sm font-medium text-white">🧠 Analysis</span>
+                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
               </div>
               
-              {/* Always visible analysis summary */}
-              <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                {lockPick.reasoning || `The ${lockPick.pickTeam} show strong potential in this matchup with favorable odds and recent momentum. Advanced analytics support this selection.`}
-              </p>
-
-              {/* Dropdown Analysis Factors */}
+              {/* Collapsible Analysis Content */}
               {mobileAnalysisOpen && (
-                <div className="mt-3 space-y-2 bg-gray-800/50 rounded-lg p-3">
-                  {factors.map((factor) => (
-                    <FactorScore 
-                      key={factor.key}
-                      title={factor.title}
-                      score={factor.score || 0}
-                      info={factor.info}
-                      gameContext={lockPick}
-                    />
-                  ))}
+                <div className="space-y-3 pt-2">
+                  {/* Analysis Factors with Info Buttons */}
+                  <div className="space-y-2 bg-gray-800/30 rounded-lg p-3">
+                    {factors.map((factor) => (
+                      <FactorScore 
+                        key={factor.key}
+                        title={factor.title}
+                        score={factor.score || 0}
+                        info={factor.info}
+                        gameContext={lockPick}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Analysis Summary Blurb */}
+                  <div className="bg-gray-800/20 rounded-lg p-3">
+                    <p className="text-sm text-gray-300 font-sans leading-relaxed">
+                      {lockPick.reasoning || `The ${lockPick.pickTeam} present compelling value in this exclusive lock selection. Our advanced analytics identify multiple convergent factors that create a high-confidence betting opportunity with favorable risk-reward dynamics.`}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
