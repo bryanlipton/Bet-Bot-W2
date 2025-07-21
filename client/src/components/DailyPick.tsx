@@ -242,6 +242,13 @@ export default function DailyPick() {
     enabled: !!dailyPick?.gameId,
   });
 
+  // Fetch live odds to update pick odds dynamically
+  const { data: liveOdds } = useQuery({
+    queryKey: ['/api/odds/live/baseball_mlb'],
+    enabled: !!dailyPick?.gameId,
+    refetchInterval: 60 * 1000, // Refetch every minute for odds updates
+  });
+
   // Fetch live scores for the game
   const { data: gameScore } = useQuery({
     queryKey: ['/api/mlb/scores', dailyPick?.gameTime ? new Date(dailyPick.gameTime).toISOString().split('T')[0] : ''],
@@ -286,7 +293,7 @@ export default function DailyPick() {
 
   // Get current pitcher information from the latest game data
   const getCurrentPitchers = () => {
-    if (!dailyPick || !gamesData) {
+    if (!dailyPick || !gamesData || !Array.isArray(gamesData)) {
       return dailyPick?.probablePitchers || { home: null, away: null };
     }
     
@@ -300,16 +307,54 @@ export default function DailyPick() {
     return dailyPick.probablePitchers;
   };
 
+  // Get current odds from live odds API
+  const getCurrentOdds = () => {
+    if (!dailyPick || !liveOdds || !Array.isArray(liveOdds)) {
+      return {
+        homeOdds: dailyPick?.odds || null,
+        awayOdds: dailyPick?.odds || null,
+        pickTeamOdds: dailyPick?.odds || null
+      };
+    }
+
+    // Find the matching game in live odds
+    const matchingGame = liveOdds.find((game: any) => {
+      return (game.homeTeam === dailyPick.homeTeam && game.awayTeam === dailyPick.awayTeam) ||
+             (game.home_team === dailyPick.homeTeam && game.away_team === dailyPick.awayTeam);
+    });
+
+    if (matchingGame) {
+      const homeOdds = matchingGame.homeOdds || matchingGame.home_odds;
+      const awayOdds = matchingGame.awayOdds || matchingGame.away_odds;
+      const pickTeamOdds = dailyPick.pickTeam === dailyPick.homeTeam ? homeOdds : awayOdds;
+      
+      return {
+        homeOdds: homeOdds || null,
+        awayOdds: awayOdds || null,
+        pickTeamOdds: pickTeamOdds || dailyPick.odds || null
+      };
+    }
+
+    // Fallback to stored odds
+    return {
+      homeOdds: dailyPick.odds || null,
+      awayOdds: dailyPick.odds || null,
+      pickTeamOdds: dailyPick.odds || null
+    };
+  };
+
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
     if (!dailyPick) return;
     
+    const currentOdds = getCurrentOdds();
+    
     const betInfo = {
       market,
       selection,
       line,
-      odds: dailyPick.odds
+      odds: currentOdds.pickTeamOdds || dailyPick.odds
     };
     
     // Close any existing modal first to prevent overlap
@@ -429,7 +474,7 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
-                    {dailyPick.pickTeam} ML {dailyPick.odds > 0 ? `+${dailyPick.odds}` : dailyPick.odds}
+                    {dailyPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -544,7 +589,7 @@ export default function DailyPick() {
               <div>
                 <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Moneyline {dailyPick.odds > 0 ? `+${dailyPick.odds}` : dailyPick.odds} • Grade {dailyPick.grade}
+                  Moneyline {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds} • Grade {dailyPick.grade}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
@@ -675,7 +720,7 @@ export default function DailyPick() {
                   Pick of the Day
                 </h3>
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                  {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)} • Grade {dailyPick.grade}
+                  {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)} • Grade {dailyPick.grade}
                 </p>
               </div>
             </div>
@@ -881,7 +926,7 @@ export default function DailyPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(dailyPick.odds, dailyPick.pickType)}
+                  {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
                 </span>
               </div>
               <div className="flex-shrink-0 ml-4">

@@ -238,6 +238,13 @@ export default function LoggedInLockPick() {
     enabled: !!lockPick?.gameId,
   });
 
+  // Fetch live odds to update pick odds dynamically
+  const { data: liveOdds } = useQuery({
+    queryKey: ['/api/odds/live/baseball_mlb'],
+    enabled: !!lockPick?.gameId,
+    refetchInterval: 60 * 1000, // Refetch every minute for odds updates
+  });
+
   // Fetch live scores for the game
   const { data: gameScore } = useQuery({
     queryKey: ['/api/mlb/scores', lockPick?.gameTime ? new Date(lockPick.gameTime).toISOString().split('T')[0] : ''],
@@ -276,16 +283,54 @@ export default function LoggedInLockPick() {
     return now > game;
   };
 
+  // Get current odds from live odds API
+  const getCurrentOdds = () => {
+    if (!lockPick || !liveOdds || !Array.isArray(liveOdds)) {
+      return {
+        homeOdds: lockPick?.odds || null,
+        awayOdds: lockPick?.odds || null,
+        pickTeamOdds: lockPick?.odds || null
+      };
+    }
+
+    // Find the matching game in live odds
+    const matchingGame = liveOdds.find((game: any) => {
+      return (game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam) ||
+             (game.home_team === lockPick.homeTeam && game.away_team === lockPick.awayTeam);
+    });
+
+    if (matchingGame) {
+      const homeOdds = matchingGame.homeOdds || matchingGame.home_odds;
+      const awayOdds = matchingGame.awayOdds || matchingGame.away_odds;
+      const pickTeamOdds = lockPick.pickTeam === lockPick.homeTeam ? homeOdds : awayOdds;
+      
+      return {
+        homeOdds: homeOdds || null,
+        awayOdds: awayOdds || null,
+        pickTeamOdds: pickTeamOdds || lockPick.odds || null
+      };
+    }
+
+    // Fallback to stored odds
+    return {
+      homeOdds: lockPick.odds || null,
+      awayOdds: lockPick.odds || null,
+      pickTeamOdds: lockPick.odds || null
+    };
+  };
+
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
     if (!lockPick) return;
     
+    const currentOdds = getCurrentOdds();
+    
     const betInfo = {
       market,
       selection,
       line,
-      odds: lockPick.odds
+      odds: currentOdds.pickTeamOdds || lockPick.odds
     };
     
     // Close any existing modal first to prevent overlap
@@ -428,7 +473,7 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
-                    {lockPick.pickTeam} ML {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds}
+                    {lockPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -546,7 +591,7 @@ export default function LoggedInLockPick() {
               <div>
                 <h3 className="text-lg font-semibold">Our Pick: {lockPick.pickTeam}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Moneyline {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} • Grade {lockPick.grade}
+                  Moneyline {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} • Grade {lockPick.grade}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
@@ -724,7 +769,7 @@ export default function LoggedInLockPick() {
                         <h4 className="font-semibold mb-3">Pick Details</h4>
                         <div className="space-y-2 text-sm">
                           <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
-                          <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                          <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}</div>
                           <div><strong>Venue:</strong> {lockPick.venue}</div>
                           <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
                         </div>
@@ -805,7 +850,7 @@ export default function LoggedInLockPick() {
                       <h4 className="font-semibold mb-3">Pick Details</h4>
                       <div className="space-y-2 text-sm">
                         <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
-                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}</div>
                         <div><strong>Venue:</strong> {lockPick.venue}</div>
                         <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
                       </div>
@@ -856,7 +901,7 @@ export default function LoggedInLockPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(lockPick.odds, lockPick.pickType)}
+                  {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}
                 </span>
               </div>
               <div className="flex-shrink-0 ml-4">
