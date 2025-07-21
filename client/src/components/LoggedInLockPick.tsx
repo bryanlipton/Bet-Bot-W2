@@ -449,7 +449,14 @@ export default function LoggedInLockPick() {
 
   const gameResult = getGameResult();
 
-
+  // Format odds helper function
+  const formatOdds = (odds: number, pickType: string) => {
+    const sign = odds > 0 ? `+${odds}` : `${odds}`;
+    const type = pickType === 'moneyline' ? 'ML' : 
+                 pickType === 'spread' ? 'SP' : 
+                 pickType === 'over_under' ? 'O/U' : 'ML';
+    return `${type} ${sign}`;
+  };
 
   // Show collapsed view when manually collapsed or when game has started
   if (isCollapsed || (gameStarted && gameStartedCollapsed)) {
@@ -578,14 +585,6 @@ export default function LoggedInLockPick() {
     );
   }
 
-  const formatOdds = (odds: number, pickType: string) => {
-    const sign = odds > 0 ? `+${odds}` : `${odds}`;
-    const type = pickType === 'moneyline' ? 'ML' : 
-                 pickType === 'spread' ? 'SP' : 
-                 pickType === 'over_under' ? 'O/U' : 'ML';
-    return `${type} ${sign}`;
-  };
-
   // Debug logging (remove in production)
   // if (lockPick && gameScore && gameScore.length > 0) {
   //   console.log('Lock pick game ID:', lockPick.gameId, typeof lockPick.gameId);
@@ -700,7 +699,8 @@ export default function LoggedInLockPick() {
                 <BetBotIcon className="w-10 h-10 flex-shrink-0" />
                 <div>
                   <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                    Logged in Lock of the Day
+                    <span className="md:hidden">Logged In Lock</span>
+                    <span className="hidden md:inline">Logged in Lock of the Day</span>
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                     Exclusive pick for authenticated users
@@ -708,6 +708,15 @@ export default function LoggedInLockPick() {
                 </div>
               </div>
               <div className="flex flex-col items-end space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                  onClick={() => setIsCollapsed(true)}
+                  title="Hide pick"
+                >
+                  <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </Button>
                 <div className="flex items-center space-x-2">
                   <GradeBadge grade={lockPick.grade} />
                   <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
