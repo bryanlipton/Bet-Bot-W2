@@ -51,7 +51,7 @@ export default function MobileBottomNavigation() {
   // Filter nav items based on authentication status
   const filteredNavItems = navItems.filter(item => {
     // Hide "My Picks" tab for non-authenticated users (only if auth is loaded and explicitly false)
-    if (item.id === "picks" && !isLoading && isAuthenticated === false) {
+    if (item.id === "picks" && !isLoading && !isAuthenticated) {
       return false;
     }
     return true;

@@ -126,6 +126,7 @@ class DatabasePickStorageService implements PickStorageService {
           url: '#'
         },
         status: dbPick.status,
+        betUnitAtTime: parseFloat(dbPick.betUnitAtTime || dbPick.bet_unit_at_time) || undefined,
         result: dbPick.result ? {
           outcome: dbPick.status,
           payout: (dbPick.winAmount || dbPick.win_amount)?.toString() || '0',
