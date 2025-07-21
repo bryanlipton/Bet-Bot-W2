@@ -88,37 +88,27 @@ export default function MyPicksPage() {
     enabled: showManualEntry,
   });
 
-  // Load picks - combine localStorage with hardcoded database picks until auth is fixed
+  // Load picks from database and localStorage
   useEffect(() => {
-    const loadPicks = () => {
+    const loadPicks = async () => {
       try {
         // Load from localStorage
         const localPicks = pickStorage.getPicks();
         
-        // Add your real picks from yesterday plus localStorage picks
-        const realPicks: Pick[] = [
-          {
-            id: 'blue_jays_ml',
-            timestamp: '2025-07-18T12:00:00Z',
-            gameInfo: { homeTeam: 'Toronto Blue Jays', awayTeam: 'San Francisco Giants', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
-            betInfo: { selection: 'Toronto Blue Jays', market: 'moneyline', odds: 130, units: 1.5, line: null },
-            bookmaker: { key: 'draftkings', displayName: 'DraftKings', deepLink: '' },
-            status: 'won'
-          },
-          {
-            id: 'orioles_mets_parlay',
-            timestamp: '2025-07-18T11:30:00Z',
-            gameInfo: { homeTeam: 'Parlay', awayTeam: 'Baltimore Orioles + New York Mets', gameTime: '2025-07-18T19:00:00Z', sport: 'baseball_mlb' },
-            betInfo: { selection: '2-Leg Parlay', market: 'parlay', odds: 280, units: 1.0, line: null },
-            bookmaker: { key: 'fanduel', displayName: 'FanDuel', deepLink: '' },
-            status: 'lost'
-          }
-        ];
+        // Load from database (with error handling for auth issues)
+        let databasePicks: Pick[] = [];
+        try {
+          databasePicks = await databasePickStorage.getPicks();
+          console.log('Successfully loaded picks from database:', databasePicks.length);
+        } catch (error) {
+          console.warn('Could not load picks from database (likely auth issue):', error);
+          // Continue with localStorage picks only
+        }
 
         // Merge picks: prioritize database picks over localStorage picks
         // Remove localStorage picks that have corresponding database entries
         const databasePickIds = new Set();
-        realPicks.forEach(pick => {
+        databasePicks.forEach(pick => {
           // Create multiple match patterns for robust deduplication
           const gameId = pick.gameInfo?.awayTeam + '@' + pick.gameInfo?.homeTeam;
           const selectionMatch = pick.betInfo?.selection + ':' + pick.betInfo?.market;
@@ -140,7 +130,7 @@ export default function MyPicksPage() {
         
         // Sort picks: pending (localStorage only) first, then settled (database) by timestamp
         const pendingPicks = uniqueLocalPicks.filter(pick => pick.status === 'pending');
-        const settledPicks = realPicks; // All database picks are already graded
+        const settledPicks = databasePicks; // All database picks are already graded
         
         // Sort settled picks by timestamp (newest first)
         settledPicks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -149,6 +139,7 @@ export default function MyPicksPage() {
         const allPicks = [...pendingPicks, ...settledPicks];
         setPicks(allPicks);
         console.log('Loaded picks from localStorage:', localPicks.length);
+        console.log('Loaded picks from database:', databasePicks.length);
         console.log('Total picks:', allPicks.length);
         
       } catch (error) {

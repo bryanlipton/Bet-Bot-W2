@@ -50,21 +50,34 @@ class DatabasePickStorageService implements PickStorageService {
       // Convert database picks to frontend Pick format
       return dbPicks.map((dbPick: any) => ({
         id: dbPick.id.toString(),
-        gameId: dbPick.gameId,
-        homeTeam: dbPick.homeTeam,
-        awayTeam: dbPick.awayTeam,
-        selection: dbPick.selection,
-        market: dbPick.market,
-        line: dbPick.line,
-        units: parseFloat(dbPick.units) || 1,
-        bookmaker: dbPick.bookmaker,
-        bookmakerDisplayName: dbPick.bookmakerDisplayName,
-        gameDate: dbPick.gameDate,
-        gameTime: dbPick.gameTime,
-        odds: dbPick.odds,
-        parlayLegs: dbPick.parlayLegs ? JSON.parse(dbPick.parlayLegs) : undefined,
         timestamp: new Date(dbPick.createdAt).getTime(),
-        status: dbPick.status
+        gameInfo: {
+          awayTeam: dbPick.awayTeam,
+          homeTeam: dbPick.homeTeam,
+          gameTime: dbPick.gameTime || dbPick.gameDate,
+          sport: 'baseball_mlb',
+          venue: 'TBD'
+        },
+        betInfo: {
+          selection: dbPick.selection,
+          market: dbPick.market,
+          line: dbPick.line,
+          odds: parseFloat(dbPick.odds) || 0,
+          units: parseFloat(dbPick.units) || 1,
+          parlayLegs: dbPick.parlayLegs ? JSON.parse(dbPick.parlayLegs) : undefined
+        },
+        bookmaker: {
+          key: dbPick.bookmaker,
+          title: dbPick.bookmakerDisplayName,
+          displayName: dbPick.bookmakerDisplayName,
+          url: '#'
+        },
+        status: dbPick.status,
+        result: dbPick.result ? {
+          outcome: dbPick.status,
+          payout: dbPick.winAmount?.toString() || '0',
+          details: dbPick.result
+        } : undefined
       }));
     } catch (error) {
       console.error('Error fetching picks from database:', error);
