@@ -60,9 +60,9 @@ export function trackPickVisit(pickId: string): VisitData {
 }
 
 // Check if pick should be collapsed (visited 2+ times)
+// Disabled to prevent user confusion - picks should always be visible
 export function shouldCollapsePickForUser(pickId: string): boolean {
-  const visitData = getPickVisitData(pickId);
-  return visitData ? visitData.visitCount >= 2 : false;
+  return false; // Always keep picks expanded
 }
 
 // Clean up old visit data (older than 7 days)

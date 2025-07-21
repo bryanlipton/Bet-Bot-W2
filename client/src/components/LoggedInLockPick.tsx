@@ -581,15 +581,6 @@ export default function LoggedInLockPick() {
                 </div>
               </div>
               <div className="flex flex-col items-end space-y-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-                  onClick={() => setIsCollapsed(true)}
-                  title="Hide pick"
-                >
-                  <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </Button>
                 <div className="flex items-center space-x-2">
                   <GradeBadge grade={lockPick.grade} />
                   <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
@@ -671,15 +662,6 @@ export default function LoggedInLockPick() {
               </div>
             </div>
             <div className="flex flex-col items-end space-y-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-                onClick={() => setIsCollapsed(true)}
-                title="Hide pick"
-              >
-                <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              </Button>
               <div className="flex items-center space-x-2">
                 <GradeBadge grade={lockPick.grade} />
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
