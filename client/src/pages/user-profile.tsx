@@ -326,7 +326,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {profileData.stats.totalPicks !== null && (
             <Card>
               <CardContent className="p-4 text-center">
@@ -351,29 +351,7 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
             </Card>
           )}
 
-          {profileData.stats.winRate !== null && (
-            <Card>
-              <CardContent className="p-4 text-center">
-                <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {profileData.stats.winRate?.toFixed(1) || 0}%
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Win Rate</p>
-              </CardContent>
-            </Card>
-          )}
 
-          {profileData.stats.winStreak !== null && (
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Trophy className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {profileData.stats.winStreak || 0}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Win Streak</p>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Public Picks Feed */}
