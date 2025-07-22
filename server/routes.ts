@@ -1116,5 +1116,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test prediction model with realistic probabilities
+  app.post("/api/test-prediction", async (req, res) => {
+    try {
+      const engine = new mlEngine.MLEngine();
+      
+      // Create sample game data with Kansas City Royals @ Chicago Cubs
+      const gameData = {
+        bookmakers: [{
+          markets: [{
+            key: 'h2h',
+            outcomes: [
+              { price: -240 }, // Cubs (home) 
+              { price: 194 }   // Royals (away)
+            ]
+          }]
+        }]
+      };
+      
+      const prediction = engine.generateModelPredictions(gameData);
+      
+      // Calculate market implied probabilities for comparison
+      const cubsImplied = 240 / (240 + 100); // ~70.6%
+      const royalsImplied = 100 / (194 + 100); // ~34.0%
+      
+      res.json({
+        message: "Fixed prediction model test - Kansas City Royals @ Chicago Cubs",
+        marketOdds: {
+          cubs: -240,
+          royals: 194
+        },
+        marketImpliedProbs: {
+          cubs: (cubsImplied * 100).toFixed(1) + '%',
+          royals: (royalsImplied * 100).toFixed(1) + '%'
+        },
+        aiPredictions: {
+          cubs: (prediction.homeWinProbability * 100).toFixed(1) + '%',
+          royals: (prediction.awayWinProbability * 100).toFixed(1) + '%',
+          confidence: prediction.confidence.toFixed(1) + '%'
+        },
+        edges: {
+          cubs: ((prediction.homeWinProbability - cubsImplied) * 100).toFixed(1) + '%',
+          royals: ((prediction.awayWinProbability - royalsImplied) * 100).toFixed(1) + '%'
+        },
+        isRealistic: prediction.homeWinProbability <= 0.75 && prediction.awayWinProbability <= 0.75,
+        status: prediction.homeWinProbability <= 0.75 ? 'FIXED - Realistic probabilities' : 'BROKEN - Unrealistic probabilities'
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }
