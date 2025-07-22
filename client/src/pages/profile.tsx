@@ -183,9 +183,19 @@ export default function ProfilePage() {
     if (userPicks.length > 0) {
       setPicks(userPicks);
       
+      // Debug: Log the actual picks data to understand the structure
+      console.log('Raw userPicks from API:', userPicks);
+      console.log('First pick showOnProfile:', userPicks[0]?.showOnProfile);
+      console.log('First pick showOnFeed:', userPicks[0]?.showOnFeed);
+      
       // Generate public feed from API picks with proper data mapping
       const feedItems: PublicFeedItem[] = userPicks
-        .filter(pick => pick.showOnProfile !== false) // Only show public picks
+        .filter(pick => {
+          // More permissive filtering - show pick unless explicitly set to false
+          const shouldShow = pick.showOnProfile !== false;
+          console.log(`Pick ${pick.id} showOnProfile: ${pick.showOnProfile}, shouldShow: ${shouldShow}`);
+          return shouldShow;
+        })
         .sort((a, b) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
         .slice(0, 20) // Show latest 20 items
         .map(pick => ({
@@ -200,7 +210,9 @@ export default function ProfilePage() {
             betInfo: {
               units: pick.units || 1,
               odds: pick.odds || 0,
-              bookmaker: pick.bookmakerDisplayName || pick.bookmaker || 'Unknown'
+              bookmaker: pick.bookmakerDisplayName || pick.bookmaker || 'Unknown',
+              market: pick.market || 'moneyline',
+              selection: pick.selection || pick.team || 'Unknown'
             }
           },
           timestamp: pick.createdAt || pick.gameDate,
@@ -208,7 +220,10 @@ export default function ProfilePage() {
           status: pick.status // Add status to the feed item directly
         }));
       
+      console.log('Generated feedItems:', feedItems);
       setPublicFeed(feedItems);
+    } else {
+      console.log('No userPicks found, userPicks.length:', userPicks.length);
     }
     
     // Don't mix localStorage picks with API picks to avoid confusion
