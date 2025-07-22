@@ -1260,9 +1260,29 @@ export default function DailyPick() {
             gameTime: dailyPick.gameTime
           }}
           bookmakers={(() => {
-            const currentGame = (Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === dailyPick.gameId);
+            const gamesArray = Array.isArray(gamesData) ? gamesData : [];
+            console.log('DailyPick: Searching for gameId:', dailyPick.gameId);
+            console.log('DailyPick: Available game IDs:', gamesArray.map(g => g.id).slice(0, 5), '... (showing first 5)');
+            
+            const currentGame = gamesArray.find((game: any) => game.id === dailyPick.gameId);
             const bookmakers = currentGame?.bookmakers || [];
+            
+            console.log('DailyPick: Found game?', !!currentGame);
             console.log('DailyPick: Found', bookmakers.length, 'bookmakers for game', dailyPick.gameId);
+            
+            if (!currentGame) {
+              // Try to find by team names as fallback
+              const fallbackGame = gamesArray.find((game: any) => 
+                (game.away_team === dailyPick.awayTeam && game.home_team === dailyPick.homeTeam) ||
+                (game.away_team === dailyPick.homeTeam && game.home_team === dailyPick.awayTeam)
+              );
+              
+              if (fallbackGame) {
+                console.log('DailyPick: Found fallback game with', fallbackGame.bookmakers?.length || 0, 'bookmakers');
+                return fallbackGame.bookmakers || [];
+              }
+            }
+            
             return bookmakers;
           })()}
           selectedBet={selectedBet}

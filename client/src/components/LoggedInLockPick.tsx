@@ -1183,7 +1183,32 @@ export default function LoggedInLockPick() {
             sport: 'baseball_mlb',
             gameTime: lockPick.gameTime
           }}
-          bookmakers={(Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === lockPick.gameId)?.bookmakers || []}
+          bookmakers={(() => {
+            const gamesArray = Array.isArray(gamesData) ? gamesData : [];
+            console.log('LoggedInLockPick: Searching for gameId:', lockPick.gameId);
+            console.log('LoggedInLockPick: Available game IDs:', gamesArray.map(g => g.id).slice(0, 5), '... (showing first 5)');
+            
+            const currentGame = gamesArray.find((game: any) => game.id === lockPick.gameId);
+            const bookmakers = currentGame?.bookmakers || [];
+            
+            console.log('LoggedInLockPick: Found game?', !!currentGame);
+            console.log('LoggedInLockPick: Found', bookmakers.length, 'bookmakers for game', lockPick.gameId);
+            
+            if (!currentGame) {
+              // Try to find by team names as fallback
+              const fallbackGame = gamesArray.find((game: any) => 
+                (game.away_team === lockPick.awayTeam && game.home_team === lockPick.homeTeam) ||
+                (game.away_team === lockPick.homeTeam && game.home_team === lockPick.awayTeam)
+              );
+              
+              if (fallbackGame) {
+                console.log('LoggedInLockPick: Found fallback game with', fallbackGame.bookmakers?.length || 0, 'bookmakers');
+                return fallbackGame.bookmakers || [];
+              }
+            }
+            
+            return bookmakers;
+          })()}
           selectedBet={selectedBet}
         />
       )}
