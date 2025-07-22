@@ -945,8 +945,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+    // Map the visibility properties to the database field
+    const dbUpdate: Partial<{ isPublic: boolean }> = {};
+    if (visibility.showOnProfile !== undefined) {
+      dbUpdate.isPublic = visibility.showOnProfile;
+    }
+    
     const [pick] = await db.update(userPicks)
-      .set(visibility)
+      .set(dbUpdate)
       .where(and(
         eq(userPicks.id, pickId),
         eq(userPicks.userId, userId)

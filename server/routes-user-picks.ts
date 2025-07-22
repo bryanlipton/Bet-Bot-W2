@@ -155,7 +155,7 @@ export function registerUserPicksRoutes(app: Express) {
         // First try to update directly in case it's a valid user pick
         const actualPickId = isNaN(parseInt(pickId)) ? pickId : parseInt(pickId);
         const updatedPick = await storage.updatePickVisibility(userId, actualPickId, { 
-          isPublic 
+          showOnProfile: isPublic 
         });
         
         if (updatedPick) {

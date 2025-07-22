@@ -373,6 +373,7 @@ export const insertBaseballPlayerStatsSchema = createInsertSchema(baseballPlayer
 export const insertBaseballGamePredictionSchema = createInsertSchema(baseballGamePredictions).omit({ id: true, createdAt: true });
 export const insertBaseballModelTrainingSchema = createInsertSchema(baseballModelTraining).omit({ id: true, trainedAt: true });
 export const insertBaseballTrainingDataSchema = createInsertSchema(baseballTrainingData).omit({ id: true, createdAt: true, updatedAt: true });
+
 export const insertBaseballUmpireSchema = createInsertSchema(baseballUmpires).omit({ id: true, createdAt: true, lastUpdated: true });
 export const insertDailyPickSchema = createInsertSchema(dailyPicks).omit({ createdAt: true });
 export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks).omit({ createdAt: true });

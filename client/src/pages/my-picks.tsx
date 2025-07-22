@@ -7,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
-import { pickStorage } from '@/services/pickStorage';
-import { databasePickStorage } from '@/services/databasePickStorage';
-import { Pick } from '@/types/picks';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Target, 
   TrendingUp, 
@@ -30,7 +28,6 @@ import { useAuth } from '@/hooks/useAuth';
 export default function MyPicksPage() {
   const [darkMode, setDarkMode] = useState(true);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [picks, setPicks] = useState<Pick[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
@@ -84,124 +81,39 @@ export default function MyPicksPage() {
     localStorage.setItem('darkMode', newDarkMode.toString());
   };
 
+  // Use database-only approach with TanStack Query
+  const { data: userPicks = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/user/picks'],
+    enabled: isAuthenticated
+  });
+
   // Fetch available games for manual entry
   const { data: gamesData } = useQuery({
     queryKey: ['/api/mlb/complete-schedule'],
     enabled: showManualEntry,
   });
 
-  // Load picks from database and localStorage
+  // Load bet unit from user preferences via database
+  const { data: userPreferences } = useQuery({
+    queryKey: ['/api/user/preferences'],
+    enabled: isAuthenticated
+  });
+
+  // Set bet unit from user preferences
   useEffect(() => {
-    const loadPicks = async () => {
-      try {
-        // Load from localStorage
-        const localPicks = pickStorage.getPicks();
-        
-        // Load from database (with error handling for auth issues)
-        let databasePicks: Pick[] = [];
-        try {
-          databasePicks = await databasePickStorage.getPicks();
-          console.log('Successfully loaded picks from database:', databasePicks.length);
-        } catch (error) {
-          console.warn('Could not load picks from database (likely auth issue):', error);
-          // Continue with localStorage picks only
-        }
-
-        // Merge picks: prioritize database picks over localStorage picks
-        // Remove localStorage picks that have corresponding database entries
-        const databasePickIds = new Set();
-        databasePicks.forEach(pick => {
-          // Create multiple match patterns for robust deduplication
-          const gameId = pick.gameInfo?.awayTeam + '@' + pick.gameInfo?.homeTeam;
-          const selectionMatch = pick.betInfo?.selection + ':' + pick.betInfo?.market;
-          const combinedId = gameId + ':' + selectionMatch;
-          databasePickIds.add(combinedId);
-        });
-        
-        const uniqueLocalPicks = localPicks.filter(localPick => {
-          const localGameId = localPick.gameInfo?.awayTeam + '@' + localPick.gameInfo?.homeTeam;
-          const localSelectionMatch = localPick.betInfo?.selection + ':' + localPick.betInfo?.market;
-          const localCombinedId = localGameId + ':' + localSelectionMatch;
-          return !databasePickIds.has(localCombinedId);
-        });
-        
-        // Clean up localStorage by removing picks that now exist in database
-        if (uniqueLocalPicks.length < localPicks.length) {
-          pickStorage.updateAllPicks(uniqueLocalPicks);
-        }
-        
-        // Combine all picks and sort by timestamp (newest first)
-        const allPicks = [...uniqueLocalPicks, ...databasePicks];
-        
-        // Sort all picks by timestamp/createdAt (newest first)
-        allPicks.sort((a, b) => {
-          const timeA = new Date(a.timestamp || a.gameInfo?.gameTime || 0).getTime();
-          const timeB = new Date(b.timestamp || b.gameInfo?.gameTime || 0).getTime();
-          return timeB - timeA;
-        });
-        setPicks(allPicks);
-        console.log('Loaded picks from localStorage:', localPicks.length);
-        console.log('Loaded picks from database:', databasePicks.length);
-        console.log('Total picks:', allPicks.length);
-        
-      } catch (error) {
-        console.error('Error loading picks:', error);
-        setPicks([]);
-      }
-    };
-
-    loadPicks();
-
-    // Listen for pick updates
-    const handlePickUpdate = () => loadPicks();
-    window.addEventListener('pickSaved', handlePickUpdate);
-    window.addEventListener('pickStatusUpdated', handlePickUpdate);
-    window.addEventListener('pickDeleted', handlePickUpdate);
-    window.addEventListener('allPicksCleared', handlePickUpdate);
-
-    return () => {
-      window.removeEventListener('pickSaved', handlePickUpdate);
-      window.removeEventListener('pickStatusUpdated', handlePickUpdate);
-      window.removeEventListener('pickDeleted', handlePickUpdate);
-      window.removeEventListener('allPicksCleared', handlePickUpdate);
-    };
-  }, []);
-
-  // Load bet unit from localStorage for now
-  useEffect(() => {
-    const loadBetUnit = () => {
-      try {
-        const localBetUnit = pickStorage.getBetUnit();
-        setBetUnit(localBetUnit);
-        console.log('Loaded bet unit from localStorage:', localBetUnit);
-      } catch (error) {
-        console.error('Error loading bet unit:', error);
-        setBetUnit(10); // Default value
-      }
-    };
-
-    loadBetUnit();
-  }, []);
-
-  // Also update bet unit when modal opens
-  useEffect(() => {
-    if (showManualEntry) {
-      const currentBetUnit = pickStorage.getBetUnit();
-      setBetUnit(currentBetUnit);
-      console.log('Updated bet unit for modal:', currentBetUnit);
+    if (userPreferences?.betUnit) {
+      setBetUnit(userPreferences.betUnit);
     }
-  }, [showManualEntry]);
+  }, [userPreferences]);
 
-  // Save bet unit to database
+  // Save bet unit to database via API
   const saveBetUnit = async (newBetUnit: number) => {
     try {
-      await databasePickStorage.setBetUnit(newBetUnit);
+      await apiRequest('PUT', '/api/user/preferences', { betUnit: newBetUnit });
       setBetUnit(newBetUnit);
     } catch (error) {
       console.error('Error saving bet unit:', error);
-      // Fallback to localStorage if database fails
-      setBetUnit(newBetUnit);
-      localStorage.setItem('betUnit', newBetUnit.toString());
+      alert('Failed to save bet unit. Please try again.');
     }
   };
 
@@ -226,13 +138,14 @@ export default function MyPicksPage() {
     setTempBetUnit('');
   };
 
-  const filteredPicks = picks.filter(pick => {
+  // Filter database picks based on status
+  const filteredPicks = userPicks.filter(pick => {
     if (selectedStatus === 'all') return true;
     if (selectedStatus === 'past') return pick.status === 'won' || pick.status === 'lost' || pick.status === 'win' || pick.status === 'loss' || pick.status === 'push';
     return pick.status === selectedStatus;
   });
 
-  const getStatusBadge = (status: Pick['status']) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
         return <Badge className="bg-yellow-600 text-white">Pending</Badge>;
@@ -276,36 +189,34 @@ export default function MyPicksPage() {
     }
   };
 
-  const formatBet = (pick: Pick) => {
-    const { betInfo } = pick;
-    const odds = betInfo.odds ? formatOdds(betInfo.odds) : '';
+  // Format bet for database pick
+  const formatBet = (pick: any) => {
+    const odds = pick.odds ? formatOdds(pick.odds) : '';
     
-    if (betInfo.market === 'parlay') {
-      return `${betInfo.selection} Parlay ${odds}`;
+    if (pick.market === 'parlay') {
+      return `${pick.selection} Parlay ${odds}`;
     }
-    if (betInfo.market === 'moneyline') {
-      return `${betInfo.selection} ML ${odds}`;
+    if (pick.market === 'moneyline') {
+      return `${pick.selection} ML ${odds}`;
     }
-    if (betInfo.market === 'spread') {
-      const line = betInfo.line || 0;
-      return `${betInfo.selection} ${line > 0 ? '+' : ''}${line} ${odds}`;
+    if (pick.market === 'spread') {
+      const line = pick.line || 0;
+      return `${pick.selection} ${line > 0 ? '+' : ''}${line} ${odds}`;
     }
-    if (betInfo.market === 'over' || betInfo.market === 'under') {
-      return `${betInfo.market === 'over' ? 'Over' : 'Under'} ${betInfo.line || ''} ${odds}`;
+    if (pick.market === 'over' || pick.market === 'under') {
+      return `${pick.market === 'over' ? 'Over' : 'Under'} ${pick.line || ''} ${odds}`;
     }
-    return `${betInfo.selection} ${betInfo.market} ${odds}`;
+    return `${pick.selection} ${pick.market} ${odds}`;
   };
 
   const deletePick = async (pickId: string) => {
     if (confirm('Are you sure you want to delete this pick?')) {
       try {
-        await databasePickStorage.deletePick(pickId);
-        // Remove from local state immediately
-        setPicks(picks.filter(pick => pick.id !== pickId));
+        await apiRequest('DELETE', `/api/user/picks/${pickId}`);
+        refetch(); // Refresh the picks data
       } catch (error) {
         console.error('Error deleting pick:', error);
-        // Fallback to localStorage
-        pickStorage.deletePick(pickId);
+        alert('Failed to delete pick. Please try again.');
       }
     }
   };
@@ -329,42 +240,13 @@ export default function MyPicksPage() {
     }
 
     try {
-      await databasePickStorage.updatePickOdds(pickId, tempOdds);
-      
-      // Update local state
-      const updatedPicks = picks.map(pick => {
-        if (pick.id === pickId) {
-          return {
-            ...pick,
-            odds: tempOdds
-          };
-        }
-        return pick;
-      });
-
-      setPicks(updatedPicks);
+      await apiRequest('PATCH', `/api/user/picks/${pickId}/odds`, { odds });
+      refetch(); // Refresh the picks data
       setEditingOdds(null);
       setTempOdds('');
     } catch (error) {
       console.error('Error updating odds:', error);
-      // Fallback to localStorage
-      const updatedPicks = picks.map(pick => {
-        if (pick.id === pickId) {
-          return {
-            ...pick,
-            betInfo: {
-              ...pick.betInfo,
-              odds: odds
-            }
-          };
-        }
-        return pick;
-      });
-
-      setPicks(updatedPicks);
-      pickStorage.updatePick(pickId, { betInfo: { odds } });
-      setEditingOdds(null);
-      setTempOdds('');
+      alert('Failed to update odds. Please try again.');
     }
   };
 
@@ -386,31 +268,13 @@ export default function MyPicksPage() {
     }
 
     try {
-      // For localStorage, update the pick directly
-      const updatedPicks = picks.map(pick => {
-        if (pick.id === pickId) {
-          return {
-            ...pick,
-            betInfo: {
-              ...pick.betInfo,
-              units: units
-            }
-          };
-        }
-        return pick;
-      });
-
-      setPicks(updatedPicks);
-      pickStorage.updatePick(pickId, { 
-        betInfo: { 
-          ...picks.find(p => p.id === pickId)?.betInfo,
-          units: units 
-        } 
-      });
+      await apiRequest('PATCH', `/api/user/picks/${pickId}/units`, { units });
+      refetch(); // Refresh the picks data
       setEditingUnits(null);
       setTempUnits('');
     } catch (error) {
       console.error('Error updating units:', error);
+      alert('Failed to update units. Please try again.');
     }
   };
 
@@ -419,7 +283,7 @@ export default function MyPicksPage() {
     setTempUnits('');
   };
 
-  const handleManualEntry = () => {
+  const handleManualEntry = async () => {
     if (entryType === 'single') {
       // Single bet handling
       if (!selectedGame || !manualEntry.selection) {
@@ -457,26 +321,32 @@ export default function MyPicksPage() {
         status: 'pending'
       };
 
-      // Save to database
-      databasePickStorage.savePick({
-        gameId: selectedGame.id,
-        homeTeam: selectedGame.home_team,
-        awayTeam: selectedGame.away_team,
-        selection: actualSelection,
-        market: manualEntry.market,
-        line: manualEntry.line || null,
-        units: manualEntry.units,
-        betUnitAtTime: betUnit, // Store current bet unit value
-        bookmaker: 'manual',
-        bookmakerDisplayName: 'Manual Entry',
-        gameDate: selectedGame.commence_time?.split('T')[0] || new Date().toISOString().split('T')[0],
-        gameTime: selectedGame.commence_time || new Date().toISOString(),
-        odds: manualEntry.odds || '0'
-      }).catch(error => {
+      // Save directly to database via API
+      try {
+        await apiRequest('POST', '/api/user/picks', {
+          gameId: selectedGame.id,
+          homeTeam: selectedGame.home_team,
+          awayTeam: selectedGame.away_team,
+          selection: actualSelection,
+          game: `${selectedGame.away_team} @ ${selectedGame.home_team}`,
+          market: manualEntry.market,
+          line: manualEntry.line || null,
+          odds: parseInt(manualEntry.odds) || 0,
+          units: manualEntry.units,
+          betUnitAtTime: betUnit,
+          bookmaker: 'manual',
+          bookmakerDisplayName: 'Manual Entry',
+          gameDate: new Date(selectedGame.commence_time || new Date().toISOString()),
+        });
+        
+        // Refresh the picks list
+        refetch();
+        
+        console.log('Successfully saved pick to database');
+      } catch (error) {
         console.error('Error saving pick to database:', error);
-        // Fallback to localStorage
-        pickStorage.savePick(pick);
-      });
+        alert('Failed to save pick. Please try again.');
+      }
       
     } else if (entryType === 'parlay') {
       // Parlay bet handling
@@ -524,33 +394,39 @@ export default function MyPicksPage() {
         status: 'pending'
       };
 
-      // Save parlay to database
-      databasePickStorage.savePick({
-        gameId: `parlay_${Date.now()}`,
-        homeTeam: 'Multiple Games',
-        awayTeam: `${parlayLegs.length}-Leg Parlay`,
-        selection: `${parlayLegs.length} Legs`,
-        market: 'parlay',
-        line: null,
-        units: parlayUnits,
-        betUnitAtTime: betUnit, // Store current bet unit value
-        bookmaker: 'manual',
-        bookmakerDisplayName: 'Manual Entry',
-        gameDate: new Date().toISOString().split('T')[0],
-        gameTime: new Date().toISOString(),
-        odds: parlayOdds,
-        parlayLegs: parlayLegs.map(leg => ({
-          game: `${leg.game?.away_team} @ ${leg.game?.home_team}`,
-          market: leg.market,
-          selection: leg.selection,
-          line: leg.line ? parseFloat(leg.line) : undefined,
-          odds: leg.odds ? parseFloat(leg.odds) : 0
-        }))
-      }).catch(error => {
+      // Save parlay to database via API
+      try {
+        await apiRequest('POST', '/api/user/picks', {
+          gameId: `parlay_${Date.now()}`,
+          homeTeam: 'Multiple Games',
+          awayTeam: `${parlayLegs.length}-Leg Parlay`,
+          selection: `${parlayLegs.length} Legs`,
+          game: `${parlayLegs.length}-Leg Parlay`,
+          market: 'parlay',
+          line: null,
+          odds: parseInt(parlayOdds) || 0,
+          units: parlayUnits,
+          betUnitAtTime: betUnit,
+          bookmaker: 'manual',
+          bookmakerDisplayName: 'Manual Entry',
+          gameDate: new Date(),
+          parlayLegs: parlayLegs.map(leg => ({
+            game: `${leg.game?.away_team} @ ${leg.game?.home_team}`,
+            market: leg.market,
+            selection: leg.selection,
+            line: leg.line ? parseFloat(leg.line) : undefined,
+            odds: leg.odds ? parseFloat(leg.odds) : 0
+          }))
+        });
+        
+        // Refresh the picks list
+        refetch();
+        
+        console.log('Successfully saved parlay to database');
+      } catch (error) {
         console.error('Error saving parlay to database:', error);
-        // Fallback to localStorage
-        pickStorage.savePick(parlayPick);
-      });
+        alert('Failed to save parlay. Please try again.');
+      }
     }
     
     // Reset form and close modal
@@ -717,16 +593,16 @@ export default function MyPicksPage() {
     setEntryType('single');
   };
 
-  // Calculate stats
+  // Calculate stats from database picks
   const stats = {
-    total: picks.length,
-    pending: picks.filter(p => p.status === 'pending').length,
-    won: picks.filter(p => p.status === 'won' || p.status === 'win').length,
-    lost: picks.filter(p => p.status === 'lost' || p.status === 'loss').length,
-    push: picks.filter(p => p.status === 'push').length,
-    winRate: picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length > 0 ? 
-      (picks.filter(p => p.status === 'won' || p.status === 'win').length / picks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
-    totalMoneyWonLost: picks.reduce((sum, p) => {
+    total: userPicks.length,
+    pending: userPicks.filter(p => p.status === 'pending').length,
+    won: userPicks.filter(p => p.status === 'won' || p.status === 'win').length,
+    lost: userPicks.filter(p => p.status === 'lost' || p.status === 'loss').length,
+    push: userPicks.filter(p => p.status === 'push').length,
+    winRate: userPicks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length > 0 ? 
+      (userPicks.filter(p => p.status === 'won' || p.status === 'win').length / userPicks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
+    totalMoneyWonLost: userPicks.reduce((sum, p) => {
       if (p.status === 'won' || p.status === 'win') {
         // For graded picks, use the calculated win amount from database if available
         if (p.result && typeof p.result.payout === 'string' && !isNaN(parseFloat(p.result.payout))) {
@@ -955,20 +831,20 @@ export default function MyPicksPage() {
 
         {/* Picks List */}
         {(() => {
-          const filteredPicks = selectedStatus === 'all' ? picks :
-            selectedStatus === 'pending' ? picks.filter(p => p.status === 'pending') :
-            selectedStatus === 'past' ? picks.filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost' || p.status === 'push') :
-            picks;
+          const filteredPicks = selectedStatus === 'all' ? userPicks :
+            selectedStatus === 'pending' ? userPicks.filter(p => p.status === 'pending') :
+            selectedStatus === 'past' ? userPicks.filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost' || p.status === 'push') :
+            userPicks;
           
           return filteredPicks.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  {picks.length === 0 ? 'No Picks Yet' : `No ${selectedStatus} Picks`}
+                  {userPicks.length === 0 ? 'No Picks Yet' : `No ${selectedStatus} Picks`}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {picks.length === 0 
+                  {userPicks.length === 0 
                     ? 'Start by clicking "Make Pick" on any game to track your bets here.'
                     : `You don't have any ${selectedStatus} picks at the moment.`
                   }
@@ -986,7 +862,7 @@ export default function MyPicksPage() {
                       {getStatusBadge(pick.status)}
                       <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {new Date(pick.timestamp).toLocaleDateString()}
+                        {new Date(pick.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <Button
@@ -1006,13 +882,13 @@ export default function MyPicksPage() {
                       <h3 className="font-medium text-gray-900 dark:text-white mb-1">
                         {/* Show parlay team names if it's a parlay, otherwise show single game */}
                         {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
-                          `${pick.parlayLegs.length}-Leg Parlay: ${pick.parlayLegs.map((leg: any) => leg.team).join(' + ')}`
+                          `${pick.parlayLegs.length}-Leg Parlay`
                         ) : (
-                          `${pick.gameInfo.awayTeam} @ ${pick.gameInfo.homeTeam}`
+                          `${pick.awayTeam} @ ${pick.homeTeam}`
                         )}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Placed: {new Date(pick.timestamp).toLocaleString()}
+                        Placed: {new Date(pick.createdAt).toLocaleString()}
                       </p>
                     </div>
 
@@ -1022,9 +898,9 @@ export default function MyPicksPage() {
                         {formatBet(pick)}
                       </p>
                       {/* Parlay legs display */}
-                      {pick.betInfo.market === 'parlay' && pick.betInfo.parlayLegs && (
+                      {pick.market === 'parlay' && pick.parlayLegs && (
                         <div className="mt-2 space-y-1">
-                          {pick.betInfo.parlayLegs.map((leg, index) => (
+                          {pick.parlayLegs.map((leg: any, index: number) => (
                             <div key={index} className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-1 rounded">
                               <div className="font-medium">{leg.game}</div>
                               <div>
