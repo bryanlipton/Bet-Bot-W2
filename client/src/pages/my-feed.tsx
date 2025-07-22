@@ -115,19 +115,19 @@ export default function MyFeedPage() {
 
   if (!isAuthenticated && !authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
         <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-4 md:p-6">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-6 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <Users className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Log in Required
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4">
                 Log in to see picks from people you follow
               </p>
-              <Button onClick={() => window.location.href = '/api/login'}>
+              <Button onClick={() => window.location.href = '/api/login'} className="text-sm md:text-base">
                 Log in
               </Button>
             </CardContent>
@@ -140,19 +140,20 @@ export default function MyFeedPage() {
   // Show loading state
   if (feedLoading || authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
         <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="space-y-4">
+        <div className="max-w-4xl mx-auto p-4 md:p-6">
+          <div className="space-y-3 md:space-y-4">
             {[...Array(3)].map((_, i) => (
               <Card key={i} className="bg-white dark:bg-gray-800">
-                <CardContent className="p-4">
+                <CardContent className="p-3 md:p-4">
                   <div className="animate-pulse">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                    <div className="flex items-start gap-2 md:gap-3">
+                      <div className="w-8 h-8 md:w-12 md:h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                       <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div className="h-3 md:h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-3 md:h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div className="h-6 md:h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
                       </div>
                     </div>
                   </div>
@@ -166,41 +167,41 @@ export default function MyFeedPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <Rss className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Feed</h1>
+            <Rss className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">My Feed</h1>
           </div>
         </div>
 
         {/* Feed Content */}
         {(feedPicks as FeedPick[]).length === 0 ? (
           <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <CardContent className="p-6 md:p-8 text-center">
+              <Users className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 text-gray-400" />
+              <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 No Picks to Show
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4">
                 Follow other users to see their betting activity in your feed
               </p>
-              <Button onClick={() => window.location.href = '/profile'}>
+              <Button onClick={() => window.location.href = '/profile'} className="text-sm md:text-base">
                 <Plus className="w-4 h-4 mr-2" />
                 Find People to Follow
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
               <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-start gap-2 md:gap-3">
                     {/* User Avatar */}
                     <div className="flex-shrink-0">
                       {(() => {
@@ -210,15 +211,15 @@ export default function MyFeedPage() {
                           // New format: emoji|background
                           const [emoji, backgroundClass] = avatarString.split('|');
                           return (
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                              <span className="text-lg">{emoji}</span>
+                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                              <span className="text-sm md:text-lg">{emoji}</span>
                             </div>
                           );
                         } else {
                           return (
-                            <Avatar className="w-10 h-10">
+                            <Avatar className="w-8 h-8 md:w-10 md:h-10">
                               <AvatarImage src={avatarString} alt={pick.username} />
-                              <AvatarFallback className="bg-blue-600 text-white">
+                              <AvatarFallback className="bg-blue-600 text-white text-xs md:text-sm">
                                 {pick.username?.charAt(0).toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
@@ -228,34 +229,36 @@ export default function MyFeedPage() {
                     </div>
                     
                     {/* Pick Content */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+                        <div className="flex items-center gap-1 md:gap-2 min-w-0">
                           <button
                             onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
-                            className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            className="font-semibold text-sm md:text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
                           >
                             {pick.username}
                           </button>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">•</span>
+                          <span className="text-gray-500 dark:text-gray-400 text-xs md:text-sm whitespace-nowrap">
                             {formatTimeAgo(pick.createdAt)}
                           </span>
                         </div>
-                        {getStatusBadge(pick.status)}
+                        <div className="flex-shrink-0">
+                          {getStatusBadge(pick.status)}
+                        </div>
                       </div>
                       
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 md:p-3 mb-2">
                         {/* Check if it's a parlay */}
                         {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
                           <div>
-                            <div className="font-medium text-gray-900 dark:text-white mb-2">
+                            <div className="font-medium text-sm md:text-base text-gray-900 dark:text-white mb-2">
                               {pick.parlayLegs.length}-Leg Parlay @ Multiple Games
                             </div>
-                            <div className="space-y-2 mb-3">
+                            <div className="space-y-1 md:space-y-2 mb-2 md:mb-3">
                               {pick.parlayLegs.map((leg, index) => (
-                                <div key={index} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="font-medium text-gray-900 dark:text-white">{leg.game}</div>
+                                <div key={index} className="text-xs md:text-sm bg-white dark:bg-gray-800 p-1.5 md:p-2 rounded border border-gray-200 dark:border-gray-600">
+                                  <div className="font-medium text-gray-900 dark:text-white truncate">{leg.game}</div>
                                   <div className="text-blue-600 dark:text-blue-400">
                                     {leg.selection}
                                     {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
@@ -265,7 +268,7 @@ export default function MyFeedPage() {
                                 </div>
                               ))}
                             </div>
-                            <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm flex-wrap">
                               <span className="font-mono font-medium">
                                 {formatOdds(pick.odds)}
                               </span>
@@ -276,29 +279,31 @@ export default function MyFeedPage() {
                           </div>
                         ) : (
                           <div>
-                            <div className="font-medium text-gray-900 dark:text-white mb-1">
+                            <div className="font-medium text-sm md:text-base text-gray-900 dark:text-white mb-1 break-words">
                               {pick.game}
                             </div>
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="font-medium text-blue-600 dark:text-blue-400">
+                            <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm flex-wrap">
+                              <span className="font-medium text-blue-600 dark:text-blue-400 break-words">
                                 {pick.selection}
                               </span>
                               {pick.line && (
-                                <span className="text-gray-600 dark:text-gray-400">
+                                <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
                                   {pick.line}
                                 </span>
                               )}
-                              <span className="font-mono font-medium">
+                              <span className="font-mono font-medium whitespace-nowrap">
                                 {formatOdds(pick.odds)}
                               </span>
-                              <span className="text-gray-600 dark:text-gray-400">
+                              <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
                                 {pick.units} unit{pick.units !== 1 ? 's' : ''}
                               </span>
                             </div>
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                          Game Time: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'} • Bet Placed: {formatTimeAgo(pick.createdAt)}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 break-words">
+                          <span className="inline-block">Game: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'}</span>
+                          <span className="mx-1">•</span>
+                          <span className="inline-block">Placed: {formatTimeAgo(pick.createdAt)}</span>
                         </div>
                       </div>
                     </div>
