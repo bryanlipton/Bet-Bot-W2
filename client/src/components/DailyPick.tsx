@@ -1113,13 +1113,24 @@ export default function DailyPick() {
                 </span>
               </div>
               <div className="flex-shrink-0 ml-4">
-                {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
+                {(dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam) || 
+                 (dailyPick.pickType !== 'moneyline' && dailyPick.pickTeam !== 'Under' && dailyPick.pickTeam !== 'Over') ? (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'moneyline', dailyPick.pickTeam)}
+                    onClick={(e) => handleMakePick(e, dailyPick.pickType === 'moneyline' ? 'moneyline' : 'h2h', dailyPick.pickTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
+                  </Button>
+                ) : null}
+                {/* For Over/Under picks, add Pick button for Over/Under */}
+                {(dailyPick.pickTeam === 'Over' || dailyPick.pickTeam === 'Under') && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam)}
+                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                  >
+                    Pick {dailyPick.pickTeam}
                   </Button>
                 )}
               </div>
@@ -1135,13 +1146,24 @@ export default function DailyPick() {
                 <span className="block">{matchup.bottomTeam}</span>
               </div>
               <div className="flex-shrink-0 ml-4">
-                {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.bottomTeam && (
+                {/* Fade button for moneyline picks */}
+                {(dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.bottomTeam) && (
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
+                  </Button>
+                )}
+                {/* Fade button for Over/Under picks */}
+                {(dailyPick.pickTeam === 'Over' || dailyPick.pickTeam === 'Under') && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam === 'Over' ? 'Under' : 'Over')}
+                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                  >
+                    {dailyPick.pickTeam === 'Over' ? 'Under' : 'Over'}
                   </Button>
                 )}
               </div>
@@ -1203,6 +1225,22 @@ export default function DailyPick() {
                   ) : (
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
+                </button>
+              </div>
+
+              {/* Action Buttons for Desktop - Always Visible */}
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
+                  className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+                >
+                  Pick
+                </button>
+                <button
+                  onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                  className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+                >
+                  Fade
                 </button>
               </div>
 
