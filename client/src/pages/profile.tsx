@@ -40,7 +40,8 @@ import {
   Lock,
   Search,
   UserCheck,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 
 interface UserProfile {
@@ -363,7 +364,7 @@ export default function ProfilePage() {
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
     profileImage: user?.profileImageUrl, // Only use actual profile image URL
-    avatar: user?.avatar || '🐱', // Default emoji avatar
+    avatar: user?.profileImageUrl || user?.avatar || '🐱', // Use profileImageUrl if it's an emoji, otherwise use avatar field
     followers: user?.followers || 0,
     following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
@@ -643,6 +644,46 @@ export default function ProfilePage() {
     },
   });
 
+  // Delete pick mutation
+  const deletePickMutation = useMutation({
+    mutationFn: async (pickId: string) => {
+      const response = await fetch(`/api/user/picks/${pickId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete pick');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refresh both picks and stats
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
+      toast({
+        title: "Pick Deleted",
+        description: "Your pick has been successfully deleted.",
+      });
+    },
+    onError: (error: any) => {
+      console.error("Delete pick error:", error);
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete pick. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePick = async (pickId: string) => {
+    if (confirm('Are you sure you want to delete this pick?')) {
+      deletePickMutation.mutate(pickId);
+    }
+  };
+
   // Initialize edit form when user data loads
   useEffect(() => {
     if (user) {
@@ -895,8 +936,8 @@ export default function ProfilePage() {
               <div className="relative flex-shrink-0">
                 <UserAvatar 
                   user={{
-                    profileImageUrl: userProfile.profileImage,
-                    avatar: userProfile.avatar,
+                    profileImageUrl: user?.profileImageUrl?.startsWith('http') ? user.profileImageUrl : null,
+                    avatar: user?.avatar || user?.profileImageUrl || '🐱',
                     username: userProfile.username
                   }}
                   size="xl"
@@ -1292,23 +1333,34 @@ export default function ProfilePage() {
                                 {item.pick.units || item.pick.betInfo?.units || 1} unit{(item.pick.units || item.pick.betInfo?.units || 1) !== 1 ? 's' : ''} • Game Time: {item.pick.gameDate ? new Date(item.pick.gameDate).toLocaleDateString() : 'TBD'} • Bet Placed: {formatTime(item.pick.createdAt)}
                               </div>
                               
-                              {/* Single bet visibility control */}
-                              <div className="flex items-center gap-2 mt-2">
-                                <Switch
-                                  id={`public-${item.id}`}
-                                  checked={item.pick.isPublic ?? true}
-                                  onCheckedChange={(checked) => {
-                                    // Single toggle controls both profile and feed visibility
-                                    updatePickVisibilityMutation.mutate({
-                                      pickId: item.id,
-                                      isPublic: checked
-                                    });
-                                  }}
-                                  disabled={updatePickVisibilityMutation.isPending}
-                                />
-                                <Label htmlFor={`public-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
-                                  Make Bet Public
-                                </Label>
+                              {/* Single bet visibility control and delete button */}
+                              <div className="flex items-center justify-between gap-2 mt-2">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    id={`public-${item.id}`}
+                                    checked={item.pick.isPublic ?? true}
+                                    onCheckedChange={(checked) => {
+                                      // Single toggle controls both profile and feed visibility
+                                      updatePickVisibilityMutation.mutate({
+                                        pickId: item.id,
+                                        isPublic: checked
+                                      });
+                                    }}
+                                    disabled={updatePickVisibilityMutation.isPending}
+                                  />
+                                  <Label htmlFor={`public-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                    Make Bet Public
+                                  </Label>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deletePick(item.id)}
+                                  disabled={deletePickMutation.isPending}
+                                  className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
                               </div>
                             </div>
                             <div className="text-right ml-4">
