@@ -74,7 +74,7 @@ export function OddsComparisonModal({
     console.log('Processing bookmaker:', bookmaker.key, 'Markets:', bookmaker.markets.map(m => m.key));
     
     const market = bookmaker.markets.find(m => {
-      if (selectedBet.market === 'moneyline') return m.key === 'h2h';
+      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') return m.key === 'h2h';
       if (selectedBet.market === 'spread') return m.key === 'spreads';
       if (selectedBet.market === 'total') return m.key === 'totals';
       return false;
@@ -88,7 +88,7 @@ export function OddsComparisonModal({
     console.log('Found market:', market.key, 'with', market.outcomes.length, 'outcomes');
 
     let outcome = market.outcomes.find(o => {
-      if (selectedBet.market === 'moneyline') {
+      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') {
         const match = o.name === selectedBet.selection;
         console.log(`Moneyline match check: ${o.name} === ${selectedBet.selection} = ${match}`);
         return match;
