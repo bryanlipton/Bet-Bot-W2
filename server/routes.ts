@@ -21,6 +21,7 @@ import { registerUserPicksRoutes } from "./routes-user-picks";
 import { registerUserProfileRoutes } from "./routes-user-profile";
 import { registerFriendsRoutes } from "./routes-friends";
 import { registerPickGradingRoutes } from "./routes-pick-grading";
+import dataVerificationRoutes from "./routes/dataVerification";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1037,6 +1038,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and setup dedicated Custom GPT endpoint
   const { setupCustomGPTEndpoint } = await import('./custom-gpt-endpoint.js');
   setupCustomGPTEndpoint(app);
+
+  // Data verification routes
+  app.use('/api/data', dataVerificationRoutes);
 
   return httpServer;
 }

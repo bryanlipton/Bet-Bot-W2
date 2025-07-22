@@ -2,6 +2,8 @@ import { storage } from '../storage';
 import { db } from '../db';
 import { dailyPicks, loggedInLockPicks } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
+import { dataVerificationService } from './dataVerificationService';
+import { pickStabilityService } from './pickStabilityService';
 
 const MLB_API_BASE_URL = "https://statsapi.mlb.com/api/v1";
 
@@ -799,6 +801,13 @@ export class DailyPickService {
   }
 
   async generateDailyPick(games: any[]): Promise<DailyPick | null> {
+    // Check if we can update the daily pick (stability control)
+    const stabilityCheck = await pickStabilityService.canUpdateDailyPick({});
+    if (!stabilityCheck.canUpdate) {
+      console.log(`🚫 Daily pick update blocked: ${stabilityCheck.reason}`);
+      return await this.getTodaysDailyPick(); // Return existing pick
+    }
+
     // Generate picks for all games using bet bot recommendations
     const allPicks = await this.generateAllGamePicks(games);
     
@@ -807,8 +816,36 @@ export class DailyPickService {
       return null;
     }
 
+    // Verify data quality for each pick
+    console.log('🔍 Verifying pick data quality...');
+    const verifiedPicks = await Promise.all(
+      allPicks.map(async (pick) => {
+        const l10Verification = await dataVerificationService.verifyTeamL10Record(pick.pickTeam);
+        const pitcherVerification = await dataVerificationService.verifyPitcherInfo(
+          pick.gameId, 
+          pick.homeTeam, 
+          pick.awayTeam
+        );
+
+        // Adjust analysis display based on verification
+        if (l10Verification.source === 'fallback') {
+          pick.analysis.teamMomentum = 75; // Use neutral value for unverified data
+          console.log(`⚠️ Using fallback team momentum for ${pick.pickTeam}`);
+        }
+
+        return {
+          ...pick,
+          dataQuality: {
+            l10Verified: l10Verification.isValid && l10Verification.source === 'verified',
+            pitcherVerified: pitcherVerification.isValid && pitcherVerification.source === 'verified',
+            overallConfidence: (l10Verification.confidence + pitcherVerification.confidence) / 2
+          }
+        };
+      })
+    );
+
     // Filter picks that meet minimum grade requirement (C+ or better) - Per user requirements
-    const eligiblePicks = allPicks.filter(pick => {
+    const eligiblePicks = verifiedPicks.filter(pick => {
       const gradeValue = this.getGradeValue(pick.grade);
       const minGradeValue = this.getGradeValue('C+');
       return gradeValue >= minGradeValue;
@@ -819,7 +856,7 @@ export class DailyPickService {
     if (eligiblePicks.length === 0) {
       console.log('⚠️ No picks meet minimum grade C+ requirement, returning best available pick');
       // If no picks meet minimum requirement, return the best available
-      return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
+      return verifiedPicks.sort((a, b) => b.confidence - a.confidence)[0];
     }
 
     // Filter out teams that were picked yesterday (no same team two days in a row)
@@ -844,7 +881,7 @@ export class DailyPickService {
     const randomIndex = Math.floor(Math.random() * validPicks.length);
     const selectedPick = validPicks[randomIndex];
     
-    console.log(`Randomly selected pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
+    console.log(`✅ Selected verified pick: ${selectedPick.pickTeam} (${selectedPick.grade}, Data Quality: ${(selectedPick.dataQuality.overallConfidence * 100).toFixed(0)}%)`);
     
     return selectedPick;
   }

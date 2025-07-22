@@ -16,12 +16,12 @@ export class PickRotationService {
   }
 
   private startGameStatusMonitoring() {
-    // Check game status every 5 minutes
+    // Check game status every 30 minutes to reduce pick changes
     this.checkInterval = setInterval(async () => {
       await this.checkAndRotatePicks();
-    }, 5 * 60 * 1000);
+    }, 30 * 60 * 1000);
 
-    console.log('🔄 Game status monitoring started - checking every 5 minutes');
+    console.log('🔄 Game status monitoring started - checking every 30 minutes for stability');
   }
 
   private scheduleDailyReset() {

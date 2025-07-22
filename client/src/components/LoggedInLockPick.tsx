@@ -266,7 +266,10 @@ export default function LoggedInLockPick() {
   const { data: lockPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick/lock'],
     enabled: !authLoading && isAuthenticated, // Only fetch when authenticated
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
+    cacheTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({

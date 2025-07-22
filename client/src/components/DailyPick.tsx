@@ -269,7 +269,10 @@ export default function DailyPick() {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
+    cacheTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });
 
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
