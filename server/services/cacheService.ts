@@ -72,7 +72,8 @@ class CacheService {
   // Force reset API call count for new API key
   resetApiCallCount(): void {
     this.dailyApiCallCount = 0;
-    console.log(`🔄 API call count reset to 0`);
+    this.clear(); // Also clear all cached data
+    console.log(`🔄 API call count reset to 0 and cache cleared`);
   }
 
   canMakeApiCall(customLimit?: number): boolean {
