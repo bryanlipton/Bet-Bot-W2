@@ -51,7 +51,7 @@ export class OddsApiService {
 
   constructor() {
     // Use environment variable API key now that it's properly set
-    this.apiKey = process.env.THE_ODDS_API_KEY || '8a00e18a5d69e7c9d92f06fe11182eff';
+    this.apiKey = process.env.THE_ODDS_API_KEY;
     console.log(`Odds API initialized with key: ${this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'none'}`);
     console.log(`🔑 Using working API key from environment`);
     

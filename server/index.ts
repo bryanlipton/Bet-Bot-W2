@@ -10,9 +10,9 @@ import { automaticGradingService } from "./services/automaticGradingService";
 import { enhancedPickGradingService } from "./services/enhancedPickGradingService";
 import { setupVite, serveStatic, log } from "./vite";
 
-// Set API key from environment or direct value
+// API key should come from environment - no fallback
 if (!process.env.THE_ODDS_API_KEY) {
-  process.env.THE_ODDS_API_KEY = "8a00e18a5d69e7c9d92f06fe11182eff";
+  console.warn('⚠️  THE_ODDS_API_KEY not set in environment');
 }
 
 const app = express();
