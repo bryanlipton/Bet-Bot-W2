@@ -654,20 +654,85 @@ export default function DailyPick() {
 
           {/* Pick details */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Moneyline {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)} • Grade {dailyPick.grade}
-                </p>
-              </div>
-              <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
-                dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                dailyPick.grade === 'A' ? 'bg-blue-400' :
-                dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-              }`}>
-                Grade {dailyPick.grade}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div>
+                  <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Moneyline {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 self-start">
+                  <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
+                    dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                    dailyPick.grade === 'A' ? 'bg-blue-400' :
+                    dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                    dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                  }`}>
+                    {dailyPick.grade}
+                  </div>
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Info className="h-3 w-3 text-black dark:text-white" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                          <BetBotIcon className="w-6 h-6" />
+                          <span>Pick Analysis: {dailyPick.grade} Grade</span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-3">Pick Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
+                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                            <div><strong>Venue:</strong> {dailyPick.venue}</div>
+                            <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                          <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                          <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                            {getMainGradeExplanation(
+                              dailyPick.grade,
+                              dailyPick.confidence,
+                              dailyPick.analysis,
+                              dailyPick.pickTeam,
+                              dailyPick.odds
+                            )}
+                          </pre>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                          <div className="space-y-3">
+                            {factors.map(({ key, title, score, info }) => (
+                              <div key={key} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium">{title}</span>
+                                  <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                </div>
+                                <ColoredProgress value={score} className="h-2" />
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </div>
 
@@ -960,19 +1025,20 @@ export default function DailyPick() {
               >
                 <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
-              <div className="flex items-center space-x-2 -mt-1">
-                <Badge className="bg-blue-500 hover:bg-blue-500 text-white font-bold px-2 py-0.5 text-xs border rounded cursor-pointer">
-                  {dailyPick.grade}
-                </Badge>
-                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-5 w-5 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Info className="h-3 w-3 text-black dark:text-white" />
+              <div className="flex items-start space-x-2">
+                <div className="relative flex items-center">
+                  <Badge className="bg-blue-500 hover:bg-blue-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
+                    {dailyPick.grade}
+                  </Badge>
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center ml-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Info className="h-3 w-3 text-black dark:text-white" />
                     </Button>
                   </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -1025,8 +1091,10 @@ export default function DailyPick() {
                   </div>
                 </DialogContent>
               </Dialog>
+                </div>
               </div>
             </div>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -1166,7 +1234,6 @@ export default function DailyPick() {
 
           </div>
         </div>
-      </div>
         </CardContent>
       </Card>
       
