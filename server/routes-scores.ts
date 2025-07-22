@@ -92,7 +92,7 @@ export function registerScoresRoutes(app: Express) {
       if (sport === 'baseball_mlb') {
         // Use MLB Stats API for scores
         const today = new Date().toISOString().split('T')[0];
-        const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Last 7 days
+        const startDate = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Last 15 days for proper L10 calculation
         
         const response = await fetch(
           `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${today}&hydrate=team,linescore`
@@ -173,6 +173,51 @@ export function registerScoresRoutes(app: Express) {
     } catch (error) {
       console.error("Error fetching scores summary:", error);
       res.status(500).json({ error: "Failed to fetch scores summary" });
+    }
+  });
+
+  // Get historical game data for L10 calculations
+  app.get("/api/mlb/historical-scores", async (req: Request, res: Response) => {
+    try {
+      console.log('Fetching historical MLB scores for L10 calculations');
+      
+      // Get last 15 days to ensure we have enough completed games for L10
+      const today = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const response = await fetch(
+        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${today}&hydrate=team,linescore`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`MLB API error: ${response.status}`);
+      }
+      
+      const data: MLBScoresResponse = await response.json();
+      
+      const historicalGames = data.dates.flatMap(date => 
+        date.games
+          .filter(game => game.status.abstractGameState === 'Final') // Only completed games
+          .map((game, index) => ({
+            id: `mlb_${game.gamePk || game.gameId || `${date.date}_${index}`}`,
+            gameId: game.gamePk || game.gameId || `${date.date}_${index}`,
+            homeTeam: game.teams.home.team.name,
+            awayTeam: game.teams.away.team.name,
+            homeScore: game.teams.home.score || 0,
+            awayScore: game.teams.away.score || 0,
+            status: game.status.detailedState,
+            abstractGameState: game.status.abstractGameState,
+            startTime: game.gameDate,
+            gameDate: date.date,
+            sportKey: 'baseball_mlb'
+          }))
+      );
+      
+      console.log(`Found ${historicalGames.length} completed historical games for L10 calculations`);
+      res.json(historicalGames);
+    } catch (error) {
+      console.error('Error fetching historical scores:', error);
+      res.status(500).json({ error: "Failed to fetch historical scores" });
     }
   });
 }
