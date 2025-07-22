@@ -12,7 +12,7 @@ import { setupVite, serveStatic, log } from "./vite";
 
 // Set API key from environment or direct value
 if (!process.env.THE_ODDS_API_KEY) {
-  process.env.THE_ODDS_API_KEY = "bcf462d7c3a36ee7010e52baed084eae";
+  process.env.THE_ODDS_API_KEY = "8a00e18a5d69e7c9d92f06fe11182eff";
 }
 
 const app = express();
