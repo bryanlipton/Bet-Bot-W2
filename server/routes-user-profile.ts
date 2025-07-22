@@ -8,6 +8,7 @@ const updateProfileSchema = z.object({
   username: z.string().optional(),
   bio: z.string().optional(),
   profileImageUrl: z.string().optional(),
+  avatar: z.string().optional(), // Emoji avatar selection
   totalPicksPublic: z.boolean().optional(),
   pendingPicksPublic: z.boolean().optional(),
   winRatePublic: z.boolean().optional(),
@@ -90,6 +91,7 @@ export function registerUserProfileRoutes(app: Express) {
         id: user.id,
         username: user.username || user.firstName,
         profileImageUrl: user.profileImageUrl,
+        avatar: user.avatar, // Include emoji avatar
         bio: user.bio,
         followers: user.followers || 0,
         following: user.following || 0,

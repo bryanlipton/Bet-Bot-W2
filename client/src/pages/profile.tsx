@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import AvatarPicker from "@/components/AvatarPicker";
+import UserAvatar from "@/components/UserAvatar";
 import { getAvatarUrl, getRandomAnimalAvatar, isEmojiAvatar, getAnimalAvatarById, getAnimalAvatarByEmoji } from '@/data/avatars';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
@@ -48,6 +49,7 @@ interface UserProfile {
   username: string;
   email: string;
   profileImage?: string;
+  avatar?: string; // Emoji avatar
   followers: number;
   following: number;
   totalPicks: number;
@@ -87,7 +89,8 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState({
     username: '',
     bio: '',
-    profileImage: ''
+    profileImage: '',
+    avatar: ''
   });
   const [privacySettings, setPrivacySettings] = useState({
     totalPicksPublic: true,
@@ -352,6 +355,7 @@ export default function ProfilePage() {
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
     profileImage: user?.profileImageUrl || getRandomAnimalAvatar(),
+    avatar: user?.avatar || '🐱', // Default emoji avatar
     followers: user?.followers || 0,
     following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
@@ -638,7 +642,8 @@ export default function ProfilePage() {
       setEditForm({
         username: user.username || user.firstName || user.email?.split('@')[0] || '',
         bio: user.bio || '',
-        profileImage: user.profileImageUrl || getRandomAnimalAvatar()
+        profileImage: user.profileImageUrl || getRandomAnimalAvatar(),
+        avatar: user.avatar || '🐱'
       });
       setPrivacySettings({
         totalPicksPublic: user.totalPicksPublic ?? true,
@@ -654,12 +659,18 @@ export default function ProfilePage() {
       username: editForm.username,
       bio: editForm.bio,
       profileImageUrl: editForm.profileImage,
+      avatar: editForm.avatar,
       ...privacySettings
     });
   };
 
   const handleImageSelect = (imageUrl: string) => {
-    setEditForm({...editForm, profileImage: imageUrl});
+    // Check if it's an emoji avatar or a regular image URL
+    if (isEmojiAvatar(imageUrl)) {
+      setEditForm({...editForm, avatar: imageUrl, profileImage: ''});
+    } else {
+      setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -797,27 +808,15 @@ export default function ProfilePage() {
                       <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                         <div className="flex items-center gap-3">
                           {/* User Avatar */}
-                          {(() => {
-                            const avatarString = user.profileImageUrl;
-                            
-                            if (avatarString?.includes('|')) {
-                              const [emoji, backgroundClass] = avatarString.split('|');
-                              return (
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${backgroundClass}`}>
-                                  <span className="text-lg">{emoji}</span>
-                                </div>
-                              );
-                            } else {
-                              return (
-                                <Avatar className="w-10 h-10">
-                                  <AvatarImage src={avatarString} alt={user.username} />
-                                  <AvatarFallback className="bg-blue-600 text-white text-sm">
-                                    {user.username?.charAt(0).toUpperCase() || user.firstName?.charAt(0).toUpperCase() || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                              );
-                            }
-                          })()}
+                          <UserAvatar 
+                            user={{
+                              profileImageUrl: user.profileImageUrl,
+                              avatar: user.avatar,
+                              username: user.username,
+                              firstName: user.firstName
+                            }}
+                            size="sm"
+                          />
                           
                           <div>
                             <p className="font-medium text-gray-900 dark:text-white">
@@ -887,41 +886,15 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
               {/* Profile Picture with Edit Button */}
               <div className="relative flex-shrink-0">
-                {(() => {
-                  // Parse avatar data (emoji|background format)
-                  const avatarString = userProfile.profileImage;
-                  
-                  if (avatarString?.includes('|')) {
-                    // New format: emoji|background
-                    const [emoji, backgroundClass] = avatarString.split('|');
-                    return (
-                      <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                        <span className="text-4xl sm:text-5xl">{emoji}</span>
-                      </div>
-                    );
-                  } else if (avatarString?.startsWith('http')) {
-                    // Regular image URL
-                    return (
-                      <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
-                        <AvatarImage 
-                          src={avatarString} 
-                          alt={userProfile.username}
-                        />
-                        <AvatarFallback className="bg-blue-600 text-white text-xl sm:text-2xl font-bold">
-                          {userProfile.username.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    );
-                  } else {
-                    // Legacy emoji format - use default background
-                    const emoji = avatarString || '🐱';
-                    return (
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
-                        <span className="text-4xl sm:text-5xl">{emoji}</span>
-                      </div>
-                    );
-                  }
-                })()}
+                <UserAvatar 
+                  user={{
+                    profileImageUrl: userProfile.profileImage,
+                    avatar: userProfile.avatar,
+                    username: userProfile.username
+                  }}
+                  size="xl"
+                  className="border-2 border-gray-200 dark:border-gray-600"
+                />
                 {isEditingProfile && (
                   <Button
                     size="sm"
@@ -1018,37 +991,15 @@ export default function ProfilePage() {
                         <div className="space-y-2">
                           <Label>Profile Picture</Label>
                           <div className="flex items-center gap-4">
-                            {(() => {
-                              const avatarString = editForm.profileImage;
-                              
-                              if (avatarString?.includes('|')) {
-                                // New format: emoji|background
-                                const [emoji, backgroundClass] = avatarString.split('|');
-                                return (
-                                  <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                                    <span className="text-3xl">{emoji}</span>
-                                  </div>
-                                );
-                              } else if (avatarString?.startsWith('http')) {
-                                // Regular image URL
-                                return (
-                                  <Avatar className="w-16 h-16">
-                                    <AvatarImage src={avatarString} alt="Preview" />
-                                    <AvatarFallback className="text-lg font-bold bg-blue-600 text-white">
-                                      {editForm.username.charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                );
-                              } else {
-                                // Legacy emoji format
-                                const emoji = avatarString || '🐱';
-                                return (
-                                  <div className="w-16 h-16 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 bg-blue-200 dark:bg-blue-300">
-                                    <span className="text-3xl">{emoji}</span>
-                                  </div>
-                                );
-                              }
-                            })()}
+                            <UserAvatar 
+                              user={{
+                                profileImageUrl: editForm.profileImage,
+                                avatar: editForm.avatar,
+                                username: editForm.username
+                              }}
+                              size="lg"
+                              className="border-2 border-gray-200 dark:border-gray-600"
+                            />
                             <div className="flex items-center justify-between w-full">
                               <Button
                                 type="button"
@@ -1409,28 +1360,15 @@ export default function ProfilePage() {
               followers.map((follower: any) => (
                 <div key={follower.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                   <div className="flex items-center gap-3">
-                    {(() => {
-                      const avatarString = follower.profileImageUrl;
-                      
-                      if (avatarString?.includes('|')) {
-                        // New format: emoji|background
-                        const [emoji, backgroundClass] = avatarString.split('|');
-                        return (
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                            <span className="text-lg">{emoji}</span>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={avatarString} alt={follower.username} />
-                            <AvatarFallback className="bg-blue-600 text-white text-sm">
-                              {follower.username?.charAt(0).toUpperCase() || follower.firstName?.charAt(0).toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        );
-                      }
-                    })()}
+                    <UserAvatar 
+                      user={{
+                        profileImageUrl: follower.profileImageUrl,
+                        avatar: follower.avatar,
+                        username: follower.username,
+                        firstName: follower.firstName
+                      }}
+                      size="sm"
+                    />
                     
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">
@@ -1492,28 +1430,15 @@ export default function ProfilePage() {
               following.map((followedUser: any) => (
                 <div key={followedUser.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                   <div className="flex items-center gap-3">
-                    {(() => {
-                      const avatarString = followedUser.profileImageUrl;
-                      
-                      if (avatarString?.includes('|')) {
-                        // New format: emoji|background
-                        const [emoji, backgroundClass] = avatarString.split('|');
-                        return (
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                            <span className="text-lg">{emoji}</span>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={avatarString} alt={followedUser.username} />
-                            <AvatarFallback className="bg-blue-600 text-white text-sm">
-                              {followedUser.username?.charAt(0).toUpperCase() || followedUser.firstName?.charAt(0).toUpperCase() || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                        );
-                      }
-                    })()}
+                    <UserAvatar 
+                      user={{
+                        profileImageUrl: followedUser.profileImageUrl,
+                        avatar: followedUser.avatar,
+                        username: followedUser.username,
+                        firstName: followedUser.firstName
+                      }}
+                      size="sm"
+                    />
                     
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">

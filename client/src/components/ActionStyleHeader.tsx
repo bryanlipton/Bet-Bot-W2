@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Moon, Sun, Zap } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
+import UserAvatar from "@/components/UserAvatar";
 
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
@@ -16,7 +17,7 @@ interface ActionStyleHeaderProps {
 
 export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
   const [location, navigate] = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const navigationTabs = [
     { path: "/", name: "Odds", active: location === "/" },
@@ -112,7 +113,21 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
               </TooltipContent>
             </Tooltip>
             
-            <div className="flex flex-col items-center">
+            <div className="flex items-center gap-3">
+              {isAuthenticated && user ? (
+                <Link href="/profile">
+                  <UserAvatar 
+                    user={{
+                      profileImageUrl: (user as any)?.profileImageUrl,
+                      avatar: (user as any)?.avatar,
+                      username: (user as any)?.username,
+                      firstName: (user as any)?.firstName
+                    }}
+                    size="sm"
+                    className="cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                  />
+                </Link>
+              ) : null}
               <LoginButton />
             </div>
           </div>
