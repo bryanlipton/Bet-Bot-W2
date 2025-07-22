@@ -202,8 +202,7 @@ export default function ProfilePage() {
             ...pick,
             // Map database fields to expected format
             timestamp: pick.createdAt || pick.gameDate,
-            showOnProfile: pick.showOnProfile,
-            showOnFeed: pick.showOnFeed,
+            isPublic: pick.isPublic,
             betInfo: {
               units: pick.units || 1,
               odds: pick.odds || 0,
@@ -533,17 +532,17 @@ export default function ProfilePage() {
     unfollowUserMutation.mutate(userId);
   };
 
-  // Update pick visibility mutation
+  // Update pick visibility mutation (single toggle for public/private)
   const updatePickVisibilityMutation = useMutation({
-    mutationFn: async ({ pickId, showOnProfile, showOnFeed }: { pickId: string; showOnProfile: boolean; showOnFeed: boolean }) => {
-      console.log(`Updating pick ${pickId} visibility:`, { showOnProfile, showOnFeed });
+    mutationFn: async ({ pickId, isPublic }: { pickId: string; isPublic: boolean }) => {
+      console.log(`Updating pick ${pickId} visibility:`, { isPublic });
       
       const response = await fetch(`/api/user/picks/${pickId}/visibility`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ showOnProfile, showOnFeed }),
+        body: JSON.stringify({ isPublic }),
         credentials: 'include',
       });
       
@@ -559,7 +558,7 @@ export default function ProfilePage() {
       console.log('Success response:', result);
       return result;
     },
-    onMutate: async ({ pickId, showOnProfile, showOnFeed }) => {
+    onMutate: async ({ pickId, isPublic }) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ['/api/user/picks'] });
 
@@ -573,8 +572,7 @@ export default function ProfilePage() {
           if (item.id === pickId) {
             return {
               ...item,
-              showOnProfile,
-              showOnFeed
+              isPublic
             };
           }
           return item;
@@ -1288,7 +1286,7 @@ export default function ProfilePage() {
                                     {item.pick.parlayLegs && item.pick.parlayLegs.length > 0 ? (
                                       `${item.pick.parlayLegs.length}-Leg Parlay: ${item.pick.parlayLegs.map((leg: any) => leg.team).join(' + ')}`
                                     ) : (
-                                      `${item.pick.awayTeam || item.pick.gameInfo?.awayTeam} @ ${item.pick.homeTeam || item.pick.gameInfo?.homeTeam}`
+                                      `${item.pick.awayTeam || item.pick.gameInfo?.awayTeam || 'Away Team'} @ ${item.pick.homeTeam || item.pick.gameInfo?.homeTeam || 'Home Team'}`
                                     )}
                                   </div>
                                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -1314,44 +1312,23 @@ export default function ProfilePage() {
                                 {item.pick.units || item.pick.betInfo?.units || 1} units • {item.pick.bookmakerDisplayName || item.pick.bookmaker?.displayName || 'Manual Entry'}
                               </div>
                               
-                              {/* Individual bet visibility controls */}
-                              <div className="flex flex-col gap-2 mt-2">
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    id={`profile-${item.id}`}
-                                    checked={item.showOnProfile ?? true}
-                                    onCheckedChange={(checked) => {
-                                      // Toggle profile visibility only (keep feed visibility independent)
-                                      updatePickVisibilityMutation.mutate({
-                                        pickId: item.id,
-                                        showOnProfile: checked,
-                                        showOnFeed: item.showOnFeed ?? true // Keep existing feed visibility setting
-                                      });
-                                    }}
-                                    disabled={updatePickVisibilityMutation.isPending}
-                                  />
-                                  <Label htmlFor={`profile-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
-                                    Show on Profile
-                                  </Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    id={`feed-${item.id}`}
-                                    checked={item.showOnFeed ?? true}
-                                    onCheckedChange={(checked) => {
-                                      // Toggle feed visibility only (keep profile visibility independent)
-                                      updatePickVisibilityMutation.mutate({
-                                        pickId: item.id,
-                                        showOnProfile: item.showOnProfile ?? true, // Keep existing profile visibility setting
-                                        showOnFeed: checked
-                                      });
-                                    }}
-                                    disabled={updatePickVisibilityMutation.isPending}
-                                  />
-                                  <Label htmlFor={`feed-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
-                                    Show on Feed
-                                  </Label>
-                                </div>
+                              {/* Single bet visibility control */}
+                              <div className="flex items-center gap-2 mt-2">
+                                <Switch
+                                  id={`public-${item.id}`}
+                                  checked={item.pick.isPublic ?? true}
+                                  onCheckedChange={(checked) => {
+                                    // Single toggle controls both profile and feed visibility
+                                    updatePickVisibilityMutation.mutate({
+                                      pickId: item.id,
+                                      isPublic: checked
+                                    });
+                                  }}
+                                  disabled={updatePickVisibilityMutation.isPending}
+                                />
+                                <Label htmlFor={`public-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                  Make Bet Public
+                                </Label>
                               </div>
                             </div>
                             <div className="text-right ml-4">

@@ -89,9 +89,9 @@ export interface IStorage {
   createUserPick(pick: InsertUserPick): Promise<UserPick>;
   getUserPicks(userId: string, limit?: number, offset?: number): Promise<UserPick[]>;
   getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]>;
-  updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick>;
-  updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null>;
-  deleteUserPick(pickId: string): Promise<void>;
+  updateUserPick(pickId: number, updates: Partial<UserPick>): Promise<UserPick>;
+  updatePickVisibility(userId: string, pickId: number, visibility: { isPublic?: boolean }): Promise<UserPick | null>;
+  deleteUserPick(pickId: number | string): Promise<void>;
   getUserPickStats(userId: string): Promise<{
     totalPicks: number;
     pendingPicks: number;
@@ -944,7 +944,7 @@ export class DatabaseStorage implements IStorage {
     return pick;
   }
 
-  async updatePickVisibility(userId: string, pickId: number | string, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
+  async updatePickVisibility(userId: string, pickId: number | string, visibility: { isPublic?: boolean }): Promise<UserPick | null> {
     // Handle both integer IDs and string-based UUIDs
     const actualPickId = typeof pickId === 'string' && !isNaN(parseInt(pickId)) ? parseInt(pickId) : pickId;
     
@@ -1041,7 +1041,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(userPicks.userId, userId),
-          eq(userPicks.showOnFeed, true)
+          eq(userPicks.isPublic, true)
         )
       )
       .orderBy(desc(userPicks.createdAt))

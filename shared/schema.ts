@@ -304,6 +304,8 @@ export const userPicks = pgTable("user_picks", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull().references(() => users.id),
   gameId: text("game_id").notNull(),
+  homeTeam: text("home_team").notNull(), // Home team name
+  awayTeam: text("away_team").notNull(), // Away team name
   selection: text("selection").notNull(), // Team or outcome selected
   game: text("game").notNull(), // "Team A @ Team B" format
   market: text("market").notNull(), // "moneyline", "spread", "total", "parlay"
@@ -317,8 +319,7 @@ export const userPicks = pgTable("user_picks", {
   result: text("result"), // Game result details when graded
   winAmount: real("win_amount"), // Calculated win amount when graded
   parlayLegs: json("parlay_legs"), // Array of parlay legs if market is "parlay"
-  showOnProfile: boolean("show_on_profile").default(true), // Whether to show this pick on user profile
-  showOnFeed: boolean("show_on_feed").default(true), // Whether to show this pick on public feed
+  isPublic: boolean("is_public").default(true), // Single toggle for public visibility (replaces showOnProfile and showOnFeed)
   createdAt: timestamp("created_at").defaultNow(),
   gameDate: timestamp("game_date"), // When the game is/was played
   gradedAt: timestamp("graded_at"), // When the pick was graded

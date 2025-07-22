@@ -71,7 +71,7 @@ export function registerUserPicksRoutes(app: Express) {
         return res.status(403).json({ message: "Not authorized to update this pick" });
       }
       
-      const updatedPick = await storage.updateUserPick(pickId, req.body);
+      const updatedPick = await storage.updateUserPick(parseInt(pickId), req.body);
       res.json(updatedPick);
     } catch (error) {
       console.error("Error updating user pick:", error);
@@ -79,12 +79,12 @@ export function registerUserPicksRoutes(app: Express) {
     }
   });
 
-  // Update pick visibility settings
+  // Update pick visibility settings (single "Make Bet Public" toggle)
   app.patch('/api/user/picks/:pickId/visibility', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { pickId } = req.params;
-      const { showOnProfile, showOnFeed } = req.body;
+      const { isPublic } = req.body;
       
       // Check if this is a sample pick (simple string ID) or database pick (integer or uuid-style ID)
       // Only treat very simple IDs as sample picks (like "blue_jays_ml"), not uuid-style IDs
@@ -101,8 +101,7 @@ export function registerUserPicksRoutes(app: Express) {
         // First try to update directly in case it's a valid user pick
         const actualPickId = isNaN(parseInt(pickId)) ? pickId : parseInt(pickId);
         const updatedPick = await storage.updatePickVisibility(userId, actualPickId, { 
-          showOnProfile, 
-          showOnFeed 
+          isPublic 
         });
         
         if (updatedPick) {
