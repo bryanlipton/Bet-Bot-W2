@@ -147,50 +147,50 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
   const getGradeExplanation = (score: number, factorTitle: string): string => {
     const grade = scoreToGrade(score);
     
-    // Customized explanations based on factor type
+    // Enhanced explanations based on factor type with more detail
     switch (factorTitle) {
-      case 'Betting Value':
-        if (score >= 90) return 'Exceptional edge; line is mispriced in our favor';
-        if (score >= 80) return 'Solid value; odds slightly undervalue our side';
-        if (score >= 75) return 'Market-efficient or neutral';
-        return 'Little or no edge vs. market';
+      case 'Market Edge':
+        if (score >= 90) return 'Exceptional betting value detected. Our model identifies significant market inefficiency with the bookmaker odds likely underpricing this outcome by 5-10%. This represents premium Kelly Criterion territory with strong expected value.';
+        if (score >= 80) return 'Solid market edge identified. The betting line appears to undervalue our selection based on probability analysis, suggesting positive expected value of 2-5% over fair market price.';
+        if (score >= 75) return 'Market appears fairly efficient with minimal edge detected. Odds roughly align with our calculated probability, indicating neutral expected value.';
+        return 'Limited or negative market edge. The current line may overvalue our selection, suggesting the market has priced this outcome accurately or even unfavorably for bettors.';
         
-      case 'Field Value':
-        if (score >= 85) return 'Strong field factor benefiting this team';
-        if (score >= 75) return 'Slight to moderate favorable conditions';
-        if (score === 75) return 'Neutral ballpark effect';
-        return 'Stadium may favor opponent or suppress performance';
+      case 'Situational Edge':
+        if (score >= 85) return 'Multiple situational factors strongly favor this selection. This includes optimal ballpark dimensions, significant home field advantage, favorable travel/rest situations, and game timing that benefits our pick.';
+        if (score >= 75) return 'Situational factors provide modest advantage. Home field, ballpark effects, or scheduling create slight favorable conditions without major disadvantages.';
+        if (score === 75) return 'Neutral situational context with balanced advantages and disadvantages. No significant situational edge identified.';
+        return 'Situational factors may work against our selection. Adverse ballpark effects, challenging travel, or unfavorable game context could impact performance.';
         
-      case 'Pitching Edge':
-        if (score >= 85) return 'Clear pitching advantage';
-        if (score >= 75) return 'Above average edge';
-        if (score === 75) return 'Even matchup or average starter';
-        return 'Possible disadvantage on the mound';
+      case 'Pitching Matchup':
+        if (score >= 85) return 'Clear starting pitcher advantage based on current form and historical matchups. Our pitcher shows superior recent performance metrics (ERA, WHIP, K-rate) and favorable stylistic matchup against opposing lineup.';
+        if (score >= 75) return 'Modest pitching edge detected. Starting pitcher comparison shows slight advantage in recent effectiveness or matchup-specific factors like opposing team\'s performance vs similar pitching styles.';
+        if (score === 75) return 'Even pitching matchup with comparable starters. Both pitchers show similar recent form and effectiveness, creating neutral expectations.';
+        return 'Potential pitching disadvantage. Opposing starter may have superior recent form, better historical performance against similar lineups, or stylistic advantage.';
         
-      case 'Recent Form':
-        if (score >= 90) return 'Team is red-hot';
-        if (score >= 80) return 'Consistently strong recent play';
-        if (score >= 75) return 'Neutral form or .500 record';
-        return 'Cold streak or downward trend';
+      case 'Team Momentum':
+        if (score >= 90) return 'Team displays exceptional recent momentum with hot streak significantly outpacing season averages. Last 10 games show strong performance trend with multiple quality wins indicating peak form.';
+        if (score >= 80) return 'Positive momentum trajectory with recent performance exceeding season norms. Team shows consistent recent play with multiple indicators of good form and confidence.';
+        if (score >= 75) return 'Neutral momentum with recent performance aligning with season averages. No significant hot or cold streaks detected.';
+        return 'Concerning momentum trends with recent underperformance. Team may be struggling with confidence, injuries, or tactical issues affecting recent results.';
         
-      case 'Weather Impact':
-        if (score >= 85) return 'Conditions significantly favor our side (e.g., wind out for hitters)';
-        if (score >= 75) return 'Slightly favorable weather';
-        if (score === 75) return 'Neutral conditions';
-        return 'Weather may hurt our team\'s strengths';
+      case 'System Confidence':
+        if (score >= 85) return 'High model confidence based on complete data availability and strong factor consensus. All analytical components align with minimal uncertainty or conflicting signals.';
+        if (score >= 75) return 'Moderate system confidence with good data quality and reasonable factor alignment. Some minor uncertainty exists but overall model conviction remains solid.';
+        if (score === 75) return 'Average confidence level with standard data completeness. Normal level of analytical uncertainty expected for typical game analysis.';
+        return 'Lower system confidence due to incomplete data, conflicting analytical signals, or unusual circumstances that reduce model certainty.';
         
-      case 'Offensive Edge':
-        if (score >= 85) return 'Elite recent batting metrics';
-        if (score >= 75) return 'Slight offensive edge';
-        if (score === 75) return 'Even matchup';
-        return 'Opponent may have better bats';
+      case 'Offensive Production':
+        if (score >= 85) return 'Elite offensive metrics from advanced Baseball Savant data. Team shows exceptional xwOBA, barrel rate, and exit velocity trends combined with strong recent run production efficiency.';
+        if (score >= 75) return 'Above-average offensive indicators with solid underlying metrics. Recent production shows good quality contact and run-scoring efficiency trends.';
+        if (score === 75) return 'Average offensive production with metrics aligning to league norms. No significant advantages or disadvantages detected.';
+        return 'Below-average offensive metrics with concerning trends in quality contact or run production efficiency relative to opposition.';
         
       default:
-        // Fallback to generic explanation
-        if (score >= 90) return 'Elite performance';
-        if (score >= 80) return 'Strong performance';
-        if (score >= 75) return 'Neutral baseline';
-        return 'Disadvantage';
+        // Enhanced fallback explanations
+        if (score >= 90) return 'Elite performance category indicating exceptional advantage in this analytical area.';
+        if (score >= 80) return 'Strong performance showing clear competitive advantage with multiple supporting indicators.';
+        if (score >= 75) return 'Neutral baseline performance with balanced factors and average expectations.';
+        return 'Below-average performance indicating potential disadvantage requiring consideration.';
     }
   };
 
@@ -201,13 +201,13 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
           <Info className="h-2.5 w-2.5 text-white dark:text-black" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-3 text-xs" side="top">
+      <PopoverContent className="w-96 p-4 text-xs max-h-80 overflow-y-auto" side="top">
         <div className="font-medium mb-2">{title}</div>
-        <div className="mb-3 text-gray-700 dark:text-gray-300">{info.split('\n\n')[0]}</div>
+        <div className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">{info.split('\n\n')[0]}</div>
         {score !== undefined && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
-            <div className="text-gray-800 dark:text-gray-200">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
+            <div className="text-gray-800 dark:text-gray-200 leading-relaxed">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
             <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-500">
               90+ = Elite | 80-89 = Strong | 75 = Neutral baseline | &lt;75 = Disadvantage
             </div>
