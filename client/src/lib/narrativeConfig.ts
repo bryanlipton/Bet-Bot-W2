@@ -7,6 +7,12 @@ export interface GameContext {
   parkFactor?: number;
   starterERA?: number;
   last10Record?: string;
+  pickPitcher?: string;
+  opponentPitcher?: string;
+  pickPitcherERA?: number;
+  opponentPitcherERA?: number;
+  pickPitcherWHIP?: number;
+  opponentPitcherWHIP?: number;
   offensiveStats?: {
     xwOBA?: number;
     barrelRate?: number;

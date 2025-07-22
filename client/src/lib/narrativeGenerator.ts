@@ -126,11 +126,34 @@ function enhancePitchingNarrative(
 ): string {
   let enhanced = narrative;
   
+  // Add specific pitcher comparison context when available
+  if (context.pickPitcher && context.opponentPitcher) {
+    if (category === 'elite' || category === 'strong') {
+      enhanced += ` ${context.pickPitcher} holds clear statistical advantages over ${context.opponentPitcher} in 2025 season metrics.`;
+    } else if (category === 'weak') {
+      enhanced += ` ${context.opponentPitcher} has been significantly more effective than ${context.pickPitcher} this season.`;
+    } else {
+      enhanced += ` The matchup between ${context.pickPitcher} and ${context.opponentPitcher} shows fairly balanced season statistics.`;
+    }
+  }
+  
   if (context.starterERA) {
     if (context.starterERA < 3.0 && (category === 'elite' || category === 'strong')) {
       enhanced += ` Sub-3.00 ERA demonstrates consistent quality start capability.`;
     } else if (context.starterERA > 5.0 && category === 'weak') {
       enhanced += ` Elevated ERA trends suggest vulnerability in extended outings.`;
+    }
+  }
+  
+  // Add specific ERA/WHIP comparison when available
+  if (context.pickPitcherERA && context.opponentPitcherERA) {
+    const eraDiff = Math.abs(context.pickPitcherERA - context.opponentPitcherERA);
+    if (eraDiff > 0.5) {
+      if (context.pickPitcherERA < context.opponentPitcherERA) {
+        enhanced += ` ERA advantage of ${eraDiff.toFixed(2)} points strongly favors the pick.`;
+      } else {
+        enhanced += ` ERA disadvantage of ${eraDiff.toFixed(2)} points creates offensive pressure.`;
+      }
     }
   }
   

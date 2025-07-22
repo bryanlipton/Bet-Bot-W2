@@ -720,12 +720,32 @@ export class DailyPickService {
           case 'pitching':
             const pickPitcher = isHomePick ? probablePitchers?.home : probablePitchers?.away;
             const oppPitcher = isHomePick ? probablePitchers?.away : probablePitchers?.home;
+            
+            // Determine pitching advantage direction based on score
+            const pitchingScore = analysis.pitchingMatchup;
+            const isAdvantage = pitchingScore > 75;
+            const isDisadvantage = pitchingScore < 65;
+            
             if (pickPitcher && pickPitcher !== 'TBD' && oppPitcher && oppPitcher !== 'TBD') {
-              reasoningParts.push(`${pickPitcher} gives ${pick} a clear pitching advantage over ${oppPitcher}, with superior season metrics and command that should limit ${opponent}'s scoring opportunities`);
+              if (isDisadvantage) {
+                reasoningParts.push(`${pick} faces a challenging pitching matchup as ${oppPitcher} holds significant statistical advantages over ${pickPitcher} this season in key metrics like ERA and WHIP, requiring the offense to step up`);
+              } else if (isAdvantage) {
+                reasoningParts.push(`${pickPitcher} gives ${pick} a clear pitching advantage over ${oppPitcher}, with superior season metrics including better ERA and command that should limit ${opponent}'s scoring opportunities`);
+              } else {
+                reasoningParts.push(`The pitching matchup between ${pickPitcher} and ${oppPitcher} is fairly even based on 2025 season stats, making this game likely to be decided by offensive execution and bullpen depth`);
+              }
             } else if (pickPitcher && pickPitcher !== 'TBD') {
-              reasoningParts.push(`${pickPitcher} provides ${pick} with reliable starting pitching that should give them an edge in this matchup`);
+              if (isDisadvantage) {
+                reasoningParts.push(`${pickPitcher} will need to overcome statistical disadvantages against ${opponent}'s stronger starting pitcher in this challenging matchup`);
+              } else {
+                reasoningParts.push(`${pickPitcher} provides ${pick} with reliable starting pitching that should give them an edge in this matchup based on 2025 season performance`);
+              }
             } else {
-              reasoningParts.push(`${pick}'s starting pitcher holds measurable advantages in key metrics that favor them against ${opponent}'s lineup`);
+              if (isDisadvantage) {
+                reasoningParts.push(`${pick} enters this game at a pitching disadvantage, as their opponent has the stronger starting pitcher based on season-long metrics and recent form`);
+              } else {
+                reasoningParts.push(`${pick}'s starting pitcher holds measurable advantages in key metrics that favor them against ${opponent}'s lineup`);
+              }
             }
             break;
           case 'venue':
