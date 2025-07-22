@@ -298,34 +298,42 @@ export default function ProfilePage() {
     loadLocalStoragePicks();
   }, [userPicks]);
 
-  // Calculate comprehensive stats with your real picks + pending localStorage picks
-  const dbPicksCount = 2; // 2 real picks from yesterday: Blue Jays ML + Orioles/Mets parlay
-  const dbWins = 1; // Blue Jays ML win
-  const dbLosses = 1; // Orioles/Mets parlay loss
-  const pendingPicks = picks.filter(p => p.status === 'pending').length;
-  const totalCompletedPicks = dbWins + dbLosses;
+  // Calculate stats based on actual displayed picks in the public feed
+  const visiblePicks = publicFeed.map(item => item.pick);
+  const totalPicks = visiblePicks.length;
+  const pendingPicksCount = visiblePicks.filter(pick => pick.status === 'pending').length;
+  const wonPicks = visiblePicks.filter(pick => pick.status === 'win' || pick.status === 'won').length;
+  const lostPicks = visiblePicks.filter(pick => pick.status === 'loss' || pick.status === 'lost').length;
+  const pushPicks = visiblePicks.filter(pick => pick.status === 'push').length;
+  const settledPicks = wonPicks + lostPicks + pushPicks;
+  const winRate = settledPicks > 0 ? (wonPicks / settledPicks) * 100 : 0;
+  
+  // Calculate win streak from most recent settled picks
+  const sortedSettledPicks = visiblePicks
+    .filter(pick => pick.status === 'win' || pick.status === 'won' || pick.status === 'loss' || pick.status === 'lost')
+    .sort((a, b) => new Date(b.timestamp || b.createdAt || '').getTime() - new Date(a.timestamp || a.createdAt || '').getTime());
+  
+  let winStreak = 0;
+  for (const pick of sortedSettledPicks) {
+    if (pick.status === 'win' || pick.status === 'won') {
+      winStreak++;
+    } else {
+      break; // Stop at first loss
+    }
+  }
+  
+  // Create record string (W-L-P format)
+  const record = `${wonPicks}-${lostPicks}${pushPicks > 0 ? `-${pushPicks}` : ''}`;
   
   const profileStats = {
-    totalPicks: dbPicksCount + pendingPicks, // 2 real picks + pending picks
-    pendingPicks: pendingPicks, // Pending picks from localStorage
-    wonPicks: dbWins, // 1 win: Blue Jays ML
-    lostPicks: dbLosses, // 1 loss: Orioles/Mets parlay
-    winRate: totalCompletedPicks > 0 ? (dbWins / totalCompletedPicks) * 100 : 0, // 1/2 = 50%
-    totalMoneyWonLost: (() => {
-      // Calculate total money won/lost based on real picks with $10 bet unit
-      const betUnit = 10;
-      let total = 0;
-      
-      // Blue Jays ML win: 1.5 units * $10 = $15 wagered, +130 odds = $19.50 profit
-      total += (130 / 100) * 15; // +$19.50 profit
-      
-      // Orioles/Mets parlay loss: 1.0 units * $10 = $10 wagered, lost $10
-      total -= 10; // -$10 loss
-      
-      // Add pending picks (assume no money movement until settled)
-      return total; // $19.50 - $10.00 = +$9.50
-    })(),
-    winStreak: 1 // Blue Jays ML was the most recent win
+    totalPicks,
+    pendingPicks: pendingPicksCount,
+    wonPicks,
+    lostPicks,
+    pushPicks,
+    winRate,
+    winStreak,
+    record
   };
 
   // Calculate current win streak
@@ -1138,7 +1146,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Stats Cards with Privacy Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Total Picks - Always visible to user */}
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
@@ -1169,6 +1177,40 @@ export default function ProfilePage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                     Pending
                     {!userProfile.pendingPicksPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Win Streak */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.winStreak}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Win Streak
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Record */}
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Trophy className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {profileStats.record}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Record
                   </div>
                 </div>
               </div>
