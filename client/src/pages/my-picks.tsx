@@ -234,7 +234,8 @@ export default function MyPicksPage() {
 
   const clearAllPicks = () => {
     if (confirm('Are you sure you want to delete all picks? This cannot be undone.')) {
-      pickStorage.clearAllPicks();
+      // pickStorage.clearAllPicks(); // Removed - using database only now
+      console.log('Clear all picks - using database approach');
     }
   };
 
