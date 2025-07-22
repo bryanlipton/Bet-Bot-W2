@@ -254,6 +254,15 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
   );
 }
 
+// Helper functions declared at module level to avoid hoisting issues
+const formatOdds = (odds: number) => {
+  return odds > 0 ? `+${odds}` : odds.toString();
+};
+
+const formatGameTime = (gameTime: string) => {
+  return new Date(gameTime).toLocaleString();
+};
+
 export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
@@ -270,7 +279,7 @@ export default function DailyPick() {
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
     staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
-    cacheTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (formerly cacheTime)
     refetchOnWindowFocus: false, // Prevent refetch on window focus
     refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });
@@ -698,7 +707,7 @@ export default function DailyPick() {
                           <h4 className="font-semibold mb-3">Pick Details</h4>
                           <div className="space-y-2 text-sm">
                             <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds)}</div>
                             <div><strong>Venue:</strong> {dailyPick.venue}</div>
                             <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
                           </div>
@@ -748,13 +757,7 @@ export default function DailyPick() {
     );
   }
 
-  const formatOdds = (odds: number, pickType: string) => {
-    const sign = odds > 0 ? `+${odds}` : `${odds}`;
-    const type = pickType === 'moneyline' ? 'ML' : 
-                 pickType === 'spread' ? 'SP' : 
-                 pickType === 'over_under' ? 'O/U' : 'ML';
-    return `${type} ${sign}`;
-  };
+
 
   // Get all 6 factors with their info descriptions in permanent order
   const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
