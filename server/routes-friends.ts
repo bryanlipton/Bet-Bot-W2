@@ -232,7 +232,7 @@ export function registerFriendsRoutes(app: Express) {
         return res.json([]);
       }
       
-      // Get picks from followed users + own picks (ONLY public picks for social feed)
+      // Get picks from followed users + own picks (show by default unless isPublic is explicitly false)
       const feedPicks = await db
         .select({
           id: userPicks.id,
@@ -256,7 +256,10 @@ export function registerFriendsRoutes(app: Express) {
         .innerJoin(users, eq(userPicks.userId, users.id))
         .where(and(
           inArray(userPicks.userId, allUserIds),
-          eq(userPicks.isPublic, true) // Only show public picks in feed
+          or(
+            eq(userPicks.isPublic, true), // Show if explicitly set to true
+            sql`${userPicks.isPublic} IS NULL` // Show if not set (default behavior - should appear in feed)
+          )
         ))
         .orderBy(desc(userPicks.createdAt))
         .limit(limit)
