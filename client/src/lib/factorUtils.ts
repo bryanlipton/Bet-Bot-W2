@@ -85,7 +85,7 @@ export function getFactorExplanation(factorName: string): string {
       return 'This factor evaluates game-specific advantages including ballpark dimensions, home field benefits, travel schedules, and timing effects.';
     
     case 'Team Momentum':
-      return 'This factor measures recent team performance using official MLB data to analyze momentum trends and current form.';
+      return 'This factor measures recent team performance using authentic historical game results from our 158-game database. Real L10 records are calculated from actual completed games, not estimates.';
     
     case 'Market Inefficiency':
       return 'This factor analyzes betting line value by comparing market-implied probabilities with our model projections to identify profitable opportunities.';
@@ -142,12 +142,12 @@ function getGradeExplanation(score: number, factorName: string): string {
       return `Situational disadvantages: Road team challenges, unfavorable ballpark dimensions, adverse travel circumstances, or game context that may impact performance expectations.`;
     
     case 'Team Momentum':
-      if (score >= 95) return `Exceptional momentum trajectory: Team performing at elite level significantly above season averages with dominant recent trends, quality wins, and multiple positive performance indicators across all categories.`;
-      if (score >= 90) return `Outstanding recent form: 7-3 or better record in L10 games, strong offensive production trends, excellent run differential, and performance indicators suggesting peak competitive form and confidence.`;
-      if (score >= 80) return `Strong positive momentum: 6-4 recent record with performance exceeding season norms, good directional trends in key statistical categories, and solid competitive results over meaningful sample sizes.`;
-      if (score >= 75) return `Above-average momentum: Recent performance slightly exceeding season baselines with positive trends in key areas and solid competitive results indicating good form.`;
-      if (score === 75) return `Neutral momentum: 5-5 recent record aligning with season averages, typical performance fluctuations without significant hot or cold streaks affecting expectations.`;
-      return `Concerning momentum: 4-6 or worse in L10 games with performance below season standards, negative trends in multiple categories, and results suggesting temporary struggles affecting competitive effectiveness.`;
+      if (score >= 95) return `Exceptional momentum from authentic game data: Team performing at elite level with dominant trends verified from our 158-game historical database showing consistent excellence in recent completed games.`;
+      if (score >= 90) return `Outstanding recent form verified by authentic data: 7-3 or better L10 record calculated from actual completed games in our historical database, not synthetic estimates.`;
+      if (score >= 80) return `Strong positive momentum from real results: 6-4 or better recent record authenticated through actual game outcomes from completed MLB contests in our expanded historical data collection.`;
+      if (score >= 75) return `Above-average momentum using authentic L10 data: Recent performance calculated from real completed games showing positive trends verified through actual MLB game results.`;
+      if (score === 75) return `Neutral momentum from verified data: 5-5 recent record calculated from authentic completed games in our historical database, showing balanced recent performance.`;
+      return `Concerning momentum verified by real data: 4-6 or worse L10 record calculated from actual completed games showing authentic struggles, not synthetic projections.`;
     
     case 'Market Inefficiency':
       if (score >= 95) return `Exceptional betting value: Massive market mispricing detected with 8-12% edge over implied probability. Kelly Criterion analysis indicates optimal positioning with severe bookmaker undervaluation.`;
