@@ -844,6 +844,16 @@ export default function DailyPick() {
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
   const factors = getFactors(dailyPick.analysis, currentPitchers);
 
+  // Debug logging for button visibility
+  console.log('Desktop Pick/Fade button debug:', {
+    pickTeam: dailyPick.pickTeam,
+    topTeam: matchup.topTeam,
+    bottomTeam: matchup.bottomTeam,
+    homeTeam: dailyPick.homeTeam,
+    awayTeam: dailyPick.awayTeam,
+    shouldShowButtons: dailyPick.pickTeam === matchup.topTeam
+  });
+
   // Collapsed view when user has visited 2+ times
   if (isCollapsed) {
     return (
