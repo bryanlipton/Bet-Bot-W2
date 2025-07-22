@@ -160,6 +160,20 @@ export default function SimpleMyPicks() {
     setTempUnits('');
   };
 
+  const handleDeletePick = async (pickId: number) => {
+    if (!confirm('Are you sure you want to delete this pick? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await userPicksAPI.deletePick(pickId);
+      setPicks(picks.filter(p => p.id !== pickId));
+    } catch (error) {
+      console.error('Error deleting pick:', error);
+      alert('Failed to delete pick');
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading picks...</div>;
   }
@@ -291,6 +305,15 @@ export default function SimpleMyPicks() {
                         <div className="mt-1">
                           Potential: {formatCurrency(pick.potentialPayout)}
                         </div>
+                        <div className="mt-2">
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeletePick(pick.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -333,6 +356,15 @@ export default function SimpleMyPicks() {
                           {pick.status === 'win' ? `+${formatCurrency(pick.winAmount || 0)}` :
                            pick.status === 'loss' ? `-${formatCurrency(pick.wagerAmount)}` :
                            'Push'}
+                        </div>
+                        <div className="mt-2">
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeletePick(pick.id)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     </div>

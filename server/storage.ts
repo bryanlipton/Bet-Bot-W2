@@ -90,8 +90,8 @@ export interface IStorage {
   getUserPicks(userId: string, limit?: number, offset?: number): Promise<UserPick[]>;
   getUserPicksByStatus(userId: string, status: string): Promise<UserPick[]>;
   updateUserPick(pickId: number, updates: Partial<UserPick>): Promise<UserPick>;
-  updatePickVisibility(userId: string, pickId: number, visibility: { isPublic?: boolean }): Promise<UserPick | null>;
-  deleteUserPick(pickId: number | string): Promise<void>;
+  updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null>;
+  deleteUserPick(userId: string, pickId: number): Promise<boolean>;
   getUserPickStats(userId: string): Promise<{
     totalPicks: number;
     pendingPicks: number;
@@ -411,7 +411,7 @@ export class MemStorage implements IStorage {
     throw new Error('User picks methods not implemented in MemStorage');
   }
 
-  async updateUserPick(pickId: string, updates: Partial<UserPick>): Promise<UserPick> {
+  async updateUserPick(pickId: number, updates: Partial<UserPick>): Promise<UserPick> {
     throw new Error('User picks methods not implemented in MemStorage');
   }
 
@@ -419,7 +419,7 @@ export class MemStorage implements IStorage {
     throw new Error('User picks methods not implemented in MemStorage');
   }
 
-  async deleteUserPick(pickId: string): Promise<void> {
+  async deleteUserPick(userId: string, pickId: number): Promise<boolean> {
     throw new Error('User picks methods not implemented in MemStorage');
   }
 
@@ -944,30 +944,26 @@ export class DatabaseStorage implements IStorage {
     return pick;
   }
 
-  async updatePickVisibility(userId: string, pickId: number | string, visibility: { isPublic?: boolean }): Promise<UserPick | null> {
-    // Handle both integer IDs and string-based UUIDs
-    const actualPickId = typeof pickId === 'string' && !isNaN(parseInt(pickId)) ? parseInt(pickId) : pickId;
-    
+  async updatePickVisibility(userId: string, pickId: number, visibility: { showOnProfile?: boolean; showOnFeed?: boolean }): Promise<UserPick | null> {
     const [pick] = await db.update(userPicks)
       .set(visibility)
       .where(and(
-        eq(userPicks.id, actualPickId as number),
+        eq(userPicks.id, pickId),
         eq(userPicks.userId, userId)
       ))
       .returning();
     return pick || null;
   }
 
-  async deleteUserPick(pickId: number | string): Promise<void> {
-    // Handle both integer IDs (database picks) and string IDs (sample picks)
-    if (typeof pickId === 'string' && isNaN(parseInt(pickId))) {
-      // Sample picks with string IDs don't exist in database, so return silently
-      console.log(`Sample pick ${pickId} delete request - frontend only`);
-      return;
-    }
+  async deleteUserPick(userId: string, pickId: number): Promise<boolean> {
+    const result = await db.delete(userPicks)
+      .where(and(
+        eq(userPicks.id, pickId),
+        eq(userPicks.userId, userId)
+      ))
+      .returning();
     
-    const numericPickId = typeof pickId === 'string' ? parseInt(pickId) : pickId;
-    await db.delete(userPicks).where(eq(userPicks.id, numericPickId));
+    return result.length > 0;
   }
 
   async getUserPickStats(userId: string): Promise<{

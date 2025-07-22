@@ -100,6 +100,17 @@ export class UserPicksAPI {
     return this.transformPick(pick);
   }
 
+  async deletePick(pickId: number): Promise<void> {
+    const response = await fetch(`${this.baseURL}/${pickId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete pick: ${response.status}`);
+    }
+  }
+
   private transformPick(pick: UserPickFromDB): UserPickDisplay {
     const wagerAmount = pick.units * pick.bet_unit_at_time;
     const potentialPayout = this.calculatePayout(wagerAmount, pick.odds);

@@ -959,7 +959,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const picks = await storage.getUserPicks(userId);
       console.log(`Found ${picks.length} picks for user ${userId}`);
-      res.json(picks);
+      
+      // Transform picks to match frontend expectations (snake_case for UserPickFromDB interface)
+      const transformedPicks = picks.map(pick => ({
+        id: pick.id,
+        user_id: pick.userId,
+        game_id: pick.gameId,
+        home_team: pick.homeTeam,
+        away_team: pick.awayTeam,
+        selection: pick.selection,
+        game: pick.game,
+        market: pick.market,
+        line: pick.line,
+        odds: pick.odds || 0,
+        units: pick.units,
+        bookmaker: pick.bookmaker,
+        bookmaker_display_name: pick.bookmakerDisplayName,
+        status: pick.status,
+        result: pick.result,
+        win_amount: pick.winAmount,
+        game_date: pick.gameDate?.toISOString() || new Date().toISOString(),
+        created_at: pick.createdAt?.toISOString() || new Date().toISOString(),
+        bet_unit_at_time: pick.betUnitAtTime || 10.00
+      }));
+      
+      console.log('Sample transformed pick:', transformedPicks[0] ? {
+        id: transformedPicks[0].id,
+        status: transformedPicks[0].status,
+        win_amount: transformedPicks[0].win_amount
+      } : 'No picks found');
+      
+      res.json(transformedPicks);
     } catch (error) {
       console.error("Error fetching user picks:", error);
       res.status(500).json({ message: "Failed to fetch user picks" });
@@ -999,6 +1029,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in debug endpoint:", error);
       res.status(500).json({ error: "Debug failed" });
+    }
+  });
+
+  // Delete pick
+  app.delete('/api/user/picks/:pickId', isAuthenticated, async (req: any, res) => {
+    try {
+      const { pickId } = req.params;
+      const userId = req.user.claims.sub;
+      
+      console.log(`Deleting pick ${pickId} for user ${userId}`);
+      
+      const numericPickId = parseInt(pickId);
+      if (isNaN(numericPickId)) {
+        return res.status(400).json({ message: "Invalid pick ID" });
+      }
+      
+      const success = await storage.deleteUserPick(userId, numericPickId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Pick not found or not owned by user" });
+      }
+      
+      res.json({ success: true, message: "Pick deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting pick:", error);
+      res.status(500).json({ message: "Failed to delete pick" });
     }
   });
 
