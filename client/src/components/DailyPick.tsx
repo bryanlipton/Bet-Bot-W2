@@ -1110,26 +1110,45 @@ export default function DailyPick() {
                   {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
                 </span>
               </div>
-              <div className="flex-shrink-0 ml-4">
+              <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-4">
+                {/* Main Pick button */}
                 {(dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam) || 
                  (dailyPick.pickType !== 'moneyline' && dailyPick.pickTeam !== 'Under' && dailyPick.pickTeam !== 'Over') ? (
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, dailyPick.pickType === 'moneyline' ? 'moneyline' : 'h2h', dailyPick.pickTeam)}
-                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    Pick
-                  </Button>
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, dailyPick.pickType === 'moneyline' ? 'moneyline' : 'h2h', dailyPick.pickTeam)}
+                      className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
+                      className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      Fade
+                    </Button>
+                  </>
                 ) : null}
-                {/* For Over/Under picks, add Pick button for Over/Under */}
+                {/* For Over/Under picks, add Pick button for Over/Under and Fade under */}
                 {(dailyPick.pickTeam === 'Over' || dailyPick.pickTeam === 'Under') && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam)}
-                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    Pick
-                  </Button>
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam)}
+                      className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam === 'Over' ? 'Under' : 'Over')}
+                      className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      Fade
+                    </Button>
+                  </>
                 )}
               </div>
 
@@ -1145,26 +1164,7 @@ export default function DailyPick() {
                 <span className="block">{matchup.bottomTeam}</span>
               </div>
               <div className="flex-shrink-0 ml-4">
-                {/* Fade button for moneyline picks */}
-                {(dailyPick.pickType === 'moneyline' && dailyPick.pickTeam !== matchup.bottomTeam) && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
-                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    Fade
-                  </Button>
-                )}
-                {/* Fade button for Over/Under picks */}
-                {(dailyPick.pickTeam === 'Over' || dailyPick.pickTeam === 'Under') && (
-                  <Button
-                    size="sm"
-                    onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam === 'Over' ? 'Under' : 'Over')}
-                    className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
-                  >
-                    {dailyPick.pickTeam === 'Over' ? 'Under' : 'Over'}
-                  </Button>
-                )}
+                {/* Empty div - buttons are now moved to top team line */}
               </div>
 
             </div>
