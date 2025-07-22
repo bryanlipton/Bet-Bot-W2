@@ -364,7 +364,7 @@ export default function ProfilePage() {
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
     profileImage: user?.profileImageUrl, // Only use actual profile image URL
-    avatar: user?.profileImageUrl || user?.avatar || '🐱', // Use profileImageUrl if it's an emoji, otherwise use avatar field
+    avatar: user?.avatar || '🐱', // Use the dedicated avatar field for emoji avatars
     followers: user?.followers || 0,
     following: user?.following || 0,
     totalPicks: profileStats.totalPicks,
@@ -937,7 +937,7 @@ export default function ProfilePage() {
                 <UserAvatar 
                   user={{
                     profileImageUrl: user?.profileImageUrl?.startsWith('http') ? user.profileImageUrl : null,
-                    avatar: user?.avatar || user?.profileImageUrl || '🐱',
+                    avatar: user?.avatar || '🐱',
                     username: userProfile.username
                   }}
                   size="xl"
