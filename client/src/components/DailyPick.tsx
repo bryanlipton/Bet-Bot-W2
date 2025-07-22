@@ -844,16 +844,6 @@ export default function DailyPick() {
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
   const factors = getFactors(dailyPick.analysis, currentPitchers);
 
-  // Debug logging for button visibility
-  console.log('Desktop Pick/Fade button debug:', {
-    pickTeam: dailyPick.pickTeam,
-    topTeam: matchup.topTeam,
-    bottomTeam: matchup.bottomTeam,
-    homeTeam: dailyPick.homeTeam,
-    awayTeam: dailyPick.awayTeam,
-    shouldShowButtons: dailyPick.pickTeam === matchup.topTeam
-  });
-
   // Collapsed view when user has visited 2+ times
   if (isCollapsed) {
     return (
@@ -1121,11 +1111,15 @@ export default function DailyPick() {
                 </span>
               </div>
               <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-4">
-                {/* Main Pick button - always use moneyline for daily picks */}
-                {dailyPick.pickTeam === matchup.topTeam && (
+                {/* Main Pick button - works for both moneyline and total picks */}
+                {(dailyPick.pickTeam === matchup.topTeam || dailyPick.pickType === 'over_under') && (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
+                    onClick={(e) => {
+                      // For over/under picks, use the appropriate market type
+                      const market = dailyPick.pickType === 'over_under' ? 'totals' : 'h2h';
+                      handleMakePick(e, market, dailyPick.pickTeam);
+                    }}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
@@ -1145,11 +1139,20 @@ export default function DailyPick() {
                 <span className="block">{matchup.bottomTeam}</span>
               </div>
               <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-4">
-                {/* Fade button - always use moneyline for daily picks */}
-                {dailyPick.pickTeam === matchup.topTeam && (
+                {/* Fade button - works for both moneyline and total picks */}
+                {(dailyPick.pickTeam === matchup.topTeam || dailyPick.pickType === 'over_under') && (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'h2h', matchup.bottomTeam)}
+                    onClick={(e) => {
+                      // For over/under picks, fade means the opposite (Over vs Under)
+                      if (dailyPick.pickType === 'over_under') {
+                        const fadeSelection = dailyPick.pickTeam === 'Over' ? 'Under' : 'Over';
+                        handleMakePick(e, 'totals', fadeSelection);
+                      } else {
+                        // For moneyline picks, fade the opposite team
+                        handleMakePick(e, 'h2h', matchup.bottomTeam);
+                      }
+                    }}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
