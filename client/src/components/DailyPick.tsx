@@ -787,13 +787,26 @@ export default function DailyPick() {
             {/* Matchup Title */}
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
-                <span className={dailyPick.pickTeam === dailyPick.awayTeam ? 'text-blue-400 font-bold' : ''}>
-                  {dailyPick.awayTeam}
-                </span>
-                {' vs '}
-                <span className={dailyPick.pickTeam === dailyPick.homeTeam ? 'text-blue-400 font-bold' : ''}>
-                  {dailyPick.homeTeam}
-                </span>
+                {(() => {
+                  const currentOdds = getCurrentOdds();
+                  const pickTeamOdds = currentOdds.pickTeamOdds;
+                  const oddsText = pickTeamOdds && pickTeamOdds > 0 ? `+${pickTeamOdds}` : pickTeamOdds || dailyPick.odds;
+                  const isAwayTeam = dailyPick.pickTeam === dailyPick.awayTeam;
+                  const separator = isAwayTeam ? ' at ' : ' vs ';
+                  const otherTeam = isAwayTeam ? dailyPick.homeTeam : dailyPick.awayTeam;
+                  
+                  return (
+                    <>
+                      <span className="text-blue-400 font-bold">
+                        {dailyPick.pickTeam} ML {oddsText}
+                      </span>
+                      {separator}
+                      <span>
+                        {otherTeam}
+                      </span>
+                    </>
+                  );
+                })()}
               </h3>
               
               {/* Pitchers */}
