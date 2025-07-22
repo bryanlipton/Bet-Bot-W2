@@ -833,97 +833,7 @@ export default function LoggedInLockPick() {
           )}
           
           <div className={`relative ${!isAuthenticated ? 'blur-sm' : ''}`}>
-            {/* Desktop Layout */}
-            <div className="hidden md:block">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center space-x-3">
-                <BetBotIcon className="w-10 h-10 flex-shrink-0" />
-                <div>
-                  <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                    <span className="md:hidden">Logged In Lock</span>
-                    <span className="hidden md:inline">Logged in Lock of the Day</span>
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Exclusive pick for authenticated users
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end space-y-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-                  onClick={() => setIsCollapsed(true)}
-                  title="Hide pick"
-                >
-                  <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                </Button>
-                <div className="flex items-center space-x-2">
-                  <GradeBadge grade={lockPick.grade} />
-                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Info className="h-2.5 w-2.5 text-black dark:text-white" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center space-x-2">
-                        <BetBotIcon className="w-6 h-6" />
-                        <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
-                      </DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-3">Pick Details</h4>
-                        <div className="space-y-2 text-sm">
-                          <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
-                          <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}</div>
-                          <div><strong>Venue:</strong> {lockPick.venue}</div>
-                          <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                        <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                        <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                          {getMainGradeExplanation(
-                            lockPick.grade,
-                            lockPick.confidence,
-                            lockPick.analysis,
-                            lockPick.pickTeam,
-                            lockPick.odds
-                          )}
-                        </pre>
-                      </div>
 
-                      <div>
-                        <h4 className="font-semibold mb-3">Analysis Factors</h4>
-                        <div className="space-y-3">
-                          {factors.map(({ key, title, score, info }) => (
-                            <div key={key} className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span className="font-medium">{title}</span>
-                                <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
-                              </div>
-                              <ColoredProgress value={score} className="h-2" />
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                </div>
-              </div>
-          </div>
 
           {/* Desktop Layout */}
           <div className="hidden md:flex md:items-start md:justify-between mb-3 md:mb-4">
@@ -1153,7 +1063,6 @@ export default function LoggedInLockPick() {
               )}
             </div>
           </div>
-        </div>
         </div>
         </CardContent>
       </Card>
