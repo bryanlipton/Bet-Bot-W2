@@ -183,18 +183,12 @@ export default function ProfilePage() {
     if (userPicks.length > 0) {
       setPicks(userPicks);
       
-      // Debug: Log the actual picks data to understand the structure
-      console.log('Raw userPicks from API:', userPicks);
-      console.log('First pick showOnProfile:', userPicks[0]?.showOnProfile);
-      console.log('First pick showOnFeed:', userPicks[0]?.showOnFeed);
-      
       // Generate public feed from API picks with proper data mapping
       const feedItems: PublicFeedItem[] = userPicks
         .filter(pick => {
-          // Show all picks by default - this is the user's own profile
+          // Show all picks on user's own profile regardless of showOnProfile setting
           // The showOnProfile field controls visibility to OTHER users, not the owner
-          console.log(`Pick ${pick.id} showOnProfile: ${pick.showOnProfile}, showing on own profile: true`);
-          return true; // Always show all picks on user's own profile
+          return true;
         })
         .sort((a, b) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
         .slice(0, 20) // Show latest 20 items
@@ -220,10 +214,7 @@ export default function ProfilePage() {
           status: pick.status // Add status to the feed item directly
         }));
       
-      console.log('Generated feedItems:', feedItems);
       setPublicFeed(feedItems);
-    } else {
-      console.log('No userPicks found, userPicks.length:', userPicks.length);
     }
     
     // Don't mix localStorage picks with API picks to avoid confusion

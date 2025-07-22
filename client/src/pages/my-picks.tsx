@@ -822,7 +822,7 @@ export default function MyPicksPage() {
                   <p className={`text-lg sm:text-2xl font-bold ${stats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {stats.totalMoneyWonLost >= 0 ? '+' : ''}${stats.totalMoneyWonLost.toFixed(2)}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">P&L</p>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Win/Loss</p>
                 </div>
               </div>
             </CardContent>
