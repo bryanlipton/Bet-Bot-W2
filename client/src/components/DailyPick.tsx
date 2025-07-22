@@ -1128,7 +1128,7 @@ export default function DailyPick() {
                     onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
-                    Pick {dailyPick.pickTeam}
+                    Pick
                   </Button>
                 )}
               </div>
@@ -1162,7 +1162,7 @@ export default function DailyPick() {
                     onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam === 'Over' ? 'Under' : 'Over')}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
-                    {dailyPick.pickTeam === 'Over' ? 'Under' : 'Over'}
+                    Fade
                   </Button>
                 )}
               </div>
