@@ -419,10 +419,10 @@ export default function LoggedInLockPick() {
             </div>
             <div className="space-y-1">
               <h3 className="font-semibold text-gray-600 dark:text-gray-400">
-                No Lock Pick Available Today
+                {isAuthenticated ? "No Lock Pick Available Today" : "Login to view another free pick"}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                Check back when games with odds are available
+                {isAuthenticated ? "Check back when games with odds are available" : "Access your exclusive lock pick by signing in"}
               </p>
             </div>
           </div>
