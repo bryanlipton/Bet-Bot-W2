@@ -221,6 +221,7 @@ export default function DailyPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
+  const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
@@ -831,11 +832,30 @@ export default function DailyPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb */}
+                  {/* Analysis Summary Blurb with Show More */}
                   <div className="bg-gray-800/20 rounded-lg p-3">
-                    <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                      {analysisDetails?.reasoning || `The ${dailyPick.pickTeam} show strong potential in this matchup with favorable analytical indicators. Our model identifies key advantages in recent performance metrics and situational factors that support this selection.`}
-                    </p>
+                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                         style={!mobileReasoningExpanded ? {
+                           display: '-webkit-box',
+                           WebkitLineClamp: 3,
+                           WebkitBoxOrient: 'vertical'
+                         } : {}}>
+                        {dailyPick.reasoning || `The ${dailyPick.pickTeam} show strong potential in this matchup with favorable analytical indicators. Our model identifies key advantages in recent performance metrics and situational factors that support this selection with comprehensive data analysis.`}
+                      </p>
+                      {(dailyPick.reasoning?.split(' ').length > 25 || (!dailyPick.reasoning && true)) && (
+                        <button
+                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                          className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"
+                        >
+                          {mobileReasoningExpanded ? (
+                            <>Show Less <ChevronUp className="h-3 w-3" /></>
+                          ) : (
+                            <>Show More <ChevronDown className="h-3 w-3" /></>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

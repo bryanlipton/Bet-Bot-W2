@@ -214,6 +214,7 @@ export default function LoggedInLockPick() {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
+  const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
@@ -780,11 +781,30 @@ export default function LoggedInLockPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb */}
+                  {/* Analysis Summary Blurb with Show More */}
                   <div className="bg-gray-800/20 rounded-lg p-3">
-                    <p className="text-sm text-gray-300 font-sans leading-relaxed">
-                      {lockPick.reasoning || `The ${lockPick.pickTeam} present compelling value in this exclusive lock selection. Our advanced analytics identify multiple convergent factors that create a high-confidence betting opportunity with favorable risk-reward dynamics.`}
-                    </p>
+                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                         style={!mobileReasoningExpanded ? {
+                           display: '-webkit-box',
+                           WebkitLineClamp: 3,
+                           WebkitBoxOrient: 'vertical'
+                         } : {}}>
+                        {lockPick.reasoning || `The ${lockPick.pickTeam} present compelling value in this exclusive lock selection. Our advanced analytics identify multiple convergent factors that create a high-confidence betting opportunity with favorable risk-reward dynamics and exceptional market edge.`}
+                      </p>
+                      {(lockPick.reasoning?.split(' ').length > 25 || (!lockPick.reasoning && true)) && (
+                        <button
+                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                          className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
+                        >
+                          {mobileReasoningExpanded ? (
+                            <>Show Less <ChevronUp className="h-3 w-3" /></>
+                          ) : (
+                            <>Show More <ChevronDown className="h-3 w-3" /></>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
