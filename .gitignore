@@ -1,6 +1,83 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+dist/
+build/
+
+# Environment variables (keep actual secrets in .env)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache directories
+.cache/
+.npm/
+.eslintcache
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Build artifacts
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Machine Learning models (can be large, regenerated)
+*.model
+*.h5
+*.pb
+
+# Database dumps and backups
+*.sql
+*.dump
+*.backup
+
+# Uploaded files (user content)
+uploads/
+attachments/
