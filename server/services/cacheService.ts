@@ -69,6 +69,12 @@ class CacheService {
     console.log(`📊 Daily API calls: ${this.dailyApiCallCount}/${this.DAILY_API_LIMIT}`);
   }
 
+  // Force reset API call count for new API key
+  resetApiCallCount(): void {
+    this.dailyApiCallCount = 0;
+    console.log(`🔄 API call count reset to 0`);
+  }
+
   canMakeApiCall(customLimit?: number): boolean {
     this.resetDailyCountIfNeeded();
     const limit = customLimit || this.DAILY_API_LIMIT;

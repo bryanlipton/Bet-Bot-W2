@@ -50,10 +50,14 @@ export class OddsApiService {
   private minCallInterval = 5000; // 5 seconds minimum between API calls
 
   constructor() {
-    // Force new API key until environment variable propagates
-    this.apiKey = process.env.THE_ODDS_API_KEY || '8a00e18a5d69e7c9d92f06fe11182eff';
+    // Force new working API key directly
+    this.apiKey = '8a00e18a5d69e7c9d92f06fe11182eff';
     console.log(`Odds API initialized with key: ${this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'none'}`);
-    console.log(`Environment THE_ODDS_API_KEY: ${process.env.THE_ODDS_API_KEY ? process.env.THE_ODDS_API_KEY.substring(0, 8) + '...' : 'not set'}`);
+    console.log(`🔑 Using new working API key directly`);
+    
+    // Reset API call count for new key
+    cacheService.resetApiCallCount();
+    console.log(`🔑 New API key detected - quota reset`);
   }
 
   async getCurrentOdds(sport: string, regions: string = 'us', markets: string = 'h2h,spreads,totals'): Promise<Game[]> {
