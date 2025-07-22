@@ -53,14 +53,17 @@ export class BettingRecommendationEngine {
   }
 
   /**
-   * Calculate expected value of a bet
+   * Calculate expected value of a bet (as ROI percentage)
    */
   private calculateExpectedValue(predictedProb: number, odds: number): number {
-    const impliedProb = this.oddsToImpliedProbability(odds);
     const payoutMultiplier = odds > 0 ? (odds / 100) : (100 / Math.abs(odds));
     
-    // EV = (Probability of Win × Payout) - (Probability of Loss × Stake)
-    return (predictedProb * payoutMultiplier) - ((1 - predictedProb) * 1);
+    // EV = (Probability of Win × Profit) - (Probability of Loss × Loss)
+    // This gives us expected profit per $1 wagered
+    const expectedProfit = (predictedProb * payoutMultiplier) - ((1 - predictedProb) * 1);
+    
+    // Convert to ROI percentage (multiply by 100)
+    return expectedProfit * 100;
   }
 
   /**
@@ -73,8 +76,8 @@ export class BettingRecommendationEngine {
     // Kelly = (bp - q) / b where b = odds, p = win prob, q = lose prob
     const kelly = ((payoutMultiplier * predictedProb) - (1 - predictedProb)) / payoutMultiplier;
     
-    // Cap at 10% for safety
-    return Math.max(0, Math.min(kelly, 0.1));
+    // Cap at 5% for safety (0.05 = 5% of bankroll)
+    return Math.max(0, Math.min(kelly, 0.05));
   }
 
   /**
