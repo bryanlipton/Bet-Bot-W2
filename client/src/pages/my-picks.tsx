@@ -760,13 +760,13 @@ export default function MyPicksPage() {
             <CardContent className="p-6 text-center">
               <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Login to View Data
+                Log in to View Data
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Sign in to track your betting picks and performance
               </p>
               <Button onClick={() => window.location.href = '/api/login'}>
-                Login
+                Log in
               </Button>
             </CardContent>
           </Card>
