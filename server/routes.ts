@@ -978,6 +978,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check data consistency
+  app.get('/api/user/picks/debug', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get picks directly from database
+      const picks = await storage.getUserPicks(userId);
+      const stats = await storage.getUserPickStats(userId);
+      
+      res.json({
+        userId,
+        databasePicks: picks.length,
+        detailedPicks: picks.map(p => ({ id: p.id, gameId: p.gameId, selection: p.selection, status: p.status })),
+        stats,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error in debug endpoint:", error);
+      res.status(500).json({ error: "Debug failed" });
+    }
+  });
+
   // Update pick visibility settings
   app.patch('/api/user/picks/:pickId/visibility', isAuthenticated, async (req: any, res) => {
     try {
