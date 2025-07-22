@@ -708,18 +708,18 @@ export default function LoggedInLockPick() {
         <Card className="w-full bg-[#1a1a1a] dark:bg-[#1a1a1a] border-gray-700 relative">
           {/* Blur overlay for non-authenticated users */}
           {!isAuthenticated && (
-            <div 
-              className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
-              onClick={() => window.location.href = '/api/login'}
-            >
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
                   Login to view another free pick
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Access your exclusive lock pick by signing in
                 </p>
+                <Button onClick={() => window.location.href = '/api/login'}>
+                  Login
+                </Button>
               </div>
             </div>
           )}
@@ -847,18 +847,18 @@ export default function LoggedInLockPick() {
         <CardContent className="p-4 sm:p-6 relative">
           {/* Blur overlay for non-authenticated users */}
           {!isAuthenticated && (
-            <div 
-              className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg cursor-pointer"
-              onClick={() => window.location.href = '/api/login'}
-            >
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
                   Login to view another free pick
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Access your exclusive lock pick by signing in
                 </p>
+                <Button onClick={() => window.location.href = '/api/login'}>
+                  Login
+                </Button>
               </div>
             </div>
           )}

@@ -25,9 +25,11 @@ import {
   X,
   Plus
 } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
 
 export default function MyPicksPage() {
   const [darkMode, setDarkMode] = useState(true);
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [picks, setPicks] = useState<Pick[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
@@ -747,6 +749,59 @@ export default function MyPicksPage() {
       return sum;
     }, 0)
   };
+
+  // Authentication guard like My Feed
+  if (!isAuthenticated && !authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Login to View Data
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Sign in to track your betting picks and performance
+              </p>
+              <Button onClick={() => window.location.href = '/api/login'}>
+                Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="bg-white dark:bg-gray-800">
+                <CardContent className="p-4">
+                  <div className="animate-pulse">
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
