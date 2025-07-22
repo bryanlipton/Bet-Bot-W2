@@ -259,25 +259,48 @@ export function ActionStyleDashboard() {
       {/* Mobile-first container with proper mobile navigation padding */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">
 
-      {/* Pick of the Day Section - Positioned closer to nav when logged in */}
-      <div className="space-y-4">
-        {/* Bet Bot Sports Genie AI Picks - Always at top, no tired of guessing section */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
-          <div className="flex-1">
-            <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
-              Bet Bot Sports Genie AI Picks
-            </h2>
+      {/* Bet Bot Sports Genie AI Picks - Move to top when logged in */}
+      {isAuthenticated && (
+        <div className="space-y-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
+            <div className="flex-1">
+              <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
+                Bet Bot Sports Genie AI Picks
+              </h2>
+            </div>
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
+              Free Users
+            </Badge>
           </div>
-          <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
-            Free Users
-          </Badge>
+          {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
+            <DailyPick key="daily-pick-component" />
+            <LoggedInLockPick key="lock-pick-component" />
+          </div>
         </div>
+      )}
+
+      {/* Pick of the Day Section - For logged out users */}
+      {!isAuthenticated && (
+        <div className="space-y-4">
+          {/* Bet Bot Sports Genie AI Picks - Always at top, no tired of guessing section */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
+            <div className="flex-1">
+              <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
+                Bet Bot Sports Genie AI Picks
+              </h2>
+            </div>
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
+              Free Users
+            </Badge>
+          </div>
         {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
           <DailyPick key="daily-pick-component" />
           <LoggedInLockPick key="lock-pick-component" />
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Sports Navigation */}
       <div className="flex items-center gap-2 sm:gap-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">

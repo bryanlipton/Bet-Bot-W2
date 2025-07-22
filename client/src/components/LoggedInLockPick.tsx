@@ -512,7 +512,7 @@ export default function LoggedInLockPick() {
                   Logged In Lock
                 </h3>
                 <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
-                  {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)} • Grade {lockPick.grade}
+                  {lockPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : lockPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
                 </p>
                 {/* Show live score when game has started */}
                 {liveLockGameScore && gameStarted && (
@@ -735,7 +735,7 @@ export default function LoggedInLockPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
-              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-full text-sm font-bold">
+              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-md text-sm font-bold">
                 {lockPick.grade}
               </div>
             </div>
@@ -804,13 +804,13 @@ export default function LoggedInLockPick() {
                 onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam)}
                 className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                Pick ✅
+                Pick
               </button>
               <button
                 onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
                 className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                Fade ❌
+                Fade
               </button>
             </div>
           </CardContent>

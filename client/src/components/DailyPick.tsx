@@ -512,7 +512,7 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
-                    {dailyPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds}
+                    {dailyPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds} vs {dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : dailyPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -786,7 +786,7 @@ export default function DailyPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-blue-400 font-sans">Pick of the Day</h2>
-              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-full text-sm font-bold">
+              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-md text-sm font-bold">
                 {dailyPick.grade}
               </div>
             </div>
@@ -855,13 +855,13 @@ export default function DailyPick() {
                 onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
                 className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                Pick ✅
+                Pick
               </button>
               <button
                 onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
                 className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                Fade ❌
+                Fade
               </button>
             </div>
           </CardContent>
