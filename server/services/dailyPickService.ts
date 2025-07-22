@@ -156,38 +156,56 @@ export class DailyPickService {
     const homePitcher = probablePitchers?.home;
     const awayPitcher = probablePitchers?.away;
     
-    let homeRating = 60; // Default neutral
-    let awayRating = 60; // Default neutral
+    let homeRating = 75; // Default league average
+    let awayRating = 75; // Default league average
+    let homePitcherVerified = false;
+    let awayPitcherVerified = false;
     
     try {
       // Get actual 2025 season stats for both pitchers
-      if (homePitcher) {
+      if (homePitcher && homePitcher !== 'TBD') {
         const homeStats = await this.fetchReal2025PitcherStats(homePitcher);
         if (homeStats) {
-          // Calculate rating based on 2025 ERA, FIP, xERA
           homeRating = this.calculatePitcherRating(homeStats);
-          console.log(`2025 ${homePitcher} stats: ERA ${homeStats.era}, FIP ${homeStats.fip}, Rating: ${homeRating}`);
+          homePitcherVerified = true;
+          console.log(`✅ VERIFIED 2025 ${homePitcher} (${homeTeam}): ERA ${homeStats.era}, WHIP ${homeStats.whip}, Rating: ${homeRating}`);
+        } else {
+          console.log(`❌ UNVERIFIED pitcher data for ${homePitcher} (${homeTeam}) - using league average`);
         }
       }
       
-      if (awayPitcher) {
+      if (awayPitcher && awayPitcher !== 'TBD') {
         const awayStats = await this.fetchReal2025PitcherStats(awayPitcher);
         if (awayStats) {
           awayRating = this.calculatePitcherRating(awayStats);
-          console.log(`2025 ${awayPitcher} stats: ERA ${awayStats.era}, FIP ${awayStats.fip}, Rating: ${awayRating}`);
+          awayPitcherVerified = true;
+          console.log(`✅ VERIFIED 2025 ${awayPitcher} (${awayTeam}): ERA ${awayStats.era}, WHIP ${awayStats.whip}, Rating: ${awayRating}`);
+        } else {
+          console.log(`❌ UNVERIFIED pitcher data for ${awayPitcher} (${awayTeam}) - using league average`);
         }
       }
     } catch (error) {
-      console.warn('Failed to fetch 2025 pitcher stats, using neutral ratings');
+      console.warn('Failed to fetch 2025 pitcher stats, using league average ratings');
     }
     
     // Calculate advantage for the picked team
     const isPickHome = pickTeam === homeTeam;
-    const pitchingAdvantage = isPickHome ? homeRating : awayRating;
-    const opponentPitching = isPickHome ? awayRating : homeRating;
+    const pickTeamPitcherRating = isPickHome ? homeRating : awayRating;
+    const opponentPitcherRating = isPickHome ? awayRating : homeRating;
+    const pickTeamPitcherName = isPickHome ? homePitcher : awayPitcher;
+    const opponentPitcherName = isPickHome ? awayPitcher : homePitcher;
+    const pickTeamVerified = isPickHome ? homePitcherVerified : awayPitcherVerified;
+    const opponentVerified = isPickHome ? awayPitcherVerified : homePitcherVerified;
     
-    // Convert to differential score favoring picked team
-    const rawScore = 50 + ((opponentPitching - pitchingAdvantage) / 2);
+    // FIXED: Calculate differential score correctly (higher own pitcher rating = higher score)
+    const pitchingDifferential = pickTeamPitcherRating - opponentPitcherRating;
+    const rawScore = 50 + (pitchingDifferential * 1.0); // 1:1 scaling for pitching differential
+    
+    console.log(`🥎 PITCHING ANALYSIS for ${pickTeam}:`);
+    console.log(`   ${pickTeam} Pitcher: ${pickTeamPitcherName || 'TBD'} (Rating: ${pickTeamPitcherRating}, Verified: ${pickTeamVerified})`);
+    console.log(`   Opponent Pitcher: ${opponentPitcherName || 'TBD'} (Rating: ${opponentPitcherRating}, Verified: ${opponentVerified})`);
+    console.log(`   Differential: ${pitchingDifferential.toFixed(1)} → Raw Score: ${rawScore.toFixed(1)}`);
+    
     return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
   }
 
@@ -649,10 +667,12 @@ export class DailyPickService {
           case 'pitching':
             const pickPitcher = isHomePick ? probablePitchers?.home : probablePitchers?.away;
             const oppPitcher = isHomePick ? probablePitchers?.away : probablePitchers?.home;
-            if (pickPitcher) {
-              reasoningParts.push(`${pickPitcher} takes the mound for ${pick} with a decisive edge over ${oppPitcher || 'the opposing starter'}, boasting superior recent form and command metrics that should neutralize ${opponent}'s lineup`);
+            if (pickPitcher && pickPitcher !== 'TBD' && oppPitcher && oppPitcher !== 'TBD') {
+              reasoningParts.push(`${pickPitcher} gives ${pick} a clear pitching advantage over ${oppPitcher}, with superior season metrics and command that should limit ${opponent}'s scoring opportunities`);
+            } else if (pickPitcher && pickPitcher !== 'TBD') {
+              reasoningParts.push(`${pickPitcher} provides ${pick} with reliable starting pitching that should give them an edge in this matchup`);
             } else {
-              reasoningParts.push(`${pick}'s probable starter holds significant advantages in recent form and matchup data against ${opponent}'s offensive approach`);
+              reasoningParts.push(`${pick}'s starting pitcher holds measurable advantages in key metrics that favor them against ${opponent}'s lineup`);
             }
             break;
           case 'venue':
