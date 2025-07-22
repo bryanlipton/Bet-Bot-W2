@@ -160,8 +160,9 @@ export class DailyPickService {
     console.log(`   Home Pitcher: ${homePitcher || 'TBD'} (${homeTeam})`);
     console.log(`   Away Pitcher: ${awayPitcher || 'TBD'} (${awayTeam})`);
     
-    let homeRating = 75; // Default league average
-    let awayRating = 75; // Default league average
+    // Enhanced default ratings with slight variation based on team quality
+    let homeRating = this.getTeamPitchingDefault(homeTeam); 
+    let awayRating = this.getTeamPitchingDefault(awayTeam);
     let homePitcherVerified = false;
     let awayPitcherVerified = false;
     let homeActualStats = null;
@@ -402,6 +403,55 @@ export class DailyPickService {
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
     return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / values.length;
+  }
+
+  private getTeamPitchingDefault(teamName: string): number {
+    // Enhanced team pitching defaults based on 2024/2025 organizational strength
+    // This creates realistic variation when actual pitcher data isn't available
+    const teamDefaults: { [key: string]: number } = {
+      // Elite pitching organizations (78-82)
+      'Los Angeles Dodgers': 82,
+      'Tampa Bay Rays': 81, 
+      'Cleveland Guardians': 80,
+      'Atlanta Braves': 79,
+      'Houston Astros': 79,
+      'Baltimore Orioles': 78,
+      'Milwaukee Brewers': 78,
+      
+      // Strong pitching (75-77)
+      'Philadelphia Phillies': 77,
+      'New York Yankees': 76,
+      'Minnesota Twins': 76,
+      'Seattle Mariners': 75,
+      'San Diego Padres': 75,
+      
+      // Average pitching (72-74)
+      'Boston Red Sox': 74,
+      'Toronto Blue Jays': 74,
+      'Arizona Diamondbacks': 73,
+      'New York Mets': 73,
+      'St. Louis Cardinals': 73,
+      'Kansas City Royals': 72,
+      'Detroit Tigers': 72,
+      'San Francisco Giants': 72,
+      
+      // Below average pitching (68-71)
+      'Texas Rangers': 71,
+      'Miami Marlins': 71,
+      'Pittsburgh Pirates': 70,
+      'Cincinnati Reds': 70,
+      'Chicago Cubs': 69,
+      'Washington Nationals': 69,
+      'Los Angeles Angels': 68,
+      
+      // Weak pitching organizations (65-67)
+      'Chicago White Sox': 67,
+      'Oakland Athletics': 66,
+      'Colorado Rockies': 65
+    };
+    
+    // Return team-specific default or neutral 75 if not found
+    return teamDefaults[teamName] || 75;
   }
 
   private async analyzeTeamMomentum(pickTeam: string): Promise<number> {
