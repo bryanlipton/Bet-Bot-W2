@@ -192,21 +192,24 @@ export default function MyPicksPage() {
   // Format bet for database pick
   const formatBet = (pick: any) => {
     const odds = pick.odds ? formatOdds(pick.odds) : '';
+    const market = pick.market || pick.betInfo?.market || '';
+    const selection = pick.selection || pick.betInfo?.selection || '';
+    const line = pick.line || pick.betInfo?.line;
     
-    if (pick.market === 'parlay') {
-      return `${pick.selection} Parlay ${odds}`;
+    if (market === 'parlay') {
+      return `${selection} Parlay ${odds}`;
     }
-    if (pick.market === 'moneyline') {
-      return `${pick.selection} ML ${odds}`;
+    if (market === 'moneyline') {
+      return `${selection} ML ${odds}`;
     }
-    if (pick.market === 'spread') {
-      const line = pick.line || 0;
-      return `${pick.selection} ${line > 0 ? '+' : ''}${line} ${odds}`;
+    if (market === 'spread') {
+      const lineValue = line || 0;
+      return `${selection} ${lineValue > 0 ? '+' : ''}${lineValue} ${odds}`;
     }
-    if (pick.market === 'over' || pick.market === 'under') {
-      return `${pick.market === 'over' ? 'Over' : 'Under'} ${pick.line || ''} ${odds}`;
+    if (market === 'over' || market === 'under') {
+      return `${market === 'over' ? 'Over' : 'Under'} ${line || ''} ${odds}`;
     }
-    return `${pick.selection} ${pick.market} ${odds}`;
+    return `${selection} ${market} ${odds}`;
   };
 
   const deletePick = async (pickId: string) => {
@@ -884,7 +887,7 @@ export default function MyPicksPage() {
                         {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
                           `${pick.parlayLegs.length}-Leg Parlay`
                         ) : (
-                          `${pick.awayTeam} @ ${pick.homeTeam}`
+                          `${pick.awayTeam || ''} @ ${pick.homeTeam || ''}`
                         )}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">

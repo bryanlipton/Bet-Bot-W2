@@ -32,7 +32,7 @@ export class PickStabilityService {
       const currentPicks = await db
         .select()
         .from(dailyPicks)
-        .where(eq(dailyPicks.pickDate, today))
+        .where(eq(dailyPicks.pickDate, new Date(today)))
         .orderBy(desc(dailyPicks.createdAt))
         .limit(1);
 
