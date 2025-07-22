@@ -78,22 +78,23 @@ export class BettingRecommendationEngine {
   }
 
   /**
-   * Assign letter grade based on edge and confidence
+   * Assign letter grade based on edge and confidence - aligned with analysis factors scale
    */
   private assignGrade(edge: number, confidence: number): 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D+' | 'D' | 'F' {
-    const combinedScore = edge + (confidence * 0.5); // Weight edge more heavily
+    // Convert edge and confidence to 60-100 scale to match analysis factors display
+    const edgeScore = Math.min(100, 60 + (edge * 400)); // edge 0.1 = 100
+    const confidenceScore = Math.min(100, 60 + (confidence * 40)); // confidence 1.0 = 100
+    const avgScore = (edgeScore + confidenceScore) / 2;
     
-    if (combinedScore >= 0.15 && confidence >= 0.85) return 'A+';
-    if (combinedScore >= 0.12 && confidence >= 0.80) return 'A';
-    if (combinedScore >= 0.09 && confidence >= 0.75) return 'A-';
-    if (combinedScore >= 0.07 && confidence >= 0.70) return 'B+';
-    if (combinedScore >= 0.05 && confidence >= 0.65) return 'B';
-    if (combinedScore >= 0.03 && confidence >= 0.60) return 'B-';
-    if (combinedScore >= 0.02 && confidence >= 0.55) return 'C+';
-    if (combinedScore >= 0.01 && confidence >= 0.50) return 'C';
-    if (combinedScore >= 0.005 && confidence >= 0.45) return 'C-';
-    if (combinedScore >= 0.001 && confidence >= 0.40) return 'D+';
-    if (combinedScore >= -0.02 && confidence >= 0.35) return 'D';
+    // Grade based on average score to match analysis factors logic
+    if (avgScore >= 95) return 'A+';
+    if (avgScore >= 90) return 'A'; 
+    if (avgScore >= 85) return 'B+';
+    if (avgScore >= 80) return 'B';
+    if (avgScore >= 75) return 'C+';
+    if (avgScore >= 70) return 'C';
+    if (avgScore >= 65) return 'D+';
+    if (avgScore >= 60) return 'D';
     return 'F';
   }
 
