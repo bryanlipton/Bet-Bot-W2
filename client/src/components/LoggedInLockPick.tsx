@@ -20,6 +20,44 @@ const BetBotIcon = ({ className }: { className?: string }) => (
   <img src={betbotLogo} alt="Bet Bot" className={className} />
 );
 
+// MLB team abbreviations mapping
+const TEAM_ABBREVIATIONS: Record<string, string> = {
+  'Baltimore Orioles': 'BAL',
+  'Boston Red Sox': 'BOS', 
+  'New York Yankees': 'NYY',
+  'Tampa Bay Rays': 'TB',
+  'Toronto Blue Jays': 'TOR',
+  'Chicago White Sox': 'CWS',
+  'Cleveland Guardians': 'CLE',
+  'Detroit Tigers': 'DET',
+  'Kansas City Royals': 'KC',
+  'Minnesota Twins': 'MIN',
+  'Houston Astros': 'HOU',
+  'Los Angeles Angels': 'LAA',
+  'Oakland Athletics': 'OAK',
+  'Seattle Mariners': 'SEA',
+  'Texas Rangers': 'TEX',
+  'Atlanta Braves': 'ATL',
+  'Miami Marlins': 'MIA',
+  'New York Mets': 'NYM',
+  'Philadelphia Phillies': 'PHI',
+  'Washington Nationals': 'WSH',
+  'Chicago Cubs': 'CHC',
+  'Cincinnati Reds': 'CIN',
+  'Milwaukee Brewers': 'MIL',
+  'Pittsburgh Pirates': 'PIT',
+  'St. Louis Cardinals': 'STL',
+  'Arizona Diamondbacks': 'ARI',
+  'Colorado Rockies': 'COL',
+  'Los Angeles Dodgers': 'LAD',
+  'San Diego Padres': 'SD',
+  'San Francisco Giants': 'SF'
+};
+
+const getTeamAbbreviation = (teamName: string): string => {
+  return TEAM_ABBREVIATIONS[teamName] || teamName;
+};
+
 import { DailyPickAnalysis } from '@shared/schema';
 
 interface DailyPick {
@@ -751,7 +789,7 @@ export default function LoggedInLockPick() {
                       </span>
                       {separator}
                       <span>
-                        {otherTeam}
+                        {getTeamAbbreviation(otherTeam)}
                       </span>
                     </>
                   );
