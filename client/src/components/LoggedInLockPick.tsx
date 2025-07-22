@@ -367,28 +367,15 @@ export default function LoggedInLockPick() {
     });
   };
 
-  // Get best odds (no cycling, just display the best)
+  // Use stored odds for consistency with reasoning (no live odds updates for lock picks)
   const getCurrentOdds = () => {
-    const bestOdds = getBestOddsFromBookmakers();
-    
-    if (bestOdds.length > 0) {
-      const bestOdds_first = bestOdds[0]; // Always use the best odds
-      return {
-        homeOdds: lockPick?.pickTeam === lockPick?.homeTeam ? bestOdds_first.odds : null,
-        awayOdds: lockPick?.pickTeam !== lockPick?.homeTeam ? bestOdds_first.odds : null,
-        pickTeamOdds: bestOdds_first.odds,
-        bookmaker: bestOdds_first.bookmaker,
-        totalBooks: bestOdds.length
-      };
-    }
-
-    // Fallback to stored odds
+    // Always use the original stored odds to maintain consistency with stored reasoning
     return {
-      homeOdds: lockPick?.odds || null,
-      awayOdds: lockPick?.odds || null,
+      homeOdds: lockPick?.pickTeam === lockPick?.homeTeam ? lockPick?.odds : null,
+      awayOdds: lockPick?.pickTeam !== lockPick?.homeTeam ? lockPick?.odds : null,
       pickTeamOdds: lockPick?.odds || null,
-      bookmaker: 'Stored',
-      totalBooks: 0
+      bookmaker: 'Original Pick',
+      totalBooks: 1
     };
   };
 
