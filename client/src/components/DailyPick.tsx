@@ -986,13 +986,13 @@ export default function DailyPick() {
                 onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
                 className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                Pick {dailyPick.pickTeam}
+                Pick
               </button>
               <button
                 onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
                 className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
-                {dailyPick.pickTeam === 'Over' ? 'Under' : dailyPick.pickTeam === 'Under' ? 'Over' : 'Fade'}
+                Fade
               </button>
             </div>
           </CardContent>
@@ -1128,7 +1128,7 @@ export default function DailyPick() {
                     onClick={(e) => handleMakePick(e, 'totals', dailyPick.pickTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
-                    Pick
+                    Pick {dailyPick.pickTeam}
                   </Button>
                 )}
               </div>
