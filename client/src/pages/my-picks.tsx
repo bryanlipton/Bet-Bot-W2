@@ -85,24 +85,24 @@ export default function MyPicksPage() {
   const { data: userPicks = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/user/picks'],
     enabled: isAuthenticated
-  });
+  }) as { data: any[], isLoading: boolean, refetch: () => void };
 
   // Fetch available games for manual entry
-  const { data: gamesData } = useQuery({
+  const { data: gamesData = [] } = useQuery({
     queryKey: ['/api/mlb/complete-schedule'],
     enabled: showManualEntry,
-  });
+  }) as { data: any[] };
 
   // Load bet unit from user preferences via database
-  const { data: userPreferences } = useQuery({
+  const { data: userPreferences = {} } = useQuery({
     queryKey: ['/api/user/preferences'],
     enabled: isAuthenticated
-  });
+  }) as { data: any };
 
   // Set bet unit from user preferences
   useEffect(() => {
-    if (userPreferences && userPreferences.betUnit) {
-      setBetUnit(userPreferences.betUnit);
+    if (userPreferences && (userPreferences as any).betUnit) {
+      setBetUnit((userPreferences as any).betUnit);
     }
   }, [userPreferences]);
 
@@ -138,8 +138,10 @@ export default function MyPicksPage() {
     setTempBetUnit('');
   };
 
-  // Filter database picks based on status
-  const filteredPicks = userPicks.filter(pick => {
+  // Filter database picks based on status with proper type checking
+  const picksArray = Array.isArray(userPicks) ? userPicks : [];
+  const filteredPicks = picksArray.filter((pick: any) => {
+    if (!pick || typeof pick !== 'object') return false;
     if (selectedStatus === 'all') return true;
     if (selectedStatus === 'past') return pick.status === 'won' || pick.status === 'lost' || pick.status === 'win' || pick.status === 'loss' || pick.status === 'push';
     return pick.status === selectedStatus;
@@ -451,7 +453,7 @@ export default function MyPicksPage() {
   };
 
   const handleGameSelection = (gameId: string) => {
-    const game = gamesData?.find((g: any) => g.id === gameId);
+    const game = Array.isArray(gamesData) ? gamesData.find((g: any) => g.id === gameId) : null;
     setSelectedGame(game);
     setManualEntry(prev => ({
       ...prev,
@@ -602,16 +604,16 @@ export default function MyPicksPage() {
     setEntryType('single');
   };
 
-  // Calculate stats from database picks
+  // Calculate stats from database picks with proper type checking
   const stats = {
-    total: userPicks.length,
-    pending: userPicks.filter(p => p.status === 'pending').length,
-    won: userPicks.filter(p => p.status === 'won' || p.status === 'win').length,
-    lost: userPicks.filter(p => p.status === 'lost' || p.status === 'loss').length,
-    push: userPicks.filter(p => p.status === 'push').length,
-    winRate: userPicks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length > 0 ? 
-      (userPicks.filter(p => p.status === 'won' || p.status === 'win').length / userPicks.filter(p => p.status === 'won' || p.status === 'lost' || p.status === 'win' || p.status === 'loss').length * 100) : 0,
-    totalMoneyWonLost: userPicks.reduce((sum, p) => {
+    total: picksArray.length,
+    pending: picksArray.filter((p: any) => p?.status === 'pending').length,
+    won: picksArray.filter((p: any) => p?.status === 'won' || p?.status === 'win').length,
+    lost: picksArray.filter((p: any) => p?.status === 'lost' || p?.status === 'loss').length,
+    push: picksArray.filter((p: any) => p?.status === 'push').length,
+    winRate: picksArray.filter((p: any) => p?.status === 'won' || p?.status === 'lost' || p?.status === 'win' || p?.status === 'loss').length > 0 ? 
+      (picksArray.filter((p: any) => p?.status === 'won' || p?.status === 'win').length / picksArray.filter((p: any) => p?.status === 'won' || p?.status === 'lost' || p?.status === 'win' || p?.status === 'loss').length * 100) : 0,
+    totalMoneyWonLost: picksArray.reduce((sum: number, p: any) => {
       if (p.status === 'won' || p.status === 'win') {
         // For graded picks, use the calculated win amount from database if available
         if (p.result && typeof p.result.payout === 'string' && !isNaN(parseFloat(p.result.payout))) {
