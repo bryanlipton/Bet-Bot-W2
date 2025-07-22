@@ -259,16 +259,9 @@ export function ActionStyleDashboard() {
       {/* Mobile-first container with proper mobile navigation padding */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">
 
-      {/* Pick of the Day Section - Always visible above sports */}
+      {/* Pick of the Day Section - Positioned closer to nav when logged in */}
       <div className="space-y-4">
-        {!authLoading && !isAuthenticated && (
-          <div className="mb-3 sm:mb-4 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg">
-            <h4 className="font-semibold text-white text-sm sm:text-base">Tired of guessing?</h4>
-            <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              Let BET BOT Sports Genie AI do the heavy lifting. Our machine-powered pick engine scans odds, player stats, betting trends, and more—to deliver the best picks for our users, every day.
-            </p>
-          </div>
-        )}
+        {/* Bet Bot Sports Genie AI Picks - Always at top, no tired of guessing section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
           <div className="flex-1">
             <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">

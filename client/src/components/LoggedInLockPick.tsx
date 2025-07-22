@@ -722,7 +722,7 @@ export default function LoggedInLockPick() {
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
-                  Login for a Lock
+                  Log in for a Lock
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   Click here to access your exclusive lock pick
@@ -743,7 +743,13 @@ export default function LoggedInLockPick() {
             {/* Matchup Title */}
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
-                {lockPick.awayTeam} vs {lockPick.homeTeam}
+                <span className={lockPick.pickTeam === lockPick.awayTeam ? 'text-amber-400 font-bold' : ''}>
+                  {lockPick.awayTeam}
+                </span>
+                {' vs '}
+                <span className={lockPick.pickTeam === lockPick.homeTeam ? 'text-amber-400 font-bold' : ''}>
+                  {lockPick.homeTeam}
+                </span>
               </h3>
               
               {/* Pitchers */}
@@ -762,7 +768,7 @@ export default function LoggedInLockPick() {
             {/* Analysis Section with Dropdown */}
             <div className="space-y-2">
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}>
-                <span className="text-sm font-medium text-white">🧠 Analysis</span>
+                <span className="text-sm font-medium text-white">Analysis</span>
                 <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
               </div>
               
@@ -823,7 +829,7 @@ export default function LoggedInLockPick() {
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
-                  Login for a Lock
+                  Log in for a Lock
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   Click here to access your exclusive lock pick

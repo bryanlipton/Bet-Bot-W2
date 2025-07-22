@@ -794,7 +794,13 @@ export default function DailyPick() {
             {/* Matchup Title */}
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
-                {dailyPick.awayTeam} vs {dailyPick.homeTeam}
+                <span className={dailyPick.pickTeam === dailyPick.awayTeam ? 'text-blue-400 font-bold' : ''}>
+                  {dailyPick.awayTeam}
+                </span>
+                {' vs '}
+                <span className={dailyPick.pickTeam === dailyPick.homeTeam ? 'text-blue-400 font-bold' : ''}>
+                  {dailyPick.homeTeam}
+                </span>
               </h3>
               
               {/* Pitchers */}
@@ -813,7 +819,7 @@ export default function DailyPick() {
             {/* Analysis Section with Dropdown */}
             <div className="space-y-2">
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}>
-                <span className="text-sm font-medium text-white">🧠 Analysis</span>
+                <span className="text-sm font-medium text-white">Analysis</span>
                 <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${mobileAnalysisOpen ? 'rotate-180' : ''}`} />
               </div>
               
