@@ -774,7 +774,7 @@ export default function LoggedInLockPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
-              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-md text-sm font-bold">
+              <div className={`${getGradeColorClasses(lockPick.grade).bg} ${getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
                 {lockPick.grade}
               </div>
             </div>

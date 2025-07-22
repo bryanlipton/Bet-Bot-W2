@@ -882,7 +882,7 @@ export default function DailyPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-blue-400 font-sans">Pick of the Day</h2>
-              <div className="bg-[#FFD700] text-black px-3 py-1 rounded-md text-sm font-bold">
+              <div className={`${getGradeColorClasses(dailyPick.grade).bg} ${getGradeColorClasses(dailyPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
                 {dailyPick.grade}
               </div>
             </div>
