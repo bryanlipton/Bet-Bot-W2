@@ -917,7 +917,7 @@ export class DailyPickService {
           pickTeam: bestRecommendation.selection.replace(' ML', '').replace(/\s+\+?\-?\d+\.?\d*/, ''), // Extract team name
           pickType: 'moneyline',
           odds: bestRecommendation.odds,
-          grade: bestRecommendation.grade,
+          grade: this.calculateGrade(analysis), // Use weighted calculation instead of BetBot grade
           confidence: Math.round(bestRecommendation.confidence * 100),
           reasoning,
           analysis,
