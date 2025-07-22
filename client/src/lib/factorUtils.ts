@@ -227,7 +227,7 @@ export function getMainGradeExplanation(
     highlights.push('elite offensive metrics with xwOBA above .340');
   }
   if (analysis.pitchingMatchup >= 90) {
-    highlights.push('probable starter advantage with sub-3.25 ERA');
+    highlights.push('significant starting pitcher advantage based on superior 2025 season metrics');
   }
   if (analysis.teamMomentum >= 90) {
     highlights.push('strong recent form at 7-3 or better in last 10 games');
