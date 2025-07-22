@@ -113,25 +113,7 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
               </TooltipContent>
             </Tooltip>
             
-            <div className="flex items-center gap-3">
-              {isAuthenticated && user ? (
-                <div className="hidden md:block">
-                  <Link href="/profile">
-                    <UserAvatar 
-                      user={{
-                        profileImageUrl: (user as any)?.profileImageUrl,
-                        avatar: (user as any)?.avatar,
-                        username: (user as any)?.username,
-                        firstName: (user as any)?.firstName
-                      }}
-                      size="sm"
-                      className="cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
-                    />
-                  </Link>
-                </div>
-              ) : null}
-              <LoginButton />
-            </div>
+            <LoginButton />
           </div>
         </div>
       </div>

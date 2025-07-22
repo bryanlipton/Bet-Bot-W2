@@ -547,23 +547,46 @@ export default function LoggedInLockPick() {
                 <Lock className="w-4 h-4 text-amber-500" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                  Logged In Lock
-                </h3>
-                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
-                  {lockPick.pickTeam} {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : lockPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
-                </p>
-                {/* Show live score when game has started */}
-                {liveLockGameScore && gameStarted && (
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    {lockPick.awayTeam} {liveLockGameScore.awayScore || 0} - {liveLockGameScore.homeScore || 0} {lockPick.homeTeam}
-                    {liveLockGameScore.status === 'Final' ? ' (Final)' : 
-                     liveLockGameScore.status === 'In Progress' ? ` (${liveLockGameScore.inning || 'Live'})` : ' (Live)'}
-                  </p>
-                )}
+                <div className="flex items-center space-x-2">
+                  <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
+                  <span className="text-xs text-gray-500">
+                    {lockPick.pickTeam} {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                    lockPick.grade === 'A+' ? 'bg-amber-500' :
+                    lockPick.grade === 'A' ? 'bg-amber-400' :
+                    lockPick.grade.startsWith('B') ? 'bg-amber-300' :
+                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                  }`}>
+                    Grade {lockPick.grade}
+                  </div>
+                </div>
               </div>
             </div>
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            
+            <div className="flex items-center space-x-3">
+              {liveLockGameScore && gameStarted && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
+                  </div>
+                  <div className="font-mono text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.homeTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            </div>
           </div>
         </CardContent>
       </Card>

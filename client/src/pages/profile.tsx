@@ -745,7 +745,7 @@ export default function ProfilePage() {
                     Profile Access Locked
                   </h2>
                   <p className="text-gray-500 dark:text-gray-500 max-w-md">
-                    You need to be logged in to view and manage your profile. Sign in to access your betting history, statistics, and preferences.
+                    You need to be logged in to view and manage your profile. Log in to access your betting history, statistics, and preferences.
                   </p>
                 </div>
                 <Button 
@@ -753,7 +753,7 @@ export default function ProfilePage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white px-8"
                   onClick={() => window.location.href = '/api/login'}
                 >
-                  Sign In to View Profile
+                  Log in to View Profile
                 </Button>
               </div>
             </CardContent>
