@@ -1231,7 +1231,7 @@ export default function ProfilePage() {
             {publicFeed.length === 0 ? (
               <div className="text-center py-8">
                 <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">No picks yet. Start betting to build your feed!</p>
+                <p className="text-gray-500 dark:text-gray-400">No picks yet.</p>
               </div>
             ) : (
               <div className="space-y-4">
