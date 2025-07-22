@@ -59,34 +59,15 @@ export function registerOddsRoutes(app: Express) {
     }
   });
 
-  // Get live odds for a specific sport
+  // Get live odds for a specific sport - USING CACHED SERVICE
   app.get('/api/odds/live/:sport', async (req, res) => {
     try {
       const { sport } = req.params;
       
-      if (!ODDS_API_KEY) {
-        return res.status(500).json({ error: 'The Odds API key not configured' });
-      }
-
-      const url = `${ODDS_API_BASE_URL}/sports/${sport}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american&includeLinks=true&includeSids=true`;
+      // USE THE CACHED ODDS SERVICE INSTEAD OF DIRECT API CALLS
+      const data = await oddsApiService.getCurrentOdds(sport);
       
-      console.log(`Fetching live odds for ${sport} from: ${url.replace(ODDS_API_KEY, 'xxx...')}`);
-      
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Odds API error: ${response.status} ${response.statusText} - ${errorText}`);
-        console.log('Returning mock data for demo');
-        
-        // Return mock data when API is unavailable
-        const mockData = await oddsApiService.getCurrentOdds(sport);
-        return res.json(mockData);
-      }
-      
-      const data = await response.json();
-      
-      console.log(`Successfully fetched ${data.length} games for ${sport}`);
+      console.log(`📊 Returned ${data.length} games for ${sport} via cached service`);
       
       res.json(data);
     } catch (error) {

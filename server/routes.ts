@@ -346,10 +346,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Periodic tasks for live updates
+  // Periodic tasks for live updates - REDUCED FREQUENCY TO SAVE API CALLS
   setInterval(async () => {
     try {
-      const sports = ['americanfootball_nfl', 'basketball_nba', 'baseball_mlb'];
+      // Only update baseball during active season to save API calls
+      const sports = ['baseball_mlb']; // Reduced from 3 to 1 sport
       
       for (const sport of sports) {
         const currentOdds = await oddsApiService.getCurrentOdds(sport);
@@ -362,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error in periodic odds update:', error);
     }
-  }, 60000); // Update every minute
+  }, 300000); // Update every 5 minutes instead of 1 minute (5x reduction)
 
   // Baseball AI specific endpoints
   app.post("/api/baseball/train", async (req, res) => {

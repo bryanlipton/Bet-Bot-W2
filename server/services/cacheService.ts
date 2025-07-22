@@ -69,9 +69,10 @@ class CacheService {
     console.log(`📊 Daily API calls: ${this.dailyApiCallCount}/${this.DAILY_API_LIMIT}`);
   }
 
-  canMakeApiCall(): boolean {
+  canMakeApiCall(customLimit?: number): boolean {
     this.resetDailyCountIfNeeded();
-    return this.dailyApiCallCount < this.DAILY_API_LIMIT;
+    const limit = customLimit || this.DAILY_API_LIMIT;
+    return this.dailyApiCallCount < limit;
   }
 
   getDailyApiCallCount(): number {

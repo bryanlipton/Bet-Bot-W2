@@ -736,11 +736,11 @@ export function registerMLBRoutes(app: Express) {
   // Get combined schedule with odds (ODDS API DATA TAKES PRIORITY)
   app.get('/api/mlb/complete-schedule', async (req, res) => {
     try {
-      console.log('Fetching complete schedule - ODDS API PRIORITY');
+      console.log('Fetching complete schedule - USING CACHED ODDS SERVICE');
       
-      // Fetch live odds first (these are the primary games with betting lines)
-      const oddsResponse = await fetch(`http://localhost:5000/api/odds/live/baseball_mlb`);
-      const oddsGames = oddsResponse.ok ? await oddsResponse.json() : [];
+      // Use cached odds service instead of direct API calls (SAVES API QUOTA)
+      const { oddsApiService } = await import('./services/oddsApi');
+      const oddsGames = await oddsApiService.getCurrentOdds('baseball_mlb');
       
       // Fetch MLB schedule for pitcher info
       const mlbResponse = await fetch(`http://localhost:5000/api/mlb/schedule`);

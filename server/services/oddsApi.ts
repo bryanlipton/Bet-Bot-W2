@@ -71,9 +71,11 @@ export class OddsApiService {
         return cachedData;
       }
 
-      // Check daily API quota before making any call
-      if (!cacheService.canMakeApiCall()) {
-        console.log(`🚫 Daily API limit reached (${cacheService.getDailyApiCallCount()}/645), maintaining existing odds`);
+      // Check daily API quota before making any call - increased limit by 600 for today
+      const dailyLimit = 645 + 600; // Temporary increase of 600 calls as requested
+      if (!cacheService.canMakeApiCall(dailyLimit)) {
+        console.log(`🚫 Daily API limit reached (${cacheService.getDailyApiCallCount()}/${dailyLimit}), maintaining existing odds`);
+        console.log(`⚠️  WARNING: You're out of API credits for today. Consider upgrading your plan.`);
         // Return the most recent cached data even if expired, or mock data as fallback
         const expiredData = cacheService.getExpiredOk<Game[]>(cacheKey);
         if (expiredData) {
@@ -82,6 +84,12 @@ export class OddsApiService {
         }
         console.log('No cached data available, returning mock data for demo');
         return this.getMockOddsData(sport);
+      }
+
+      // Warn when approaching API limit
+      const currentCount = cacheService.getDailyApiCallCount();
+      if (currentCount > dailyLimit * 0.8) {
+        console.log(`⚠️  WARNING: Approaching daily API limit (${currentCount}/${dailyLimit})`);
       }
 
       // Rate limiting: Enforce minimum interval between API calls
