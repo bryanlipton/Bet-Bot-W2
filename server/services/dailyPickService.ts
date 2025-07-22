@@ -698,94 +698,97 @@ export class DailyPickService {
       return [];
     }
 
+    // Import the betting recommendation engine
+    const { BettingRecommendationEngine } = await import('./bettingRecommendationEngine.js');
+    const engine = new BettingRecommendationEngine();
+
     const allPicks: DailyPick[] = [];
 
     for (const game of eligibleGames) {
-      const h2hMarket = game.bookmakers[0].markets.find((m: any) => m.key === 'h2h');
-      if (!h2hMarket || !h2hMarket.outcomes) continue;
+      try {
+        // Get AI prediction for this game
+        const predictionResponse = await fetch(`http://localhost:5000/api/baseball/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            homeTeam: game.home_team, 
+            awayTeam: game.away_team, 
+            gameDate: game.commence_time,
+            probablePitchers: game.probablePitchers 
+          })
+        });
 
-      // Analyze both teams as potential picks and choose the better one
-      let bestGamePick: DailyPick | null = null;
-      let bestGameScore = 0;
-
-      for (const outcome of h2hMarket.outcomes) {
-        const isHomePick = outcome.name === game.home_team;
-        const pickTeam = outcome.name;
-        const opposingTeam = isHomePick ? game.away_team : game.home_team;
-        
-        // Calculate enhanced analysis scores using new methodology
-        const offensiveProduction = await this.analyzeOffensiveProduction(pickTeam);
-        const pitchingMatchup = await this.analyzePitchingMatchup(
-          game.home_team, 
-          game.away_team, 
-          game.probablePitchers,
-          pickTeam
-        );
-        
-        const situationalEdge = this.getSituationalEdge(game.venue || '', pickTeam, game.home_team, game.gameTime);
-        const teamMomentum = await this.analyzeTeamMomentum(pickTeam);
-        
-        // Calculate model probability and market inefficiency
-        const modelProb = (offensiveProduction + pitchingMatchup + situationalEdge + teamMomentum) / 400; // Normalize to 0-1
-        const marketInefficiency = this.calculateMarketInefficiency(outcome.price, modelProb);
-        
-        // Calculate system confidence based on data quality
-        const dataQuality = {
-          offensiveData: offensiveProduction > 0 ? 85 : 50,
-          pitchingData: pitchingMatchup > 60 ? 90 : 60,
-          situationalData: 80, // Always available
-          momentumData: teamMomentum > 0 ? 85 : 50,
-          marketData: outcome.price ? 95 : 30
-        };
-        const systemConfidence = this.calculateSystemConfidence(dataQuality);
-        
-        // Normalize all factors to 60-100 range
-        const normalizeScore = (score: number) => Math.round(60 + (Math.max(0, Math.min(100, score)) * 0.4));
-        
-        const analysis: DailyPickAnalysis = {
-          offensiveProduction: normalizeScore(offensiveProduction),
-          pitchingMatchup: normalizeScore(pitchingMatchup),
-          situationalEdge: normalizeScore(situationalEdge),
-          teamMomentum: normalizeScore(teamMomentum),
-          marketInefficiency: normalizeScore(marketInefficiency),
-          systemConfidence: normalizeScore(systemConfidence),
-          confidence: Math.round((normalizeScore(offensiveProduction) + normalizeScore(pitchingMatchup) + normalizeScore(situationalEdge) + normalizeScore(teamMomentum) + normalizeScore(marketInefficiency) + normalizeScore(systemConfidence)) / 6)
-        };
-
-        const grade = this.calculateGrade(analysis);
-        const reasoning = await this.generateReasoning(pickTeam, analysis, game.home_team, game.away_team, game.venue || '', outcome.price, game.probablePitchers);
-        
-        const overallScore = analysis.confidence;
-        
-        if (overallScore > bestGameScore && analysis.confidence > 55) {
-          bestGameScore = overallScore;
-          bestGamePick = {
-            id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            gameId: game.id,
-            homeTeam: game.home_team,
-            awayTeam: game.away_team,
-            pickTeam,
-            pickType: 'moneyline',
-            odds: outcome.price,
-            grade,
-            confidence: analysis.confidence,
-            reasoning,
-            analysis,
-            gameTime: game.commence_time,
-            venue: game.venue || 'TBA',
-            probablePitchers: {
-              home: game.probablePitchers?.home || null,
-              away: game.probablePitchers?.away || null
-            },
-            createdAt: new Date().toISOString(),
-            pickDate: new Date().toISOString().split('T')[0]
-          };
+        if (!predictionResponse.ok) {
+          console.log(`⚠️ Could not get AI prediction for ${game.home_team} vs ${game.away_team}, skipping`);
+          continue;
         }
-      }
 
-      // Add the best pick for this game
-      if (bestGamePick) {
-        allPicks.push(bestGamePick);
+        const prediction = await predictionResponse.json();
+        
+        // Generate bet bot recommendations for this game
+        const recommendations = engine.generateRecommendations(
+          prediction,
+          game.bookmakers || [],
+          game.home_team,
+          game.away_team
+        );
+
+        // Filter recommendations that are C+ or better
+        const eligibleRecommendations = recommendations.filter(rec => {
+          const gradeValue = this.getGradeValue(rec.grade);
+          const minGradeValue = this.getGradeValue('C+');
+          return gradeValue >= minGradeValue;
+        });
+
+        if (eligibleRecommendations.length === 0) {
+          console.log(`⚠️ No C+ or better recommendations for ${game.home_team} vs ${game.away_team}`);
+          continue;
+        }
+
+        // Convert best bet bot recommendation to DailyPick format
+        const bestRecommendation = eligibleRecommendations[0]; // Already sorted by grade and edge
+        
+        // Create analysis object from bet bot data
+        const analysis: DailyPickAnalysis = {
+          offensiveProduction: Math.round(60 + (bestRecommendation.predictedProbability * 40)), // Convert to 60-100 scale
+          pitchingMatchup: Math.round(60 + (bestRecommendation.confidence * 40)),
+          situationalEdge: Math.round(60 + ((bestRecommendation.edge / 0.2) * 40)), // Assume max 20% edge
+          teamMomentum: Math.round(60 + (prediction.confidence * 40)),
+          marketInefficiency: Math.round(60 + (Math.min(bestRecommendation.edge / 0.15, 1) * 40)),
+          systemConfidence: Math.round(60 + (bestRecommendation.confidence * 40)),
+          confidence: Math.round(60 + (bestRecommendation.confidence * 40))
+        };
+
+        // Generate bet bot reasoning
+        const reasoning = `BetBot AI identifies ${bestRecommendation.selection} as a premium ${bestRecommendation.grade} play at ${bestRecommendation.odds > 0 ? '+' : ''}${bestRecommendation.odds}. ${bestRecommendation.reasoning} Expected value: ${bestRecommendation.expectedValue > 0 ? '+' : ''}${(bestRecommendation.expectedValue * 100).toFixed(1)}% with Kelly recommended size of ${(bestRecommendation.kellyBetSize * 100).toFixed(1)}% of bankroll.`;
+
+        const dailyPick: DailyPick = {
+          id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          gameId: game.id,
+          homeTeam: game.home_team,
+          awayTeam: game.away_team,
+          pickTeam: bestRecommendation.selection.replace(' ML', '').replace(/\s+\+?\-?\d+\.?\d*/, ''), // Extract team name
+          pickType: 'moneyline',
+          odds: bestRecommendation.odds,
+          grade: bestRecommendation.grade,
+          confidence: Math.round(bestRecommendation.confidence * 100),
+          reasoning,
+          analysis,
+          gameTime: game.commence_time,
+          venue: game.venue || 'TBA',
+          probablePitchers: {
+            home: game.probablePitchers?.home || null,
+            away: game.probablePitchers?.away || null
+          },
+          createdAt: new Date().toISOString(),
+          pickDate: new Date().toISOString().split('T')[0]
+        };
+
+        allPicks.push(dailyPick);
+        console.log(`✅ Added BetBot pick: ${dailyPick.pickTeam} (${dailyPick.grade}) for ${game.home_team} vs ${game.away_team}`);
+
+      } catch (error) {
+        console.log(`⚠️ Error processing game ${game.home_team} vs ${game.away_team}:`, error);
       }
     }
 
@@ -794,31 +797,50 @@ export class DailyPickService {
   }
 
   async generateDailyPick(games: any[]): Promise<DailyPick | null> {
-    // Generate picks for all games
+    // Generate picks for all games using bet bot recommendations
     const allPicks = await this.generateAllGamePicks(games);
     
     if (allPicks.length === 0) {
+      console.log('⚠️ No bet bot picks generated from available games');
       return null;
     }
 
-    // Filter picks that meet minimum grade requirement (C or better)
+    // Filter picks that meet minimum grade requirement (C+ or better) - Per user requirements
     const eligiblePicks = allPicks.filter(pick => {
       const gradeValue = this.getGradeValue(pick.grade);
-      const minGradeValue = this.getGradeValue('C');
+      const minGradeValue = this.getGradeValue('C+');
       return gradeValue >= minGradeValue;
     });
 
-    console.log(`Filtered to ${eligiblePicks.length} eligible picks (grade C or better) from ${allPicks.length} total picks`);
+    console.log(`🤖 BetBot generated ${allPicks.length} picks, ${eligiblePicks.length} meet C+ requirement`);
 
     if (eligiblePicks.length === 0) {
-      console.log('No picks meet minimum grade C requirement, returning best available pick');
+      console.log('⚠️ No picks meet minimum grade C+ requirement, returning best available pick');
       // If no picks meet minimum requirement, return the best available
       return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
     }
 
-    // Randomly select one from eligible picks
-    const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
-    const selectedPick = eligiblePicks[randomIndex];
+    // Filter out teams that were picked yesterday (no same team two days in a row)
+    const yesterdaysTeams = await this.getYesterdaysPicks();
+    const validPicks = eligiblePicks.filter(pick => {
+      const wasPickedYesterday = yesterdaysTeams.includes(pick.pickTeam);
+      if (wasPickedYesterday) {
+        console.log(`🚫 Excluding ${pick.pickTeam} - picked yesterday`);
+      }
+      return !wasPickedYesterday;
+    });
+
+    console.log(`📅 After excluding yesterday's teams: ${validPicks.length} valid picks remaining`);
+
+    if (validPicks.length === 0) {
+      console.log('⚠️ All eligible picks were teams picked yesterday, using best available pick');
+      // If all teams were picked yesterday, use the best available (breaking the rule as fallback)
+      return eligiblePicks.sort((a, b) => b.confidence - a.confidence)[0];
+    }
+
+    // Randomly select one from valid picks
+    const randomIndex = Math.floor(Math.random() * validPicks.length);
+    const selectedPick = validPicks[randomIndex];
     
     console.log(`Randomly selected pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
     
@@ -965,6 +987,62 @@ export class DailyPickService {
     return newPick;
   }
 
+  // Helper method to get yesterday's picks (both daily and lock picks)
+  private async getYesterdaysPicks(): Promise<string[]> {
+    try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      // Get yesterday's daily pick
+      const dailyPicksYesterday = await db.select()
+        .from(dailyPicks)
+        .where(eq(dailyPicks.pickDate, new Date(yesterdayStr)));
+      
+      // Get yesterday's lock pick
+      const lockPicksYesterday = await db.select()
+        .from(loggedInLockPicks)
+        .where(eq(loggedInLockPicks.pickDate, new Date(yesterdayStr)));
+      
+      const yesterdaysTeams: string[] = [];
+      
+      // Add daily pick teams
+      dailyPicksYesterday.forEach(pick => {
+        yesterdaysTeams.push(pick.pickTeam);
+      });
+      
+      // Add lock pick teams
+      lockPicksYesterday.forEach(pick => {
+        yesterdaysTeams.push(pick.pickTeam);
+      });
+      
+      console.log(`📅 Yesterday's picks (${yesterdayStr}): ${yesterdaysTeams.join(', ') || 'none'}`);
+      return yesterdaysTeams;
+      
+    } catch (error) {
+      console.log('Error getting yesterday\'s picks:', error);
+      return [];
+    }
+  }
+
+  // Helper method to check if a team was picked yesterday
+  private async isTeamPickedYesterday(teamName: string): Promise<boolean> {
+    const yesterdaysTeams = await this.getYesterdaysPicks();
+    return yesterdaysTeams.includes(teamName);
+  }
+
+  // Helper method to convert grade to numeric value for comparison
+  private getGradeValue(grade: string): number {
+    const gradeMap: { [key: string]: number } = {
+      'A+': 12, 'A': 11, 'A-': 10,
+      'B+': 9, 'B': 8, 'B-': 7,
+      'C+': 6, 'C': 5, 'C-': 4,
+      'D+': 3, 'D': 2, 'D-': 1,
+      'F': 0
+    };
+    return gradeMap[grade] || 0;
+  }
+
   // Methods for logged-in lock picks
   async saveLockPick(pick: DailyPick): Promise<void> {
     try {
@@ -1081,26 +1159,44 @@ export class DailyPickService {
       return null;
     }
 
-    // Filter picks that meet minimum grade requirement (C or better)
+    // Filter picks that meet minimum grade requirement (C+ or better) - Per user requirements
     const eligiblePicks = availablePicks.filter(pick => {
       const gradeValue = this.getGradeValue(pick.grade);
-      const minGradeValue = this.getGradeValue('C');
+      const minGradeValue = this.getGradeValue('C+');
       return gradeValue >= minGradeValue;
     });
 
-    console.log(`Filtered to ${eligiblePicks.length} eligible lock picks (grade C or better) from ${availablePicks.length} available picks`);
+    console.log(`🤖 BetBot filtered to ${eligiblePicks.length} eligible lock picks (grade C+ or better) from ${availablePicks.length} available picks`);
+
+    // Filter out teams that were picked yesterday (no same team two days in a row)
+    const yesterdaysTeams = await this.getYesterdaysPicks();
+    const validPicks = eligiblePicks.filter(pick => {
+      const wasPickedYesterday = yesterdaysTeams.includes(pick.pickTeam);
+      if (wasPickedYesterday) {
+        console.log(`🚫 Excluding lock pick ${pick.pickTeam} - picked yesterday`);
+      }
+      return !wasPickedYesterday;
+    });
+
+    console.log(`📅 After excluding yesterday's teams: ${validPicks.length} valid lock picks remaining`);
 
     let selectedPick: DailyPick;
     
-    if (eligiblePicks.length === 0) {
-      console.log('No lock picks meet minimum grade C requirement, selecting best available pick');
-      // If no picks meet minimum requirement, return the best available
-      selectedPick = availablePicks.sort((a, b) => b.confidence - a.confidence)[0];
+    if (validPicks.length === 0) {
+      if (eligiblePicks.length > 0) {
+        console.log('⚠️ All eligible lock picks were teams picked yesterday, using best available anyway');
+        // If all teams were picked yesterday, use the best available (breaking the rule as fallback)
+        selectedPick = eligiblePicks.sort((a, b) => b.confidence - a.confidence)[0];
+      } else {
+        console.log('⚠️ No lock picks meet minimum grade C+ requirement, selecting best available pick');
+        // If no picks meet minimum requirement, return the best available
+        selectedPick = availablePicks.sort((a, b) => b.confidence - a.confidence)[0];
+      }
     } else {
-      // Randomly select one from eligible picks
-      const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
-      selectedPick = eligiblePicks[randomIndex];
-      console.log(`Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
+      // Randomly select one from valid picks
+      const randomIndex = Math.floor(Math.random() * validPicks.length);
+      selectedPick = validPicks[randomIndex];
+      console.log(`🎲 Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${validPicks.length} valid options`);
     }
 
     // Create a new ID for the lock pick
@@ -1113,33 +1209,52 @@ export class DailyPickService {
 
   // New method specifically for generating lock picks (used by rotation service)
   async generateLockPick(games: any[]): Promise<DailyPick | null> {
-    // Generate picks for all games first
+    // Generate picks for all games using bet bot recommendations
     const allPicks = await this.generateAllGamePicks(games);
     
     if (allPicks.length === 0) {
+      console.log('🤖 Rotation: No bet bot picks generated from available games');
       return null;
     }
 
-    // Filter picks that meet minimum grade requirement (C or better)
+    // Filter picks that meet minimum grade requirement (C+ or better) - Per user requirements
     const eligiblePicks = allPicks.filter(pick => {
       const gradeValue = this.getGradeValue(pick.grade);
-      const minGradeValue = this.getGradeValue('C');
+      const minGradeValue = this.getGradeValue('C+');
       return gradeValue >= minGradeValue;
     });
 
-    console.log(`Rotation: Filtered to ${eligiblePicks.length} eligible lock picks (grade C or better) from ${allPicks.length} total picks`);
+    console.log(`🤖 Rotation: BetBot filtered to ${eligiblePicks.length} eligible lock picks (grade C+ or better) from ${allPicks.length} total picks`);
 
-    if (eligiblePicks.length === 0) {
-      console.log('Rotation: No picks meet minimum grade C requirement, returning best available pick');
-      // If no picks meet minimum requirement, return the best available
-      return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
+    // Filter out teams that were picked yesterday (no same team two days in a row)
+    const yesterdaysTeams = await this.getYesterdaysPicks();
+    const validPicks = eligiblePicks.filter(pick => {
+      const wasPickedYesterday = yesterdaysTeams.includes(pick.pickTeam);
+      if (wasPickedYesterday) {
+        console.log(`🚫 Rotation: Excluding ${pick.pickTeam} - picked yesterday`);
+      }
+      return !wasPickedYesterday;
+    });
+
+    console.log(`📅 Rotation: After excluding yesterday's teams: ${validPicks.length} valid picks remaining`);
+
+    if (validPicks.length === 0) {
+      if (eligiblePicks.length > 0) {
+        console.log('⚠️ Rotation: All eligible picks were teams picked yesterday, using best available anyway');
+        // If all teams were picked yesterday, use the best available (breaking the rule as fallback)
+        return eligiblePicks.sort((a, b) => b.confidence - a.confidence)[0];
+      } else {
+        console.log('⚠️ Rotation: No picks meet minimum grade C+ requirement, returning best available pick');
+        // If no picks meet minimum requirement, return the best available
+        return allPicks.sort((a, b) => b.confidence - a.confidence)[0];
+      }
     }
 
-    // Randomly select one from eligible picks
-    const randomIndex = Math.floor(Math.random() * eligiblePicks.length);
-    const selectedPick = eligiblePicks[randomIndex];
+    // Randomly select one from valid picks
+    const randomIndex = Math.floor(Math.random() * validPicks.length);
+    const selectedPick = validPicks[randomIndex];
     
-    console.log(`Rotation: Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${eligiblePicks.length} eligible options`);
+    console.log(`🎲 Rotation: Randomly selected lock pick: ${selectedPick.pickTeam} (${selectedPick.grade}) from ${validPicks.length} valid options`);
     
     return selectedPick;
   }
