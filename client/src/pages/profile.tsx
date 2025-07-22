@@ -627,11 +627,17 @@ export default function ProfilePage() {
     },
     onSuccess: (data) => {
       console.log("Profile update successful:", data);
+      // Force immediate cache invalidation and refetch for all user data
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.refetchQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Also clear any cached user profile data
+      queryClient.clear();
+      
       setIsEditingProfile(false);
       toast({
-        title: "Profile Updated",
-        description: "Your profile has been successfully updated.",
+        title: "Profile Updated", 
+        description: "Your avatar and profile have been successfully updated.",
       });
     },
     onError: (error: any) => {

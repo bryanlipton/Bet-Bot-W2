@@ -28,21 +28,16 @@ export default function UserAvatar({ user, size = "md", className = "" }: UserAv
     xl: "text-lg"
   };
 
-  // If user has a profile image URL, use that
-  if (user?.profileImageUrl) {
-    return (
-      <Avatar className={`${sizeClasses[size]} ${className}`}>
-        <AvatarImage src={user.profileImageUrl} alt={user.username || user.firstName || "User"} />
-        <AvatarFallback className={textSizes[size]}>
-          <User className="h-4 w-4" />
-        </AvatarFallback>
-      </Avatar>
-    );
-  }
+  console.log('UserAvatar rendering:', { 
+    avatar: user?.avatar, 
+    profileImageUrl: user?.profileImageUrl,
+    username: user?.username 
+  });
 
-  // If user has an emoji avatar, use that with colored background
-  if (user?.avatar) {
+  // Priority 1: If user has an emoji avatar, use that with colored background
+  if (user?.avatar && user?.avatar.length <= 2) { // Emoji check
     const avatarData = getAnimalAvatarByEmoji(user.avatar);
+    console.log('Using emoji avatar:', user.avatar, avatarData);
     return (
       <div 
         className={`${sizeClasses[size]} ${className} rounded-full flex items-center justify-center text-white font-bold ${textSizes[size]}`}
@@ -53,8 +48,22 @@ export default function UserAvatar({ user, size = "md", className = "" }: UserAv
     );
   }
 
+  // Priority 2: If user has a profile image URL and no emoji avatar, use that
+  if (user?.profileImageUrl && !user?.avatar) {
+    console.log('Using profile image URL:', user.profileImageUrl);
+    return (
+      <Avatar className={`${sizeClasses[size]} ${className}`}>
+        <AvatarImage src={user.profileImageUrl} alt={user.username || user.firstName || "User"} />
+        <AvatarFallback className={textSizes[size]}>
+          <User className="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+    );
+  }
+
   // Fallback to username initial or User icon
   const initial = user?.username?.[0]?.toUpperCase() || user?.firstName?.[0]?.toUpperCase();
+  console.log('Using fallback initial:', initial);
   
   return (
     <Avatar className={`${sizeClasses[size]} ${className}`}>
