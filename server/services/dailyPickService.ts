@@ -618,16 +618,32 @@ export class DailyPickService {
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
-    // Calculate overall grade based on confidence score (which is already normalized to 60-100)
-    const confidence = analysis.confidence;
+    // Calculate overall grade using weighted average of all factors for transparency
+    // This ensures factor scores logically add up to justify the overall grade
+    const factors = [
+      { score: analysis.offensiveProduction, weight: 0.15 }, // 15%
+      { score: analysis.pitchingMatchup, weight: 0.15 },     // 15%  
+      { score: analysis.situationalEdge, weight: 0.15 },    // 15%
+      { score: analysis.teamMomentum, weight: 0.15 },       // 15%
+      { score: analysis.marketInefficiency, weight: 0.25 }, // 25% (most important for betting)
+      { score: analysis.systemConfidence, weight: 0.15 }    // 15%
+    ];
     
-    if (confidence >= 95) return 'A+';
-    if (confidence >= 90) return 'A';
-    if (confidence >= 85) return 'B+';
-    if (confidence >= 80) return 'B';
-    if (confidence >= 75) return 'C+';
-    if (confidence >= 70) return 'C';
-    if (confidence >= 60) return 'D';
+    // Calculate weighted average
+    const weightedSum = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
+    const overallScore = Math.round(weightedSum);
+    
+    // Log calculation for transparency
+    console.log(`📊 GRADE CALCULATION: Weighted Score = ${overallScore} (Factors: ${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence})`);
+    
+    // Use the weighted average for grade assignment
+    if (overallScore >= 95) return 'A+';
+    if (overallScore >= 90) return 'A';
+    if (overallScore >= 85) return 'B+';
+    if (overallScore >= 80) return 'B';
+    if (overallScore >= 75) return 'C+';
+    if (overallScore >= 70) return 'C';
+    if (overallScore >= 60) return 'D';
     return 'F';
   }
 

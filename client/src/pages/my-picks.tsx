@@ -101,7 +101,7 @@ export default function MyPicksPage() {
 
   // Set bet unit from user preferences
   useEffect(() => {
-    if (userPreferences?.betUnit) {
+    if (userPreferences && userPreferences.betUnit) {
       setBetUnit(userPreferences.betUnit);
     }
   }, [userPreferences]);
