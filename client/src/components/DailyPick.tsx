@@ -504,7 +504,7 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
-                    {dailyPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds} vs {dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : dailyPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
+                    {dailyPick.pickTeam} {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || dailyPick.odds} vs {dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : dailyPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">

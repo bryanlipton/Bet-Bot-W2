@@ -259,12 +259,12 @@ export function ActionStyleDashboard() {
       {/* Mobile-first container with proper mobile navigation padding */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">
 
-      {/* Bet Bot Sports Genie AI Picks - Move to top when logged in */}
+      {/* Bet Bot Sports Genie AI Picks - Prominently positioned at top for logged in users */}
       {isAuthenticated && (
-        <div className="space-y-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 md:gap-3">
+        <div className="space-y-3 mb-4 sm:mb-6 -mt-1 sm:mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 md:gap-3">
             <div className="flex-1">
-              <h2 className="text-lg sm:text-xl md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
+              <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
@@ -272,8 +272,8 @@ export function ActionStyleDashboard() {
               Free Users
             </Badge>
           </div>
-          {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
+          {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
             <DailyPick key="daily-pick-component" />
             <LoggedInLockPick key="lock-pick-component" />
           </div>

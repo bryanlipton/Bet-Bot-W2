@@ -504,7 +504,7 @@ export default function LoggedInLockPick() {
                   Logged In Lock
                 </h3>
                 <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
-                  {lockPick.pickTeam} ML {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : lockPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
+                  {lockPick.pickTeam} {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam.split(' ').slice(-1)[0].toUpperCase() : lockPick.homeTeam.split(' ').slice(-1)[0].toUpperCase()}
                 </p>
                 {/* Show live score when game has started */}
                 {liveLockGameScore && gameStarted && (
