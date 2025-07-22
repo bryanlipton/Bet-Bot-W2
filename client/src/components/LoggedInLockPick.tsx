@@ -1047,7 +1047,7 @@ export default function LoggedInLockPick() {
                 {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'moneyline', lockPick.pickTeam)}
+                    onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
@@ -1069,7 +1069,7 @@ export default function LoggedInLockPick() {
                 {lockPick.pickType === 'moneyline' && lockPick.pickTeam !== matchup.bottomTeam && (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'moneyline', matchup.bottomTeam)}
+                    onClick={(e) => handleMakePick(e, 'h2h', matchup.bottomTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Fade
