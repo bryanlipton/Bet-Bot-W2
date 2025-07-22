@@ -715,10 +715,10 @@ export default function LoggedInLockPick() {
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
-                  Log in for a Lock
+                  Login to view another free pick
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  Click here to access your exclusive lock pick
+                  Access your exclusive lock pick by signing in
                 </p>
               </div>
             </div>
@@ -841,10 +841,10 @@ export default function LoggedInLockPick() {
               <div className="text-center">
                 <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600 dark:text-amber-400 mx-auto mb-3" />
                 <h3 className="font-bold text-base sm:text-lg text-gray-900 dark:text-gray-100 mb-1">
-                  Log in for a Lock
+                  Login to view another free pick
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  Click here to access your exclusive lock pick
+                  Access your exclusive lock pick by signing in
                 </p>
               </div>
             </div>
