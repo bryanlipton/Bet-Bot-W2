@@ -736,13 +736,26 @@ export default function LoggedInLockPick() {
             {/* Matchup Title */}
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
-                <span className={lockPick.pickTeam === lockPick.awayTeam ? 'text-amber-400 font-bold' : ''}>
-                  {lockPick.awayTeam}
-                </span>
-                {' vs '}
-                <span className={lockPick.pickTeam === lockPick.homeTeam ? 'text-amber-400 font-bold' : ''}>
-                  {lockPick.homeTeam}
-                </span>
+                {(() => {
+                  const currentOdds = getCurrentOdds();
+                  const pickTeamOdds = currentOdds.pickTeamOdds;
+                  const oddsText = pickTeamOdds && pickTeamOdds > 0 ? `+${pickTeamOdds}` : pickTeamOdds || lockPick.odds;
+                  const isAwayTeam = lockPick.pickTeam === lockPick.awayTeam;
+                  const separator = isAwayTeam ? ' at ' : ' vs ';
+                  const otherTeam = isAwayTeam ? lockPick.homeTeam : lockPick.awayTeam;
+                  
+                  return (
+                    <>
+                      <span className="text-amber-400 font-bold">
+                        {lockPick.pickTeam} ML {oddsText}
+                      </span>
+                      {separator}
+                      <span>
+                        {otherTeam}
+                      </span>
+                    </>
+                  );
+                })()}
               </h3>
               
               {/* Pitchers */}
