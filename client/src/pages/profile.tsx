@@ -1341,23 +1341,43 @@ export default function ProfilePage() {
                               </div>
                               
                               {/* Individual bet visibility controls */}
-                              <div className="flex items-center gap-2 mt-2">
-                                <Switch
-                                  id={`profile-${item.id}`}
-                                  checked={item.showOnProfile ?? true}
-                                  onCheckedChange={(checked) => {
-                                    // Toggle profile visibility (and feed visibility together)
-                                    updatePickVisibilityMutation.mutate({
-                                      pickId: item.id,
-                                      showOnProfile: checked,
-                                      showOnFeed: checked // When showing on profile, also show on feed; when hiding from profile, also hide from feed
-                                    });
-                                  }}
-                                  disabled={updatePickVisibilityMutation.isPending}
-                                />
-                                <Label htmlFor={`profile-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
-                                  Show on Profile
-                                </Label>
+                              <div className="flex flex-col gap-2 mt-2">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    id={`profile-${item.id}`}
+                                    checked={item.showOnProfile ?? true}
+                                    onCheckedChange={(checked) => {
+                                      // Toggle profile visibility only (keep feed visibility independent)
+                                      updatePickVisibilityMutation.mutate({
+                                        pickId: item.id,
+                                        showOnProfile: checked,
+                                        showOnFeed: item.showOnFeed ?? true // Keep existing feed visibility setting
+                                      });
+                                    }}
+                                    disabled={updatePickVisibilityMutation.isPending}
+                                  />
+                                  <Label htmlFor={`profile-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                    Show on Profile
+                                  </Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    id={`feed-${item.id}`}
+                                    checked={item.showOnFeed ?? true}
+                                    onCheckedChange={(checked) => {
+                                      // Toggle feed visibility only (keep profile visibility independent)
+                                      updatePickVisibilityMutation.mutate({
+                                        pickId: item.id,
+                                        showOnProfile: item.showOnProfile ?? true, // Keep existing profile visibility setting
+                                        showOnFeed: checked
+                                      });
+                                    }}
+                                    disabled={updatePickVisibilityMutation.isPending}
+                                  />
+                                  <Label htmlFor={`feed-${item.id}`} className="text-xs text-gray-600 dark:text-gray-400">
+                                    Show on Feed
+                                  </Label>
+                                </div>
                               </div>
                             </div>
                             <div className="text-right ml-4">
