@@ -362,7 +362,7 @@ export default function ProfilePage() {
     id: user?.id || '1',
     username: user?.username || user?.firstName || user?.email?.split('@')[0] || 'BetBot User',
     email: user?.email || 'user@example.com', 
-    profileImage: user?.profileImageUrl || getRandomAnimalAvatar(),
+    profileImage: user?.profileImageUrl, // Only use actual profile image URL
     avatar: user?.avatar || '🐱', // Default emoji avatar
     followers: user?.followers || 0,
     following: user?.following || 0,
