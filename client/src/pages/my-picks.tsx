@@ -28,7 +28,7 @@ import { useAuth } from '@/hooks/useAuth';
 export default function MyPicksPage() {
   const [darkMode, setDarkMode] = useState(true);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'record'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
   const [editingUnits, setEditingUnits] = useState<string | null>(null);
@@ -824,7 +824,7 @@ export default function MyPicksPage() {
 
         {/* Mobile-optimized Filter Tabs */}
         <div className="flex items-center gap-1 sm:gap-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-          {(['all', 'pending', 'past'] as const).map((status) => (
+          {(['all', 'pending', 'record'] as const).map((status) => (
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
@@ -834,9 +834,10 @@ export default function MyPicksPage() {
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               }`}
             >
-              {status} ({status === 'all' ? stats.total : 
-                status === 'pending' ? stats.pending :
-                stats.won + stats.lost + stats.push})
+              {status === 'all' ? `All (${stats.total})` :
+               status === 'pending' ? `Pending (${stats.pending})` :
+               status === 'record' ? `Record (${stats.won}-${stats.lost}${stats.push > 0 ? `-${stats.push}` : ''})` :
+               status}
             </button>
           ))}
         </div>
@@ -845,7 +846,7 @@ export default function MyPicksPage() {
         {(() => {
           const filteredPicks = selectedStatus === 'all' ? userPicks :
             selectedStatus === 'pending' ? userPicks.filter(p => p.status === 'pending') :
-            selectedStatus === 'past' ? userPicks.filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost' || p.status === 'push') :
+            selectedStatus === 'record' ? userPicks.filter(p => p.status === 'win' || p.status === 'loss' || p.status === 'won' || p.status === 'lost' || p.status === 'push') :
             userPicks;
           
           return filteredPicks.length === 0 ? (
@@ -853,11 +854,15 @@ export default function MyPicksPage() {
               <CardContent className="p-8 text-center">
                 <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  {userPicks.length === 0 ? 'No Picks Yet' : `No ${selectedStatus} Picks`}
+                  {userPicks.length === 0 ? 'No Picks Yet' : 
+                   selectedStatus === 'record' ? 'No Completed Picks' : 
+                   `No ${selectedStatus} Picks`}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
                   {userPicks.length === 0 
                     ? 'Start by clicking "Make Pick" on any game to track your bets here.'
+                    : selectedStatus === 'record'
+                    ? 'Your win-loss record will appear here once you have completed picks.'
                     : `You don't have any ${selectedStatus} picks at the moment.`
                   }
                 </p>
