@@ -1259,7 +1259,12 @@ export default function DailyPick() {
             sport: 'baseball_mlb',
             gameTime: dailyPick.gameTime
           }}
-          bookmakers={(Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === dailyPick.gameId)?.bookmakers || []}
+          bookmakers={(() => {
+            const currentGame = (Array.isArray(gamesData) ? gamesData : []).find((game: any) => game.id === dailyPick.gameId);
+            const bookmakers = currentGame?.bookmakers || [];
+            console.log('DailyPick: Found', bookmakers.length, 'bookmakers for game', dailyPick.gameId);
+            return bookmakers;
+          })()}
           selectedBet={selectedBet}
         />
       )}
