@@ -22,6 +22,7 @@ import { registerUserProfileRoutes } from "./routes-user-profile";
 import { registerFriendsRoutes } from "./routes-friends";
 import { registerPickGradingRoutes } from "./routes-pick-grading";
 import dataVerificationRoutes from "./routes/dataVerification";
+import { automaticGradingService } from "./services/automaticGradingService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1041,6 +1042,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Data verification routes
   app.use('/api/data', dataVerificationRoutes);
+
+  // Manual grading endpoint to prevent pending picks from staying ungraded
+  app.post("/api/grade-picks/manual", isAuthenticated, async (req, res) => {
+    try {
+      const { days = 7 } = req.body;
+      const gradedCount = await automaticGradingService.manualGrade(days);
+      res.json({ 
+        success: true, 
+        message: `Manual grading completed: ${gradedCount} picks graded`,
+        gradedCount 
+      });
+    } catch (error) {
+      console.error("Manual grading error:", error);
+      res.status(500).json({ error: "Failed to grade picks manually" });
+    }
+  });
 
   return httpServer;
 }

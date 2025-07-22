@@ -17,10 +17,10 @@ export class AutomaticGradingService {
     // Run immediately on startup
     this.runGradingCycle();
     
-    // Then run every 30 minutes
+    // Then run every 10 minutes for more frequent checking
     this.intervalId = setInterval(() => {
       this.runGradingCycle();
-    }, 30 * 60 * 1000); // 30 minutes
+    }, 10 * 60 * 1000); // 10 minutes
   }
 
   /**
@@ -41,7 +41,7 @@ export class AutomaticGradingService {
     try {
       console.log("🔄 Running automatic pick grading cycle...");
       
-      const dates = this.getRecentDates(3); // Check last 3 days
+      const dates = this.getRecentDates(7); // Check last 7 days for comprehensive coverage
       let totalGraded = 0;
 
       for (const date of dates) {
