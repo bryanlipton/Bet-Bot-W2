@@ -1188,25 +1188,30 @@ export default function LoggedInLockPick() {
             console.log('LoggedInLockPick: Searching for gameId:', lockPick.gameId);
             console.log('LoggedInLockPick: Available game IDs:', gamesArray.map(g => g.id).slice(0, 5), '... (showing first 5)');
             
-            const currentGame = gamesArray.find((game: any) => game.id === lockPick.gameId);
-            const bookmakers = currentGame?.bookmakers || [];
+            let currentGame = gamesArray.find((game: any) => game.id === lockPick.gameId);
+            let bookmakers = currentGame?.bookmakers || [];
             
-            console.log('LoggedInLockPick: Found game?', !!currentGame);
-            console.log('LoggedInLockPick: Found', bookmakers.length, 'bookmakers for game', lockPick.gameId);
+            console.log('LoggedInLockPick: Found game by ID?', !!currentGame);
             
-            if (!currentGame) {
-              // Try to find by team names as fallback
-              const fallbackGame = gamesArray.find((game: any) => 
-                (game.away_team === lockPick.awayTeam && game.home_team === lockPick.homeTeam) ||
-                (game.away_team === lockPick.homeTeam && game.home_team === lockPick.awayTeam)
-              );
+            if (!currentGame || bookmakers.length === 0) {
+              // Enhanced fallback with multiple matching strategies
+              console.log('LoggedInLockPick: Trying team name fallback for:', lockPick.awayTeam, '@', lockPick.homeTeam);
               
-              if (fallbackGame) {
-                console.log('LoggedInLockPick: Found fallback game with', fallbackGame.bookmakers?.length || 0, 'bookmakers');
-                return fallbackGame.bookmakers || [];
+              currentGame = gamesArray.find((game: any) => {
+                const gameAway = game.away_team || game.awayTeam;
+                const gameHome = game.home_team || game.homeTeam;
+                
+                return (gameAway === lockPick.awayTeam && gameHome === lockPick.homeTeam) ||
+                       (gameAway === lockPick.homeTeam && gameHome === lockPick.awayTeam);
+              });
+              
+              if (currentGame) {
+                bookmakers = currentGame.bookmakers || [];
+                console.log('LoggedInLockPick: Found fallback game with', bookmakers.length, 'bookmakers');
               }
             }
             
+            console.log('LoggedInLockPick: Final bookmaker count:', bookmakers.length);
             return bookmakers;
           })()}
           selectedBet={selectedBet}

@@ -1264,25 +1264,30 @@ export default function DailyPick() {
             console.log('DailyPick: Searching for gameId:', dailyPick.gameId);
             console.log('DailyPick: Available game IDs:', gamesArray.map(g => g.id).slice(0, 5), '... (showing first 5)');
             
-            const currentGame = gamesArray.find((game: any) => game.id === dailyPick.gameId);
-            const bookmakers = currentGame?.bookmakers || [];
+            let currentGame = gamesArray.find((game: any) => game.id === dailyPick.gameId);
+            let bookmakers = currentGame?.bookmakers || [];
             
-            console.log('DailyPick: Found game?', !!currentGame);
-            console.log('DailyPick: Found', bookmakers.length, 'bookmakers for game', dailyPick.gameId);
+            console.log('DailyPick: Found game by ID?', !!currentGame);
             
-            if (!currentGame) {
-              // Try to find by team names as fallback
-              const fallbackGame = gamesArray.find((game: any) => 
-                (game.away_team === dailyPick.awayTeam && game.home_team === dailyPick.homeTeam) ||
-                (game.away_team === dailyPick.homeTeam && game.home_team === dailyPick.awayTeam)
-              );
+            if (!currentGame || bookmakers.length === 0) {
+              // Enhanced fallback with multiple matching strategies
+              console.log('DailyPick: Trying team name fallback for:', dailyPick.awayTeam, '@', dailyPick.homeTeam);
               
-              if (fallbackGame) {
-                console.log('DailyPick: Found fallback game with', fallbackGame.bookmakers?.length || 0, 'bookmakers');
-                return fallbackGame.bookmakers || [];
+              currentGame = gamesArray.find((game: any) => {
+                const gameAway = game.away_team || game.awayTeam;
+                const gameHome = game.home_team || game.homeTeam;
+                
+                return (gameAway === dailyPick.awayTeam && gameHome === dailyPick.homeTeam) ||
+                       (gameAway === dailyPick.homeTeam && gameHome === dailyPick.awayTeam);
+              });
+              
+              if (currentGame) {
+                bookmakers = currentGame.bookmakers || [];
+                console.log('DailyPick: Found fallback game with', bookmakers.length, 'bookmakers');
               }
             }
             
+            console.log('DailyPick: Final bookmaker count:', bookmakers.length);
             return bookmakers;
           })()}
           selectedBet={selectedBet}

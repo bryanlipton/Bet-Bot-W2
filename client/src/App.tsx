@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import ArticlesPage from "@/pages/articles";
-import MyPicksPage from "@/pages/my-picks";
+import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
 import MyFeedPage from "@/pages/my-feed";
 import ProfilePage from "@/pages/profile";
