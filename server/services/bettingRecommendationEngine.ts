@@ -26,7 +26,7 @@ interface PredictionData {
 }
 
 interface BettingRecommendation {
-  betType: 'moneyline' | 'spread' | 'total';
+  betType: 'moneyline'; // MONEYLINE ONLY - per user requirements
   selection: string;
   odds: number;
   impliedProbability: number;
@@ -175,7 +175,7 @@ export class BettingRecommendationEngine {
     if (odds.homeMoneyline && odds.awayMoneyline) {
       // Home moneyline
       const homeEdge = prediction.homeWinProbability - this.oddsToImpliedProbability(odds.homeMoneyline);
-      if (homeEdge > 0.01) { // Minimum 1% edge
+      if (homeEdge > 0.01) { // Minimum 1% edge for quality picks
         recommendations.push({
           betType: 'moneyline',
           selection: `${homeTeam} ML`,
@@ -193,7 +193,7 @@ export class BettingRecommendationEngine {
 
       // Away moneyline
       const awayEdge = prediction.awayWinProbability - this.oddsToImpliedProbability(odds.awayMoneyline);
-      if (awayEdge > 0.01) {
+      if (awayEdge > 0.01) { // Minimum 1% edge for quality picks
         recommendations.push({
           betType: 'moneyline',
           selection: `${awayTeam} ML`,
@@ -210,106 +210,11 @@ export class BettingRecommendationEngine {
       }
     }
 
-    // Spread Recommendations
-    if (odds.homeSpread && odds.awaySpread && odds.spreadLine) {
-      // Home spread
-      const homeSpreadEdge = prediction.homeSpreadProbability - this.oddsToImpliedProbability(odds.homeSpread);
-      if (homeSpreadEdge > 0.01) {
-        recommendations.push({
-          betType: 'spread',
-          selection: `${homeTeam} ${odds.spreadLine > 0 ? '+' : ''}${odds.spreadLine}`,
-          odds: odds.homeSpread,
-          impliedProbability: this.oddsToImpliedProbability(odds.homeSpread),
-          predictedProbability: prediction.homeSpreadProbability,
-          edge: homeSpreadEdge,
-          grade: this.assignGrade(homeSpreadEdge, prediction.confidence),
-          confidence: prediction.confidence,
-          reasoning: `AI predicts ${homeTeam} covers ${(prediction.homeSpreadProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.homeSpread) * 100).toFixed(1)}%`,
-          expectedValue: this.calculateExpectedValue(prediction.homeSpreadProbability, odds.homeSpread),
-          kellyBetSize: this.calculateKellyBetSize(prediction.homeSpreadProbability, odds.homeSpread)
-        });
-      }
+    // REMOVED: Spread Recommendations - System configured for moneyline-only picks
+    // Per user requirements: All daily picks must be moneyline bets only - no spread bets allowed
 
-      // Away spread
-      const awaySpreadEdge = prediction.awaySpreadProbability - this.oddsToImpliedProbability(odds.awaySpread);
-      if (awaySpreadEdge > 0.01) {
-        recommendations.push({
-          betType: 'spread',
-          selection: `${awayTeam} ${-odds.spreadLine > 0 ? '+' : ''}${-odds.spreadLine}`,
-          odds: odds.awaySpread,
-          impliedProbability: this.oddsToImpliedProbability(odds.awaySpread),
-          predictedProbability: prediction.awaySpreadProbability,
-          edge: awaySpreadEdge,
-          grade: this.assignGrade(awaySpreadEdge, prediction.confidence),
-          confidence: prediction.confidence,
-          reasoning: `AI predicts ${awayTeam} covers ${(prediction.awaySpreadProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.awaySpread) * 100).toFixed(1)}%`,
-          expectedValue: this.calculateExpectedValue(prediction.awaySpreadProbability, odds.awaySpread),
-          kellyBetSize: this.calculateKellyBetSize(prediction.awaySpreadProbability, odds.awaySpread)
-        });
-      }
-    }
-
-    // Total (Over/Under) Recommendations
-    if (odds.overOdds && odds.underOdds && odds.totalLine) {
-      console.log(`📊 Analyzing totals: AI predicts ${prediction.predictedTotal} vs line ${odds.totalLine}`);
-      
-      // Calculate actual over/under probabilities based on predicted total vs line
-      const difference = prediction.predictedTotal - odds.totalLine;
-      const actualOverProbability = prediction.predictedTotal > odds.totalLine ? 
-        0.5 + Math.min(0.45, Math.abs(difference) * 0.08) : 
-        0.5 - Math.min(0.45, Math.abs(difference) * 0.08);
-      
-      const actualUnderProbability = 1 - actualOverProbability;
-      
-      console.log(`📈 Over probability: ${(actualOverProbability * 100).toFixed(1)}%`);
-      console.log(`📉 Under probability: ${(actualUnderProbability * 100).toFixed(1)}%`);
-      
-      // Over recommendation
-      const overImpliedProb = this.oddsToImpliedProbability(odds.overOdds);
-      const overEdge = actualOverProbability - overImpliedProb;
-      console.log(`🎯 Over edge: ${(overEdge * 100).toFixed(1)}% (AI: ${(actualOverProbability * 100).toFixed(1)}% vs Market: ${(overImpliedProb * 100).toFixed(1)}%)`);
-      
-      if (overEdge > 0.01) {
-        const overRec = {
-          betType: 'total' as const,
-          selection: `Over ${odds.totalLine}`,
-          odds: odds.overOdds,
-          impliedProbability: overImpliedProb,
-          predictedProbability: actualOverProbability,
-          edge: overEdge,
-          grade: this.assignGrade(overEdge, prediction.confidence),
-          confidence: prediction.confidence,
-          reasoning: `AI predicts ${prediction.predictedTotal.toFixed(1)} runs vs line ${odds.totalLine}. Over probability ${(actualOverProbability * 100).toFixed(1)}% vs market ${(overImpliedProb * 100).toFixed(1)}%`,
-          expectedValue: this.calculateExpectedValue(actualOverProbability, odds.overOdds),
-          kellyBetSize: this.calculateKellyBetSize(actualOverProbability, odds.overOdds)
-        };
-        console.log(`✅ Adding OVER recommendation with grade ${overRec.grade}`);
-        recommendations.push(overRec);
-      }
-
-      // Under recommendation
-      const underImpliedProb = this.oddsToImpliedProbability(odds.underOdds);
-      const underEdge = actualUnderProbability - underImpliedProb;
-      console.log(`🎯 Under edge: ${(underEdge * 100).toFixed(1)}% (AI: ${(actualUnderProbability * 100).toFixed(1)}% vs Market: ${(underImpliedProb * 100).toFixed(1)}%)`);
-      
-      if (underEdge > 0.01) {
-        const underRec = {
-          betType: 'total' as const,
-          selection: `Under ${odds.totalLine}`,
-          odds: odds.underOdds,
-          impliedProbability: underImpliedProb,
-          predictedProbability: actualUnderProbability,
-          edge: underEdge,
-          grade: this.assignGrade(underEdge, prediction.confidence),
-          confidence: prediction.confidence,
-          reasoning: `AI predicts ${prediction.predictedTotal.toFixed(1)} runs vs line ${odds.totalLine}. Under probability ${(actualUnderProbability * 100).toFixed(1)}% vs market ${(underImpliedProb * 100).toFixed(1)}%`,
-          expectedValue: this.calculateExpectedValue(actualUnderProbability, odds.underOdds),
-          kellyBetSize: this.calculateKellyBetSize(actualUnderProbability, odds.underOdds)
-        };
-        console.log(`✅ Adding UNDER recommendation with grade ${underRec.grade}`);
-        recommendations.push(underRec);
-      }
-    }
+    // REMOVED: Total (Over/Under) Recommendations - System configured for moneyline-only picks
+    // Per user requirements: All daily picks must be moneyline bets only - no over/under or spread bets allowed
 
     // Sort by grade and edge
     return recommendations.sort((a, b) => {

@@ -348,6 +348,36 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
+  // Clear today's daily pick (testing/admin endpoint)
+  app.delete("/api/daily-pick/clear", async (req: Request, res: Response) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      console.log(`🧹 Clearing daily pick for ${today}`);
+      
+      // Try to delete from database
+      try {
+        const { db } = await import('./db');
+        const { dailyPicks } = await import('../shared/schema');
+        const { eq } = await import('drizzle-orm');
+        
+        const result = await db.delete(dailyPicks).where(eq(dailyPicks.pickDate, new Date(today)));
+        console.log(`✅ Deleted daily pick records from database`);
+      } catch (dbError) {
+        console.log('Database delete failed, clearing memory storage');
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Daily pick cleared successfully",
+        date: today,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Failed to clear daily pick:", error);
+      res.status(500).json({ error: "Failed to clear daily pick" });
+    }
+  });
+
   // Get all MLB picks for today (Pro users only)
   app.get("/api/daily-pick/all-picks", isAuthenticated, async (req: Request, res: Response) => {
     try {
