@@ -748,14 +748,16 @@ export class DailyPickService {
         // Convert best bet bot recommendation to DailyPick format
         const bestRecommendation = eligibleRecommendations[0]; // Already sorted by grade and edge
         
-        // Create analysis object from bet bot data
+        // Create analysis object using proper calculation methods
+        const pickTeam = bestRecommendation.selection.replace(' ML', '').replace(/\s+\+?\-?\d+\.?\d*/, '');
+        
         const analysis: DailyPickAnalysis = {
-          offensiveProduction: Math.round(60 + (bestRecommendation.predictedProbability * 40)), // Convert to 60-100 scale
-          pitchingMatchup: Math.round(60 + (bestRecommendation.confidence * 40)),
-          situationalEdge: Math.round(60 + ((bestRecommendation.edge / 0.2) * 40)), // Assume max 20% edge
-          teamMomentum: Math.round(60 + (prediction.confidence * 40)),
-          marketInefficiency: Math.round(60 + (Math.min(bestRecommendation.edge / 0.15, 1) * 40)),
-          systemConfidence: Math.round(60 + (bestRecommendation.confidence * 40)),
+          offensiveProduction: await this.analyzeOffensiveProduction(pickTeam),
+          pitchingMatchup: await this.analyzePitchingMatchup(game.home_team, game.away_team, game.probablePitchers || { home: null, away: null }, pickTeam),
+          situationalEdge: this.getSituationalEdge(game.venue || 'TBA', pickTeam, game.home_team, game.commence_time),
+          teamMomentum: await this.analyzeTeamMomentum(pickTeam),
+          marketInefficiency: this.calculateMarketInefficiency(bestRecommendation.odds, bestRecommendation.predictedProbability),
+          systemConfidence: Math.round(60 + (bestRecommendation.confidence * 40)), // Keep this simple as it's BetBot's internal confidence
           confidence: Math.round(60 + (bestRecommendation.confidence * 40))
         };
 
