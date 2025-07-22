@@ -1089,6 +1089,36 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="winRatePublic">Do you want to show record on profile</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="winRatePublic"
+                                checked={privacySettings.winRatePublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, winRatePublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="winStreakPublic">Do you want to show win streak on profile</Label>
+                            <div className="flex items-center gap-2">
+                              <EyeOff className="w-4 h-4" />
+                              <Switch
+                                id="winStreakPublic"
+                                checked={privacySettings.winStreakPublic}
+                                onCheckedChange={(checked) => 
+                                  setPrivacySettings({...privacySettings, winStreakPublic: checked})
+                                }
+                              />
+                              <Eye className="w-4 h-4" />
+                            </div>
+                          </div>
+                          
 
                           
 

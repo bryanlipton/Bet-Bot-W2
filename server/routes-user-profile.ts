@@ -59,7 +59,7 @@ export function registerUserProfileRoutes(app: Express) {
 
       // Check if user is authenticated and is the owner (optional authentication)
       const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
-      const isOwner = isAuthenticated && req.user?.claims?.sub === userId;
+      const isOwner = isAuthenticated && (req.user as any)?.claims?.sub === userId;
       
       // For now, allow all profiles to be viewable for Instagram-style functionality
       // We can add privacy settings later if needed
@@ -75,7 +75,7 @@ export function registerUserProfileRoutes(app: Express) {
       const userPicks = await storage.getUserPicks(userId);
       const sortedPicks = userPicks
         .filter(pick => pick.status === 'win' || pick.status === 'loss')
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        .sort((a, b) => new Date(b.createdAt || new Date()).getTime() - new Date(a.createdAt || new Date()).getTime());
       
       let winStreak = 0;
       for (const pick of sortedPicks) {
@@ -148,14 +148,14 @@ export function registerUserProfileRoutes(app: Express) {
               line: pick.line,
               odds: pick.odds,
               units: pick.units,
-              parlayLegs: pick.parlayLegs ? JSON.parse(pick.parlayLegs) : null
+              parlayLegs: pick.parlayLegs ? JSON.parse(pick.parlayLegs as string) : null
             },
             bookmaker: {
               key: pick.bookmaker,
               displayName: pick.bookmakerDisplayName
             },
-            showOnProfile: pick.showOnProfile,
-            showOnFeed: pick.showOnFeed,
+            showOnProfile: (pick as any).showOnProfile,
+            showOnFeed: (pick as any).showOnFeed,
             status: pick.status
           },
           timestamp: pick.createdAt,
@@ -174,7 +174,7 @@ export function registerUserProfileRoutes(app: Express) {
   app.get('/api/user/follow-status/:userId', isAuthenticated, async (req, res) => {
     try {
       const { userId } = req.params;
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       
       if (!currentUserId) {
         return res.status(401).json({ message: "Authentication required" });
