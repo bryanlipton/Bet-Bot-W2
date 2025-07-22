@@ -457,7 +457,7 @@ export default function LoggedInLockPick() {
             </div>
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-600 dark:text-gray-400">
-                {isAuthenticated ? "No Lock Pick Available Today" : "Login to view another free pick"}
+                {isAuthenticated ? "No Lock Pick Available Today" : "Log in to view another free pick"}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-500">
                 {isAuthenticated ? "Check back when games with odds are available" : "Access your exclusive lock pick by signing in"}
@@ -467,7 +467,7 @@ export default function LoggedInLockPick() {
                   className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
                   onClick={() => window.location.href = '/api/auth/login'}
                 >
-                  Login
+                  Log in
                 </Button>
               )}
             </div>
