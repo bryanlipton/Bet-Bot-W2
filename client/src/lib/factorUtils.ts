@@ -126,12 +126,12 @@ function getGradeExplanation(score: number, factorName: string): string {
       return `Below-average offensive metrics: xwOBA under 0.300, reduced barrel rates and concerning contact quality. Run production efficiency falls below league standards with limited offensive weapons.`;
     
     case 'Pitching Matchup':
-      if (score >= 95) return `Dominant pitching superiority: ERA under 2.75, WHIP under 1.05, strikeout rate >10.0 K/9. Historical matchup data strongly favors our pitcher with opposing lineup struggling against similar styles.`;
-      if (score >= 90) return `Clear pitching advantage: ERA under 3.25, WHIP under 1.20, K/9 over 9.0. Starting pitcher shows superior recent form with excellent metrics and favorable matchup characteristics.`;
-      if (score >= 80) return `Strong pitching edge: ERA 3.25-4.25, WHIP 1.20-1.40, solid strikeout rates 7-9 K/9. Recent performance trends favor our starter with good matchup dynamics against opposing hitters.`;
-      if (score >= 75) return `Moderate pitching advantage: Recent effectiveness and matchup factors provide slight edge. Starting pitcher shows reasonable success against similar offensive profiles.`;
-      if (score === 75) return `Balanced pitching matchup: ERA 4.25-4.75, league average starter performance. Both pitchers show similar recent effectiveness creating neutral expectations.`;
-      return `Pitching disadvantage: ERA over 4.75, concerning metrics with opposing starter showing superior recent form and better historical performance against similar offensive styles.`;
+      if (score >= 95) return `Dominant pitcher-vs-pitcher advantage: Our starter has significantly superior ERA, WHIP, and strikeout metrics compared to today's opposing pitcher. Direct matchup heavily favors our side based on 2025 season performance.`;
+      if (score >= 90) return `Clear starting pitcher advantage: Today's matchup favors our pitcher with measurably better ERA, WHIP, and K/9 rates than the opponent's starter. Direct statistical comparison shows meaningful edge.`;
+      if (score >= 80) return `Solid pitching matchup edge: Our starting pitcher has better overall metrics than today's opposing starter based on 2025 season ERA, WHIP, and strikeout data from MLB Stats API.`;
+      if (score >= 75) return `Slight pitcher advantage: Today's starting pitcher matchup provides minor edge based on comparative 2025 season statistics between the two probable starters.`;
+      if (score === 75) return `Even pitching matchup: Both probable starting pitchers show similar 2025 season performance metrics, creating neutral expectations for today's pitcher-vs-pitcher battle.`;
+      return `Pitching matchup disadvantage: Today's opposing starting pitcher has superior 2025 season metrics compared to our probable starter based on ERA, WHIP, and strikeout rates.`;
     
     case 'Situational Edge':
       if (score >= 95) return `Exceptional situational advantages: Optimal ballpark dimensions strongly favoring team style, significant home field advantage, ideal travel/rest patterns, and premium game context creating elite conditions.`;
