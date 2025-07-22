@@ -65,7 +65,7 @@ export function registerUserPicksRoutes(app: Express) {
       
       // Ensure user owns the pick by checking first
       const existingPicks = await storage.getUserPicks(userId);
-      const userOwnsPick = existingPicks.some(pick => pick.id === pickId);
+      const userOwnsPick = existingPicks.some(pick => pick.id.toString() === pickId);
       
       if (!userOwnsPick) {
         return res.status(403).json({ message: "Not authorized to update this pick" });
@@ -76,6 +76,60 @@ export function registerUserPicksRoutes(app: Express) {
     } catch (error) {
       console.error("Error updating user pick:", error);
       res.status(500).json({ message: "Failed to update pick" });
+    }
+  });
+
+  // Update odds for a specific pick (for manual editing)
+  app.patch('/api/user/picks/:pickId/odds', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      const { odds } = req.body;
+      
+      if (!odds || isNaN(parseFloat(odds))) {
+        return res.status(400).json({ message: "Valid odds required" });
+      }
+      
+      // Ensure user owns the pick
+      const existingPicks = await storage.getUserPicks(userId);
+      const userOwnsPick = existingPicks.some(pick => pick.id.toString() === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to update this pick" });
+      }
+      
+      const updatedPick = await storage.updateUserPick(parseInt(pickId), { odds: parseInt(odds) });
+      res.json(updatedPick);
+    } catch (error) {
+      console.error("Error updating pick odds:", error);
+      res.status(500).json({ message: "Failed to update odds" });
+    }
+  });
+
+  // Update units for a specific pick (for manual editing)
+  app.patch('/api/user/picks/:pickId/units', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      const { units } = req.body;
+      
+      if (!units || isNaN(parseFloat(units)) || parseFloat(units) <= 0) {
+        return res.status(400).json({ message: "Valid units amount required" });
+      }
+      
+      // Ensure user owns the pick
+      const existingPicks = await storage.getUserPicks(userId);
+      const userOwnsPick = existingPicks.some(pick => pick.id.toString() === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to update this pick" });
+      }
+      
+      const updatedPick = await storage.updateUserPick(parseInt(pickId), { units: parseFloat(units) });
+      res.json(updatedPick);
+    } catch (error) {
+      console.error("Error updating pick units:", error);
+      res.status(500).json({ message: "Failed to update units" });
     }
   });
 

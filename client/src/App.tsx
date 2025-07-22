@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks";
+import SimpleMyPicks from "@/components/SimpleMyPicks";
 import MyFeedPage from "@/pages/my-feed";
 import ProfilePage from "@/pages/profile";
 import UserProfilePage from "@/pages/user-profile";
@@ -27,6 +28,7 @@ function Router() {
         <Route path="/odds" component={Dashboard} />
         <Route path="/articles" component={ArticlesPage} />
         <Route path="/my-picks" component={MyPicksPage} />
+        <Route path="/my-picks-simple" component={SimpleMyPicks} />
         <Route path="/my-feed" component={MyFeedPage} />
         <Route path="/feed" component={Feed} />
         <Route path="/profile" component={ProfilePage} />
