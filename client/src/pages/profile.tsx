@@ -33,7 +33,6 @@ import {
   Trophy,
   Clock,
   Edit,
-  Settings,
   Eye,
   EyeOff,
   Camera,
@@ -934,57 +933,6 @@ export default function ProfilePage() {
                       </DialogTrigger>
                       
                     </Dialog>
-                    
-                    {/* Sync Data Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex items-center gap-2" 
-                      onClick={async () => {
-                        try {
-                          const localPicks = pickStorage.getPicks();
-                          const localOnlyPicks = localPicks.filter(pick => !pick.id || isNaN(parseInt(pick.id)));
-                          
-                          if (localOnlyPicks.length === 0) {
-                            toast({
-                              title: "Data Already Synced",
-                              description: "All picks are already saved to your account",
-                            });
-                            return;
-                          }
-                          
-                          console.log(`Syncing ${localOnlyPicks.length} localStorage-only picks to database`);
-                          
-                          for (const pick of localOnlyPicks) {
-                            await databasePickStorage.savePick({
-                              gameInfo: pick.gameInfo,
-                              betInfo: pick.betInfo,
-                              bookmaker: pick.bookmaker,
-                              betUnitAtTime: pick.betUnitAtTime
-                            });
-                          }
-                          
-                          // Refresh the picks data
-                          queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
-                          
-                          toast({
-                            title: "Data Synced Successfully",
-                            description: `${localOnlyPicks.length} picks synced to your account`,
-                          });
-                        } catch (error) {
-                          console.error('Error syncing data:', error);
-                          toast({
-                            title: "Sync Error",
-                            description: "Failed to sync data. Please try again.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span className="hidden sm:inline">Sync Data</span>
-                      <span className="sm:hidden">Sync</span>
-                    </Button>
                   </div>
 
                   {/* Edit Profile Dialog - Separate from buttons */}

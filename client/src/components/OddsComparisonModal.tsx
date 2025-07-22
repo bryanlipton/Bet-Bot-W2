@@ -67,12 +67,7 @@ export function OddsComparisonModal({
   };
 
   // Find odds for the selected bet across all bookmakers
-  console.log('OddsComparisonModal: Received bookmakers:', bookmakers.length);
-  console.log('OddsComparisonModal: Selected bet:', selectedBet);
-  
   const oddsData = bookmakers.map(bookmaker => {
-    console.log('Processing bookmaker:', bookmaker.key, 'Markets:', bookmaker.markets.map(m => m.key));
-    
     const market = bookmaker.markets.find(m => {
       if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') return m.key === 'h2h';
       if (selectedBet.market === 'spread') return m.key === 'spreads';
@@ -80,18 +75,11 @@ export function OddsComparisonModal({
       return false;
     });
 
-    if (!market) {
-      console.log('No matching market found for bookmaker:', bookmaker.key);
-      return null;
-    }
-    
-    console.log('Found market:', market.key, 'with', market.outcomes.length, 'outcomes');
+    if (!market) return null;
 
     let outcome = market.outcomes.find(o => {
       if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') {
-        const match = o.name === selectedBet.selection;
-        console.log(`Moneyline match check: ${o.name} === ${selectedBet.selection} = ${match}`);
-        return match;
+        return o.name === selectedBet.selection;
       }
       if (selectedBet.market === 'spread') {
         return o.name === selectedBet.selection && 
@@ -105,12 +93,7 @@ export function OddsComparisonModal({
       return false;
     });
 
-    if (!outcome) {
-      console.log('No matching outcome found for selection:', selectedBet.selection, 'Available outcomes:', market.outcomes.map(o => o.name));
-      return null;
-    }
-    
-    console.log('Found matching outcome:', outcome.name, 'odds:', outcome.price);
+    if (!outcome) return null;
 
     // Build the best possible deep link using Odds API data + manual patterns
     const deepLinkResult = buildDeepLink(
