@@ -1003,10 +1003,8 @@ export default function DailyPick() {
       <Card className="hidden md:block w-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
         <CardContent className="p-4 sm:p-6">
           <div className="relative">
-
-
-          {/* Desktop Layout */}
-          <div className="hidden md:flex md:items-center md:justify-between mb-3 md:mb-4">
+            {/* Desktop Header */}
+            <div className="flex items-center justify-between mb-3 md:mb-4">
             <div className="flex items-center space-x-2 md:space-x-4">
               <BetBotIcon className="w-12 md:w-14 h-12 md:h-14 flex-shrink-0" />
               <div>
@@ -1173,6 +1171,22 @@ export default function DailyPick() {
                 P: {currentPitchers[matchup.bottomTeamPitcher] || 'TBD'}
               </p>
             </div>
+
+            {/* Action Buttons for Desktop */}
+            <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
+                className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Pick
+              </button>
+              <button
+                onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam === dailyPick.homeTeam ? dailyPick.awayTeam : dailyPick.homeTeam)}
+                className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
+              >
+                Fade
+              </button>
+            </div>
             <div className="mt-3">
               {/* Game Status Display */}
               {currentGameScore && (
@@ -1228,7 +1242,7 @@ export default function DailyPick() {
                 </button>
               </div>
 
-              {/* Action Buttons for Desktop - Positioned to match Lock Pick layout */}
+              {/* Action Buttons for Mobile */}
               <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
@@ -1272,7 +1286,6 @@ export default function DailyPick() {
               
 
             </div>
-
           </div>
         </div>
         </CardContent>
