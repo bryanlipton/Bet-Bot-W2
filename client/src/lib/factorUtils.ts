@@ -118,40 +118,52 @@ function getGradeExplanation(score: number, factorName: string): string {
   
   switch (factorName) {
     case 'Offensive Production':
-      if (score >= 90) return `xwOBA .340+, barrel rate 7%+, 86+ mph exit velocity`;
-      if (score >= 80) return `xwOBA .310-.339, barrel rate 4.5-6.9%, solid contact`;
-      if (score >= 75) return `xwOBA .300-.309, league average production`;
-      return `xwOBA under .300, below-average offensive metrics`;
+      if (score >= 95) return `Elite offensive dominance: xwOBA >0.360, barrel rate >10%, exit velocity >90 MPH. Team demonstrates exceptional run production efficiency with superior contact quality placing them among the top MLB offensive units.`;
+      if (score >= 90) return `Outstanding offensive metrics: xwOBA 0.340-0.360, barrel rate 7-10%, exit velocity 86-90 MPH. Advanced Baseball Savant data shows excellent contact quality and run-scoring capability well above league standards.`;
+      if (score >= 80) return `Strong offensive production: xwOBA 0.310-0.339, barrel rate 4.5-6.9%, solid exit velocity trends. Team shows reliable run-scoring with multiple offensive weapons and positive advanced metrics.`;
+      if (score >= 75) return `Above-average offensive capabilities: xwOBA 0.300-0.309, decent barrel rates and contact quality. Run production slightly exceeds league averages with balanced offensive approach.`;
+      if (score === 75) return `League-average offensive production: Standard Baseball Savant metrics aligned to MLB norms with typical run-scoring patterns and balanced strengths/weaknesses.`;
+      return `Below-average offensive metrics: xwOBA under 0.300, reduced barrel rates and concerning contact quality. Run production efficiency falls below league standards with limited offensive weapons.`;
     
     case 'Pitching Matchup':
-      if (score >= 90) return `ERA under 3.25, WHIP under 1.20, K/9 over 9.0`;
-      if (score >= 80) return `ERA 3.25-4.25, WHIP 1.20-1.40, decent metrics`;
-      if (score >= 75) return `ERA 4.25-4.75, league average starter`;
-      return `ERA over 4.75, poor pitching metrics`;
+      if (score >= 95) return `Dominant pitching superiority: ERA under 2.75, WHIP under 1.05, strikeout rate >10.0 K/9. Historical matchup data strongly favors our pitcher with opposing lineup struggling against similar styles.`;
+      if (score >= 90) return `Clear pitching advantage: ERA under 3.25, WHIP under 1.20, K/9 over 9.0. Starting pitcher shows superior recent form with excellent metrics and favorable matchup characteristics.`;
+      if (score >= 80) return `Strong pitching edge: ERA 3.25-4.25, WHIP 1.20-1.40, solid strikeout rates 7-9 K/9. Recent performance trends favor our starter with good matchup dynamics against opposing hitters.`;
+      if (score >= 75) return `Moderate pitching advantage: Recent effectiveness and matchup factors provide slight edge. Starting pitcher shows reasonable success against similar offensive profiles.`;
+      if (score === 75) return `Balanced pitching matchup: ERA 4.25-4.75, league average starter performance. Both pitchers show similar recent effectiveness creating neutral expectations.`;
+      return `Pitching disadvantage: ERA over 4.75, concerning metrics with opposing starter showing superior recent form and better historical performance against similar offensive styles.`;
     
     case 'Situational Edge':
-      if (score >= 90) return `Home field (+12 pts) with favorable ballpark factors`;
-      if (score >= 80) return `Minor situational advantages present`;
-      if (score >= 75) return `Neutral situational conditions`;
-      return `Road team or unfavorable conditions`;
+      if (score >= 95) return `Exceptional situational advantages: Optimal ballpark dimensions strongly favoring team style, significant home field advantage, ideal travel/rest patterns, and premium game context creating elite conditions.`;
+      if (score >= 90) return `Strong situational benefits: Home field advantage (+12 pts) with favorable ballpark factors, excellent travel situation, and game context historically producing positive outcomes.`;
+      if (score >= 80) return `Solid situational edge: Moderate home field benefits, favorable ballpark characteristics for team's style, and reasonable travel/scheduling circumstances supporting performance.`;
+      if (score >= 75) return `Minor situational advantages: Some favorable factors including ballpark benefits or scheduling advantages that provide measurable edge while minimizing disadvantages.`;
+      if (score === 75) return `Neutral situational conditions: Balanced game circumstances with standard factors that don't significantly favor either side.`;
+      return `Situational disadvantages: Road team challenges, unfavorable ballpark dimensions, adverse travel circumstances, or game context that may impact performance expectations.`;
     
     case 'Team Momentum':
-      if (score >= 90) return `7-3 or better in L10 games, strong recent form`;
-      if (score >= 80) return `6-4 in L10, slightly positive momentum`;
-      if (score >= 75) return `5-5 in L10, neutral momentum`;
-      return `4-6 or worse in L10, concerning trends`;
+      if (score >= 95) return `Exceptional momentum trajectory: Team performing at elite level significantly above season averages with dominant recent trends, quality wins, and multiple positive performance indicators across all categories.`;
+      if (score >= 90) return `Outstanding recent form: 7-3 or better record in L10 games, strong offensive production trends, excellent run differential, and performance indicators suggesting peak competitive form and confidence.`;
+      if (score >= 80) return `Strong positive momentum: 6-4 recent record with performance exceeding season norms, good directional trends in key statistical categories, and solid competitive results over meaningful sample sizes.`;
+      if (score >= 75) return `Above-average momentum: Recent performance slightly exceeding season baselines with positive trends in key areas and solid competitive results indicating good form.`;
+      if (score === 75) return `Neutral momentum: 5-5 recent record aligning with season averages, typical performance fluctuations without significant hot or cold streaks affecting expectations.`;
+      return `Concerning momentum: 4-6 or worse in L10 games with performance below season standards, negative trends in multiple categories, and results suggesting temporary struggles affecting competitive effectiveness.`;
     
     case 'Market Inefficiency':
-      if (score >= 90) return `5%+ edge over market pricing, strong value`;
-      if (score >= 80) return `1-4% edge, slight value opportunity`;
-      if (score >= 75) return `Fair market pricing, no significant edge`;
-      return `Negative expected value, poor betting line`;
+      if (score >= 95) return `Exceptional betting value: Massive market mispricing detected with 8-12% edge over implied probability. Kelly Criterion analysis indicates optimal positioning with severe bookmaker undervaluation.`;
+      if (score >= 90) return `Premium betting opportunity: 5%+ edge over market pricing representing strong value. Cross-market analysis reveals significant discrepancy between implied and calculated probabilities.`;
+      if (score >= 80) return `Solid betting value: 1-4% edge detected through advanced probability modeling. Market appears to undervalue our selection creating positive expected value conditions.`;
+      if (score >= 75) return `Moderate betting value: Market showing minor inefficiency with small positive edge. Analysis suggests reasonable risk-adjusted return potential.`;
+      if (score === 75) return `Fair market pricing: Odds accurately reflecting calculated probabilities with efficient market conditions and minimal edge in either direction.`;
+      return `Negative expected value: Market significantly overpricing our selection with unfavorable betting conditions. Probability analysis indicates bookmakers have inflated odds beyond fair value.`;
     
     case 'System Confidence':
-      if (score >= 90) return `Complete data, low variance, high certainty`;
-      if (score >= 80) return `Good data quality, minor gaps`;
-      if (score >= 75) return `Standard data quality, normal uncertainty`;
-      return `Poor data quality, high uncertainty`;
+      if (score >= 95) return `Maximum analytical confidence: Comprehensive data availability, exceptional factor consensus, premium information quality, and robust model agreement providing elite prediction reliability.`;
+      if (score >= 90) return `Outstanding system confidence: Complete data coverage, strong analytical consensus, high-quality sources, and minimal uncertainty across all prediction components.`;
+      if (score >= 80) return `High confidence level: Good data quality, reasonable factor alignment, reliable information sources supporting solid prediction reliability with minor uncertainty.`;
+      if (score >= 75) return `Above-average confidence: Adequate data completeness and acceptable information quality with standard analytical uncertainty within normal ranges for quality sports predictions.`;
+      if (score === 75) return `Moderate confidence: Typical sports prediction uncertainty with mixed signals and standard data limitations creating average reliability expectations.`;
+      return `Limited confidence: Significant analytical uncertainties, substantial data gaps, and information quality issues reducing prediction reliability well below acceptable standards.`;
     
     default:
       if (score >= 90) return `Elite performance indicators`;

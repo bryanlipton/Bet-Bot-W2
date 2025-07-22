@@ -1228,8 +1228,8 @@ export default function DailyPick() {
                 </button>
               </div>
 
-              {/* Action Buttons for Desktop - Always Visible */}
-              <div className="flex space-x-3 pt-4">
+              {/* Action Buttons for Desktop - Positioned to match Lock Pick layout */}
+              <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={(e) => handleMakePick(e, 'h2h', dailyPick.pickTeam)}
                   className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
