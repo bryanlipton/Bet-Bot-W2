@@ -225,7 +225,7 @@ export default function DailyPick() {
   const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
-  const [currentOddsIndex, setCurrentOddsIndex] = useState(0); // For cycling through best odds
+  // Removed odds cycling functionality
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
@@ -348,25 +348,17 @@ export default function DailyPick() {
     });
   };
 
-  // Handle clicking on ML odds to cycle through bookmakers
-  const handleOddsClick = () => {
-    const bestOdds = getBestOddsFromBookmakers();
-    if (bestOdds.length > 1) {
-      setCurrentOddsIndex((prev) => (prev + 1) % bestOdds.length);
-    }
-  };
-
-  // Get current odds with cycling capability
+  // Get best odds (no cycling, just display the best)
   const getCurrentOdds = () => {
     const bestOdds = getBestOddsFromBookmakers();
     
     if (bestOdds.length > 0) {
-      const currentOdds = bestOdds[currentOddsIndex % bestOdds.length];
+      const bestOdds_first = bestOdds[0]; // Always use the best odds
       return {
-        homeOdds: dailyPick?.pickTeam === dailyPick?.homeTeam ? currentOdds.odds : null,
-        awayOdds: dailyPick?.pickTeam !== dailyPick?.homeTeam ? currentOdds.odds : null,
-        pickTeamOdds: currentOdds.odds,
-        bookmaker: currentOdds.bookmaker,
+        homeOdds: dailyPick?.pickTeam === dailyPick?.homeTeam ? bestOdds_first.odds : null,
+        awayOdds: dailyPick?.pickTeam !== dailyPick?.homeTeam ? bestOdds_first.odds : null,
+        pickTeamOdds: bestOdds_first.odds,
+        bookmaker: bestOdds_first.bookmaker,
         totalBooks: bestOdds.length
       };
     }
@@ -972,13 +964,9 @@ export default function DailyPick() {
                 <h4 className="font-bold text-sm md:text-lg text-blue-600 dark:text-blue-400 whitespace-nowrap">
                   {matchup.topTeam}
                 </h4>
-                <button 
-                  className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap hover:opacity-80 transition-opacity cursor-pointer"
-                  onClick={handleOddsClick}
-                  title={`Click to cycle through ${getCurrentOdds().totalBooks || 1} bookmaker${(getCurrentOdds().totalBooks || 1) > 1 ? 's' : ''} (${getCurrentOdds().bookmaker || 'Current'})`}
-                >
+                <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
                   {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
-                </button>
+                </span>
               </div>
               <div className="flex-shrink-0 ml-4">
                 {dailyPick.pickType === 'moneyline' && dailyPick.pickTeam === matchup.topTeam && (
