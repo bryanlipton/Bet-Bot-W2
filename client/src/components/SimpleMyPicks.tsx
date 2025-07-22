@@ -56,16 +56,41 @@ export default function SimpleMyPicks() {
     }
   };
 
-  const getStatusBadge = (status: UserPickDisplay['status']) => {
+  const getStatusBadge = (status: UserPickDisplay['status'], pick?: UserPickDisplay) => {
+    const isToday = pick && new Date(pick.gameInfo.gameDate).toDateString() === new Date().toDateString();
+    
     switch (status) {
       case 'pending':
-        return <Badge className="bg-yellow-600 text-white">Pending</Badge>;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge className={`${isToday ? 'bg-blue-600 animate-pulse' : 'bg-yellow-600'} text-white`}>
+              {isToday ? 'Game Today' : 'Pending'}
+            </Badge>
+            {isToday && <span className="text-xs text-blue-600">🔴 Check for live updates</span>}
+          </div>
+        );
       case 'win':
-        return <Badge className="bg-green-600 text-white">Won</Badge>;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge className="bg-green-600 text-white">✓ Won</Badge>
+            {pick?.winAmount && (
+              <span className="text-sm font-medium text-green-600">
+                +{formatCurrency(pick.winAmount * (pick.betUnitAtTime || 50))}
+              </span>
+            )}
+          </div>
+        );
       case 'loss':
-        return <Badge className="bg-red-600 text-white">Lost</Badge>;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge className="bg-red-600 text-white">✗ Lost</Badge>
+            <span className="text-sm font-medium text-red-600">
+              -{formatCurrency(pick?.wagerAmount || 50)}
+            </span>
+          </div>
+        );
       case 'push':
-        return <Badge className="bg-gray-600 text-white">Push</Badge>;
+        return <Badge className="bg-gray-600 text-white">↔ Push</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }

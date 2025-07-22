@@ -3,9 +3,11 @@ import { registerRoutes } from "./routes";
 import { registerOddsRoutes } from "./routes-odds";
 import { registerMLBRoutes } from "./mlb-api";
 import { registerArticleRoutes } from "./article-generator";
+import { registerEnhancedGradingRoutes } from "./routes-enhanced-grading";
 import { dailyScheduler } from "./daily-scheduler";
 import { pickRotationService } from "./services/pickRotationService";
 import { automaticGradingService } from "./services/automaticGradingService";
+import { enhancedPickGradingService } from "./services/enhancedPickGradingService";
 import { setupVite, serveStatic, log } from "./vite";
 
 // Set API key from environment or direct value
@@ -235,6 +237,7 @@ app.post('/api/gpt/matchup', async (req, res) => {
   registerOddsRoutes(app);
   registerMLBRoutes(app);
   registerArticleRoutes(app);
+  registerEnhancedGradingRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
