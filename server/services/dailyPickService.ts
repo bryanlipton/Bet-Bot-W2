@@ -735,11 +735,11 @@ export class DailyPickService {
           game.away_team
         );
 
-        // Filter recommendations that are C+ or better
+        // Filter recommendations that are C+ or better AND moneyline only
         const eligibleRecommendations = recommendations.filter(rec => {
           const gradeValue = this.getGradeValue(rec.grade);
           const minGradeValue = this.getGradeValue('C+');
-          return gradeValue >= minGradeValue;
+          return gradeValue >= minGradeValue && rec.betType === 'moneyline';
         });
 
         if (eligibleRecommendations.length === 0) {
@@ -805,7 +805,7 @@ export class DailyPickService {
     const stabilityCheck = await pickStabilityService.canUpdateDailyPick({});
     if (!stabilityCheck.canUpdate) {
       console.log(`🚫 Daily pick update blocked: ${stabilityCheck.reason}`);
-      return await this.getTodaysDailyPick(); // Return existing pick
+      return await this.getTodaysPick(); // Return existing pick
     }
 
     // Generate picks for all games using bet bot recommendations
@@ -1001,6 +1001,8 @@ export class DailyPickService {
           ...pick,
           pickType: pick.pickType as 'moneyline',
           grade: pick.grade as any, // Type casting for compatibility
+          analysis: pick.analysis as DailyPickAnalysis,
+          probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
           pickDate
         };
@@ -1135,6 +1137,8 @@ export class DailyPickService {
           ...pick,
           pickType: pick.pickType as 'moneyline',
           grade: pick.grade as any, // Type casting for compatibility
+          analysis: pick.analysis as DailyPickAnalysis,
+          probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
           pickDate
         };
