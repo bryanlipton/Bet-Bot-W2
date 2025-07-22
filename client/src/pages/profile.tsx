@@ -189,9 +189,11 @@ export default function ProfilePage() {
       // Generate public feed from API picks with proper data mapping
       const feedItems: PublicFeedItem[] = (userPicks as any[])
         .filter((pick: any) => {
-          // Respect the isPublic toggle - when OFF, hide from profile and feed
-          // When ON, show on profile and feed for both owner and followers
-          return pick.isPublic === true;
+          // FIXED PRIVACY LOGIC:
+          // User should ALWAYS see their own bets (both public and private)
+          // This is the user's own profile, so show ALL bets regardless of privacy toggle
+          // The privacy toggle only affects what followers can see
+          return true; // Show all bets to the profile owner
         })
         .sort((a: any, b: any) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
         .slice(0, 20) // Show latest 20 items

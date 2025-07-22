@@ -117,8 +117,14 @@ export function registerUserProfileRoutes(app: Express) {
     try {
       const { userId } = req.params;
       
-      // Get user's public picks (those marked as showOnFeed = true)
-      const picks = await storage.getUserPicksPublicFeed(userId);
+      // Check if current user is viewing their own profile
+      const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
+      const isOwner = isAuthenticated && (req.user as any)?.claims?.sub === userId;
+      
+      // Get user's picks - if owner, get ALL picks; if follower, get only public picks
+      const picks = isOwner ? 
+        await storage.getUserPicks(userId) : 
+        await storage.getUserPicksPublicFeed(userId);
       
       // Format picks for public feed with complete structure
       const feedItems = picks.map(pick => {
