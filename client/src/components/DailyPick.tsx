@@ -899,18 +899,20 @@ export default function DailyPick() {
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-end space-y-1">
+            <div className="flex flex-col items-end space-y-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-1 h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                className="p-1 h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                 onClick={() => setIsCollapsed(true)}
                 title="Hide pick"
               >
-                <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
-              <div className="flex items-center space-x-2">
-                <GradeBadge grade={dailyPick.grade} />
+              <div className="flex items-center space-x-2 -mt-1">
+                <Badge className="bg-blue-500 hover:bg-blue-500 text-white font-bold px-2 py-0.5 text-xs border rounded cursor-pointer">
+                  {dailyPick.grade}
+                </Badge>
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
