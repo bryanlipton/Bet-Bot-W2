@@ -1126,35 +1126,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="winRatePublic">Do you want to share win rate on profile</Label>
-                            <div className="flex items-center gap-2">
-                              <EyeOff className="w-4 h-4" />
-                              <Switch
-                                id="winRatePublic"
-                                checked={privacySettings.winRatePublic}
-                                onCheckedChange={(checked) => 
-                                  setPrivacySettings({...privacySettings, winRatePublic: checked})
-                                }
-                              />
-                              <Eye className="w-4 h-4" />
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="winStreakPublic">Do you want to share win streak on profile</Label>
-                            <div className="flex items-center gap-2">
-                              <EyeOff className="w-4 h-4" />
-                              <Switch
-                                id="winStreakPublic"
-                                checked={privacySettings.winStreakPublic}
-                                onCheckedChange={(checked) => 
-                                  setPrivacySettings({...privacySettings, winStreakPublic: checked})
-                                }
-                              />
-                              <Eye className="w-4 h-4" />
-                            </div>
-                          </div>
+
                           
 
                         </div>
@@ -1209,7 +1181,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Stats Cards with Privacy Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Total Picks - Always visible to user */}
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
@@ -1240,61 +1212,6 @@ export default function ProfilePage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                     Pending
                     {!userProfile.pendingPicksPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Record (Won-Lost) */}
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-slate-600 dark:text-slate-400" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.wonPicks}-{profileStats.lostPicks}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                    Record
-                    {!userProfile.winRatePublic && <EyeOff className="w-3 h-3 text-gray-500" />}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Win/Loss Money */}
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Trophy className="w-8 h-8 text-green-600 dark:text-green-400" />
-                <div>
-                  <div className={`text-2xl font-bold ${profileStats.totalMoneyWonLost >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {profileStats.totalMoneyWonLost >= 0 ? '+' : ''}${profileStats.totalMoneyWonLost.toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                    Total Win/Loss
-                    {!userProfile.winRatePublic && <EyeOff className="w-3 h-3 text-gray-500" />}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Win Streak with Fire Emoji - Always visible to user */}
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Flame className="w-8 h-8 text-orange-600 dark:text-orange-400" />
-                <div>
-                  <div className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-                    {profileStats.winStreak}
-                    {profileStats.winStreak > 0 && <span>🔥</span>}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                    Win Streak
-                    {!userProfile.winStreakPublic && <EyeOff className="w-3 h-3 text-gray-500" />}
                   </div>
                 </div>
               </div>
