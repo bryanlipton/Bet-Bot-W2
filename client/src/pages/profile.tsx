@@ -170,7 +170,7 @@ export default function ProfilePage() {
     enabled: isAuthenticated,
     retry: false,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache the results
+    gcTime: 0, // Don't cache the results (updated from cacheTime)
   });
 
   // Force cache invalidation on component mount to ensure fresh data
@@ -183,19 +183,19 @@ export default function ProfilePage() {
 
   // Load picks data
   useEffect(() => {
-    if (userPicks.length > 0) {
-      setPicks(userPicks);
+    if (Array.isArray(userPicks) && userPicks.length > 0) {
+      setPicks(userPicks as Pick[]);
       
       // Generate public feed from API picks with proper data mapping
-      const feedItems: PublicFeedItem[] = userPicks
-        .filter(pick => {
-          // Show all picks on user's own profile regardless of showOnProfile setting
-          // The showOnProfile field controls visibility to OTHER users, not the owner
-          return true;
+      const feedItems: PublicFeedItem[] = (userPicks as any[])
+        .filter((pick: any) => {
+          // Respect the isPublic toggle - when OFF, hide from profile and feed
+          // When ON, show on profile and feed for both owner and followers
+          return pick.isPublic === true;
         })
-        .sort((a, b) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
+        .sort((a: any, b: any) => new Date(b.createdAt || b.gameDate || b.timestamp).getTime() - new Date(a.createdAt || a.gameDate || a.timestamp).getTime())
         .slice(0, 20) // Show latest 20 items
-        .map(pick => ({
+        .map((pick: any) => ({
           id: pick.id?.toString() || `pick_${Date.now()}_${Math.random()}`,
           type: 'pick' as const,
           pick: {
