@@ -191,9 +191,12 @@ export default function MyPicksPage() {
 
   // Format bet for database pick
   const formatBet = (pick: any) => {
-    const odds = pick.odds ? formatOdds(pick.odds) : '';
-    const market = pick.market || pick.betInfo?.market || '';
-    const selection = pick.selection || pick.betInfo?.selection || '';
+    // Safely extract values with null checks
+    if (!pick) return 'Unknown';
+    
+    const odds = pick.odds ? formatOdds(pick.odds) : (pick.betInfo?.odds ? formatOdds(pick.betInfo.odds) : '');
+    const market = pick.market || pick.betInfo?.market || 'unknown';
+    const selection = pick.selection || pick.betInfo?.selection || 'Unknown';
     const line = pick.line || pick.betInfo?.line;
     
     if (market === 'parlay') {
@@ -208,6 +211,9 @@ export default function MyPicksPage() {
     }
     if (market === 'over' || market === 'under') {
       return `${market === 'over' ? 'Over' : 'Under'} ${line || ''} ${odds}`;
+    }
+    if (market === 'total') {
+      return `${selection === 'Over' || selection === 'Under' ? selection : 'Total'} ${line || ''} ${odds}`;
     }
     return `${selection} ${market} ${odds}`;
   };
