@@ -261,7 +261,7 @@ export function ActionStyleDashboard() {
 
       {/* Bet Bot Sports Genie AI Picks - Prominently positioned at top for logged in users */}
       {isAuthenticated && (
-        <div className="space-y-3 mb-4 sm:mb-6 -mt-1 sm:mt-0">
+        <div className="space-y-3 mb-4 sm:mb-6 mt-2 sm:mt-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 md:gap-3">
             <div className="flex-1">
               <h2 className="text-base sm:text-lg md:text-lg lg:text-xl font-bold text-gray-900 dark:text-white underline">
