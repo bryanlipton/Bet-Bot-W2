@@ -34,12 +34,16 @@ interface FeedPick {
   line?: string;
   odds: number;
   units: number;
-  bookmakerDisplayName: string;
   status: 'pending' | 'win' | 'loss' | 'push';
-  winAmount?: number;
   createdAt: string;
   gameDate?: string;
   gradedAt?: string;
+  parlayLegs?: Array<{
+    game: string;
+    selection: string;
+    market: string;
+    line?: string | number;
+  }>;
 }
 
 export default function MyFeedPage() {
@@ -175,7 +179,7 @@ export default function MyFeedPage() {
         </div>
 
         {/* Feed Content */}
-        {feedPicks.length === 0 ? (
+        {(feedPicks as FeedPick[]).length === 0 ? (
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-8 text-center">
               <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
@@ -193,7 +197,7 @@ export default function MyFeedPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {feedPicks.map((pick: FeedPick) => (
+            {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
               <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
@@ -254,7 +258,7 @@ export default function MyFeedPage() {
                                   <div className="font-medium text-gray-900 dark:text-white">{leg.game}</div>
                                   <div className="text-blue-600 dark:text-blue-400">
                                     {leg.selection}
-                                    {leg.market === 'spread' && leg.line ? ` ${leg.line > 0 ? '+' : ''}${leg.line}` : ''}
+                                    {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
                                     {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
                                     {leg.market === 'moneyline' ? ' ML' : ''}
                                   </div>
@@ -293,16 +297,10 @@ export default function MyFeedPage() {
                             </div>
                           </div>
                         )}
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          via {pick.bookmakerDisplayName}
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                          Game Time: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'} • Bet Placed: {formatTimeAgo(pick.createdAt)}
                         </div>
                       </div>
-                      
-                      {pick.status === 'win' && pick.winAmount && (
-                        <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                          Won: ${pick.winAmount.toFixed(2)}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </CardContent>

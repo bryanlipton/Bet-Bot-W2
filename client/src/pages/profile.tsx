@@ -1309,7 +1309,7 @@ export default function ProfilePage() {
                                 </div>
                               )}
                               <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                                {item.pick.units || item.pick.betInfo?.units || 1} units • {item.pick.bookmakerDisplayName || item.pick.bookmaker?.displayName || 'Manual Entry'}
+                                {item.pick.units || item.pick.betInfo?.units || 1} unit{(item.pick.units || item.pick.betInfo?.units || 1) !== 1 ? 's' : ''} • Game Time: {item.pick.gameDate ? new Date(item.pick.gameDate).toLocaleDateString() : 'TBD'} • Bet Placed: {formatTime(item.pick.createdAt)}
                               </div>
                               
                               {/* Single bet visibility control */}
