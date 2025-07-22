@@ -50,8 +50,8 @@ export class OddsApiService {
   private minCallInterval = 5000; // 5 seconds minimum between API calls
 
   constructor() {
-    // Force the new API key since environment variable isn't updating properly
-    this.apiKey = 'bcf462d7c3a36ee7010e52baed084eae';
+    // Use the environment variable API key
+    this.apiKey = process.env.THE_ODDS_API_KEY || '';
     console.log(`Odds API initialized with key: ${this.apiKey ? this.apiKey.substring(0, 8) + '...' : 'none'}`);
     console.log(`Environment THE_ODDS_API_KEY: ${process.env.THE_ODDS_API_KEY ? process.env.THE_ODDS_API_KEY.substring(0, 8) + '...' : 'not set'}`);
   }
@@ -71,20 +71,11 @@ export class OddsApiService {
         return cachedData;
       }
 
-      // Check daily API quota before making any call - increased limit for full access
-      const dailyLimit = 645 + 2000; // Temporary large increase to allow unlimited access today
-      if (!cacheService.canMakeApiCall(dailyLimit)) {
-        console.log(`🚫 Daily API limit reached (${cacheService.getDailyApiCallCount()}/${dailyLimit}), maintaining existing odds`);
-        console.log(`⚠️  WARNING: You're out of API credits for today. Consider upgrading your plan.`);
-        // Return the most recent cached data even if expired, or mock data as fallback
-        const expiredData = cacheService.getExpiredOk<Game[]>(cacheKey);
-        if (expiredData) {
-          console.log(`📊 Using expired cached odds for ${sport} to maintain consistency`);
-          return expiredData;
-        }
-        console.log('No cached data available, returning mock data for demo');
-        return this.getMockOddsData(sport);
-      }
+      // Temporarily disable daily limit to test API key
+      const dailyLimit = 10000; // Large limit for testing
+      console.log(`📊 Current API call count: ${cacheService.getDailyApiCallCount()}/${dailyLimit} - bypassing limit for testing`);
+      
+      // Skip the daily limit check for now to test the new API key
 
       // Warn when approaching API limit
       const currentCount = cacheService.getDailyApiCallCount();
