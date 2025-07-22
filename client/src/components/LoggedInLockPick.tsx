@@ -936,7 +936,7 @@ export default function LoggedInLockPick() {
                 <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
               <div className="flex items-center space-x-2 -mt-1">
-                <Badge className="bg-gray-500 hover:bg-gray-500 text-white font-bold px-2 py-0.5 text-xs border rounded cursor-pointer">
+                <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
                   {lockPick.grade}
                 </Badge>
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
