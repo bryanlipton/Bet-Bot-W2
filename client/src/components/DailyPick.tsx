@@ -636,7 +636,7 @@ export default function DailyPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
                     dailyPick.grade === 'A+' ? 'bg-blue-500' :
                     dailyPick.grade === 'A' ? 'bg-blue-400' :
                     dailyPick.grade.startsWith('B') ? 'bg-blue-300' :

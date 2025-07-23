@@ -549,7 +549,7 @@ export default function LoggedInLockPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
                     lockPick.grade === 'A+' ? 'bg-amber-500' :
                     lockPick.grade === 'A' ? 'bg-amber-400' :
                     lockPick.grade.startsWith('B') ? 'bg-amber-300' :
@@ -953,7 +953,7 @@ export default function LoggedInLockPick() {
                 <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
               <div className="flex items-center space-x-2 -mt-1">
-                <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
+                <Badge className="bg-amber-500 hover:bg-amber-500 text-black font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
                   {lockPick.grade}
                 </Badge>
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
