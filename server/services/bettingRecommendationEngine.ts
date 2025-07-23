@@ -59,8 +59,6 @@ export class BettingRecommendationEngine {
     // Constrain predicted probability to realistic range (no higher than 80%)
     const constrainedProb = Math.min(0.80, Math.max(0.20, predictedProb));
     
-    console.log(`🔍 EV Calculation Debug: predictedProb=${predictedProb}, constrainedProb=${constrainedProb}, odds=${odds}`);
-    
     const payoutMultiplier = odds > 0 ? (odds / 100) : (100 / Math.abs(odds));
     
     // EV = (Probability of Win × Profit) - (Probability of Loss × Loss)
@@ -69,11 +67,7 @@ export class BettingRecommendationEngine {
     
     // Convert to ROI percentage and constrain to reasonable range (max ±20%)
     const expectedValue = expectedProfit * 100;
-    const finalValue = Math.max(-20, Math.min(20, expectedValue));
-    
-    console.log(`🔍 EV Final: expectedProfit=${expectedProfit}, expectedValue=${expectedValue}, finalValue=${finalValue}`);
-    
-    return finalValue;
+    return Math.max(-20, Math.min(20, expectedValue));
   }
 
   /**
