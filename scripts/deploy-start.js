@@ -24,7 +24,7 @@ console.log('===============================');
 // Check if we should run in development mode
 const isDevelopment = process.env.NODE_ENV !== 'production' && !process.env.FORCE_PRODUCTION;
 
-if (isDevelopment) {
+async function startDevelopmentServer() {
   console.log('🔧 Starting in DEVELOPMENT mode...');
   console.log('📦 Running tsx server/index.ts directly...');
   
@@ -50,10 +50,25 @@ if (isDevelopment) {
   });
 
   // Keep the process alive to maintain the spawned development server
-} else {
+  process.on('SIGTERM', () => {
+    devProcess.kill('SIGTERM');
+    process.exit(0);
+  });
+  
+  process.on('SIGINT', () => {
+    devProcess.kill('SIGINT');
+    process.exit(0);
+  });
+  
+  // Keep the main process alive
+  await new Promise(() => {});
 }
 
-console.log('🏗️ Starting in PRODUCTION mode...');
+if (isDevelopment) {
+  startDevelopmentServer();
+} else {
+  // Only reach here if NOT in development mode
+  console.log('🏗️ Starting in PRODUCTION mode...');
 console.log('================================================');
 
 async function runCommand(command, args, description) {
@@ -273,4 +288,5 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-main();
+  main();
+}
