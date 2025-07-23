@@ -16,12 +16,12 @@ export class PickRotationService {
   }
 
   private startGameStatusMonitoring() {
-    // Check game status every 30 minutes to reduce pick changes
+    // Check game status every 30 minutes for grading completed games
     this.checkInterval = setInterval(async () => {
       await this.checkAndRotatePicks();
     }, 30 * 60 * 1000);
 
-    console.log('🔄 Game status monitoring started - checking every 30 minutes for stability');
+    console.log('🔍 Pick grading monitoring started - checking every 30 minutes for completed games');
   }
 
   private scheduleDailyReset() {
@@ -70,38 +70,96 @@ export class PickRotationService {
 
   private async checkAndRotatePicks() {
     try {
-      console.log('🔍 Checking if current picks need rotation...');
+      console.log('🔍 Checking pick status for grading and live updates...');
       
       // Get current daily pick and lock pick
       const currentDailyPick = await dailyPickService.getTodaysPick();
       const currentLockPick = await dailyPickService.getTodaysLockPick();
 
-      let rotationNeeded = false;
-
-      // Check daily pick
+      // Check for games that have completed and need grading
       if (currentDailyPick) {
         const gameStatus = await this.getGameStatus(currentDailyPick.gameId);
-        if (gameStatus && (gameStatus.status === 'in_progress' || gameStatus.status === 'completed')) {
-          console.log(`🔄 Daily pick game ${currentDailyPick.gameId} has started/completed - rotation needed`);
-          rotationNeeded = true;
+        if (gameStatus && gameStatus.status === 'completed') {
+          console.log(`✅ Daily pick game ${currentDailyPick.gameId} completed - checking for grading`);
+          await this.gradeCompletedPick(currentDailyPick, 'daily');
         }
       }
 
-      // Check lock pick
       if (currentLockPick) {
         const gameStatus = await this.getGameStatus(currentLockPick.gameId);
-        if (gameStatus && (gameStatus.status === 'in_progress' || gameStatus.status === 'completed')) {
-          console.log(`🔄 Lock pick game ${currentLockPick.gameId} has started/completed - rotation needed`);
-          rotationNeeded = true;
+        if (gameStatus && gameStatus.status === 'completed') {
+          console.log(`✅ Lock pick game ${currentLockPick.gameId} completed - checking for grading`);
+          await this.gradeCompletedPick(currentLockPick, 'lock');
         }
       }
 
-      if (rotationNeeded) {
-        await this.generateNewDailyPicks();
-      }
+      // Note: Picks now stay visible for full 24-hour cycle regardless of game status
+      // No more automatic replacement when games go live
 
     } catch (error) {
-      console.error('❌ Error checking pick rotation:', error);
+      console.error('❌ Error checking pick status:', error);
+    }
+  }
+
+  private async gradeCompletedPick(pick: any, pickType: 'daily' | 'lock') {
+    try {
+      // Get game result to grade the pick
+      const gameResult = await this.getGameResult(pick.gameId);
+      if (!gameResult) {
+        console.log(`⚠️ Game result not available for ${pick.gameId}`);
+        return;
+      }
+
+      // Determine if pick won or lost
+      const pickWon = gameResult.winner === pick.pickTeam;
+      const result = pickWon ? 'won' : 'lost';
+
+      console.log(`📊 Grading ${pickType} pick: ${pick.pickTeam} ${result} (${gameResult.homeScore}-${gameResult.awayScore})`);
+
+      // Update pick status in database and push to feed
+      await dailyPickService.gradeAndPushToFeed(pick, result, gameResult);
+
+    } catch (error) {
+      console.error(`❌ Error grading ${pickType} pick:`, error);
+    }
+  }
+
+  private async getGameResult(gameId: string): Promise<{
+    winner: string;
+    homeScore: number;
+    awayScore: number;
+    homeTeam: string;
+    awayTeam: string;
+  } | null> {
+    try {
+      // Get completed game data from MLB scores API
+      const response = await fetch(`http://localhost:5000/api/mlb/scores/${new Date().toISOString().split('T')[0]}`);
+      const games = await response.json();
+      
+      const game = games.find((g: any) => 
+        g.gameId?.toString() === gameId || 
+        g.id === gameId
+      );
+      
+      if (!game || game.status !== 'completed') {
+        return null;
+      }
+
+      const homeScore = parseInt(game.homeScore || game.home_score || '0');
+      const awayScore = parseInt(game.awayScore || game.away_score || '0');
+      const winner = homeScore > awayScore ? game.homeTeam || game.home_team : game.awayTeam || game.away_team;
+
+      return {
+        winner,
+        homeScore,
+        awayScore,
+        homeTeam: game.homeTeam || game.home_team,
+        awayTeam: game.awayTeam || game.away_team
+      };
+
+    } catch (error) {
+      console.error(`❌ Error getting game result for ${gameId}:`, error);
+      return null;
     }
   }
 

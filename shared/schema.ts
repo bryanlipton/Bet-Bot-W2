@@ -276,6 +276,9 @@ export const dailyPicks = pgTable("daily_picks", {
   venue: text("venue").notNull(),
   probablePitchers: json("probable_pitchers").notNull(),
   pickDate: timestamp("pick_date").notNull(),
+  status: text("status").default("pending"), // "pending", "won", "lost"
+  finalScore: text("final_score"), // Final game score when completed
+  gradedAt: timestamp("graded_at"), // When the pick was graded
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -296,6 +299,9 @@ export const loggedInLockPicks = pgTable("logged_in_lock_picks", {
   venue: text("venue").notNull(),
   probablePitchers: json("probable_pitchers").notNull(),
   pickDate: timestamp("pick_date").notNull(),
+  status: text("status").default("pending"), // "pending", "won", "lost"
+  finalScore: text("final_score"), // Final game score when completed
+  gradedAt: timestamp("graded_at"), // When the pick was graded
   createdAt: timestamp("created_at").defaultNow(),
 });
 

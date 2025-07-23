@@ -40,6 +40,54 @@ export interface DailyPick {
 }
 
 export class DailyPickService {
+  
+  async gradeAndPushToFeed(pick: any, result: 'won' | 'lost', gameResult: any) {
+    try {
+      console.log(`📊 Grading pick ${pick.id}: ${pick.pickTeam} ${result}`);
+      
+      // Update pick status in the appropriate table
+      if (pick.id.startsWith('pick_')) {
+        // Daily pick
+        await db.update(dailyPicks)
+          .set({
+            status: result,
+            finalScore: `${gameResult.homeScore}-${gameResult.awayScore}`,
+            gradedAt: new Date()
+          })
+          .where(eq(dailyPicks.id, pick.id));
+      } else if (pick.id.startsWith('lock_')) {
+        // Lock pick  
+        await db.update(loggedInLockPicks)
+          .set({
+            status: result,
+            finalScore: `${gameResult.homeScore}-${gameResult.awayScore}`,
+            gradedAt: new Date()
+          })
+          .where(eq(loggedInLockPicks.id, pick.id));
+      }
+
+      // Create feed entry for followers to see
+      const feedEntry = {
+        userId: 'system', // System picks visible to all followers
+        pickTeam: pick.pickTeam,
+        odds: pick.odds,
+        grade: pick.grade,
+        confidence: pick.confidence,
+        result: result,
+        gameResult: `${gameResult.homeTeam} ${gameResult.homeScore} - ${gameResult.awayScore} ${gameResult.awayTeam}`,
+        pickType: pick.id.startsWith('pick_') ? 'Daily Pick' : 'Lock Pick',
+        createdAt: new Date()
+      };
+
+      // TODO: Add to feed table when feed system is implemented
+      console.log(`📤 Feed entry ready:`, feedEntry);
+      
+      return true;
+    } catch (error) {
+      console.error(`❌ Error grading pick ${pick.id}:`, error);
+      return false;
+    }
+  }
   private normalizeToGradingScale(score: number): number {
     // Normalize 0-100 raw score to 60-100 grading scale
     // This ensures proper letter grade distribution (A+ through D)

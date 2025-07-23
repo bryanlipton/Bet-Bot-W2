@@ -76,6 +76,9 @@ interface DailyPick {
   };
   createdAt: string;
   pickDate: string;
+  status?: 'pending' | 'won' | 'lost';
+  finalScore?: string;
+  gradedAt?: string;
 }
 
 interface PickAnalysisDetails {
@@ -262,6 +265,17 @@ const formatOdds = (odds: number) => {
 const formatGameTime = (gameTime: string) => {
   return new Date(gameTime).toLocaleString();
 };
+
+// Helper function to determine game status
+function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
+  const now = new Date();
+  const gameStart = new Date(gameTime);
+  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
+  
+  if (now < gameStart) return 'upcoming';
+  if (now >= gameStart && now < gameEnd) return 'live';
+  return 'completed';
+}
 
 export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);

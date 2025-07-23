@@ -80,6 +80,9 @@ interface DailyPick {
   };
   createdAt: string;
   pickDate: string;
+  status?: 'pending' | 'won' | 'lost';
+  finalScore?: string;
+  gradedAt?: string;
 }
 
 interface PickAnalysisDetails {
