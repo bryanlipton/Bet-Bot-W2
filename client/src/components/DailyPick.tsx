@@ -330,7 +330,7 @@ export default function DailyPick() {
     const handleCollapseAnalysis = (e: any) => {
       if (e.detail?.source === 'lock') {
         console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
-        setDailyPickLargeOpen(false);
+        setDailyPickLargeOpen(e.detail.collapsed);
       }
     };
     
@@ -1219,9 +1219,9 @@ export default function DailyPick() {
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
                 </p>
-                {/* Analysis dropdown toggle for all screen sizes */}
+                {/* Analysis dropdown toggle for medium and smaller screens */}
                 <button
-                  className="flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="xl:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
                   {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
@@ -1231,13 +1231,57 @@ export default function DailyPick() {
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
                 </button>
+                
+                {/* Desktop analysis toggle for side-by-side layout */}
+                <button
+                  className="hidden xl:flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  onClick={() => {
+                    const newValue = !dailyPickLargeOpen;
+                    setDailyPickLargeOpen(newValue);
+                    // Dispatch event to collapse both analysis sections synchronously
+                    window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { 
+                      detail: { source: 'daily', collapsed: !newValue } 
+                    }));
+                  }}
+                >
+                  {dailyPickLargeOpen ? 'Hide' : 'Show'} Analysis
+                  {dailyPickLargeOpen ? (
+                    <ChevronUp className="w-3 h-3 ml-1" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
               </div>
 
-
-
-              {/* Analysis factors dropdown (all screen sizes) */}
+              {/* Analysis factors - Medium screens and below (dropdown) */}
               {mobileAnalysisOpen && (
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="xl:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
+                    Analysis Factors
+                  </h5>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                    {factors.map(({ key, title, score, info }) => {
+                      // Create context for narrative generation
+                      const gameContext = {
+                        isHomeGame: dailyPick.pickTeam === dailyPick.homeTeam,
+                        opponentHandedness: 'RHP' as const, // Could be enhanced with real data
+                        starterERA: 4.0, // Could be enhanced with real pitcher data
+                        last10Record: '7-3', // Could be enhanced with real team data
+                        offensiveStats: {
+                          xwOBA: 0.330,
+                          barrelRate: 6.5,
+                          exitVelo: 87.2
+                        }
+                      };
+                      return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Analysis factors - Desktop side-by-side layout */}
+              {dailyPickLargeOpen && (
+                <div className="hidden xl:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
