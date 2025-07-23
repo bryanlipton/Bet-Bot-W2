@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+/**
+ * DEPLOYMENT SOLUTION FOR REPLIT
+ * 
+ * This script solves the critical deployment path mismatch issue:
+ * - Build creates: dist/public/ (frontend) + dist/index.js (server)
+ * - Server expects: server/public/ (for static serving)
+ * 
+ * This runs automatically during deployment to fix the path issue.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,38 +17,66 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 Production Start Script');
-console.log('==========================');
-
-// Set working directory to the project root
-const projectRoot = '/home/runner/workspace';
-process.chdir(projectRoot);
-
-console.log('📍 Working directory set to:', process.cwd());
-
-// Check for required files
-const distPath = path.join(projectRoot, 'dist');
-const indexPath = path.join(distPath, 'index.js');
-
-if (!fs.existsSync(indexPath)) {
-  console.error('❌ ERROR: dist/index.js not found!');
-  console.error('   Expected path:', indexPath);
-  console.error('   Current directory:', process.cwd());
-  process.exit(1);
+function ensureDeploymentFiles() {
+  console.log('🔧 DEPLOYMENT FIX: Ensuring files are in correct locations...');
+  
+  const distPublicPath = path.join(__dirname, 'dist', 'public');
+  const serverPublicPath = path.join(__dirname, 'server', 'public');
+  
+  // Check if files need to be copied
+  if (fs.existsSync(distPublicPath) && !fs.existsSync(serverPublicPath)) {
+    console.log('📁 Copying static files from dist/public to server/public...');
+    
+    // Create server/public directory
+    fs.mkdirSync(serverPublicPath, { recursive: true });
+    
+    // Copy all files recursively
+    function copyRecursive(src, dest) {
+      const entries = fs.readdirSync(src, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        
+        if (entry.isDirectory()) {
+          fs.mkdirSync(destPath, { recursive: true });
+          copyRecursive(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+      }
+    }
+    
+    copyRecursive(distPublicPath, serverPublicPath);
+    console.log('✅ Static files copied successfully!');
+    
+    // Verify the copy worked
+    const indexFile = path.join(serverPublicPath, 'index.html');
+    if (fs.existsSync(indexFile)) {
+      console.log('✅ Verified: index.html exists in server/public/');
+    } else {
+      console.error('❌ Copy failed: index.html not found in server/public/');
+      process.exit(1);
+    }
+    
+  } else if (fs.existsSync(serverPublicPath)) {
+    console.log('✅ Static files already exist in server/public/');
+  } else {
+    console.error('❌ DEPLOYMENT ERROR: No build files found in dist/public/');
+    console.error('   Make sure "npm run build" completed successfully');
+    process.exit(1);
+  }
+  
+  // Verify server bundle exists
+  const serverFile = path.join(__dirname, 'dist', 'index.js');
+  if (!fs.existsSync(serverFile)) {
+    console.error('❌ DEPLOYMENT ERROR: Server bundle not found at dist/index.js');
+    console.error('   Make sure "npm run build" completed successfully');
+    process.exit(1);
+  }
+  
+  console.log('✅ DEPLOYMENT FIX COMPLETE: All files verified and ready');
 }
 
-console.log('✅ Found dist/index.js');
-
-// Set production environment
-process.env.NODE_ENV = 'production';
-console.log('✅ Environment set to production');
-
-// Import and start the server
-try {
-  console.log('🚀 Starting production server...');
-  await import('./dist/index.js');
-} catch (error) {
-  console.error('❌ ERROR: Failed to start server:', error.message);
-  console.error('   Stack:', error.stack);
-  process.exit(1);
-}
+// Run the deployment fix
+ensureDeploymentFiles();
