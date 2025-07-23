@@ -803,6 +803,11 @@ export default function LoggedInLockPick() {
 
   const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
   const factors = getFactors(lockPick.analysis, lockPick.probablePitchers);
+  
+  // Debug logging
+  console.log('LoggedInLockPick: factors data:', factors);
+  console.log('LoggedInLockPick: factors.length:', factors.length);
+  console.log('LoggedInLockPick: lockPickLargeOpen:', lockPickLargeOpen);
 
   return (
     <>
@@ -1217,7 +1222,8 @@ export default function LoggedInLockPick() {
 
               {/* Analysis factors - Desktop side-by-side layout */}
               {lockPickLargeOpen && (
-                <div className="hidden lg:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+                     style={{backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '2px solid #f59e0b'}}>
                   <h5 className="font-semibold text-sm text-amber-600 dark:text-amber-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
