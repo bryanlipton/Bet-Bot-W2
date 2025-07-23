@@ -339,8 +339,8 @@ export default function DailyPick() {
   useEffect(() => {
     const handleCollapseAnalysis = (e: any) => {
       if (e.detail?.source === 'lock') {
-        console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
-        setDailyPickLargeOpen(e.detail.collapsed);
+        console.log('DailyPick: Received sync event from LoggedInLockPick, syncing state');
+        setDailyPickLargeOpen(e.detail.expanded);
       }
     };
     
@@ -1263,9 +1263,9 @@ export default function DailyPick() {
                   onClick={() => {
                     const newValue = !dailyPickLargeOpen;
                     setDailyPickLargeOpen(newValue);
-                    // Dispatch event to collapse both analysis sections synchronously
+                    // Dispatch event to sync both analysis sections
                     window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { 
-                      detail: { source: 'daily', collapsed: !newValue } 
+                      detail: { source: 'daily', expanded: newValue } 
                     }));
                   }}
                 >
