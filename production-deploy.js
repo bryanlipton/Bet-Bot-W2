@@ -122,6 +122,37 @@ async function verifyBuild() {
   console.log(`✅ Server bundle verified: ${sizeKB}KB`);
 }
 
+async function fixStaticServing() {
+  console.log('🔧 Fixing static file serving paths...');
+  
+  // Ensure server/public exists
+  if (!fs.existsSync('server/public')) {
+    fs.mkdirSync('server/public', { recursive: true });
+  }
+  
+  // Copy files from dist/public to server/public
+  if (fs.existsSync('dist/public')) {
+    // Copy recursively
+    function copyRecursively(src, dest) {
+      if (fs.statSync(src).isDirectory()) {
+        if (!fs.existsSync(dest)) {
+          fs.mkdirSync(dest, { recursive: true });
+        }
+        fs.readdirSync(src).forEach(item => {
+          copyRecursively(path.join(src, item), path.join(dest, item));
+        });
+      } else {
+        fs.copyFileSync(src, dest);
+      }
+    }
+    
+    copyRecursively('dist/public', 'server/public');
+    console.log('✅ Static files copied to server/public');
+  } else {
+    console.log('⚠️  No dist/public found, skipping static file copy');
+  }
+}
+
 async function startServer() {
   console.log('🚀 Starting production server...');
   console.log(`📡 Server will be available on port ${PORT}`);
@@ -160,6 +191,7 @@ async function main() {
   try {
     await createMinimalBuild();
     await verifyBuild();
+    await fixStaticServing();
     await startServer();
   } catch (error) {
     console.error('❌ DEPLOYMENT FAILED');
