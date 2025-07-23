@@ -327,7 +327,9 @@ export default function LoggedInLockPick() {
   const isGameStarted = (gameTime: string) => {
     const now = new Date();
     const game = new Date(gameTime);
-    return now > game;
+    // Add 15-minute buffer before considering game "started" to match DailyPick logic
+    const startWithBuffer = new Date(game.getTime() + (15 * 60 * 1000));
+    return now > startWithBuffer;
   };
 
   // Get best odds from all available bookmakers

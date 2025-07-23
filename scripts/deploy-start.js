@@ -49,7 +49,8 @@ if (isDevelopment) {
     process.exit(code);
   });
 
-  return; // Exit early for development
+  // Exit early for development
+  process.exit(0);
 }
 
 console.log('🏗️ Starting in PRODUCTION mode...');

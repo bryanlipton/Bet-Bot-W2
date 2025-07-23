@@ -272,8 +272,11 @@ function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
   const gameStart = new Date(gameTime);
   const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
   
-  if (now < gameStart) return 'upcoming';
-  if (now >= gameStart && now < gameEnd) return 'live';
+  // Add 15-minute buffer before considering game "live" to account for pre-game activities
+  const liveStartTime = new Date(gameStart.getTime() + (15 * 60 * 1000));
+  
+  if (now < liveStartTime) return 'upcoming';
+  if (now >= liveStartTime && now < gameEnd) return 'live';
   return 'completed';
 }
 
@@ -354,7 +357,9 @@ export default function DailyPick() {
   const isGameStarted = (gameTime: string) => {
     const now = new Date();
     const game = new Date(gameTime);
-    return now > game;
+    // Add 15-minute buffer before considering game "started" to match getGameStatus
+    const startWithBuffer = new Date(game.getTime() + (15 * 60 * 1000));
+    return now > startWithBuffer;
   };
 
   // Get current pitcher information from the latest game data
