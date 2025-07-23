@@ -239,7 +239,17 @@ export function getMainGradeExplanation(
   const eliteFactors = factors.filter(f => f.score >= 90).length;
   const strongFactors = factors.filter(f => f.score >= 80).length;
 
-  let explanation = `This ${grade} grade reflects ${confidence}% model confidence in ${pickTeam}. `;
+  // Create grade-specific confident opening statements
+  let explanation = '';
+  if (grade === 'A+' || grade === 'A') {
+    explanation = `${pickTeam} represents a premium ${grade}-rated opportunity with ${confidence}% analytical certainty - our highest conviction play. `;
+  } else if (grade === 'B+' || grade === 'B') {
+    explanation = `${pickTeam} shows exceptional ${grade} value with ${confidence}% model certainty for significant profit potential. `;
+  } else if (grade === 'C+' || grade === 'C') {
+    explanation = `${pickTeam} offers solid ${grade} betting value backed by ${confidence}% analytical confidence. `;
+  } else {
+    explanation = `${pickTeam} presents a calculated ${grade} opportunity with ${confidence}% model support. `;
+  }
   
   explanation += `Our analysis shows the market odds of ${oddsDisplay} imply a ${marketProb.toFixed(1)}% win probability, `;
   explanation += `while our model projects ${modelProb.toFixed(1)}%, creating a ${edge.toFixed(1)}% edge. `;
