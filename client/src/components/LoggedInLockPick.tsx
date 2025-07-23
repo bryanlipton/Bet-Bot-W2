@@ -271,7 +271,17 @@ export default function LoggedInLockPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
-  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
+  // Start expanded for side-by-side, but collapsed if user has seen either pick before
+  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(() => {
+    try {
+      const hasSeenDailyPick = localStorage.getItem('hasSeenDailyPick');
+      const hasSeenLockPick = localStorage.getItem('hasSeenLockPick');
+      // Start expanded only if user has never seen either pick before
+      return hasSeenDailyPick !== 'true' && hasSeenLockPick !== 'true';
+    } catch {
+      return true; // Default to expanded if localStorage fails
+    }
+  });
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false); // Manual collapse state
   // Removed odds cycling functionality
@@ -334,6 +344,17 @@ export default function LoggedInLockPick() {
       
       // Track this visit for analytics
       trackPickVisit(lockPick.id);
+    }
+  }, [lockPick?.id]);
+
+  // Mark Lock Pick as seen after component loads
+  useEffect(() => {
+    if (lockPick?.id) {
+      try {
+        localStorage.setItem('hasSeenLockPick', 'true');
+      } catch (error) {
+        console.warn('Failed to save Lock Pick seen status:', error);
+      }
     }
   }, [lockPick?.id]);
 
