@@ -1,6 +1,6 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
 
-run = "npm run deploy-start"
+run = "npm run dev" # or use deploy-start for production
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -11,6 +11,13 @@ run = ["npm", "run", "deploy-start"]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5001
-externalPort = 3000
+[workflows]
+runButton = "Start App"
+
+[[workflows.workflow]]
+name = "Start App"
+mode = "replace"
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
