@@ -63,15 +63,74 @@ async function verifyBuildOutput() {
   return true;
 }
 
+async function checkViteDependency() {
+  try {
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const hasVite = packageJson.devDependencies?.vite || packageJson.dependencies?.vite;
+    
+    if (!hasVite) {
+      console.error('❌ Critical: Vite not found in package.json dependencies');
+      process.exit(1);
+    }
+    
+    console.log(`✅ Vite dependency verified: ${hasVite}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Error reading package.json:', error.message);
+    return false;
+  }
+}
+
 async function main() {
   try {
-    // Step 1: Install dependencies
-    await runCommand('npm', ['install'], 'Installing dependencies');
+    console.log('🔍 Checking project configuration...');
     
-    // Step 2: Build the application
-    await runCommand('npm', ['run', 'build'], 'Building application');
+    // Step 0: Verify Vite dependency exists
+    await checkViteDependency();
     
-    // Step 3: Verify build output
+    // Step 1: Install dependencies with error handling
+    console.log('📦 Installing dependencies...');
+    try {
+      await runCommand('npm', ['install'], 'Installing dependencies');
+    } catch (error) {
+      console.log('⚠️ Regular install failed, trying with --force...');
+      await runCommand('npm', ['install', '--force'], 'Force installing dependencies');
+    }
+    
+    // Step 1.5: Verify Vite is accessible
+    console.log('🔧 Verifying Vite installation...');
+    try {
+      await runCommand('npx', ['vite', '--version'], 'Checking Vite version');
+    } catch (error) {
+      console.error('❌ Vite verification failed - this is the core issue');
+      throw new Error('Vite not accessible after installation');
+    }
+    
+    // Step 2: Clean build directories
+    console.log('🧹 Cleaning build directories...');
+    if (fs.existsSync('dist')) {
+      fs.rmSync('dist', { recursive: true, force: true });
+    }
+    if (fs.existsSync('server/public')) {
+      fs.rmSync('server/public', { recursive: true, force: true });
+    }
+    
+    // Step 3: Build the application manually (avoiding npm run build)
+    console.log('⚡ Building frontend with Vite...');
+    await runCommand('npx', ['vite', 'build'], 'Building frontend');
+    
+    console.log('🔧 Building backend with esbuild...');
+    await runCommand('npx', [
+      'esbuild', 
+      'server/index.ts',
+      '--platform=node',
+      '--packages=external', 
+      '--bundle',
+      '--format=esm',
+      '--outdir=dist'
+    ], 'Building backend');
+    
+    // Step 4: Verify build output
     await verifyBuildOutput();
     
     // Step 4: Set production environment

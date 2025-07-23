@@ -107,12 +107,50 @@ async function startServer() {
 }
 
 // Main deployment process
+async function checkAndInstallDependencies() {
+  console.log('📦 Verifying dependencies...');
+  
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
+    const hasVite = packageJson.devDependencies?.vite || packageJson.dependencies?.vite;
+    
+    if (!hasVite) {
+      console.error('❌ Vite not found in package.json dependencies');
+      process.exit(1);
+    }
+    
+    console.log(`✅ Vite dependency found: ${hasVite}`);
+    
+    // Check if node_modules exists and has vite
+    const vitePath = path.join(projectRoot, 'node_modules', 'vite');
+    if (!fs.existsSync(vitePath)) {
+      console.log('📦 Installing dependencies (Vite not found in node_modules)...');
+      await runCommand('npm', ['install'], 'Installing dependencies');
+    } else {
+      console.log('✅ Dependencies already installed');
+    }
+    
+    // Verify vite is accessible
+    try {
+      await runCommand('npx', ['vite', '--version'], 'Verifying Vite installation');
+    } catch (error) {
+      console.log('⚠️  Vite verification failed, reinstalling dependencies...');
+      await runCommand('npm', ['install', '--force'], 'Force reinstalling dependencies');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error checking dependencies:', error.message);
+    console.log('📦 Installing dependencies anyway...');
+    await runCommand('npm', ['install'], 'Installing dependencies');
+  }
+}
+
 async function main() {
   try {
-    console.log('🔧 REPLIT DEPLOYMENT FIX: Installing dependencies and building at runtime');
+    console.log('🚀 REPLIT DEPLOYMENT FIX: Enhanced dependency management and runtime building');
     
-    // Step 0: Install dependencies (CRITICAL FIX)
-    await runCommand('npm', ['install'], 'Installing dependencies');
+    // Step 0: Check and install dependencies (ENHANCED)
+    await checkAndInstallDependencies();
     
     // Step 1: Ensure dist directory exists
     await ensureDistExists();
@@ -120,13 +158,35 @@ async function main() {
     // Step 2: Clean previous build
     console.log('🧹 Cleaning previous build...');
     const distPath = path.join(projectRoot, 'dist');
+    const serverPublicPath = path.join(projectRoot, 'server', 'public');
+    
     if (fs.existsSync(distPath)) {
       fs.rmSync(distPath, { recursive: true, force: true });
-      fs.mkdirSync(distPath, { recursive: true });
+    }
+    if (fs.existsSync(serverPublicPath)) {
+      fs.rmSync(serverPublicPath, { recursive: true, force: true });
     }
     
-    // Step 3: Build frontend (Vite)
-    await runCommand('npx', ['vite', 'build'], 'Building frontend with Vite');
+    fs.mkdirSync(distPath, { recursive: true });
+    console.log('✅ Build directories cleaned and created');
+    
+    // Step 3: Build frontend (Vite) with error handling
+    try {
+      await runCommand('npx', ['vite', 'build'], 'Building frontend with Vite');
+    } catch (error) {
+      console.error('❌ Vite build failed, checking configuration...');
+      
+      // Check if vite.config.ts exists
+      const viteConfigPath = path.join(projectRoot, 'vite.config.ts');
+      if (!fs.existsSync(viteConfigPath)) {
+        console.error('❌ vite.config.ts not found');
+        throw new Error('Vite configuration missing');
+      }
+      
+      // Try alternative build approach
+      console.log('🔄 Trying alternative Vite build command...');
+      await runCommand('npx', ['vite', 'build', '--mode', 'production'], 'Building frontend with Vite (alternative)');
+    }
     
     // Step 4: Build backend (esbuild)
     await runCommand('npx', [
@@ -148,10 +208,21 @@ async function main() {
   } catch (error) {
     console.error('\n❌ DEPLOYMENT FAILED');
     console.error('Error:', error.message);
-    console.error('\n🔍 Troubleshooting:');
-    console.error('1. Check that all source files exist');
-    console.error('2. Verify database connection (DATABASE_URL)');
-    console.error('3. Ensure all dependencies are installed');
+    console.error('\n🔍 Detailed troubleshooting:');
+    console.error('1. Vite dependency installation failed');
+    console.error('2. Vite configuration issues');
+    console.error('3. Build directory permissions');
+    console.error('4. Database connection (DATABASE_URL)');
+    console.error('5. Missing source files');
+    
+    // Show more debugging info
+    console.error('\n📋 Debug information:');
+    console.error('Current working directory:', process.cwd());
+    console.error('Project root:', projectRoot);
+    console.error('Node version:', process.version);
+    console.error('NODE_ENV:', process.env.NODE_ENV || 'not set');
+    console.error('PORT:', process.env.PORT || 'not set');
+    
     process.exit(1);
   }
 }
