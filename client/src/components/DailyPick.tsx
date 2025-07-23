@@ -825,9 +825,7 @@ export default function DailyPick() {
               </div>
             </div>
 
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              <strong>Reasoning:</strong> {dailyPick.reasoning}
-            </div>
+            {/* Reasoning removed for live games to avoid problems */}
           </div>
         </CardContent>
       </Card>
@@ -979,31 +977,33 @@ export default function DailyPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More */}
-                  <div className="bg-gray-800/20 rounded-lg p-3">
-                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
-                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
-                         style={!mobileReasoningExpanded ? {
-                           display: '-webkit-box',
-                           WebkitLineClamp: 3,
-                           WebkitBoxOrient: 'vertical'
-                         } : {}}>
-                        {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds)}
-                      </p>
-                      {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds).split(' ').length > 15 && (
-                        <button
-                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
-                          className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"
-                        >
-                          {mobileReasoningExpanded ? (
-                            <>Show Less <ChevronUp className="h-3 w-3" /></>
-                          ) : (
-                            <>Show More <ChevronDown className="h-3 w-3" /></>
-                          )}
-                        </button>
-                      )}
+                  {/* Analysis Summary Blurb with Show More - Hidden for live games */}
+                  {getGameStatus(dailyPick.gameTime) === 'upcoming' && (
+                    <div className="bg-gray-800/20 rounded-lg p-3">
+                      <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                        <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                           style={!mobileReasoningExpanded ? {
+                             display: '-webkit-box',
+                             WebkitLineClamp: 3,
+                             WebkitBoxOrient: 'vertical'
+                           } : {}}>
+                          {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds)}
+                        </p>
+                        {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds).split(' ').length > 15 && (
+                          <button
+                            onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                            className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"
+                          >
+                            {mobileReasoningExpanded ? (
+                              <>Show Less <ChevronUp className="h-3 w-3" /></>
+                            ) : (
+                              <>Show More <ChevronDown className="h-3 w-3" /></>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>

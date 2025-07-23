@@ -250,6 +250,20 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
   );
 }
 
+// Game status helper function
+function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
+  const now = new Date();
+  const gameStart = new Date(gameTime);
+  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
+  
+  // Add 15-minute buffer before considering game "live" to account for pre-game activities
+  const liveStartTime = new Date(gameStart.getTime() + (15 * 60 * 1000));
+  
+  if (now < liveStartTime) return 'upcoming';
+  if (now >= liveStartTime && now < gameEnd) return 'live';
+  return 'completed';
+}
+
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
@@ -671,9 +685,7 @@ export default function LoggedInLockPick() {
               </div>
             </div>
 
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              <strong>Reasoning:</strong> {lockPick.reasoning}
-            </div>
+            {/* Reasoning removed for live games to avoid problems */}
           </div>
         </CardContent>
       </Card>
@@ -857,31 +869,33 @@ export default function LoggedInLockPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More */}
-                  <div className="bg-gray-800/20 rounded-lg p-3">
-                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
-                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
-                         style={!mobileReasoningExpanded ? {
-                           display: '-webkit-box',
-                           WebkitLineClamp: 3,
-                           WebkitBoxOrient: 'vertical'
-                         } : {}}>
-                        {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
-                      </p>
-                      {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
-                        <button
-                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
-                          className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
-                        >
-                          {mobileReasoningExpanded ? (
-                            <>Show Less <ChevronUp className="h-3 w-3" /></>
-                          ) : (
-                            <>Show More <ChevronDown className="h-3 w-3" /></>
-                          )}
-                        </button>
-                      )}
+                  {/* Analysis Summary Blurb with Show More - Hidden for live games */}
+                  {getGameStatus(lockPick.gameTime) === 'upcoming' && (
+                    <div className="bg-gray-800/20 rounded-lg p-3">
+                      <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                        <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                           style={!mobileReasoningExpanded ? {
+                             display: '-webkit-box',
+                             WebkitLineClamp: 3,
+                             WebkitBoxOrient: 'vertical'
+                           } : {}}>
+                          {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
+                        </p>
+                        {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
+                          <button
+                            onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                            className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
+                          >
+                            {mobileReasoningExpanded ? (
+                              <>Show Less <ChevronUp className="h-3 w-3" /></>
+                            ) : (
+                              <>Show More <ChevronDown className="h-3 w-3" /></>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
