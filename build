@@ -1,0 +1,32 @@
+#!/bin/bash
+# Enhanced build script that includes post-build fixes
+echo "🔧 Enhanced Build Process for Replit Deployment"
+echo "==============================================="
+
+# Run the original build command
+echo "📦 Running vite build..."
+npx vite build
+
+if [ $? -ne 0 ]; then
+  echo "❌ Vite build failed!"
+  exit 1
+fi
+
+echo "📦 Running esbuild..."
+npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+if [ $? -ne 0 ]; then
+  echo "❌ Esbuild failed!"
+  exit 1
+fi
+
+echo "🔧 Running post-build fix..."
+node postbuild.js
+
+if [ $? -ne 0 ]; then
+  echo "❌ Post-build fix failed!"
+  exit 1
+fi
+
+echo "✅ Enhanced build completed successfully!"
+echo "🚀 Ready for deployment!"
