@@ -648,13 +648,13 @@ export default function DailyPick() {
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               {liveGameScore && (gameStarted || isGameFinished) && (
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs">
-                  <div className="flex items-center justify-between space-x-4 min-w-[120px]">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1.5 text-xs mr-2">
+                  <div className="flex items-center justify-between space-x-3 min-w-[100px]">
                     <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(dailyPick.awayTeam)}</div>
-                      <div className="font-bold text-lg">{liveGameScore.awayScore || 0}</div>
+                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(dailyPick.awayTeam)}</div>
+                      <div className="font-bold text-sm">{liveGameScore.awayScore || 0}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">
@@ -664,8 +664,8 @@ export default function DailyPick() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(dailyPick.homeTeam)}</div>
-                      <div className="font-bold text-lg">{liveGameScore.homeScore || 0}</div>
+                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(dailyPick.homeTeam)}</div>
+                      <div className="font-bold text-sm">{liveGameScore.homeScore || 0}</div>
                     </div>
                   </div>
                 </div>
