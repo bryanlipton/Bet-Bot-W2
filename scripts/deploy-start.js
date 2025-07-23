@@ -18,7 +18,41 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.dirname(__dirname);
 
-console.log('🚀 Replit Deployment Fix - Deploy Start Script');
+console.log('🚀 Bet Bot Development Server');
+console.log('===============================');
+
+// Check if we should run in development mode
+const isDevelopment = process.env.NODE_ENV !== 'production' && !process.env.FORCE_PRODUCTION;
+
+if (isDevelopment) {
+  console.log('🔧 Starting in DEVELOPMENT mode...');
+  console.log('📦 Running tsx server/index.ts directly...');
+  
+  // Start development server directly
+  const devProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+    stdio: 'inherit',
+    shell: true,
+    cwd: projectRoot,
+    env: {
+      ...process.env,
+      NODE_ENV: 'development'
+    }
+  });
+
+  devProcess.on('error', (error) => {
+    console.error('❌ Development server failed to start:', error);
+    process.exit(1);
+  });
+
+  devProcess.on('close', (code) => {
+    console.log(`Development server exited with code ${code}`);
+    process.exit(code);
+  });
+
+  return; // Exit early for development
+}
+
+console.log('🏗️ Starting in PRODUCTION mode...');
 console.log('================================================');
 
 async function runCommand(command, args, description) {
