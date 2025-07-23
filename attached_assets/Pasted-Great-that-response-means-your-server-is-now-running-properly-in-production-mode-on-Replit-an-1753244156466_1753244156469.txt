@@ -1,0 +1,101 @@
+Great — that response means **your server is now running properly in production mode on Replit**, and it's returning a JSON "health check" from your root route (`/`).
+
+But if your site **auto-redirects to this JSON** (instead of a frontend UI or app), here's what's happening:
+
+---
+
+## 🧠 What's Going On
+
+Your backend server (likely Express or similar) is serving a `/` route like this:
+
+```ts
+app.get("/", (req, res) => {
+  res.json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    ...
+  });
+});
+```
+
+This is commonly used for **server health monitoring**, not for rendering a frontend.
+
+Because this is the only or default route defined, Replit is loading `/`, so your app redirects to this JSON response.
+
+---
+
+## ✅ Fix Options
+
+### ✅ Option 1: Serve a frontend app (Vite build)
+
+If you're building a frontend with Vite (or React, Vue, etc.), and want your site to show a webpage:
+
+1. Ensure your Vite output folder (usually `dist/`) contains `index.html`, JS, etc.
+2. In your backend (Express), add this:
+
+```ts
+import path from 'path';
+
+app.use(express.static("dist"));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve("dist", "index.html"));
+});
+```
+
+This will:
+
+* Serve static frontend files from the `dist/` folder
+* Redirect all routes (e.g. `/`, `/about`, `/picks`) to `index.html`
+
+> This is how you show a UI instead of raw JSON.
+
+---
+
+### ✅ Option 2: Keep `/` as health check, add UI at another path
+
+You could also:
+
+* Keep your current `GET /` returning the JSON
+* Serve your frontend UI at `/app`, `/dashboard`, or similar.
+
+```ts
+app.use("/app", express.static("dist"));
+```
+
+Then visiting `/app` loads your UI, and `/` still returns server health data.
+
+---
+
+## ✅ What to Do Next
+
+If your goal is to show a **web app**, then do:
+
+1. Build your frontend with:
+
+   ```bash
+   npm run build
+   ```
+2. Update your backend server:
+
+   ```ts
+   import express from "express";
+   import path from "path";
+
+   const app = express();
+
+   // Serve frontend from Vite
+   app.use(express.static("dist"));
+
+   // Fallback to index.html for SPA routing
+   app.get("*", (req, res) => {
+     res.sendFile(path.resolve("dist", "index.html"));
+   });
+
+   const PORT = process.env.PORT || 5000;
+   app.listen(PORT, () => {
+     console.log(`Server running on port ${PORT}`);
+   });
+   ```
+
+Let me know if you want me to generate the exact Express server code for your stack — I can do it instantly.
