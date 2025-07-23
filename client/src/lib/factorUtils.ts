@@ -242,13 +242,13 @@ export function getMainGradeExplanation(
   // Create grade-specific confident opening statements
   let explanation = '';
   if (grade === 'A+' || grade === 'A') {
-    explanation = `Our model shows ${pickTeam} as a premium ${grade}-rated opportunity with ${confidence}% analytical certainty - our highest conviction play. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical certainty - our highest conviction ${grade} play. `;
   } else if (grade === 'B+' || grade === 'B') {
-    explanation = `Our model shows ${pickTeam} with exceptional ${grade} value at ${confidence}% model certainty for significant profit potential. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model certainty and exceptional ${grade} value potential. `;
   } else if (grade === 'C+' || grade === 'C') {
-    explanation = `Our model shows ${pickTeam} offers solid ${grade} betting value backed by ${confidence}% analytical confidence. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical confidence and solid ${grade} betting value. `;
   } else {
-    explanation = `Our model shows ${pickTeam} presents a calculated ${grade} opportunity with ${confidence}% model support. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model support as a calculated ${grade} opportunity. `;
   }
   
   explanation += `Our analysis shows the market odds of ${oddsDisplay} imply a ${marketProb.toFixed(1)}% win probability, `;
