@@ -289,6 +289,8 @@ export default function DailyPick() {
   const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
   // Always start expanded for desktop side-by-side layout
   const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true);
+  
+
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   // Removed odds cycling functionality
@@ -1237,7 +1239,7 @@ export default function DailyPick() {
                 </p>
                 {/* Analysis dropdown toggle for medium and smaller screens */}
                 <button
-                  className="xl:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="lg:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
                   {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
@@ -1250,7 +1252,7 @@ export default function DailyPick() {
                 
                 {/* Desktop analysis toggle for side-by-side layout */}
                 <button
-                  className="hidden xl:flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="hidden lg:flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => {
                     const newValue = !dailyPickLargeOpen;
                     setDailyPickLargeOpen(newValue);
@@ -1271,7 +1273,7 @@ export default function DailyPick() {
 
               {/* Analysis factors - Medium screens and below (dropdown) */}
               {mobileAnalysisOpen && (
-                <div className="xl:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="lg:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
@@ -1297,7 +1299,7 @@ export default function DailyPick() {
 
               {/* Analysis factors - Desktop side-by-side layout */}
               {dailyPickLargeOpen && (
-                <div className="hidden xl:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="hidden lg:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
