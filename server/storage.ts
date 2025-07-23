@@ -621,6 +621,13 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(users.id, id))
       .returning();
+    
+    console.log('Profile updated in database:', {
+      userId: id,
+      avatar: user.avatar,
+      profileImageUrl: user.profileImageUrl
+    });
+    
     return user;
   }
 

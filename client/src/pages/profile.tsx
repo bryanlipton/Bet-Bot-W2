@@ -709,6 +709,10 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleSaveProfile = () => {
+    console.log('Saving profile with avatar data:', {
+      profileImage: editForm.profileImage,
+      avatar: editForm.avatar
+    });
     updateProfileMutation.mutate({
       username: editForm.username,
       bio: editForm.bio,
@@ -947,8 +951,8 @@ export default function ProfilePage() {
               <div className="relative flex-shrink-0">
                 <UserAvatar 
                   user={{
-                    profileImageUrl: user?.profileImageUrl?.startsWith('http') ? user.profileImageUrl : null,
-                    avatar: user?.avatar || '🐱',
+                    profileImageUrl: user?.profileImageUrl,
+                    avatar: user?.avatar,
                     username: userProfile.username
                   }}
                   size="xl"
