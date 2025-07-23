@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "npm run deploy-start"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -8,8 +8,8 @@ packages = ["jq"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ""
+run = ["npm", "run", "deploy-start"]
 
 [[ports]]
 localPort = 5000
