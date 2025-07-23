@@ -49,8 +49,8 @@ if (isDevelopment) {
     process.exit(code);
   });
 
-  // Exit early for development
-  process.exit(0);
+  // Keep the process alive to maintain the spawned development server
+} else {
 }
 
 console.log('🏗️ Starting in PRODUCTION mode...');
