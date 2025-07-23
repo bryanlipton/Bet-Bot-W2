@@ -34,10 +34,21 @@ export default function UserAvatar({ user, size = "md", className = "" }: UserAv
     username: user?.username 
   });
 
-  // Priority 1: If user has an emoji avatar, use that with colored background
+  // Priority 1: Check profileImageUrl for new emoji|background format first
+  if (user?.profileImageUrl?.includes('|')) {
+    const [emoji, backgroundClass] = user.profileImageUrl.split('|');
+    console.log('Using new emoji|background format:', emoji, backgroundClass);
+    return (
+      <div className={`${sizeClasses[size]} ${className} rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+        <span className={textSizes[size] === 'text-xs' ? 'text-sm' : textSizes[size] === 'text-sm' ? 'text-lg' : textSizes[size] === 'text-base' ? 'text-xl' : 'text-2xl'}>{emoji}</span>
+      </div>
+    );
+  }
+
+  // Priority 2: If user has an old emoji avatar, use that with colored background
   if (user?.avatar && user?.avatar.length <= 2) { // Emoji check
     const avatarData = getAnimalAvatarByEmoji(user.avatar);
-    console.log('Using emoji avatar:', user.avatar, avatarData);
+    console.log('Using legacy emoji avatar:', user.avatar, avatarData);
     return (
       <div 
         className={`${sizeClasses[size]} ${className} rounded-full flex items-center justify-center text-white font-bold ${textSizes[size]}`}
@@ -48,8 +59,8 @@ export default function UserAvatar({ user, size = "md", className = "" }: UserAv
     );
   }
 
-  // Priority 2: If user has a profile image URL and no emoji avatar, use that
-  if (user?.profileImageUrl && !user?.avatar) {
+  // Priority 3: If user has a profile image URL (regular image), use that
+  if (user?.profileImageUrl) {
     console.log('Using profile image URL:', user.profileImageUrl);
     return (
       <Avatar className={`${sizeClasses[size]} ${className}`}>

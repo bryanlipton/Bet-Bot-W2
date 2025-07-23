@@ -719,10 +719,15 @@ export default function ProfilePage() {
   };
 
   const handleImageSelect = (imageUrl: string) => {
-    // Check if it's an emoji avatar or a regular image URL
-    if (isEmojiAvatar(imageUrl)) {
+    // Check if it's the new emoji|background format
+    if (imageUrl.includes('|')) {
+      // New emoji|background format - store in profileImage and clear avatar
+      setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
+    } else if (isEmojiAvatar(imageUrl)) {
+      // Old emoji format - store in avatar and clear profileImage
       setEditForm({...editForm, avatar: imageUrl, profileImage: ''});
     } else {
+      // Regular image URL - store in profileImage and clear avatar
       setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
     }
   };
