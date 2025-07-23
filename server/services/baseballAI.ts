@@ -96,7 +96,11 @@ export class BaseballAI {
   ];
 
   constructor() {
-    this.initializeModel();
+    // Initialize model asynchronously without blocking the constructor
+    this.initializeModel().catch(error => {
+      console.error('Failed to initialize Baseball AI model:', error);
+      console.log('⚠️  Baseball AI will operate in fallback mode without ML predictions');
+    });
   }
 
   private async initializeModel(): Promise<void> {
@@ -107,11 +111,20 @@ export class BaseballAI {
       
       if (!this.model) {
         console.log('No existing model found, creating new model');
-        this.model = this.createBaseballModel();
+        // Wrap model creation in try-catch to prevent crashes
+        try {
+          this.model = this.createBaseballModel();
+          console.log('✅ Baseball AI model created successfully');
+        } catch (modelError) {
+          console.error('❌ Failed to create TensorFlow model:', modelError);
+          console.log('⚠️  Continuing without ML model - using fallback predictions');
+          this.model = null;
+        }
       }
     } catch (error) {
       console.error('Error initializing model:', error);
-      this.model = this.createBaseballModel();
+      console.log('⚠️  Baseball AI will operate in fallback mode');
+      this.model = null;
     }
   }
 
@@ -452,7 +465,8 @@ export class BaseballAI {
 
   async predict(homeTeam: string, awayTeam: string, gameDate: string, weather?: any): Promise<BaseballPrediction> {
     if (!this.model) {
-      throw new Error('Model not initialized');
+      console.log('⚠️  TensorFlow model not available, using fallback prediction logic');
+      return this.getBasicPrediction(homeTeam, awayTeam, gameDate, weather);
     }
 
     try {
