@@ -299,4 +299,136 @@ export function registerUserPicksRoutes(app: Express) {
       res.status(500).json({ message: "Failed to sync picks" });
     }
   });
+
+  // Manual bet entry endpoint
+  app.post('/api/user/picks/manual', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { 
+        gameId, 
+        awayTeam, 
+        homeTeam, 
+        market, 
+        selection, 
+        line, 
+        odds, 
+        units,
+        showOnProfile = true,
+        showOnFeed = true 
+      } = req.body;
+
+      // Validate required fields
+      if (!gameId || !awayTeam || !homeTeam || !market || !selection || odds === undefined || !units) {
+        return res.status(400).json({ 
+          message: "Missing required fields: gameId, awayTeam, homeTeam, market, selection, odds, units" 
+        });
+      }
+
+      // Create the pick data
+      const pickData = {
+        userId,
+        gameId,
+        awayTeam,
+        homeTeam,
+        game: `${awayTeam} @ ${homeTeam}`,
+        market,
+        selection,
+        line: line || null,
+        odds: parseFloat(odds),
+        units: parseFloat(units),
+        bookmaker: 'manual',
+        bookmakerDisplayName: 'Manual Entry',
+        status: 'pending',
+        gameDate: new Date(),
+        showOnProfile,
+        showOnFeed,
+        betUnitAtTime: 10.00 // Default bet unit
+      };
+
+      // Validate with schema
+      const validatedData = insertUserPickSchema.parse(pickData);
+      
+      // Create the pick in storage
+      const createdPick = await storage.createUserPick(validatedData);
+      
+      console.log(`Manual pick created for user ${userId}:`, createdPick.id);
+      
+      res.json({ 
+        message: "Manual bet added successfully",
+        pick: createdPick
+      });
+    } catch (error) {
+      console.error("Error creating manual pick:", error);
+      if (error instanceof Error && error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid pick data", 
+          errors: (error as any).errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create manual pick" });
+    }
+  });
+
+  // Update odds for manual picks
+  app.patch('/api/user/picks/:pickId/odds', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+      const { odds } = req.body;
+
+      if (odds === undefined || isNaN(parseFloat(odds))) {
+        return res.status(400).json({ message: "Valid odds are required" });
+      }
+
+      // Ensure user owns the pick first
+      const existingPicks = await storage.getUserPicks(userId, 100, 0);
+      const userOwnsPick = existingPicks.some(pick => pick.id.toString() === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to update this pick" });
+      }
+
+      // Update the pick odds using existing updateUserPick method
+      const updatedPick = await storage.updateUserPick(parseInt(pickId), { odds: parseFloat(odds) });
+
+      console.log(`Odds updated for pick ${pickId}: ${odds}`);
+      
+      res.json({ 
+        message: "Odds updated successfully",
+        pick: updatedPick
+      });
+    } catch (error) {
+      console.error("Error updating pick odds:", error);
+      res.status(500).json({ message: "Failed to update odds" });
+    }
+  });
+
+  // Delete user pick
+  app.delete('/api/user/picks/:pickId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { pickId } = req.params;
+
+      // Ensure user owns the pick first
+      const existingPicks = await storage.getUserPicks(userId, 100, 0);
+      const userOwnsPick = existingPicks.some(pick => pick.id.toString() === pickId);
+      
+      if (!userOwnsPick) {
+        return res.status(403).json({ message: "Not authorized to delete this pick" });
+      }
+
+      const deleted = await storage.deleteUserPick(userId, parseInt(pickId));
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Pick not found" });
+      }
+
+      console.log(`Pick ${pickId} deleted by user ${userId}`);
+      
+      res.json({ message: "Pick deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting pick:", error);
+      res.status(500).json({ message: "Failed to delete pick" });
+    }
+  });
 }
