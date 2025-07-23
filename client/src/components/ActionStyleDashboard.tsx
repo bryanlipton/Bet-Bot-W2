@@ -273,7 +273,7 @@ export function ActionStyleDashboard() {
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
             <DailyPick key="daily-pick-component" />
             <LoggedInLockPick key="lock-pick-component" />
           </div>
@@ -295,7 +295,7 @@ export function ActionStyleDashboard() {
             </Badge>
           </div>
         {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-4 lg:gap-6">
           <DailyPick key="daily-pick-component" />
           <LoggedInLockPick key="lock-pick-component" />
         </div>
