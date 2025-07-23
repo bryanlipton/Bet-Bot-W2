@@ -4,7 +4,7 @@
 
 Bet Bot is a sophisticated full-stack web application that provides AI-powered sports betting analytics. The platform combines real-time odds monitoring, machine learning predictions, and intelligent chat assistance to help users make informed betting decisions. Built with a modern TypeScript stack, it features live odds tracking, edge calculation algorithms, and personalized betting recommendations.
 
-**Latest Status (July 23, 2025):** **DEPLOYMENT READY - SCHEMA ISSUES RESOLVED**: Identified and fixed the root cause of deployment failures. Issue was not with build system (which works perfectly) but with missing database schema columns. Added missing `status`, `final_score`, and `graded_at` columns to both `daily_picks` and `logged_in_lock_picks` tables. Build process verified working correctly - creates `dist/index.js` (533KB) server bundle and `dist/public/` frontend assets. Created comprehensive deployment verification scripts including `deployment-test.js`, `production-start.js`, and `deployment-fix.js` for robust deployment handling. Database schema now synchronized with application code. All deployment blockers resolved - project ready for successful Replit Deployments.
+**Latest Status (July 23, 2025):** **DEPLOYMENT READY - BUILD PATH ISSUES COMPLETELY RESOLVED**: Fixed critical deployment failure where server could not find required build artifacts. Root cause was static file serving path mismatch - `server/vite.ts` expects files in `server/public/` but build outputs to `dist/public/`. Created comprehensive solution with `build-enhance.js` script that copies frontend assets to expected location after standard build. Added `enhanced-prestart-check.js` for thorough verification of all build artifacts and environment variables. Build process confirmed working: creates `dist/index.js` (533KB server bundle), `dist/public/` (frontend assets), and copies to `server/public/` for static serving. Production server starts successfully with all routes functional. Created `DEPLOYMENT-SOLUTION-COMPLETE.md` with detailed fix documentation. All deployment blockers resolved - project ready for successful Replit Deployments.
 
 **24-HOUR PICK PERSISTENCE SYSTEM COMPLETE**: Completely transformed pick behavior to display picks for full 24-hour cycles instead of automatically replacing when games go live. The system now: (1) Keeps picks visible from 2 AM generation until next day's 2 AM reset regardless of game status, (2) Shows frozen pregame odds when games go live to preserve betting context, (3) Displays live score updates during games with real-time scorebug functionality, (4) Automatically grades picks as "won" or "lost" when games complete using authentic MLB game results, (5) Pushes graded results to user feed with final scores and pick outcomes. Updated pickRotationService to monitor for completed games every 30 minutes for grading instead of game-start replacement. Enhanced database schema with status, finalScore, and gradedAt fields for both dailyPicks and loggedInLockPicks tables. Frontend components now handle three game states: upcoming (normal betting interface), live (frozen odds + live scores), and completed (grading results + final outcomes). This creates a complete lifecycle where users can track their picks from generation through final grading without losing visibility when games start. **HARDCODED PITCHER ERA REFERENCE FIXED**: Resolved critical issue where the system displayed "probable starter advantage with sub-3.25 ERA" for all high-scoring pitching matchups regardless of actual pitcher statistics. Fixed hardcoded text in factorUtils.ts line 230 to show "significant starting pitcher advantage based on superior 2025 season metrics" instead, ensuring analysis text accurately reflects data-driven comparisons rather than misleading static content. **CRITICAL AI PREDICTION MODEL BUG FIXED**: Resolved fundamental flaw in ML prediction engine that was generating unrealistic win probabilities (87% for underdogs with +194 odds). Fixed `generateModelPredictions` method in mlEngine.ts to use market-aware probability generation instead of random 10-90% ranges. System now anchors predictions to market implied probabilities with maximum ±5% analytical edge, ensures no team exceeds 75% win probability, and generates realistic confidence levels (65-85%). This eliminates impossible Kelly Criterion recommendations (was 31.9% of bankroll, now 1-5%) and creates professional-grade betting analysis that users can trust. **PITCHING ANALYSIS SCORING BUG COMPLETELY FIXED**: Resolved critical issue where pitching edge analysis consistently returned score of 80 regardless of actual pitcher matchups. Root cause was flawed calculation logic starting both pitchers at default rating 75, creating zero differential (75-75=0), which produced raw score of 50+0=50, normalized to 80. Enhanced `analyzePitchingMatchup` method in dailyPickService.ts with improved scoring algorithm that starts at league average (75), applies enhanced scaling (0.8x multiplier), adds data quality bonuses/penalties, and includes random variation (±2) to prevent identical scores. Updated calculation now properly reflects actual pitcher performance differences using verified 2025 MLB Stats API data with detailed logging showing pitcher names, ERA, WHIP, K/9 rates, and verification status. System generates varied, realistic pitching scores based on authentic statistical differentials instead of defaulting to constant 80. **MONEYLINE-ONLY BETTING ARCHITECTURE COMPLETE**: Successfully transformed the sports betting platform to exclusively use moneyline bets, eliminating all over/under and spread betting options as requested. Updated BettingRecommendationEngine interface to only support `betType: 'moneyline'`, completely removed totals and spread recommendation logic, and verified system generates proper team moneyline picks (e.g., "Boston Red Sox ML", "New York Yankees ML").
 
@@ -214,6 +214,32 @@ The application uses a comprehensive database schema including:
 - **Backend**: esbuild compiles TypeScript server to `dist/index.js`
 - **Database**: Drizzle migrations handle schema updates
 - **Static Assets**: Frontend served from Express in production
+
+### Deployment Build Process (July 23, 2025)
+**Enhanced Build Pipeline**: Created `build-enhance.js` to resolve static file serving path issues:
+1. **Standard Build**: Runs `npm run build` (vite + esbuild) creating `dist/index.js` and `dist/public/`
+2. **Path Fix**: Copies `dist/public/*` to `server/public/` where vite.ts expects static files
+3. **Verification**: Checks all build artifacts exist and are properly sized
+4. **Pre-start Check**: `enhanced-prestart-check.js` validates production environment
+
+**Deployment Commands**:
+- Development: `npm run dev` (tsx server/index.ts)
+- Enhanced Build: `node build-enhance.js`
+- Production: `node enhanced-prestart-check.js && NODE_ENV=production node dist/index.js`
+
+**Build Output Structure**:
+```
+dist/
+├── index.js          # Server bundle (533KB)
+└── public/           # Frontend assets
+    ├── index.html
+    └── assets/
+
+server/
+└── public/           # Copy for static serving
+    ├── index.html    # (copied from dist/public)
+    └── assets/       # (copied from dist/public)
+```
 
 ### Key Architectural Decisions
 
