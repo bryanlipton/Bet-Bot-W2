@@ -1,81 +1,67 @@
 #!/bin/bash
 
-echo "🚀 REPLIT DEPLOYMENT SCRIPT"
-echo "============================"
+# Replit Deployment Script - Alternative to npm run deploy-start
+# This script works around package.json syntax issues
 
-echo "📦 Installing dependencies..."
-npm install
+echo "🚀 Replit Deployment Fix - Direct Build Script"
+echo "=============================================="
 
-echo "🔨 Building project..."
-npm run build
+# Set production environment
+export NODE_ENV=production
 
-echo "🔍 Checking build output..."
-
-# Verify dist/index.js exists at the exact location Replit expects
-if [ ! -f dist/index.js ]; then
-  echo "❌ dist/index.js not found at expected location"
-  echo "📁 Current dist/ contents:"
-  ls -la dist/ 2>/dev/null || echo "No dist/ directory found"
-  
-  echo "🛠️ Creating dist/index.js at required location..."
-  mkdir -p dist
-  
-  # Try to find the actual server bundle
-  if [ -f build/index.js ]; then
-    echo "✅ Found server bundle at build/index.js, copying to dist/"
-    cp build/index.js dist/index.js
-  elif [ -f server/dist/index.js ]; then
-    echo "✅ Found server bundle at server/dist/index.js, copying to dist/"
-    cp server/dist/index.js dist/index.js
-  else
-    echo "⚠️ No server bundle found, running enhanced build..."
-    node npm-build-enhanced.js || true
-  fi
-  
-  # Final check - if still no dist/index.js, create minimal working version
-  if [ ! -f dist/index.js ]; then
-    echo "🔧 Creating minimal server entry point..."
-    cat > dist/index.js << 'EOF'
-import { createServer } from 'http';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const server = createServer((req, res) => {
-  console.log(`${req.method} ${req.url}`);
-  
-  if (req.url === '/' || req.url === '/index.html') {
-    try {
-      const indexPath = join(__dirname, '..', 'server', 'public', 'index.html');
-      const content = readFileSync(indexPath, 'utf8');
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(content);
-    } catch (error) {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end('<h1>Bet Bot Server Running</h1><p>Deployment successful!</p>');
-    }
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not found');
-  }
-});
-
-const port = process.env.PORT || 5000;
-server.listen(port, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${port}`);
-});
-EOF
-  fi
-else
-  echo "✅ dist/index.js found at correct location"
+# Use PORT from environment for Replit deployment
+if [ -z "$PORT" ]; then
+    echo "⚠️  PORT not set, using default 5000"
+    export PORT=5000
 fi
 
-echo "📋 Final verification:"
-ls -la dist/index.js
-echo "📏 File size: $(wc -c < dist/index.js) bytes"
+echo "🎯 Starting on port: $PORT"
+echo "🔧 REPLIT DEPLOYMENT FIX: Building at runtime to preserve files"
 
-echo "🚀 Starting application..."
-node dist/index.js
+# Step 1: Clean previous build
+echo "🧹 Cleaning previous build..."
+rm -rf dist
+mkdir -p dist
+
+# Step 2: Build frontend (Vite)
+echo "🔧 Building frontend with Vite..."
+npx vite build
+if [ $? -ne 0 ]; then
+    echo "❌ Frontend build failed"
+    exit 1
+fi
+echo "✅ Frontend build completed"
+
+# Step 3: Build backend (esbuild)
+echo "🔧 Building backend with esbuild..."
+npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+if [ $? -ne 0 ]; then
+    echo "❌ Backend build failed"
+    exit 1
+fi
+echo "✅ Backend build completed"
+
+# Step 4: Verify build output
+echo "🔍 Verifying build output..."
+if [ ! -f "dist/index.js" ]; then
+    echo "❌ Critical build output missing: dist/index.js"
+    exit 1
+fi
+
+if [ ! -f "dist/public/index.html" ]; then
+    echo "❌ Critical build output missing: dist/public/index.html"
+    exit 1
+fi
+
+# Check server bundle size
+SERVER_SIZE=$(du -k dist/index.js | cut -f1)
+if [ $SERVER_SIZE -lt 100 ]; then
+    echo "❌ Server bundle suspiciously small: ${SERVER_SIZE}KB"
+    exit 1
+fi
+
+echo "✅ Server bundle verified: ${SERVER_SIZE}KB"
+
+# Step 5: Start the server
+echo "🚀 Starting production server..."
+exec node dist/index.js
