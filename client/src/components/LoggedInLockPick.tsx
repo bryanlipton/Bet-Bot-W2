@@ -271,17 +271,8 @@ export default function LoggedInLockPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
-  // Start expanded for side-by-side, but collapsed if user has seen either pick before
-  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(() => {
-    try {
-      const hasSeenDailyPick = localStorage.getItem('hasSeenDailyPick');
-      const hasSeenLockPick = localStorage.getItem('hasSeenLockPick');
-      // Start expanded only if user has never seen either pick before
-      return hasSeenDailyPick !== 'true' && hasSeenLockPick !== 'true';
-    } catch {
-      return true; // Default to expanded if localStorage fails
-    }
-  });
+  // Always start expanded for desktop side-by-side layout
+  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true);
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false); // Manual collapse state
   // Removed odds cycling functionality
