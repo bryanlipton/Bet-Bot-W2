@@ -986,7 +986,7 @@ export class DailyPickService {
         };
 
         // Generate bet bot reasoning
-        const reasoning = `BetBot AI identifies ${bestRecommendation.selection} as a premium ${bestRecommendation.grade} play at ${bestRecommendation.odds > 0 ? '+' : ''}${bestRecommendation.odds}. ${bestRecommendation.reasoning} Expected value: ${bestRecommendation.expectedValue > 0 ? '+' : ''}${(bestRecommendation.expectedValue * 100).toFixed(1)}% with Kelly recommended size of ${(bestRecommendation.kellyBetSize * 100).toFixed(1)}% of bankroll.`;
+        const reasoning = `BetBot AI identifies ${bestRecommendation.selection} as a premium ${bestRecommendation.grade} play at ${bestRecommendation.odds > 0 ? '+' : ''}${bestRecommendation.odds}. ${bestRecommendation.reasoning} Expected value: ${bestRecommendation.expectedValue > 0 ? '+' : ''}${bestRecommendation.expectedValue.toFixed(1)}% with Kelly recommended size of ${(bestRecommendation.kellyBetSize * 100).toFixed(1)}% of bankroll.`;
 
         const dailyPick: DailyPick = {
           id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
