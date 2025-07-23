@@ -652,7 +652,7 @@ export default function DailyPick() {
               {liveGameScore && (
                 <div className="text-right">
                   <div className="text-xs text-gray-500 mb-1">
-                    {liveGameScore.status === 'Final' ? 'Final' : 
+                    {liveGameScore.status === 'Final' ? 'Finished' : 
                      liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || ''}` : 'Live'}
                   </div>
                   <div className="font-mono text-sm">
@@ -733,7 +733,7 @@ export default function DailyPick() {
                 </div>
                 <div className="ml-4 text-right">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {liveGameScore.status === 'Final' ? 'Final' : 
+                    {liveGameScore.status === 'Final' ? 'Finished' : 
                      liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || 'Live'}` : 'Live'}
                   </div>
                 </div>
@@ -890,7 +890,7 @@ export default function DailyPick() {
                 {currentGameScore && isGameStarted(dailyPick.gameTime) && (
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {dailyPick.awayTeam} {currentGameScore.awayScore || 0} - {currentGameScore.homeScore || 0} {dailyPick.homeTeam}
-                    {currentGameScore.status === 'Final' ? ' (Final)' : 
+                    {currentGameScore.status === 'Final' ? ' (Finished)' : 
                      currentGameScore.status === 'In Progress' ? ` (${currentGameScore.inning || 'Live'})` : ' (Live)'}
                   </p>
                 )}
@@ -977,7 +977,7 @@ export default function DailyPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More - Hidden for live games */}
+                  {/* Analysis Summary Blurb with Show More - Hidden for live and finished games */}
                   {getGameStatus(dailyPick.gameTime) === 'upcoming' && (
                     <div className="bg-gray-800/20 rounded-lg p-3">
                       <div className="text-sm text-gray-300 font-sans leading-relaxed">
@@ -1206,7 +1206,7 @@ export default function DailyPick() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {currentGameScore.status === 'Final' ? 'Final' : 
+                      {currentGameScore.status === 'Final' ? 'Finished' : 
                        currentGameScore.status === 'In Progress' ? 
                          (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
                        currentGameScore.status === 'Scheduled' ? 'Scheduled' :

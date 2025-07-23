@@ -579,7 +579,7 @@ export default function LoggedInLockPick() {
               {liveLockGameScore && gameStarted && (
                 <div className="text-right">
                   <div className="text-xs text-gray-500 mb-1">
-                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                    {liveLockGameScore.status === 'Final' ? 'Finished' : 
                      liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
                   </div>
                   <div className="font-mono text-sm">
@@ -658,7 +658,7 @@ export default function LoggedInLockPick() {
                 </div>
                 <div className="ml-4 text-right">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                    {liveLockGameScore.status === 'Final' ? 'Finished' : 
                      liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || 'Live'}` : 'Live'}
                   </div>
                 </div>
@@ -869,7 +869,7 @@ export default function LoggedInLockPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More - Hidden for live games */}
+                  {/* Analysis Summary Blurb with Show More - Hidden for live and finished games */}
                   {getGameStatus(lockPick.gameTime) === 'upcoming' && (
                     <div className="bg-gray-800/20 rounded-lg p-3">
                       <div className="text-sm text-gray-300 font-sans leading-relaxed">
@@ -1114,7 +1114,7 @@ export default function LoggedInLockPick() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {liveLockGameScore.status === 'Final' ? 'Final' : 
+                      {liveLockGameScore.status === 'Final' ? 'Finished' : 
                        liveLockGameScore.status === 'In Progress' ? 
                          (liveLockGameScore.inning ? `${liveLockGameScore.inning}` : 'Live') : 
                        liveLockGameScore.status === 'Scheduled' ? 'Scheduled' :
