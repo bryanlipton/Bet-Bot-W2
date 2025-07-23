@@ -11,7 +11,7 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, Chev
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import removed
 import { trackPickVisit, cleanupOldVisits } from "@/lib/visitTracker";
-import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -862,9 +862,9 @@ export default function LoggedInLockPick() {
                            WebkitLineClamp: 3,
                            WebkitBoxOrient: 'vertical'
                          } : {}}>
-                        {lockPick.reasoning || `The ${lockPick.pickTeam} present compelling value in this exclusive lock selection. Our advanced analytics identify multiple convergent factors that create a high-confidence betting opportunity with favorable risk-reward dynamics and exceptional market edge.`}
+                        {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
                       </p>
-                      {(lockPick.reasoning?.split(' ').length > 25 || (!lockPick.reasoning && true)) && (
+                      {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
                         <button
                           onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
                           className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"

@@ -11,7 +11,7 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp 
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
-import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 
@@ -963,9 +963,9 @@ export default function DailyPick() {
                            WebkitLineClamp: 3,
                            WebkitBoxOrient: 'vertical'
                          } : {}}>
-                        {dailyPick.reasoning || `The ${dailyPick.pickTeam} show strong potential in this matchup with favorable analytical indicators. Our model identifies key advantages in recent performance metrics and situational factors that support this selection with comprehensive data analysis.`}
+                        {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds)}
                       </p>
-                      {(dailyPick.reasoning?.split(' ').length > 25 || (!dailyPick.reasoning && true)) && (
+                      {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds).split(' ').length > 15 && (
                         <button
                           onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
                           className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"

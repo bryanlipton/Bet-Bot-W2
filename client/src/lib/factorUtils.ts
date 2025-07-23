@@ -254,6 +254,60 @@ export function getMainGradeExplanation(
   return explanation;
 }
 
+/**
+ * Gets concise mobile-friendly reasoning for picks
+ * @param grade Letter grade (A+, A, B+, etc.)
+ * @param analysis All factor scores
+ * @param pickTeam Team name
+ * @param odds Betting odds
+ * @returns Short, user-friendly explanation focusing on key factors and basic ROI
+ */
+export function getMobileReasoning(
+  grade: string, 
+  analysis: any, 
+  pickTeam: string, 
+  odds: number
+): string {
+  const oddsDisplay = odds > 0 ? `+${odds}` : `${odds}`;
+  
+  // Get top 2-3 strongest factors
+  const factors = [
+    { name: 'offense', score: analysis.offensiveProduction, label: 'offensive production' },
+    { name: 'pitching', score: analysis.pitchingMatchup, label: 'pitching advantage' },
+    { name: 'momentum', score: analysis.teamMomentum, label: 'recent form' },
+    { name: 'situational', score: analysis.situationalEdge, label: 'game situation' },
+    { name: 'value', score: analysis.marketInefficiency, label: 'betting value' }
+  ];
+  
+  const topFactors = factors
+    .filter(f => f.score >= 75) // Only include above-average factors
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2); // Take top 2 factors
+  
+  let reasoning = `The ${pickTeam} earn a ${grade} grade at ${oddsDisplay} based on `;
+  
+  if (topFactors.length === 0) {
+    reasoning += `balanced analysis across multiple factors`;
+  } else if (topFactors.length === 1) {
+    reasoning += `strong ${topFactors[0].label}`;
+  } else {
+    reasoning += `${topFactors[0].label} and ${topFactors[1].label}`;
+  }
+  
+  reasoning += `. `;
+  
+  // Add simple ROI context based on grade
+  if (grade.includes('A')) {
+    reasoning += `This represents premium value with strong return potential.`;
+  } else if (grade.includes('B')) {
+    reasoning += `This shows solid value with positive expected returns.`;
+  } else {
+    reasoning += `This offers moderate value for the risk taken.`;
+  }
+  
+  return reasoning;
+}
+
 function getFactorVariance(factors: Array<{score: number}>): number {
   const scores = factors.map(f => f.score);
   const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
