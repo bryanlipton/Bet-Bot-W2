@@ -67,6 +67,22 @@ app.get('/api/test-routing', (req, res) => {
   res.json({ status: 'API routing working', timestamp: new Date().toISOString() });
 });
 
+// Health check endpoint for deployment monitoring
+app.get('/api/health', (req, res) => {
+  const healthCheck = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    services: {
+      database: !!process.env.DATABASE_URL,
+      oddsApi: !!process.env.THE_ODDS_API_KEY,
+    }
+  };
+  res.status(200).json(healthCheck);
+});
+
 // Download endpoints for GPT files
 app.get('/download/gpt-files', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
@@ -194,8 +210,8 @@ app.post('/api/gpt/matchup', async (req, res) => {
       'Rockies': 0.40, 'White Sox': 0.38
     };
 
-    const homeStrength = teamStrengths[homeTeam] || 0.50;
-    const awayStrength = teamStrengths[awayTeam] || 0.50;
+    const homeStrength = teamStrengths[homeTeam as keyof typeof teamStrengths] || 0.50;
+    const awayStrength = teamStrengths[awayTeam as keyof typeof teamStrengths] || 0.50;
     const homeFieldBonus = 0.035;
     
     let homeWinProb = (homeStrength / (homeStrength + awayStrength)) + homeFieldBonus;
@@ -225,13 +241,38 @@ app.post('/api/gpt/matchup', async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error('[DIRECT] Prediction error:', error);
-    res.status(500).json({ error: 'Prediction failed: ' + error.message });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Prediction failed: ' + errorMessage });
   }
 });
 
 (async () => {
   // Register download routes first, before other middleware
-  console.log('Setting up download routes...');
+  console.log('🔧 Starting application setup...');
+  
+  // Startup validation in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('📍 Production mode - validating environment...');
+    
+    // Check critical environment variables
+    const requiredEnvVars = ['DATABASE_URL'];
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      console.error('❌ MISSING REQUIRED ENVIRONMENT VARIABLES:');
+      missingVars.forEach(varName => {
+        console.error(`   - ${varName}`);
+      });
+      console.error('Cannot start in production without these variables.');
+      process.exit(1);
+    }
+    
+    console.log('✅ Environment validation passed');
+  } else {
+    console.log('📍 Development mode');
+  }
+  
+  console.log('🛣️ Setting up routes...');
   
   const server = await registerRoutes(app);
   registerOddsRoutes(app);
@@ -256,6 +297,40 @@ app.post('/api/gpt/matchup', async (req, res) => {
     serveStatic(app);
   }
 
+  // Graceful shutdown handling
+  process.on('SIGTERM', () => {
+    console.log('🛑 SIGTERM received. Graceful shutdown...');
+    server.close(() => {
+      console.log('✅ Server closed successfully');
+      process.exit(0);
+    });
+  });
+
+  process.on('SIGINT', () => {
+    console.log('🛑 SIGINT received. Graceful shutdown...');
+    server.close(() => {
+      console.log('✅ Server closed successfully');
+      process.exit(0);
+    });
+  });
+
+  process.on('uncaughtException', (error) => {
+    console.error('❌ UNCAUGHT EXCEPTION:', error);
+    console.error('Stack:', error.stack);
+    // Don't exit immediately in production, log and continue
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ UNHANDLED REJECTION at:', promise, 'reason:', reason);
+    // Don't exit immediately in production, log and continue
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
+
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
@@ -264,8 +339,21 @@ app.post('/api/gpt/matchup', async (req, res) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  }, (error?: any) => {
+    if (error) {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
+    }
+    
+    console.log('🚀 ================================');
+    console.log(`🚀 Server running successfully!`);
+    console.log(`🚀 Port: ${port}`);
+    console.log(`🚀 Host: 0.0.0.0`);
+    console.log(`🚀 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log('🚀 ================================');
+    
+    // Health check endpoint
+    console.log('🏥 Health check available at: /api/health');
     
     // Start daily article generation scheduler (DISABLED)
     // dailyScheduler.start();
@@ -277,5 +365,7 @@ app.post('/api/gpt/matchup', async (req, res) => {
     // Start automatic grading service
     console.log('🎯 Starting automatic pick grading service...');
     automaticGradingService.start();
+    
+    console.log('✅ Application fully initialized and ready to serve requests!');
   });
 })();

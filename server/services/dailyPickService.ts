@@ -1226,7 +1226,8 @@ export class DailyPickService {
           analysis: pick.analysis as DailyPickAnalysis,
           probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
-          pickDate
+          pickDate,
+          createdAt: pick.createdAt ? pick.createdAt.toISOString() : new Date().toISOString()
         };
       }
       return null;
@@ -1352,7 +1353,8 @@ export class DailyPickService {
           analysis: pick.analysis as DailyPickAnalysis,
           probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
-          pickDate
+          pickDate,
+          createdAt: pick.createdAt ? pick.createdAt.toISOString() : new Date().toISOString()
         };
       } else {
         console.log(`❌ No lock pick found in database for ${today}`);
