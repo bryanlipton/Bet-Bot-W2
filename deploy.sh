@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Replit Deployment Script - Alternative to npm run deploy-start
-# This script works around package.json syntax issues
+# Replit Deployment Script - Fixed with dependency installation
+# This script ensures all dependencies are installed before building
 
 echo "🚀 Replit Deployment Fix - Direct Build Script"
 echo "=============================================="
@@ -16,7 +16,16 @@ if [ -z "$PORT" ]; then
 fi
 
 echo "🎯 Starting on port: $PORT"
-echo "🔧 REPLIT DEPLOYMENT FIX: Building at runtime to preserve files"
+echo "🔧 REPLIT DEPLOYMENT FIX: Installing dependencies and building at runtime"
+
+# Step 0: Install dependencies (CRITICAL FIX)
+echo "📦 Installing dependencies..."
+npm install
+if [ $? -ne 0 ]; then
+    echo "❌ Dependency installation failed"
+    exit 1
+fi
+echo "✅ Dependencies installed successfully"
 
 # Step 1: Clean previous build
 echo "🧹 Cleaning previous build..."

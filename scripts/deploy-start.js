@@ -109,7 +109,10 @@ async function startServer() {
 // Main deployment process
 async function main() {
   try {
-    console.log('🔧 REPLIT DEPLOYMENT FIX: Building at runtime to preserve files');
+    console.log('🔧 REPLIT DEPLOYMENT FIX: Installing dependencies and building at runtime');
+    
+    // Step 0: Install dependencies (CRITICAL FIX)
+    await runCommand('npm', ['install'], 'Installing dependencies');
     
     // Step 1: Ensure dist directory exists
     await ensureDistExists();

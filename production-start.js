@@ -1,82 +1,106 @@
 #!/usr/bin/env node
 
 /**
- * DEPLOYMENT SOLUTION FOR REPLIT
+ * Production Start Script for Replit Deployment
  * 
- * This script solves the critical deployment path mismatch issue:
- * - Build creates: dist/public/ (frontend) + dist/index.js (server)
- * - Server expects: server/public/ (for static serving)
+ * This script provides an alternative entry point that ensures:
+ * 1. Dependencies are installed
+ * 2. Application is built
+ * 3. Server starts in production mode
  * 
- * This runs automatically during deployment to fix the path issue.
+ * Can be used when package.json scripts cannot be modified
  */
 
+import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+console.log('🚀 Production Start - Complete Deployment Solution');
+console.log('=================================================');
 
-function ensureDeploymentFiles() {
-  console.log('🔧 DEPLOYMENT FIX: Ensuring files are in correct locations...');
+async function runCommand(command, args, description) {
+  console.log(`🔧 ${description}...`);
   
-  const distPublicPath = path.join(__dirname, 'dist', 'public');
-  const serverPublicPath = path.join(__dirname, 'server', 'public');
-  
-  // Check if files need to be copied
-  if (fs.existsSync(distPublicPath) && !fs.existsSync(serverPublicPath)) {
-    console.log('📁 Copying static files from dist/public to server/public...');
-    
-    // Create server/public directory
-    fs.mkdirSync(serverPublicPath, { recursive: true });
-    
-    // Copy all files recursively
-    function copyRecursive(src, dest) {
-      const entries = fs.readdirSync(src, { withFileTypes: true });
-      
-      for (const entry of entries) {
-        const srcPath = path.join(src, entry.name);
-        const destPath = path.join(dest, entry.name);
-        
-        if (entry.isDirectory()) {
-          fs.mkdirSync(destPath, { recursive: true });
-          copyRecursive(srcPath, destPath);
-        } else {
-          fs.copyFileSync(srcPath, destPath);
-        }
+  return new Promise((resolve, reject) => {
+    const process = spawn(command, args, {
+      stdio: 'inherit',
+      shell: true
+    });
+
+    process.on('close', (code) => {
+      if (code === 0) {
+        console.log(`✅ ${description} completed successfully`);
+        resolve();
+      } else {
+        console.error(`❌ ${description} failed with code: ${code}`);
+        reject(new Error(`${description} failed with code ${code}`));
       }
-    }
-    
-    copyRecursive(distPublicPath, serverPublicPath);
-    console.log('✅ Static files copied successfully!');
-    
-    // Verify the copy worked
-    const indexFile = path.join(serverPublicPath, 'index.html');
-    if (fs.existsSync(indexFile)) {
-      console.log('✅ Verified: index.html exists in server/public/');
-    } else {
-      console.error('❌ Copy failed: index.html not found in server/public/');
-      process.exit(1);
-    }
-    
-  } else if (fs.existsSync(serverPublicPath)) {
-    console.log('✅ Static files already exist in server/public/');
-  } else {
-    console.error('❌ DEPLOYMENT ERROR: No build files found in dist/public/');
-    console.error('   Make sure "npm run build" completed successfully');
-    process.exit(1);
-  }
-  
-  // Verify server bundle exists
-  const serverFile = path.join(__dirname, 'dist', 'index.js');
-  if (!fs.existsSync(serverFile)) {
-    console.error('❌ DEPLOYMENT ERROR: Server bundle not found at dist/index.js');
-    console.error('   Make sure "npm run build" completed successfully');
-    process.exit(1);
-  }
-  
-  console.log('✅ DEPLOYMENT FIX COMPLETE: All files verified and ready');
+    });
+
+    process.on('error', (error) => {
+      console.error(`❌ ${description} process error:`, error);
+      reject(error);
+    });
+  });
 }
 
-// Run the deployment fix
-ensureDeploymentFiles();
+async function verifyBuildOutput() {
+  const serverBundle = 'dist/index.js';
+  const frontendIndex = 'dist/public/index.html';
+  
+  if (!fs.existsSync(serverBundle)) {
+    throw new Error(`❌ Server bundle missing: ${serverBundle}`);
+  }
+  
+  if (!fs.existsSync(frontendIndex)) {
+    throw new Error(`❌ Frontend build missing: ${frontendIndex}`);
+  }
+  
+  const stats = fs.statSync(serverBundle);
+  const sizeKB = Math.round(stats.size / 1024);
+  console.log(`✅ Server bundle verified: ${sizeKB}KB`);
+  
+  return true;
+}
+
+async function main() {
+  try {
+    // Step 1: Install dependencies
+    await runCommand('npm', ['install'], 'Installing dependencies');
+    
+    // Step 2: Build the application
+    await runCommand('npm', ['run', 'build'], 'Building application');
+    
+    // Step 3: Verify build output
+    await verifyBuildOutput();
+    
+    // Step 4: Set production environment
+    process.env.NODE_ENV = 'production';
+    
+    // Step 5: Start the application
+    console.log('🚀 Starting production server...');
+    await runCommand('node', ['dist/index.js'], 'Running production server');
+    
+  } catch (error) {
+    console.error('\n❌ PRODUCTION START FAILED');
+    console.error('Error:', error.message);
+    console.error('\n🔍 Troubleshooting:');
+    console.error('1. Ensure all source files are present');
+    console.error('2. Check DATABASE_URL environment variable');
+    console.error('3. Verify all dependencies are available');
+    process.exit(1);
+  }
+}
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received. Graceful shutdown...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received. Graceful shutdown...');
+  process.exit(0);
+});
+
+main();
