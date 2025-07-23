@@ -569,9 +569,6 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
-                    {liveLockGameScore && liveLockGameScore.status === 'Final' && (
-                      <span className="text-red-600 dark:text-red-400 font-medium mr-2">Finished</span>
-                    )}
                     {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
                   </span>
                 </div>
@@ -589,16 +586,23 @@ export default function LoggedInLockPick() {
             </div>
             
             <div className="flex items-center space-x-3">
-              {liveLockGameScore && gameStarted && (
-                <div className="text-right">
-                  <div className="font-mono text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>
-                      <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
+              {liveLockGameScore && (gameStarted || isGameFinished) && (
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs">
+                  <div className="flex items-center justify-between space-x-4 min-w-[120px]">
+                    <div className="text-center">
+                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(lockPick.awayTeam)}</div>
+                      <div className="font-bold text-lg">{liveLockGameScore.awayScore || 0}</div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{lockPick.homeTeam}</span>
-                      <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
+                    <div className="text-center">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">
+                        {liveLockGameScore.status === 'Final' ? 'F' : 
+                         liveLockGameScore.status === 'In Progress' ? (liveLockGameScore.inning ? `${liveLockGameScore.inning}` : 'Live') : 
+                         'Live'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(lockPick.homeTeam)}</div>
+                      <div className="font-bold text-lg">{liveLockGameScore.homeScore || 0}</div>
                     </div>
                   </div>
                 </div>

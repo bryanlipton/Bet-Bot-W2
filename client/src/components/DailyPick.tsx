@@ -632,9 +632,6 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
-                    {liveGameScore && liveGameScore.status === 'Final' && (
-                      <span className="text-red-600 dark:text-red-400 font-medium mr-2">Finished</span>
-                    )}
                     {dailyPick.pickTeam} {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)} vs {dailyPick.pickTeam === dailyPick.homeTeam ? getTeamAbbreviation(dailyPick.awayTeam) : getTeamAbbreviation(dailyPick.homeTeam)}
                   </span>
                 </div>
@@ -652,16 +649,23 @@ export default function DailyPick() {
             </div>
             
             <div className="flex items-center space-x-3">
-              {liveGameScore && (
-                <div className="text-right">
-                  <div className="font-mono text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.awayTeam}</span>
-                      <span className="font-bold">{liveGameScore.awayScore || 0}</span>
+              {liveGameScore && (gameStarted || isGameFinished) && (
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-xs">
+                  <div className="flex items-center justify-between space-x-4 min-w-[120px]">
+                    <div className="text-center">
+                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(dailyPick.awayTeam)}</div>
+                      <div className="font-bold text-lg">{liveGameScore.awayScore || 0}</div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.homeTeam}</span>
-                      <span className="font-bold">{liveGameScore.homeScore || 0}</span>
+                    <div className="text-center">
+                      <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">
+                        {liveGameScore.status === 'Final' ? 'F' : 
+                         liveGameScore.status === 'In Progress' ? (liveGameScore.inning ? `${liveGameScore.inning}` : 'Live') : 
+                         'Live'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-gray-600 dark:text-gray-300 font-medium">{getTeamAbbreviation(dailyPick.homeTeam)}</div>
+                      <div className="font-bold text-lg">{liveGameScore.homeScore || 0}</div>
                     </div>
                   </div>
                 </div>
