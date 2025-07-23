@@ -11,7 +11,7 @@ import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, Chev
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import removed
 import { trackPickVisit, cleanupOldVisits } from "@/lib/visitTracker";
-import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
+import { getFactorColorClasses, getLockPickFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -217,7 +217,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
     return <div className={`bg-gray-200 dark:bg-gray-700 rounded-full ${className}`}></div>;
   }
 
-  const colorClasses = getFactorColorClasses(value);
+  const colorClasses = getLockPickFactorColorClasses(value);
   
   return (
     <div className={`bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden ${className}`}>
@@ -231,7 +231,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
 
 // Factor Score Component with Info Button
 function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
-  const colorClasses = getFactorColorClasses(score);
+  const colorClasses = getLockPickFactorColorClasses(score);
   const tooltip = getFactorTooltip(score, title, gameContext);
 
   return (
@@ -263,11 +263,11 @@ export default function LoggedInLockPick() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch lock pick only for authenticated users
-  const { data: lockPick, isLoading } = useQuery<DailyPick | null>({
+  const { data: lockPick, isLoading } = useQuery({
     queryKey: ['/api/daily-pick/lock'],
     enabled: !authLoading && isAuthenticated, // Only fetch when authenticated
     staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
-    cacheTime: 60 * 60 * 1000, // Keep in cache for 1 hour
+    gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (renamed from cacheTime)
     refetchOnWindowFocus: false, // Prevent refetch on window focus
     refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });

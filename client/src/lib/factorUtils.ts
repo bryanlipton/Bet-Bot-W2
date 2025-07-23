@@ -67,6 +67,31 @@ export function getFactorColorClasses(normalizedScore: number): { text: string; 
   return { text: 'text-white', bg: 'bg-orange-500', border: 'border-orange-600' };
 }
 
+export function getLockPickFactorColorClasses(normalizedScore: number): { text: string; bg: string; border: string } {
+  // Dark Orange (90-100): Excellent performance
+  if (normalizedScore >= 90) {
+    return { text: 'text-white', bg: 'bg-orange-800', border: 'border-orange-900' };
+  }
+  // Medium-Dark Orange (80-89): High performance  
+  if (normalizedScore >= 80) {
+    return { text: 'text-white', bg: 'bg-orange-700', border: 'border-orange-800' };
+  }
+  // Orange (70-79): Good performance
+  if (normalizedScore >= 70) {
+    return { text: 'text-white', bg: 'bg-orange-600', border: 'border-orange-700' };
+  }
+  // Medium Orange (60-69): Average performance
+  if (normalizedScore >= 60) {
+    return { text: 'text-white', bg: 'bg-orange-500', border: 'border-orange-600' };
+  }
+  // Light Orange (50-59): Below average performance
+  if (normalizedScore >= 50) {
+    return { text: 'text-white', bg: 'bg-orange-400', border: 'border-orange-500' };
+  }
+  // Lightest Orange (below 50): Poor performance
+  return { text: 'text-white', bg: 'bg-orange-300', border: 'border-orange-400' };
+}
+
 /**
  * Gets tooltip text for a factor score
  * @param normalizedScore Score between 60-100
