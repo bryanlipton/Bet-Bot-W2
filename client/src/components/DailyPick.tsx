@@ -615,8 +615,8 @@ export default function DailyPick() {
     return (
       <Card className="w-full relative">
         {isGameFinished && gameResult && (
-          <div className="absolute top-2 right-16 z-10">
-            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+          <div className="absolute top-1 right-2 z-10">
+            <div className={`px-1.5 py-0.5 rounded text-xs font-bold text-white ${
               gameResult === 'won' ? 'bg-green-500' : 
               gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
             }`}>

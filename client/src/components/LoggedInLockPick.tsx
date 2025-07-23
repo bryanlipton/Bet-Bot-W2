@@ -549,8 +549,8 @@ export default function LoggedInLockPick() {
     return (
       <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
         {isGameFinished && gameResult && (
-          <div className="absolute top-2 right-16 z-10">
-            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+          <div className="absolute top-1 right-2 z-10">
+            <div className={`px-1.5 py-0.5 rounded text-xs font-bold text-white ${
               gameResult === 'won' ? 'bg-green-500' : 
               gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
             }`}>
