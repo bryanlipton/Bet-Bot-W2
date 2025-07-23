@@ -545,9 +545,19 @@ export default function LoggedInLockPick() {
   };
 
   // Show collapsed view when manually collapsed or when game has started
-  if (isCollapsed || (gameStarted && gameStartedCollapsed)) {
+  if (lockPick && (isCollapsed || (gameStarted && gameStartedCollapsed))) {
     return (
-      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+      <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+        {isGameFinished && gameResult && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              gameResult === 'won' ? 'bg-green-500' : 
+              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+            }`}>
+              {gameResult.toUpperCase()}
+            </div>
+          </div>
+        )}
         <CardContent className="p-4">
           <div className="flex items-center justify-between cursor-pointer" onClick={() => {setIsCollapsed(false); setGameStartedCollapsed(false);}}>
             <div className="flex items-center space-x-3">
@@ -559,6 +569,9 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
+                    {liveLockGameScore && liveLockGameScore.status === 'Final' && (
+                      <span className="text-red-600 dark:text-red-400 font-medium mr-2">Finished</span>
+                    )}
                     {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
                   </span>
                 </div>
@@ -578,10 +591,6 @@ export default function LoggedInLockPick() {
             <div className="flex items-center space-x-3">
               {liveLockGameScore && gameStarted && (
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">
-                    {liveLockGameScore.status === 'Final' ? 'Finished' : 
-                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
-                  </div>
                   <div className="font-mono text-sm">
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>

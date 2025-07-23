@@ -611,7 +611,7 @@ export default function DailyPick() {
   const factors = dailyPick ? getFactorsForPick(dailyPick.analysis, probablePitchers) : [];
 
   // Show collapsed view when game has started
-  if (gameStarted && gameStartedCollapsed) {
+  if (dailyPick && gameStarted && gameStartedCollapsed) {
     return (
       <Card className="w-full relative">
         {isGameFinished && gameResult && (
@@ -632,6 +632,9 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
+                    {liveGameScore && liveGameScore.status === 'Final' && (
+                      <span className="text-red-600 dark:text-red-400 font-medium mr-2">Finished</span>
+                    )}
                     {dailyPick.pickTeam} {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)} vs {dailyPick.pickTeam === dailyPick.homeTeam ? getTeamAbbreviation(dailyPick.awayTeam) : getTeamAbbreviation(dailyPick.homeTeam)}
                   </span>
                 </div>
@@ -651,10 +654,6 @@ export default function DailyPick() {
             <div className="flex items-center space-x-3">
               {liveGameScore && (
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 mb-1">
-                    {liveGameScore.status === 'Final' ? 'Finished' : 
-                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || ''}` : 'Live'}
-                  </div>
                   <div className="font-mono text-sm">
                     <div className="flex items-center space-x-2">
                       <span className="text-gray-600 dark:text-gray-300">{dailyPick.awayTeam}</span>
