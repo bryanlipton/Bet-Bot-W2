@@ -115,12 +115,12 @@ interface PickAnalysisDetails {
 
 
 // Grade Badge Component
-function GradeBadge({ grade }: { grade: string }) {
+function GradeBadge({ grade, isFinished = false }: { grade: string; isFinished?: boolean }) {
   const colorClasses = getGradeColorClasses(grade);
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
+      className={`${colorClasses.bg} ${isFinished ? 'text-black' : colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -684,7 +684,7 @@ export default function LoggedInLockPick() {
                   Moneyline {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} • Grade {lockPick.grade}
                 </p>
               </div>
-              <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
+              <div className={`px-3 py-1 rounded text-sm font-bold ${isGameFinished ? 'text-black' : 'text-white'} ${
                 lockPick.grade === 'A+' ? 'bg-blue-500' :
                 lockPick.grade === 'A' ? 'bg-blue-400' :
                 lockPick.grade.startsWith('B') ? 'bg-blue-300' :
@@ -813,7 +813,7 @@ export default function LoggedInLockPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
-              <div className={`${getGradeColorClasses(lockPick.grade).bg} ${getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
+              <div className={`${getGradeColorClasses(lockPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
                 {lockPick.grade}
               </div>
             </div>
@@ -976,7 +976,7 @@ export default function LoggedInLockPick() {
                 <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
               <div className="flex items-center space-x-2 -mt-1">
-                <Badge className="bg-amber-500 hover:bg-amber-500 text-black font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
+                <Badge className={`${getGradeColorClasses(lockPick.grade).bg} hover:${getGradeColorClasses(lockPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(lockPick.grade).text} font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer`}>
                   {lockPick.grade}
                 </Badge>
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>

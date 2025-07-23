@@ -120,12 +120,12 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 }
 
 // Grade Badge Component
-function GradeBadge({ grade }: { grade: string }) {
+function GradeBadge({ grade, isFinished = false }: { grade: string; isFinished?: boolean }) {
   const colorClasses = getGradeColorClasses(grade);
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
+      className={`${colorClasses.bg} ${isFinished ? 'text-black' : colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -751,7 +751,7 @@ export default function DailyPick() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 self-start">
-                  <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
+                  <div className={`w-8 h-8 rounded text-xs font-bold ${isGameFinished ? 'text-black' : 'text-white'} flex items-center justify-center ${
                     dailyPick.grade === 'A+' ? 'bg-blue-500' :
                     dailyPick.grade === 'A' ? 'bg-blue-400' :
                     dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
@@ -911,7 +911,7 @@ export default function DailyPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-blue-400 font-sans">Pick of the Day</h2>
-              <div className={`${getGradeColorClasses(dailyPick.grade).bg} ${getGradeColorClasses(dailyPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
+              <div className={`${getGradeColorClasses(dailyPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(dailyPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
                 {dailyPick.grade}
               </div>
             </div>
@@ -1055,7 +1055,7 @@ export default function DailyPick() {
               </Button>
               <div className="flex items-start space-x-2">
                 <div className="relative flex items-center">
-                  <Badge className="bg-blue-500 hover:bg-blue-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
+                  <Badge className={`${getGradeColorClasses(dailyPick.grade).bg} hover:${getGradeColorClasses(dailyPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(dailyPick.grade).text} font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer`}>
                     {dailyPick.grade}
                   </Badge>
                   <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
