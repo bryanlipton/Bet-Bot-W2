@@ -166,6 +166,32 @@ export default function ScoresPage() {
     }
   };
 
+  // Format date + time for non-today games
+  const formatDateAndTime = (timeString: string) => {
+    try {
+      const gameDate = new Date(timeString);
+      const today = new Date();
+      const isToday = gameDate.toDateString() === today.toDateString();
+      
+      if (isToday) {
+        return gameDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else {
+        // For non-today games, show date + time
+        const dateStr = gameDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        const timeStr = gameDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        return `${dateStr} ${timeStr}`;
+      }
+    } catch {
+      return timeString;
+    }
+  };
+
   // Sort and filter games by selected date and status
   const sortedGames = useMemo(() => {
     if (!scoresData) return [];
@@ -567,6 +593,32 @@ function ScoreGameCard({
     }
   };
 
+  // Format date + time for non-today games
+  const formatDateAndTime = (timeString: string) => {
+    try {
+      const gameDate = new Date(timeString);
+      const today = new Date();
+      const isToday = gameDate.toDateString() === today.toDateString();
+      
+      if (isToday) {
+        return gameDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else {
+        // For non-today games, show date + time
+        const dateStr = gameDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        const timeStr = gameDate.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        return `${dateStr} ${timeStr}`;
+      }
+    } catch {
+      return timeString;
+    }
+  };
+
   const isFinished = game.status.toLowerCase().includes('final') || 
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
@@ -783,7 +835,7 @@ function ScoreGameCard({
                   </div>
                 ) : !isFinished && !isActuallyLive ? (
                   <span className="text-gray-500 dark:text-gray-400">
-                    {formatTime(game.startTime)}
+                    {formatDateAndTime(game.startTime)}
                   </span>
                 ) : null}
               </div>
