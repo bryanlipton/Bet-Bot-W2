@@ -170,149 +170,305 @@ export default function MyFeedPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Rss className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Feed</h1>
+      {/* Desktop/Tablet Layout */}
+      <div className="hidden md:block">
+        <div className="max-w-6xl mx-auto p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Rss className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">My Feed</h1>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Following {user ? 'friends and top bettors' : '...'}
+            </div>
           </div>
-        </div>
 
-        {/* Feed Content */}
-        {(feedPicks as FeedPick[]).length === 0 ? (
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No Picks to Show
-              </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
-                Follow other users to see their betting activity in your feed
-              </p>
-              <Button onClick={() => window.location.href = '/profile'} className="text-base">
-                <Plus className="w-4 h-4 mr-2" />
-                Find People to Follow
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
-              <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    {/* User Avatar */}
-                    <div className="flex-shrink-0">
-                      {(() => {
-                        const avatarString = pick.userAvatar;
-                        
-                        if (avatarString?.includes('|')) {
-                          // New format: emoji|background
-                          const [emoji, backgroundClass] = avatarString.split('|');
-                          return (
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                              <span className="text-lg">{emoji}</span>
-                            </div>
-                          );
-                        } else {
-                          return (
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={avatarString} alt={pick.username} />
-                              <AvatarFallback className="bg-blue-600 text-white text-sm">
-                                {pick.username?.charAt(0).toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                          );
-                        }
-                      })()}
-                    </div>
-                    
-                    {/* Pick Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <button
-                            onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
-                            className="font-semibold text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
-                          >
-                            {pick.username}
-                          </button>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm whitespace-nowrap">
-                            {formatTimeAgo(pick.createdAt)}
-                          </span>
-                        </div>
-                        <div className="flex-shrink-0">
-                          {getStatusBadge(pick.status)}
-                        </div>
+          {/* Feed Content - Desktop Grid Layout */}
+          {(feedPicks as FeedPick[]).length === 0 ? (
+            <Card className="bg-white dark:bg-gray-800 shadow-lg">
+              <CardContent className="p-12 text-center">
+                <Users className="w-20 h-20 mx-auto mb-6 text-gray-400" />
+                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">
+                  No Picks to Show
+                </h3>
+                <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  Follow other users to see their betting activity in your personalized feed
+                </p>
+                <Button onClick={() => window.location.href = '/profile'} size="lg" className="text-lg px-6">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Find People to Follow
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
+                <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-200 border-0 shadow-lg">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      {/* User Avatar - Larger on Desktop */}
+                      <div className="flex-shrink-0">
+                        {(() => {
+                          const avatarString = pick.userAvatar;
+                          
+                          if (avatarString?.includes('|')) {
+                            // New format: emoji|background
+                            const [emoji, backgroundClass] = avatarString.split('|');
+                            return (
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                                <span className="text-xl">{emoji}</span>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <Avatar className="w-12 h-12">
+                                <AvatarImage src={avatarString} alt={pick.username} />
+                                <AvatarFallback className="bg-blue-600 text-white text-base">
+                                  {pick.username?.charAt(0).toUpperCase() || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            );
+                          }
+                        })()}
                       </div>
                       
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
-                        {/* Check if it's a parlay */}
-                        {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
-                          <div>
-                            <div className="font-medium text-base text-gray-900 dark:text-white mb-2">
-                              {pick.parlayLegs.length}-Leg Parlay @ Multiple Games
-                            </div>
-                            <div className="space-y-2 mb-3">
-                              {pick.parlayLegs.map((leg, index) => (
-                                <div key={index} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="font-medium text-gray-900 dark:text-white truncate">{leg.game}</div>
-                                  <div className="text-blue-600 dark:text-blue-400">
-                                    {leg.selection}
-                                    {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
-                                    {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
-                                    {leg.market === 'moneyline' ? ' ML' : ''}
+                      {/* Pick Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <button
+                              onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
+                              className="font-semibold text-lg text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
+                            >
+                              {pick.username}
+                            </button>
+                            <span className="text-gray-500 dark:text-gray-400">•</span>
+                            <span className="text-gray-500 dark:text-gray-400 text-sm">
+                              {formatTimeAgo(pick.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {getStatusBadge(pick.status)}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          {/* Check if it's a parlay */}
+                          {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
+                            <div>
+                              <div className="font-semibold text-lg text-gray-900 dark:text-white mb-3">
+                                {pick.parlayLegs.length}-Leg Parlay
+                              </div>
+                              <div className="space-y-3 mb-4">
+                                {pick.parlayLegs.map((leg, index) => (
+                                  <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-600">
+                                    <div className="font-medium text-gray-900 dark:text-white mb-1">{leg.game}</div>
+                                    <div className="text-blue-600 dark:text-blue-400 font-medium">
+                                      {leg.selection}
+                                      {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
+                                      {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
+                                      {leg.market === 'moneyline' ? ' ML' : ''}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap">
-                              <span className="font-mono font-medium">
-                                {formatOdds(pick.odds)}
-                              </span>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="font-medium text-base text-gray-900 dark:text-white mb-1 break-words">
-                              {pick.game}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap">
-                              <span className="font-medium text-blue-600 dark:text-blue-400 break-words">
-                                {pick.selection}
-                              </span>
-                              {pick.line && (
-                                <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                  {pick.line}
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-6">
+                                <span className="font-mono font-bold text-lg">
+                                  {formatOdds(pick.odds)}
                                 </span>
-                              )}
-                              <span className="font-mono font-medium whitespace-nowrap">
-                                {formatOdds(pick.odds)}
-                              </span>
-                              <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
-                              </span>
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                                </span>
+                              </div>
                             </div>
+                          ) : (
+                            <div>
+                              <div className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
+                                {pick.game}
+                              </div>
+                              <div className="mb-3">
+                                <span className="font-semibold text-blue-600 dark:text-blue-400 text-lg">
+                                  {pick.selection}
+                                </span>
+                                {pick.line && (
+                                  <span className="text-gray-600 dark:text-gray-400 ml-2">
+                                    {pick.line}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-6">
+                                <span className="font-mono font-bold text-lg">
+                                  {formatOdds(pick.odds)}
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">
+                                  {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-sm text-gray-500 dark:text-gray-400 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                            <span>Game: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'}</span>
+                            <span className="mx-2">•</span>
+                            <span>Placed: {formatTimeAgo(pick.createdAt)}</span>
                           </div>
-                        )}
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 break-words">
-                          <span className="inline-block">Game: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'}</span>
-                          <span className="mx-1">•</span>
-                          <span className="inline-block">Placed: {formatTimeAgo(pick.createdAt)}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="block md:hidden">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-4">
+            <Rss className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Feed</h1>
           </div>
-        )}
+
+          {/* Feed Content - Mobile Stack Layout */}
+          {(feedPicks as FeedPick[]).length === 0 ? (
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-6 text-center">
+                <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No Picks to Show
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Follow other users to see their betting activity in your feed
+                </p>
+                <Button onClick={() => window.location.href = '/profile'} size="sm">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Find People to Follow
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
+                <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      {/* User Avatar */}
+                      <div className="flex-shrink-0">
+                        {(() => {
+                          const avatarString = pick.userAvatar;
+                          
+                          if (avatarString?.includes('|')) {
+                            // New format: emoji|background
+                            const [emoji, backgroundClass] = avatarString.split('|');
+                            return (
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
+                                <span className="text-lg">{emoji}</span>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={avatarString} alt={pick.username} />
+                                <AvatarFallback className="bg-blue-600 text-white text-sm">
+                                  {pick.username?.charAt(0).toUpperCase() || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                            );
+                          }
+                        })()}
+                      </div>
+                      
+                      {/* Pick Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <button
+                              onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
+                              className="font-semibold text-sm text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
+                            >
+                              {pick.username}
+                            </button>
+                            <span className="text-gray-500 dark:text-gray-400 text-xs">•</span>
+                            <span className="text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
+                              {formatTimeAgo(pick.createdAt)}
+                            </span>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {getStatusBadge(pick.status)}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                          {/* Check if it's a parlay */}
+                          {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
+                            <div>
+                              <div className="font-medium text-sm text-gray-900 dark:text-white mb-2">
+                                {pick.parlayLegs.length}-Leg Parlay
+                              </div>
+                              <div className="space-y-2 mb-3">
+                                {pick.parlayLegs.map((leg, index) => (
+                                  <div key={index} className="text-xs bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+                                    <div className="font-medium text-gray-900 dark:text-white truncate">{leg.game}</div>
+                                    <div className="text-blue-600 dark:text-blue-400">
+                                      {leg.selection}
+                                      {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
+                                      {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
+                                      {leg.market === 'moneyline' ? ' ML' : ''}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="font-mono font-medium">
+                                  {formatOdds(pick.odds)}
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="font-medium text-sm text-gray-900 dark:text-white mb-1 break-words">
+                                {pick.game}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs mb-2">
+                                <span className="font-medium text-blue-600 dark:text-blue-400 break-words">
+                                  {pick.selection}
+                                </span>
+                                {pick.line && (
+                                  <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                    {pick.line}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="font-mono font-medium">
+                                  {formatOdds(pick.odds)}
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {pick.units} unit{pick.units !== 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                            <span>Game: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'}</span>
+                            <span className="mx-1">•</span>
+                            <span>Placed: {formatTimeAgo(pick.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
