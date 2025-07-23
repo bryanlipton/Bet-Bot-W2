@@ -897,9 +897,8 @@ export default function DailyPick() {
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
                 {(() => {
-                  const currentOdds = getCurrentOdds();
-                  const pickTeamOdds = currentOdds.pickTeamOdds;
-                  const oddsText = pickTeamOdds && pickTeamOdds > 0 ? `+${pickTeamOdds}` : pickTeamOdds || dailyPick.odds;
+                  // Use original pregame odds instead of live odds
+                  const oddsText = dailyPick.odds > 0 ? `+${dailyPick.odds}` : dailyPick.odds;
                   const isAwayTeam = dailyPick.pickTeam === dailyPick.awayTeam;
                   const separator = isAwayTeam ? ' at ' : ' vs ';
                   const otherTeam = isAwayTeam ? dailyPick.homeTeam : dailyPick.awayTeam;

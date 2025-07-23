@@ -540,7 +540,7 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
-                    {lockPick.pickTeam} {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
+                    {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -653,7 +653,7 @@ export default function LoggedInLockPick() {
               <div>
                 <h3 className="text-lg font-semibold">Our Pick: {lockPick.pickTeam}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Moneyline {getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0 ? `+${getCurrentOdds().pickTeamOdds}` : getCurrentOdds().pickTeamOdds || lockPick.odds} • Grade {lockPick.grade}
+                  Moneyline {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} • Grade {lockPick.grade}
                 </p>
               </div>
               <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
@@ -796,9 +796,8 @@ export default function LoggedInLockPick() {
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-white font-sans">
                 {(() => {
-                  const currentOdds = getCurrentOdds();
-                  const pickTeamOdds = currentOdds.pickTeamOdds;
-                  const oddsText = pickTeamOdds && pickTeamOdds > 0 ? `+${pickTeamOdds}` : pickTeamOdds || lockPick.odds;
+                  // Use original pregame odds instead of live odds
+                  const oddsText = lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds;
                   const isAwayTeam = lockPick.pickTeam === lockPick.awayTeam;
                   const separator = isAwayTeam ? ' at ' : ' vs ';
                   const otherTeam = isAwayTeam ? lockPick.homeTeam : lockPick.awayTeam;
@@ -976,7 +975,7 @@ export default function LoggedInLockPick() {
                       <h4 className="font-semibold mb-3">Pick Details</h4>
                       <div className="space-y-2 text-sm">
                         <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
-                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}</div>
+                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
                         <div><strong>Venue:</strong> {lockPick.venue}</div>
                         <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
                       </div>
@@ -1027,7 +1026,7 @@ export default function LoggedInLockPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(getCurrentOdds().pickTeamOdds || lockPick.odds, lockPick.pickType)}
+                  {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
               </div>
               <div className="flex-shrink-0 ml-4">
