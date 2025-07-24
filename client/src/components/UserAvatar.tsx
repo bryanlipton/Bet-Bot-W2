@@ -64,9 +64,17 @@ export default function UserAvatar({ user, size = "md", className = "" }: UserAv
     console.log('Using profile image URL:', user.profileImageUrl);
     return (
       <Avatar className={`${sizeClasses[size]} ${className}`}>
-        <AvatarImage src={user.profileImageUrl} alt={user.username || user.firstName || "User"} />
-        <AvatarFallback className={textSizes[size]}>
-          <User className="h-4 w-4" />
+        <AvatarImage 
+          src={user.profileImageUrl} 
+          alt={user.username || user.firstName || "User"}
+          onError={(e) => {
+            console.log('Avatar image failed to load:', user.profileImageUrl);
+            // Show fallback initial instead of broken image
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+        <AvatarFallback className={`${textSizes[size]} bg-blue-500 text-white`}>
+          {user?.username?.[0]?.toUpperCase() || user?.firstName?.[0]?.toUpperCase() || <User className="h-4 w-4" />}
         </AvatarFallback>
       </Avatar>
     );

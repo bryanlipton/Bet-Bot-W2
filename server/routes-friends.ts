@@ -246,6 +246,7 @@ export function registerFriendsRoutes(app: Express) {
           userId: userPicks.userId,
           username: users.username,
           userAvatar: users.profileImageUrl,
+          userAvatarEmoji: users.avatar,
           game: userPicks.game,
           selection: userPicks.selection,
           market: userPicks.market,

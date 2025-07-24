@@ -28,6 +28,7 @@ interface FeedPick {
   userId: string;
   username: string;
   userAvatar?: string;
+  userAvatarEmoji?: string;
   game: string;
   selection: string;
   market: string;
@@ -221,6 +222,7 @@ export default function MyFeedPage() {
                         <UserAvatar 
                           user={{
                             profileImageUrl: pick.userAvatar,
+                            avatar: pick.userAvatarEmoji,
                             username: pick.username
                           }}
                           size="lg"
@@ -354,6 +356,7 @@ export default function MyFeedPage() {
                         <UserAvatar 
                           user={{
                             profileImageUrl: pick.userAvatar,
+                            avatar: pick.userAvatarEmoji,
                             username: pick.username
                           }}
                           size="md"
