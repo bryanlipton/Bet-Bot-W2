@@ -31,7 +31,7 @@ export function registerFriendsRoutes(app: Express) {
   // Search for users
   app.get('/api/users/search', isAuthenticated, async (req, res) => {
     try {
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       const searchQuery = req.query.q as string;
       
       if (!searchQuery || searchQuery.length < 2) {
@@ -73,7 +73,7 @@ export function registerFriendsRoutes(app: Express) {
   // Follow a user
   app.post('/api/users/follow', isAuthenticated, async (req, res) => {
     try {
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       const { userId } = req.body;
       
       if (!userId || userId === currentUserId) {
@@ -214,9 +214,11 @@ export function registerFriendsRoutes(app: Express) {
   // Get social feed (picks from users you follow + your own picks)
   app.get('/api/users/feed', isAuthenticated, async (req, res) => {
     try {
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
+      
+      console.log('Feed API Debug - Current user ID:', currentUserId);
       
       // Get list of users the current user is following
       const followingUsers = await db
@@ -224,15 +226,20 @@ export function registerFriendsRoutes(app: Express) {
         .from(userFollows)
         .where(eq(userFollows.followerId, currentUserId));
       
+      console.log('Feed API Debug - Following users:', followingUsers);
+      
       // Include followed users + current user
       const followingIds = followingUsers.map(f => f.userId);
       const allUserIds = [...followingIds, currentUserId];
       
+      console.log('Feed API Debug - All user IDs to include:', allUserIds);
+      
       if (allUserIds.length === 0) {
+        console.log('Feed API Debug - No user IDs found, returning empty array');
         return res.json([]);
       }
       
-      // Get picks from followed users + own picks (show by default unless isPublic is explicitly false)
+      // Get picks from followed users + own picks (show all activity in social feed)
       const feedPicks = await db
         .select({
           id: userPicks.id,
@@ -254,17 +261,12 @@ export function registerFriendsRoutes(app: Express) {
         })
         .from(userPicks)
         .innerJoin(users, eq(userPicks.userId, users.id))
-        .where(and(
-          inArray(userPicks.userId, allUserIds),
-          or(
-            eq(userPicks.isPublic, true), // Show if explicitly set to true
-            sql`${userPicks.isPublic} IS NULL` // Show if not set (default behavior - should appear in feed)
-          )
-        ))
+        .where(inArray(userPicks.userId, allUserIds))
         .orderBy(desc(userPicks.createdAt))
         .limit(limit)
         .offset(offset);
       
+      console.log('Feed API Debug - Found picks:', feedPicks.length, feedPicks);
       res.json(feedPicks);
     } catch (error) {
       console.error('Error fetching social feed:', error);

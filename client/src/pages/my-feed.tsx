@@ -77,6 +77,15 @@ export default function MyFeedPage() {
     enabled: isAuthenticated,
   });
 
+  // Debug logging
+  console.log('My Feed Debug:', {
+    isAuthenticated,
+    feedLoading,
+    feedError,
+    feedPicksLength: feedPicks?.length || 0,
+    feedPicks: feedPicks
+  });
+
   // Helper functions for display
   const formatOdds = (odds: number): string => {
     if (odds > 0) return `+${odds}`;
