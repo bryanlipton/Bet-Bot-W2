@@ -1,0 +1,83 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .card { fill: white; stroke: #e5e7eb; stroke-width: 1; rx: 8; }
+      .header { fill: #2563eb; font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
+      .subtext { fill: #6b7280; font-family: Arial, sans-serif; font-size: 12px; }
+      .team-name { fill: #1f2937; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; }
+      .odds { fill: #6b7280; font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; }
+      .grade { fill: #2563eb; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; }
+      .final-score { fill: #1f2937; font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; }
+      .final-status { fill: #059669; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; }
+      .btn { fill: #059669; stroke: #047857; stroke-width: 1; rx: 4; }
+      .btn-text { fill: white; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; }
+      .scoreboard { fill: #f3f4f6; stroke: #d1d5db; stroke-width: 1; rx: 8; }
+      .won-badge { fill: #10b981; font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; }
+      .pick-result { fill: #059669; font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; }
+    </style>
+  </defs>
+  
+  <!-- Main Card -->
+  <rect class="card" x="10" y="10" width="580" height="380"/>
+  
+  <!-- Won Badge (Top Right) -->
+  <rect fill="#10b981" x="530" y="20" width="40" height="20" rx="4"/>
+  <text x="540" y="33" fill="white" font-size="10" font-weight="bold">WON</text>
+  
+  <!-- Header -->
+  <circle fill="#3b82f6" cx="35" cy="45" r="12"/>
+  <text x="30" y="50" fill="white" font-size="12">🤖</text>
+  <text x="55" y="50" class="header">Pick of the Day</text>
+  
+  <!-- Grade Badge -->
+  <rect fill="#60a5fa" x="450" y="30" width="60" height="20" rx="4"/>
+  <text x="465" y="43" class="grade">Grade B+</text>
+  <circle fill="#374151" cx="520" cy="40" r="8"/>
+  <text x="517" y="44" fill="white" font-size="8">i</text>
+  
+  <!-- Game Info -->
+  <text x="30" y="75" class="subtext">Jul 24 at 3:10 PM EST • Globe Life Field</text>
+  
+  <!-- Teams -->
+  <text x="30" y="105" class="team-name">Atlanta Braves @ Texas Rangers</text>
+  
+  <!-- Team Cards with Final Odds -->
+  <rect fill="#f9fafb" stroke="#d1d5db" x="30" y="120" width="150" height="80" rx="4"/>
+  <rect fill="#f9fafb" stroke="#d1d5db" x="220" y="120" width="150" height="80" rx="4"/>
+  
+  <text x="50" y="140" class="team-name">ATL</text>
+  <text x="50" y="160" class="odds">+165 (final)</text>
+  <text x="50" y="180" class="subtext">Sean Murphy</text>
+  
+  <text x="185" y="150" class="subtext">vs</text>
+  
+  <text x="240" y="140" class="team-name">TEX</text>
+  <text x="240" y="160" class="odds">-185 (final)</text>
+  <text x="240" y="180" class="subtext">Adolis García</text>
+  
+  <!-- Pick Buttons -->
+  <rect class="btn" x="400" y="135" width="50" height="25"/>
+  <text x="415" y="150" class="btn-text">Pick</text>
+  <rect fill="#dc2626" stroke="#b91c1c" x="460" y="135" width="50" height="25" rx="4"/>
+  <text x="475" y="150" class="btn-text">Fade</text>
+  
+  <!-- Final Scoreboard -->
+  <rect class="scoreboard" x="30" y="230" width="540" height="100"/>
+  
+  <!-- Trophy Icon -->
+  <text x="280" y="255" font-size="20">🏆</text>
+  <text x="300" y="255" class="header">FINAL SCORE</text>
+  
+  <!-- Final Scores -->
+  <text x="150" y="285" class="team-name">ATL</text>
+  <text x="150" y="305" class="final-score">3</text>
+  
+  <text x="280" y="285" class="final-status">F</text>
+  <text x="270" y="305" class="final-status">Final</text>
+  
+  <text x="420" y="285" class="team-name">TEX</text>
+  <text x="420" y="305" class="final-score">7</text>
+  
+  <!-- Pick Result -->
+  <text x="30" y="360" class="pick-result">Pick Result: ✅ Texas Rangers won 7-3</text>
+</svg>
