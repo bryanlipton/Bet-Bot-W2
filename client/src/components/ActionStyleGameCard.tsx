@@ -238,25 +238,28 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   const calculateOverallGrade = () => {
     if (!analysisData) return 'C+';
     
+    // Type guard to ensure analysisData has the expected structure
+    const data = analysisData as AnalysisData;
+    
     // Use the grade from the API if available
-    if (analysisData.overall?.grade) {
-      return analysisData.overall.grade;
+    if (data.overall?.grade) {
+      return data.overall.grade;
     }
     
     // Use confidence score if available
-    if (analysisData.overall?.confidence) {
-      return scoreToGrade(analysisData.overall.confidence);
+    if (data.overall?.confidence) {
+      return scoreToGrade(data.overall.confidence);
     }
     
     // Fallback to calculating from individual factor scores
     const scores = [
-      analysisData.factors?.valueScore?.score,
-      analysisData.factors?.ballparkFactor?.score,
-      analysisData.factors?.pitchingMatchup?.score,
-      analysisData.factors?.situationalEdge?.score,
-      analysisData.factors?.weatherImpact?.score,
-      analysisData.factors?.offensiveEdge?.score
-    ].filter(score => score !== null && score !== undefined && !isNaN(score) && score > 0);
+      data.factors?.valueScore?.score,
+      data.factors?.ballparkFactor?.score,
+      data.factors?.pitchingMatchup?.score,
+      data.factors?.situationalEdge?.score,
+      data.factors?.weatherImpact?.score,
+      data.factors?.offensiveEdge?.score
+    ].filter(score => score !== null && score !== undefined && !isNaN(score as number) && (score as number) > 0) as number[];
     
     if (scores.length === 0) return 'C+';
     const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
@@ -577,8 +580,8 @@ export function ActionStyleGameCard({
       
     } catch (error) {
       console.error('=== CRITICAL ERROR in handleMakePick ===', error);
-      console.error('Error stack:', error.stack);
-      alert(`Critical error opening betting options: ${error.message}. Please try again or refresh the page.`);
+      console.error('Error stack:', (error as Error).stack);
+      alert(`Critical error opening betting options: ${(error as Error).message}. Please try again or refresh the page.`);
     }
   };
 
@@ -609,9 +612,9 @@ export function ActionStyleGameCard({
       gameInfo: {
         awayTeam,
         homeTeam,
-        gameTime: startTime,
-        venue: 'TBD',
-        sport: 'baseball_mlb'
+        gameId: gameId?.toString(),
+        sport: 'baseball_mlb',
+        gameTime: startTime
       },
       betInfo: {
         market: manualEntry.market,
@@ -622,7 +625,6 @@ export function ActionStyleGameCard({
       },
       bookmaker: {
         key: 'manual',
-        title: 'Manual Entry',
         displayName: 'Manual Entry',
         url: '#'
       },
@@ -637,7 +639,7 @@ export function ActionStyleGameCard({
         awayTeam,
         selection: manualEntry.selection,
         market: manualEntry.market,
-        line: manualEntry.line || null,
+        line: manualEntry.line ? parseFloat(manualEntry.line) : null,
         units: manualEntry.units,
         betUnitAtTime: betUnit, // Store current bet unit value
         bookmaker: 'manual',
