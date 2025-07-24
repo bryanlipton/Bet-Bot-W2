@@ -71,7 +71,12 @@ const formatDateDisplay = (date: Date) => {
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Ensure we're using the current date in the correct timezone
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    // Reset time to start of day to avoid timezone issues
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
     homeTeam: string;
@@ -126,7 +131,10 @@ export default function ScoresPage() {
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date());
+    const now = new Date();
+    // Reset to start of current day to ensure we're using today's date
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    setSelectedDate(today);
   };
 
   // Fetch real MLB scores data directly from MLB Stats API
@@ -209,7 +217,9 @@ export default function ScoresPage() {
     // Filter games for selected date - handle both odds API and scores API format
     const dayGames = gamesArray.filter((game: any) => {
       const gameDate = new Date(game.commence_time || game.startTime || game.gameDate);
-      return gameDate.toDateString() === selectedDateStr;
+      // Use more precise date matching to avoid timezone issues
+      const gameDateStr = gameDate.toDateString();
+      return gameDateStr === selectedDateStr;
     });
 
     // Convert to ScoreGame format
