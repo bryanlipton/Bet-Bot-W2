@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import UserAvatar from "@/components/UserAvatar";
 import { TrendingUp, Clock, Users, MessageSquare, Heart, Share, User } from "lucide-react";
 
 interface FeedPick {
@@ -183,15 +183,14 @@ export default function Feed() {
                     <CardHeader className="pb-3">
                       <div className="flex items-start gap-3">
                         {/* User Profile Picture */}
-                        <Avatar className="w-12 h-12 md:w-12 md:h-12">
-                          {pick.profileImageUrl ? (
-                            <AvatarImage src={pick.profileImageUrl} alt={pick.username} />
-                          ) : (
-                            <AvatarFallback className="text-lg">
-                              {pick.avatar || <User className="w-6 h-6" />}
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
+                        <UserAvatar 
+                          user={{
+                            profileImageUrl: pick.profileImageUrl,
+                            avatar: pick.avatar,
+                            username: pick.username
+                          }}
+                          size="lg"
+                        />
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
