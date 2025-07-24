@@ -98,7 +98,6 @@ interface GameCardProps {
   lockPickTeam?: string;
   lockPickGrade?: string;
   lockPickId?: string;
-  isAuthenticated?: boolean;
   onClick?: () => void;
   // Raw bookmakers data for odds comparison
   rawBookmakers?: Array<{
@@ -499,7 +498,6 @@ export function ActionStyleGameCard({
   lockPickTeam,
   lockPickGrade,
   lockPickId,
-  isAuthenticated = false,
   onClick,
   rawBookmakers
 }: GameCardProps) {
