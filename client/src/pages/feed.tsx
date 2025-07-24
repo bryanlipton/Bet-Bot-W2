@@ -82,18 +82,19 @@ export default function Feed() {
   return (
     <div className="container mx-auto p-4 pb-20 md:pb-4">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
+        {/* Header - Responsive Typography */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2">My Feed</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="text-2xl md:text-4xl font-bold mb-2">My Feed</h1>
+          <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400">
             Stay updated with the latest picks, results, and insights from Bet Bot
           </p>
         </div>
 
-        {/* Feed Items */}
-        <div className="space-y-4">
+        {/* Feed Items - Responsive Layout */}
+        {/* Mobile: Single column, Desktop: 2-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {feedItems.map((item) => (
-            <Card key={item.id} className="hover:shadow-md transition-shadow">
+            <Card key={item.id} className="hover:shadow-md md:hover:shadow-lg xl:hover:shadow-xl transition-shadow h-fit">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -106,13 +107,13 @@ export default function Feed() {
                         {item.timestamp}
                       </span>
                     </div>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
+                    <CardTitle className="text-lg md:text-2xl">{item.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               
               <CardContent className="pt-0">
-                <p className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
+                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
                   {item.content}
                 </p>
                 

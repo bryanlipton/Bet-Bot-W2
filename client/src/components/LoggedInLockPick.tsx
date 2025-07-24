@@ -292,6 +292,14 @@ export default function LoggedInLockPick() {
     refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });
 
+  // Add proper type guard for lockPick
+  const isValidLockPick = (pick: any): pick is any => {
+    return pick && typeof pick === 'object' && pick.id && pick.gameId;
+  };
+
+  // Only work with valid lock pick data
+  const validLockPick = isValidLockPick(lockPick) ? lockPick : null;
+
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
     queryKey: [`/api/daily-pick/${lockPick?.id}/analysis`],
     enabled: !!lockPick?.id && analysisDialogOpen && isAuthenticated,
@@ -469,7 +477,7 @@ export default function LoggedInLockPick() {
     );
   }
 
-  if (!lockPick) {
+  if (!validLockPick) {
     return (
       <Card className="w-full border-dashed">
         <CardContent className="p-6 text-center">
@@ -516,15 +524,15 @@ export default function LoggedInLockPick() {
   };
 
   // When game starts, show collapsed view by default
-  const gameStarted = lockPick ? isGameStarted(lockPick.gameTime) : false;
+  const gameStarted = validLockPick ? isGameStarted(validLockPick.gameTime) : false;
 
   // Find current game score data with improved matching logic
   const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!lockPick) return false;
-    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
-                       game.gameId === lockPick.gameId;
-    const teamMatch = game.homeTeam === lockPick.homeTeam && 
-                     game.awayTeam === lockPick.awayTeam;
+    if (!validLockPick) return false;
+    const gameIdMatch = game.gameId === parseInt(validLockPick.gameId || '0') || 
+                       game.gameId === validLockPick.gameId;
+    const teamMatch = game.homeTeam === validLockPick.homeTeam && 
+                     game.awayTeam === validLockPick.awayTeam;
     return gameIdMatch || teamMatch;
   });
 
@@ -533,12 +541,12 @@ export default function LoggedInLockPick() {
   
   // Determine win/loss for finished games
   const getGameResult = () => {
-    if (!isGameFinished || !liveLockGameScore) return null;
+    if (!isGameFinished || !liveLockGameScore || !validLockPick) return null;
     
-    const pickTeamScore = lockPick.pickTeam === lockPick.homeTeam 
+    const pickTeamScore = validLockPick.pickTeam === validLockPick.homeTeam 
       ? liveLockGameScore.homeScore 
       : liveLockGameScore.awayScore;
-    const opponentScore = lockPick.pickTeam === lockPick.homeTeam 
+    const opponentScore = validLockPick.pickTeam === validLockPick.homeTeam 
       ? liveLockGameScore.awayScore 
       : liveLockGameScore.homeScore;
     
@@ -559,7 +567,7 @@ export default function LoggedInLockPick() {
   };
 
   // Show collapsed view when manually collapsed or when game has started
-  if (lockPick && (isCollapsed || (gameStarted && gameStartedCollapsed))) {
+  if (validLockPick && (isCollapsed || (gameStarted && gameStartedCollapsed))) {
     return (
       <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
         {isGameFinished && gameResult && (
@@ -583,17 +591,17 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
-                    {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
+                    {validLockPick.pickTeam} {validLockPick.odds > 0 ? `+${validLockPick.odds}` : validLockPick.odds} vs {validLockPick.pickTeam === validLockPick.homeTeam ? getTeamAbbreviation(validLockPick.awayTeam) : getTeamAbbreviation(validLockPick.homeTeam)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
                   <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
-                    lockPick.grade === 'A+' ? 'bg-amber-500' :
-                    lockPick.grade === 'A' ? 'bg-amber-400' :
-                    lockPick.grade.startsWith('B') ? 'bg-amber-300' :
-                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                    validLockPick.grade === 'A+' ? 'bg-amber-500' :
+                    validLockPick.grade === 'A' ? 'bg-amber-400' :
+                    validLockPick.grade?.startsWith('B') ? 'bg-amber-300' :
+                    validLockPick.grade?.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
                   }`}>
-                    Grade {lockPick.grade}
+                    Grade {validLockPick.grade}
                   </div>
                 </div>
               </div>
@@ -604,7 +612,7 @@ export default function LoggedInLockPick() {
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1.5 text-xs mr-2">
                   <div className="flex items-center justify-between space-x-3 min-w-[100px]">
                     <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(lockPick.awayTeam)}</div>
+                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(validLockPick.awayTeam)}</div>
                       <div className="font-bold text-sm">{liveLockGameScore.awayScore || 0}</div>
                     </div>
                     <div className="text-center">
@@ -615,7 +623,7 @@ export default function LoggedInLockPick() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(lockPick.homeTeam)}</div>
+                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(validLockPick.homeTeam)}</div>
                       <div className="font-bold text-sm">{liveLockGameScore.homeScore || 0}</div>
                     </div>
                   </div>
