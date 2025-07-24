@@ -129,9 +129,9 @@ export default function ScoresPage() {
     setSelectedDate(new Date());
   };
 
-  // Fetch real scores data based on selected sport - use odds API that's working
+  // Fetch real MLB scores data directly from MLB Stats API
   const { data: scoresData, isLoading, refetch } = useQuery({
-    queryKey: ['/api/odds/current', selectedSport],
+    queryKey: ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -194,45 +194,20 @@ export default function ScoresPage() {
 
   // Sort and filter games by selected date and status
   const sortedGames = useMemo(() => {
-    if (!scoresData || !Array.isArray(scoresData)) {
-      // Show sample games when no data is available (for demo purposes)
-      const sampleGames: ScoreGame[] = [
-        {
-          id: 'sample_1',
-          homeTeam: 'New York Yankees',
-          awayTeam: 'Boston Red Sox',
-          homeScore: 7,
-          awayScore: 4,
-          status: 'Final',
-          startTime: new Date().toISOString(),
-          sportKey: 'baseball_mlb'
-        },
-        {
-          id: 'sample_2', 
-          homeTeam: 'Los Angeles Dodgers',
-          awayTeam: 'San Francisco Giants',
-          homeScore: 3,
-          awayScore: 5,
-          status: 'Top 9th',
-          startTime: new Date().toISOString(),
-          sportKey: 'baseball_mlb'
-        },
-        {
-          id: 'sample_3',
-          homeTeam: 'Houston Astros',
-          awayTeam: 'Seattle Mariners',
-          status: 'Scheduled',
-          startTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-          sportKey: 'baseball_mlb'
-        }
-      ];
-      return sampleGames;
+    // Handle API response that might be an object with games array
+    let gamesArray = scoresData;
+    if (scoresData && !Array.isArray(scoresData)) {
+      gamesArray = scoresData.games || [];
+    }
+    
+    if (!gamesArray || !Array.isArray(gamesArray) || gamesArray.length === 0) {
+      return [];
     }
 
     const selectedDateStr = selectedDate.toDateString();
     
     // Filter games for selected date - handle both odds API and scores API format
-    const dayGames = scoresData.filter((game: any) => {
+    const dayGames = gamesArray.filter((game: any) => {
       const gameDate = new Date(game.commence_time || game.startTime || game.gameDate);
       return gameDate.toDateString() === selectedDateStr;
     });

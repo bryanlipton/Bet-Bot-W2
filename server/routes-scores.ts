@@ -60,6 +60,21 @@ export function registerScoresRoutes(app: Express) {
       
       const data: MLBScoresResponse = await response.json();
       
+      console.log(`MLB API response:`, JSON.stringify(data, null, 2));
+      
+      // Handle empty dates (off-season)
+      if (!data.dates || data.dates.length === 0) {
+        console.log(`No games found for ${date} - likely off-season`);
+        
+        // During off-season, provide message explaining no games
+        return res.json({
+          message: "No MLB games scheduled for this date (off-season)",
+          date: date,
+          totalGames: 0,
+          games: []
+        });
+      }
+      
       const scores = data.dates.flatMap(date => 
         date.games.map((game, index) => ({
           id: `mlb_${game.gamePk || game.gameId || `${date.date}_${index}`}`,
