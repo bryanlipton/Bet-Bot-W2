@@ -21,3 +21,6 @@ mode = "replace"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[nix]
+channel = "stable-24_05"
