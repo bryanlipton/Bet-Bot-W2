@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,6 +97,7 @@ interface GameCardProps {
   lockPickTeam?: string;
   lockPickGrade?: string;
   lockPickId?: string;
+  isAuthenticated?: boolean;
   onClick?: () => void;
   // Raw bookmakers data for odds comparison
   rawBookmakers?: Array<{
@@ -238,28 +238,25 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   const calculateOverallGrade = () => {
     if (!analysisData) return 'C+';
     
-    // Type guard to ensure analysisData has the expected structure
-    const data = analysisData as AnalysisData;
-    
     // Use the grade from the API if available
-    if (data.overall?.grade) {
-      return data.overall.grade;
+    if (analysisData.overall?.grade) {
+      return analysisData.overall.grade;
     }
     
     // Use confidence score if available
-    if (data.overall?.confidence) {
-      return scoreToGrade(data.overall.confidence);
+    if (analysisData.overall?.confidence) {
+      return scoreToGrade(analysisData.overall.confidence);
     }
     
     // Fallback to calculating from individual factor scores
     const scores = [
-      data.factors?.valueScore?.score,
-      data.factors?.ballparkFactor?.score,
-      data.factors?.pitchingMatchup?.score,
-      data.factors?.situationalEdge?.score,
-      data.factors?.weatherImpact?.score,
-      data.factors?.offensiveEdge?.score
-    ].filter(score => score !== null && score !== undefined && !isNaN(score as number) && (score as number) > 0) as number[];
+      analysisData.factors?.valueScore?.score,
+      analysisData.factors?.ballparkFactor?.score,
+      analysisData.factors?.pitchingMatchup?.score,
+      analysisData.factors?.situationalEdge?.score,
+      analysisData.factors?.weatherImpact?.score,
+      analysisData.factors?.offensiveEdge?.score
+    ].filter(score => score !== null && score !== undefined && !isNaN(score) && score > 0);
     
     if (scores.length === 0) return 'C+';
     const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
@@ -501,6 +498,7 @@ export function ActionStyleGameCard({
   lockPickTeam,
   lockPickGrade,
   lockPickId,
+  isAuthenticated = false,
   onClick,
   rawBookmakers
 }: GameCardProps) {
@@ -519,22 +517,7 @@ export function ActionStyleGameCard({
     odds: '',
     units: 1
   });
-  const [betUnit, setBetUnit] = useState(10);
-  
-  const { isAuthenticated } = useAuth();
-  
-  // Fetch user preferences to get correct bet unit
-  const { data: userPreferences } = useQuery({
-    queryKey: ['/api/user/preferences'],
-    enabled: isAuthenticated
-  });
-  
-  // Set bet unit from user preferences
-  useEffect(() => {
-    if (userPreferences && (userPreferences as any).betUnit) {
-      setBetUnit((userPreferences as any).betUnit);
-    }
-  }, [userPreferences]);
+  const [betUnit, setBetUnit] = useState(50);
 
   const handleMakePick = (event: React.MouseEvent, market: 'moneyline' | 'spread' | 'total', selection: string, line?: number) => {
     try {
@@ -580,21 +563,18 @@ export function ActionStyleGameCard({
       
     } catch (error) {
       console.error('=== CRITICAL ERROR in handleMakePick ===', error);
-      console.error('Error stack:', (error as Error).stack);
-      alert(`Critical error opening betting options: ${(error as Error).message}. Please try again or refresh the page.`);
+      console.error('Error stack:', error.stack);
+      alert(`Critical error opening betting options: ${error.message}. Please try again or refresh the page.`);
     }
   };
 
   const handleManualEntry = (gameInfo: any, selectedBet: any) => {
     // Pre-fill the manual entry form with data from the odds comparison modal
-    const bestOdds = selectedBet.bestOdds;
-    const oddsValue = bestOdds ? (bestOdds > 0 ? `+${bestOdds}` : bestOdds.toString()) : '';
-    
     setManualEntry({
       market: selectedBet.market,
       selection: selectedBet.selection,
       line: selectedBet.line?.toString() || '',
-      odds: oddsValue,
+      odds: '',
       units: 1
     });
     setManualEntryOpen(true);
@@ -612,9 +592,9 @@ export function ActionStyleGameCard({
       gameInfo: {
         awayTeam,
         homeTeam,
-        gameId: gameId?.toString(),
-        sport: 'baseball_mlb',
-        gameTime: startTime
+        gameTime: startTime,
+        venue: 'TBD',
+        sport: 'baseball_mlb'
       },
       betInfo: {
         market: manualEntry.market,
@@ -625,6 +605,7 @@ export function ActionStyleGameCard({
       },
       bookmaker: {
         key: 'manual',
+        title: 'Manual Entry',
         displayName: 'Manual Entry',
         url: '#'
       },
@@ -639,7 +620,7 @@ export function ActionStyleGameCard({
         awayTeam,
         selection: manualEntry.selection,
         market: manualEntry.market,
-        line: manualEntry.line ? parseFloat(manualEntry.line) : null,
+        line: manualEntry.line || null,
         units: manualEntry.units,
         betUnitAtTime: betUnit, // Store current bet unit value
         bookmaker: 'manual',

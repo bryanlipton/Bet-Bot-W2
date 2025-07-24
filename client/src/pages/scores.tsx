@@ -71,12 +71,7 @@ const formatDateDisplay = (date: Date) => {
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
-  // Ensure we're using the current date in the correct timezone
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const now = new Date();
-    // Reset time to start of day to avoid timezone issues
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  });
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
     homeTeam: string;
@@ -131,15 +126,12 @@ export default function ScoresPage() {
   };
 
   const goToToday = () => {
-    const now = new Date();
-    // Reset to start of current day to ensure we're using today's date
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    setSelectedDate(today);
+    setSelectedDate(new Date());
   };
 
-  // Fetch real MLB scores data directly from MLB Stats API
+  // Fetch real scores data based on selected sport
   const { data: scoresData, isLoading, refetch } = useQuery({
-    queryKey: ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]],
+    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]] : ['/api/scores', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -174,52 +166,16 @@ export default function ScoresPage() {
     }
   };
 
-  // Format date + time for non-today games
-  const formatDateAndTime = (timeString: string) => {
-    try {
-      const gameDate = new Date(timeString);
-      const today = new Date();
-      const isToday = gameDate.toDateString() === today.toDateString();
-      
-      if (isToday) {
-        return gameDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else {
-        // For non-today games, show date + time
-        const dateStr = gameDate.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
-        });
-        const timeStr = gameDate.toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-        return `${dateStr} ${timeStr}`;
-      }
-    } catch {
-      return timeString;
-    }
-  };
-
   // Sort and filter games by selected date and status
   const sortedGames = useMemo(() => {
-    // Handle API response that might be an object with games array
-    let gamesArray = scoresData;
-    if (scoresData && !Array.isArray(scoresData)) {
-      gamesArray = scoresData.games || [];
-    }
-    
-    if (!gamesArray || !Array.isArray(gamesArray) || gamesArray.length === 0) {
-      return [];
-    }
+    if (!scoresData) return [];
 
     const selectedDateStr = selectedDate.toDateString();
     
-    // Filter games for selected date - handle both odds API and scores API format
-    const dayGames = gamesArray.filter((game: any) => {
-      const gameDate = new Date(game.commence_time || game.startTime || game.gameDate);
-      // Use more precise date matching to avoid timezone issues
-      const gameDateStr = gameDate.toDateString();
-      return gameDateStr === selectedDateStr;
+    // Filter games for selected date
+    const dayGames = scoresData.filter((game: any) => {
+      const gameDate = new Date(game.commence_time || game.startTime);
+      return gameDate.toDateString() === selectedDateStr;
     });
 
     // Convert to ScoreGame format
@@ -611,32 +567,6 @@ function ScoreGameCard({
     }
   };
 
-  // Format date + time for non-today games
-  const formatDateAndTime = (timeString: string) => {
-    try {
-      const gameDate = new Date(timeString);
-      const today = new Date();
-      const isToday = gameDate.toDateString() === today.toDateString();
-      
-      if (isToday) {
-        return gameDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      } else {
-        // For non-today games, show date + time
-        const dateStr = gameDate.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
-        });
-        const timeStr = gameDate.toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-        return `${dateStr} ${timeStr}`;
-      }
-    } catch {
-      return timeString;
-    }
-  };
-
   const isFinished = game.status.toLowerCase().includes('final') || 
                      game.status.toLowerCase().includes('completed') || 
                      game.status.toLowerCase().includes('game over');
@@ -853,7 +783,7 @@ function ScoreGameCard({
                   </div>
                 ) : !isFinished && !isActuallyLive ? (
                   <span className="text-gray-500 dark:text-gray-400">
-                    {formatDateAndTime(game.startTime)}
+                    {formatTime(game.startTime)}
                   </span>
                 ) : null}
               </div>

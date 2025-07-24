@@ -1,4 +1,5 @@
 // Utility functions for normalizing and color-coding analysis factors
+import { getFactorNarrative } from './narrativeGenerator';
 
 /**
  * Normalizes a factor score to the 60-100 range
@@ -45,11 +46,7 @@ function scoreToGrade(score: number): string {
  * @param normalizedScore Score between 60-100
  * @returns Object with text and background color classes
  */
-export function getFactorColorClasses(normalizedScore: number | null): { text: string; bg: string; border: string } {
-  // Handle null/undefined scores (N/A display)
-  if (normalizedScore === null || normalizedScore === undefined) {
-    return { text: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-300 dark:bg-gray-600', border: 'border-gray-400 dark:border-gray-500' };
-  }
+export function getFactorColorClasses(normalizedScore: number): { text: string; bg: string; border: string } {
   // Blue (80-100): High performance
   if (normalizedScore >= 80) {
     return { text: 'text-white', bg: 'bg-blue-500', border: 'border-blue-600' };
@@ -70,11 +67,7 @@ export function getFactorColorClasses(normalizedScore: number | null): { text: s
   return { text: 'text-white', bg: 'bg-orange-500', border: 'border-orange-600' };
 }
 
-export function getLockPickFactorColorClasses(normalizedScore: number | null): { text: string; bg: string; border: string } {
-  // Handle null/undefined scores (N/A display)
-  if (normalizedScore === null || normalizedScore === undefined) {
-    return { text: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-300 dark:bg-gray-600', border: 'border-gray-400 dark:border-gray-500' };
-  }
+export function getLockPickFactorColorClasses(normalizedScore: number): { text: string; bg: string; border: string } {
   // Dark Orange (90-100): Excellent performance
   if (normalizedScore >= 90) {
     return { text: 'text-white', bg: 'bg-orange-800', border: 'border-orange-900' };
@@ -134,11 +127,7 @@ export function getFactorExplanation(factorName: string): string {
  * Gets professional analyst-style narrative for a factor score
  * Uses the new narrative generator for more sophisticated explanations
  */
-export function getFactorNarrative(factorName: string, score: number | null, context: any = {}): string {
-  // Handle null/undefined scores
-  if (score === null || score === undefined) {
-    return getFactorExplanation(factorName);
-  }
+export function getFactorNarrative(factorName: string, score: number, context: any = {}): string {
   // Import the narrative generator dynamically to avoid circular dependencies
   try {
     const { generateNarrative } = require('./narrativeGenerator');
@@ -209,11 +198,7 @@ function getGradeExplanation(score: number, factorName: string): string {
   }
 }
 
-export function getFactorTooltip(normalizedScore: number | null, factorName: string, context: any = {}): string {
-  // Handle null/undefined scores
-  if (normalizedScore === null || normalizedScore === undefined) {
-    return `${factorName}: Not Available\n\nInsufficient data to calculate this factor. This commonly occurs when required information (such as probable starting pitchers) is not yet available.`;
-  }
+export function getFactorTooltip(normalizedScore: number, factorName: string, context: any = {}): string {
   // Use professional narrative for the main explanation
   const narrative = getFactorNarrative(factorName, normalizedScore, context);
   const gradeExplanation = getGradeExplanation(normalizedScore, factorName);

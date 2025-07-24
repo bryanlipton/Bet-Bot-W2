@@ -597,37 +597,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserProfile(id: string, profileData: any): Promise<User> {
-    // Handle avatar field conflicts - if one is set, clear the other
-    const updateFields = { ...profileData };
-    
-    // If profileImageUrl is being set (new emoji|background format), clear avatar
-    if (updateFields.profileImageUrl && updateFields.profileImageUrl.includes('|')) {
-      updateFields.avatar = null;
-    }
-    // If avatar is being set (old emoji format), clear profileImageUrl  
-    else if (updateFields.avatar && updateFields.avatar.length <= 2) {
-      updateFields.profileImageUrl = null;
-    }
-    // If profileImageUrl is being set (regular image), clear avatar
-    else if (updateFields.profileImageUrl && !updateFields.profileImageUrl.includes('|')) {
-      updateFields.avatar = null;
-    }
-    
     const [user] = await db
       .update(users)
       .set({
-        ...updateFields,
+        ...profileData,
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
       .returning();
-    
-    console.log('Profile updated in database:', {
-      userId: id,
-      avatar: user.avatar,
-      profileImageUrl: user.profileImageUrl
-    });
-    
     return user;
   }
 

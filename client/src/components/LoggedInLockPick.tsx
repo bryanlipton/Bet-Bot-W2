@@ -115,12 +115,12 @@ interface PickAnalysisDetails {
 
 
 // Grade Badge Component
-function GradeBadge({ grade, isFinished = false }: { grade: string; isFinished?: boolean }) {
+function GradeBadge({ grade }: { grade: string }) {
   const colorClasses = getGradeColorClasses(grade);
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${isFinished ? 'text-black' : colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -141,7 +141,7 @@ function scoreToGrade(score: number): string {
 }
 
 // Unified Info Button Component with Dark Background
-function InfoButton({ info, title, score }: { info: string; title: string; score?: number | null }) {
+function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
   const getGradeExplanation = (score: number, factorTitle: string): string => {
     // Enhanced explanations based on factor type with more detail
     switch (factorTitle) {
@@ -200,7 +200,7 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
       <PopoverContent className="w-96 p-4 text-xs max-h-80 overflow-y-auto" side="top">
         <div className="font-medium mb-2">{title}</div>
         <div className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">{info.split('\n\n')[0]}</div>
-        {score !== undefined && score !== null && score > 0 && (
+        {score !== undefined && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
             <div className="text-gray-800 dark:text-gray-200 leading-relaxed">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
@@ -233,7 +233,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
 }
 
 // Factor Score Component with Info Button
-function FactorScore({ title, score, info, gameContext }: { title: string; score: number | null; info: string; gameContext?: any }) {
+function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
   const colorClasses = getLockPickFactorColorClasses(score);
   const tooltip = getFactorTooltip(score, title, gameContext);
 
@@ -250,20 +250,6 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
   );
 }
 
-// Game status helper function
-function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
-  const now = new Date();
-  const gameStart = new Date(gameTime);
-  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
-  
-  // Add 15-minute buffer before considering game "live" to account for pre-game activities
-  const liveStartTime = new Date(gameStart.getTime() + (15 * 60 * 1000));
-  
-  if (now < liveStartTime) return 'upcoming';
-  if (now >= liveStartTime && now < gameEnd) return 'live';
-  return 'completed';
-}
-
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
@@ -271,10 +257,7 @@ export default function LoggedInLockPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [lockPickMediumOpen, setLockPickMediumOpen] = useState(false); // Start collapsed for stacked layout
-  // Always start expanded for desktop side-by-side layout
-  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true);
-  
-
+  const [lockPickLargeOpen, setLockPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false); // Manual collapse state
   // Removed odds cycling functionality
@@ -292,35 +275,27 @@ export default function LoggedInLockPick() {
     refetchInterval: false, // Disable automatic refetching to prevent pick changes
   });
 
-  // Add proper type guard for lockPick
-  const isValidLockPick = (pick: any): pick is DailyPick => {
-    return pick && typeof pick === 'object' && pick.id && pick.gameId;
-  };
-
-  // Only work with valid lock pick data
-  const validLockPick = isValidLockPick(lockPick) ? lockPick : null;
-
   const { data: analysisDetails } = useQuery<PickAnalysisDetails | null>({
-    queryKey: [`/api/daily-pick/${validLockPick?.id}/analysis`],
-    enabled: !!validLockPick?.id && analysisDialogOpen && isAuthenticated,
+    queryKey: [`/api/daily-pick/${lockPick?.id}/analysis`],
+    enabled: !!lockPick?.id && analysisDialogOpen && isAuthenticated,
   });
 
   const { data: gamesData } = useQuery({
     queryKey: ['/api/mlb/complete-schedule'],
-    enabled: !!validLockPick?.gameId,
+    enabled: !!lockPick?.gameId,
   });
 
   // Fetch live odds to update pick odds dynamically
   const { data: liveOdds } = useQuery({
     queryKey: ['/api/odds/live/baseball_mlb'],
-    enabled: !!validLockPick?.gameId,
+    enabled: !!lockPick?.gameId,
     refetchInterval: 60 * 1000, // Refetch every minute for odds updates
   });
 
   // Fetch live scores for the game
   const { data: gameScore } = useQuery({
-    queryKey: ['/api/mlb/scores', validLockPick?.gameTime ? new Date(validLockPick.gameTime).toISOString().split('T')[0] : ''],
-    enabled: !!validLockPick?.gameTime,
+    queryKey: ['/api/mlb/scores', lockPick?.gameTime ? new Date(lockPick.gameTime).toISOString().split('T')[0] : ''],
+    enabled: !!lockPick?.gameTime,
     refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
   });
 
@@ -328,8 +303,8 @@ export default function LoggedInLockPick() {
   useEffect(() => {
     const handleCollapseAnalysis = (e: any) => {
       if (e.detail?.source === 'daily') {
-        console.log('LoggedInLockPick: Received sync event from DailyPick, syncing state');
-        setLockPickLargeOpen(e.detail.expanded);
+        console.log('LoggedInLockPick: Received collapse event from DailyPick, collapsing both');
+        setLockPickLargeOpen(false);
       }
     };
     
@@ -339,42 +314,29 @@ export default function LoggedInLockPick() {
 
   // Track visits for analytics (but don't use for collapsing)
   useEffect(() => {
-    if (validLockPick?.id) {
+    if (lockPick?.id) {
       // Clean up old visits on component mount
       cleanupOldVisits();
       
       // Track this visit for analytics
-      trackPickVisit(validLockPick.id);
+      trackPickVisit(lockPick.id);
     }
-  }, [validLockPick?.id]);
-
-  // Mark Lock Pick as seen after component loads
-  useEffect(() => {
-    if (validLockPick?.id) {
-      try {
-        localStorage.setItem('hasSeenLockPick', 'true');
-      } catch (error) {
-        console.warn('Failed to save Lock Pick seen status:', error);
-      }
-    }
-  }, [validLockPick?.id]);
+  }, [lockPick?.id]);
 
   // Check if game has started to hide the tile
   const isGameStarted = (gameTime: string) => {
     const now = new Date();
     const game = new Date(gameTime);
-    // Add 15-minute buffer before considering game "started" to match DailyPick logic
-    const startWithBuffer = new Date(game.getTime() + (15 * 60 * 1000));
-    return now > startWithBuffer;
+    return now > game;
   };
 
   // Get best odds from all available bookmakers
   const getBestOddsFromBookmakers = () => {
-    if (!validLockPick || !gamesData || !Array.isArray(gamesData)) {
+    if (!lockPick || !gamesData || !Array.isArray(gamesData)) {
       return [];
     }
 
-    const currentGame = gamesData.find((game: any) => game.id === validLockPick.gameId);
+    const currentGame = gamesData.find((game: any) => game.id === lockPick.gameId);
     if (!currentGame?.bookmakers || !Array.isArray(currentGame.bookmakers)) {
       return [];
     }
@@ -385,7 +347,7 @@ export default function LoggedInLockPick() {
     currentGame.bookmakers.forEach((bookmaker: any) => {
       const moneylineMarket = bookmaker.markets?.find((m: any) => m.key === 'h2h');
       if (moneylineMarket?.outcomes) {
-        const pickTeamOutcome = moneylineMarket.outcomes.find((o: any) => o.name === validLockPick.pickTeam);
+        const pickTeamOutcome = moneylineMarket.outcomes.find((o: any) => o.name === lockPick.pickTeam);
         if (pickTeamOutcome?.price) {
           bestOdds.push({
             bookmaker: bookmaker.title || bookmaker.key,
@@ -412,9 +374,9 @@ export default function LoggedInLockPick() {
   const getCurrentOdds = () => {
     // Always use the original stored odds to maintain consistency with stored reasoning
     return {
-      homeOdds: validLockPick?.pickTeam === validLockPick?.homeTeam ? validLockPick?.odds : null,
-      awayOdds: validLockPick?.pickTeam !== validLockPick?.homeTeam ? validLockPick?.odds : null,
-      pickTeamOdds: validLockPick?.odds || null,
+      homeOdds: lockPick?.pickTeam === lockPick?.homeTeam ? lockPick?.odds : null,
+      awayOdds: lockPick?.pickTeam !== lockPick?.homeTeam ? lockPick?.odds : null,
+      pickTeamOdds: lockPick?.odds || null,
       bookmaker: 'Original Pick',
       totalBooks: 1
     };
@@ -423,7 +385,7 @@ export default function LoggedInLockPick() {
   const handleMakePick = (e: React.MouseEvent, market: string, selection: string, line?: number) => {
     e.stopPropagation();
     
-    if (!validLockPick) return;
+    if (!lockPick) return;
     
     const currentOdds = getCurrentOdds();
     
@@ -431,7 +393,7 @@ export default function LoggedInLockPick() {
       market,
       selection,
       line,
-      odds: currentOdds.pickTeamOdds || validLockPick.odds
+      odds: currentOdds.pickTeamOdds || lockPick.odds
     };
     
     // Close any existing modal first to prevent overlap
@@ -477,7 +439,7 @@ export default function LoggedInLockPick() {
     );
   }
 
-  if (!validLockPick) {
+  if (!lockPick) {
     return (
       <Card className="w-full border-dashed">
         <CardContent className="p-6 text-center">
@@ -524,15 +486,15 @@ export default function LoggedInLockPick() {
   };
 
   // When game starts, show collapsed view by default
-  const gameStarted = validLockPick ? isGameStarted(validLockPick.gameTime) : false;
+  const gameStarted = lockPick ? isGameStarted(lockPick.gameTime) : false;
 
   // Find current game score data with improved matching logic
   const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!validLockPick) return false;
-    const gameIdMatch = game.gameId === parseInt(validLockPick.gameId || '0') || 
-                       game.gameId === validLockPick.gameId;
-    const teamMatch = game.homeTeam === validLockPick.homeTeam && 
-                     game.awayTeam === validLockPick.awayTeam;
+    if (!lockPick) return false;
+    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
+                       game.gameId === lockPick.gameId;
+    const teamMatch = game.homeTeam === lockPick.homeTeam && 
+                     game.awayTeam === lockPick.awayTeam;
     return gameIdMatch || teamMatch;
   });
 
@@ -541,12 +503,12 @@ export default function LoggedInLockPick() {
   
   // Determine win/loss for finished games
   const getGameResult = () => {
-    if (!isGameFinished || !liveLockGameScore || !validLockPick) return null;
+    if (!isGameFinished || !liveLockGameScore) return null;
     
-    const pickTeamScore = validLockPick.pickTeam === validLockPick.homeTeam 
+    const pickTeamScore = lockPick.pickTeam === lockPick.homeTeam 
       ? liveLockGameScore.homeScore 
       : liveLockGameScore.awayScore;
-    const opponentScore = validLockPick.pickTeam === validLockPick.homeTeam 
+    const opponentScore = lockPick.pickTeam === lockPick.homeTeam 
       ? liveLockGameScore.awayScore 
       : liveLockGameScore.homeScore;
     
@@ -567,19 +529,9 @@ export default function LoggedInLockPick() {
   };
 
   // Show collapsed view when manually collapsed or when game has started
-  if (validLockPick && (isCollapsed || (gameStarted && gameStartedCollapsed))) {
+  if (isCollapsed || (gameStarted && gameStartedCollapsed)) {
     return (
-      <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
-        {isGameFinished && gameResult && (
-          <div className="absolute top-1 right-2 z-10">
-            <div className={`px-1.5 py-0.5 rounded text-xs font-bold text-white ${
-              gameResult === 'won' ? 'bg-green-500' : 
-              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
-            }`}>
-              {gameResult.toUpperCase()}
-            </div>
-          </div>
-        )}
+      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
         <CardContent className="p-4">
           <div className="flex items-center justify-between cursor-pointer" onClick={() => {setIsCollapsed(false); setGameStartedCollapsed(false);}}>
             <div className="flex items-center space-x-3">
@@ -591,40 +543,37 @@ export default function LoggedInLockPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
                   <span className="text-xs text-gray-500">
-                    {validLockPick.pickTeam} {validLockPick.odds > 0 ? `+${validLockPick.odds}` : validLockPick.odds} vs {validLockPick.pickTeam === validLockPick.homeTeam ? getTeamAbbreviation(validLockPick.awayTeam) : getTeamAbbreviation(validLockPick.homeTeam)}
+                    {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
-                    validLockPick.grade === 'A+' ? 'bg-amber-500' :
-                    validLockPick.grade === 'A' ? 'bg-amber-400' :
-                    validLockPick.grade?.startsWith('B') ? 'bg-amber-300' :
-                    validLockPick.grade?.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                    lockPick.grade === 'A+' ? 'bg-amber-500' :
+                    lockPick.grade === 'A' ? 'bg-amber-400' :
+                    lockPick.grade.startsWith('B') ? 'bg-amber-300' :
+                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
                   }`}>
-                    Grade {validLockPick.grade}
+                    Grade {lockPick.grade}
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              {liveLockGameScore && (gameStarted || isGameFinished) && (
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1.5 text-xs mr-2">
-                  <div className="flex items-center justify-between space-x-3 min-w-[100px]">
-                    <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(validLockPick.awayTeam)}</div>
-                      <div className="font-bold text-sm">{liveLockGameScore.awayScore || 0}</div>
+            <div className="flex items-center space-x-3">
+              {liveLockGameScore && gameStarted && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {liveLockGameScore.status === 'Final' ? 'Final' : 
+                     liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || ''}` : 'Live'}
+                  </div>
+                  <div className="font-mono text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.awayTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
                     </div>
-                    <div className="text-center">
-                      <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                        {liveLockGameScore.status === 'Final' ? 'F' : 
-                         liveLockGameScore.status === 'In Progress' ? (liveLockGameScore.inning ? `${liveLockGameScore.inning}` : 'Live') : 
-                         'Live'}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(validLockPick.homeTeam)}</div>
-                      <div className="font-bold text-sm">{liveLockGameScore.homeScore || 0}</div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{lockPick.homeTeam}</span>
+                      <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -663,7 +612,7 @@ export default function LoggedInLockPick() {
               <div>
                 <h2 className="text-xl font-bold text-amber-600 dark:text-amber-400">Logged In Lock</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {formatGameTime(validLockPick.gameTime)} • {validLockPick.venue}
+                  {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
                 </p>
               </div>
             </div>
@@ -683,17 +632,17 @@ export default function LoggedInLockPick() {
               <div className="flex justify-between items-center">
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold">{validLockPick.awayTeam}</span>
+                    <span className="text-lg font-bold">{lockPick.awayTeam}</span>
                     <span className="text-2xl font-bold">{liveLockGameScore.awayScore || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">{validLockPick.homeTeam}</span>
+                    <span className="text-lg font-bold">{lockPick.homeTeam}</span>
                     <span className="text-2xl font-bold">{liveLockGameScore.homeScore || 0}</span>
                   </div>
                 </div>
                 <div className="ml-4 text-right">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {liveLockGameScore.status === 'Final' ? 'Finished' : 
+                    {liveLockGameScore.status === 'Final' ? 'Final' : 
                      liveLockGameScore.status === 'In Progress' ? `${liveLockGameScore.inning || 'Live'}` : 'Live'}
                   </div>
                 </div>
@@ -705,22 +654,24 @@ export default function LoggedInLockPick() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Our Pick: {validLockPick.pickTeam}</h3>
+                <h3 className="text-lg font-semibold">Our Pick: {lockPick.pickTeam}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Moneyline {validLockPick.odds > 0 ? `+${validLockPick.odds}` : validLockPick.odds} • Grade {validLockPick.grade}
+                  Moneyline {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} • Grade {lockPick.grade}
                 </p>
               </div>
-              <div className={`px-3 py-1 rounded text-sm font-bold ${isGameFinished ? 'text-black' : 'text-white'} ${
-                validLockPick.grade === 'A+' ? 'bg-blue-500' :
-                validLockPick.grade === 'A' ? 'bg-blue-400' :
-                validLockPick.grade.startsWith('B') ? 'bg-blue-300' :
-                validLockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+              <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
+                lockPick.grade === 'A+' ? 'bg-blue-500' :
+                lockPick.grade === 'A' ? 'bg-blue-400' :
+                lockPick.grade.startsWith('B') ? 'bg-blue-300' :
+                lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
               }`}>
-                Grade {validLockPick.grade}
+                Grade {lockPick.grade}
               </div>
             </div>
 
-            {/* Reasoning removed for live games to avoid problems */}
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Reasoning:</strong> {lockPick.reasoning}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -759,7 +710,7 @@ export default function LoggedInLockPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : null,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : 0,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
@@ -809,10 +760,8 @@ export default function LoggedInLockPick() {
     }
   };
 
-  const matchup = formatMatchup(validLockPick.homeTeam, validLockPick.awayTeam, validLockPick.pickTeam);
-  const factors = getFactors(validLockPick.analysis, validLockPick.probablePitchers);
-  
-
+  const matchup = formatMatchup(lockPick.homeTeam, lockPick.awayTeam, lockPick.pickTeam);
+  const factors = getFactors(lockPick.analysis, lockPick.probablePitchers);
 
   return (
     <>
@@ -841,8 +790,8 @@ export default function LoggedInLockPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
-              <div className={`${getGradeColorClasses(validLockPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(validLockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
-                {validLockPick.grade}
+              <div className={`${getGradeColorClasses(lockPick.grade).bg} ${getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
+                {lockPick.grade}
               </div>
             </div>
 
@@ -851,15 +800,15 @@ export default function LoggedInLockPick() {
               <h3 className="text-base font-semibold text-white font-sans">
                 {(() => {
                   // Use original pregame odds instead of live odds
-                  const oddsText = validLockPick.odds > 0 ? `+${validLockPick.odds}` : validLockPick.odds;
-                  const isAwayTeam = validLockPick.pickTeam === validLockPick.awayTeam;
+                  const oddsText = lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds;
+                  const isAwayTeam = lockPick.pickTeam === lockPick.awayTeam;
                   const separator = isAwayTeam ? ' at ' : ' vs ';
-                  const otherTeam = isAwayTeam ? validLockPick.homeTeam : validLockPick.awayTeam;
+                  const otherTeam = isAwayTeam ? lockPick.homeTeam : lockPick.awayTeam;
                   
                   return (
                     <>
                       <span className="text-amber-400 font-bold">
-                        {validLockPick.pickTeam} ML {oddsText}
+                        {lockPick.pickTeam} ML {oddsText}
                       </span>
                       {separator}
                       <span>
@@ -871,15 +820,15 @@ export default function LoggedInLockPick() {
               </h3>
               
               {/* Pitchers */}
-              {validLockPick.probablePitchers?.away && validLockPick.probablePitchers?.home && (
+              {lockPick.probablePitchers?.away && lockPick.probablePitchers?.home && (
                 <p className="text-sm text-gray-300 font-sans">
-                  {validLockPick.probablePitchers.away} vs {validLockPick.probablePitchers.home}
+                  {lockPick.probablePitchers.away} vs {lockPick.probablePitchers.home}
                 </p>
               )}
               
               {/* Game Info */}
               <p className="text-xs text-gray-400 font-sans">
-                {formatGameTime(validLockPick.gameTime)} • {validLockPick.venue}
+                {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
               </p>
             </div>
 
@@ -901,38 +850,36 @@ export default function LoggedInLockPick() {
                         title={factor.title}
                         score={factor.score || 0}
                         info={factor.info}
-                        gameContext={validLockPick}
+                        gameContext={lockPick}
                       />
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More - Hidden for live and finished games */}
-                  {getGameStatus(validLockPick.gameTime) === 'upcoming' && (
-                    <div className="bg-gray-800/20 rounded-lg p-3">
-                      <div className="text-sm text-gray-300 font-sans leading-relaxed">
-                        <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
-                           style={!mobileReasoningExpanded ? {
-                             display: '-webkit-box',
-                             WebkitLineClamp: 3,
-                             WebkitBoxOrient: 'vertical'
-                           } : {}}>
-                          {getMobileReasoning(validLockPick.grade, validLockPick.analysis, validLockPick.pickTeam, validLockPick.odds)}
-                        </p>
-                        {getMobileReasoning(validLockPick.grade, validLockPick.analysis, validLockPick.pickTeam, validLockPick.odds).split(' ').length > 15 && (
-                          <button
-                            onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
-                            className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
-                          >
-                            {mobileReasoningExpanded ? (
-                              <>Show Less <ChevronUp className="h-3 w-3" /></>
-                            ) : (
-                              <>Show More <ChevronDown className="h-3 w-3" /></>
-                            )}
-                          </button>
-                        )}
-                      </div>
+                  {/* Analysis Summary Blurb with Show More */}
+                  <div className="bg-gray-800/20 rounded-lg p-3">
+                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                         style={!mobileReasoningExpanded ? {
+                           display: '-webkit-box',
+                           WebkitLineClamp: 3,
+                           WebkitBoxOrient: 'vertical'
+                         } : {}}>
+                        {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
+                      </p>
+                      {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
+                        <button
+                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                          className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
+                        >
+                          {mobileReasoningExpanded ? (
+                            <>Show Less <ChevronUp className="h-3 w-3" /></>
+                          ) : (
+                            <>Show More <ChevronDown className="h-3 w-3" /></>
+                          )}
+                        </button>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
@@ -940,13 +887,13 @@ export default function LoggedInLockPick() {
             {/* Action Buttons - Always Visible */}
             <div className="flex space-x-3 pt-2">
               <button
-                onClick={(e) => handleMakePick(e, 'h2h', validLockPick.pickTeam)}
+                onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam)}
                 className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
                 Pick
               </button>
               <button
-                onClick={(e) => handleMakePick(e, 'h2h', validLockPick.pickTeam === validLockPick.homeTeam ? validLockPick.awayTeam : validLockPick.homeTeam)}
+                onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam === lockPick.homeTeam ? lockPick.awayTeam : lockPick.homeTeam)}
                 className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold py-3 px-4 rounded-lg transition-colors font-sans min-h-[44px] flex items-center justify-center"
               >
                 Fade
@@ -1004,8 +951,8 @@ export default function LoggedInLockPick() {
                 <ChevronUp className="h-3 w-3 text-gray-600 dark:text-gray-400" />
               </Button>
               <div className="flex items-center space-x-2 -mt-1">
-                <Badge className={`${getGradeColorClasses(validLockPick.grade).bg} hover:${getGradeColorClasses(validLockPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(validLockPick.grade).text} font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer`}>
-                  {validLockPick.grade}
+                <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
+                  {lockPick.grade}
                 </Badge>
                 <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
                 <DialogTrigger asChild>
@@ -1022,7 +969,7 @@ export default function LoggedInLockPick() {
                   <DialogHeader>
                     <DialogTitle className="flex items-center space-x-2">
                       <BetBotIcon className="w-6 h-6" />
-                      <span>Lock Pick Analysis: {validLockPick.grade} Grade</span>
+                      <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
                     </DialogTitle>
                   </DialogHeader>
                   
@@ -1030,10 +977,10 @@ export default function LoggedInLockPick() {
                     <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3">Pick Details</h4>
                       <div className="space-y-2 text-sm">
-                        <div><strong>Game:</strong> {validLockPick.awayTeam} @ {validLockPick.homeTeam}</div>
-                        <div><strong>Pick:</strong> {validLockPick.pickTeam} {formatOdds(validLockPick.odds, validLockPick.pickType)}</div>
-                        <div><strong>Venue:</strong> {validLockPick.venue}</div>
-                        <div><strong>Time:</strong> {formatGameTime(validLockPick.gameTime)}</div>
+                        <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                        <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                        <div><strong>Venue:</strong> {lockPick.venue}</div>
+                        <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
                       </div>
                     </div>
                     
@@ -1041,11 +988,11 @@ export default function LoggedInLockPick() {
                       <h4 className="font-semibold mb-3">Grade Analysis</h4>
                       <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
                         {getMainGradeExplanation(
-                          validLockPick.grade,
-                          validLockPick.confidence,
-                          validLockPick.analysis,
-                          validLockPick.pickTeam,
-                          validLockPick.odds
+                          lockPick.grade,
+                          lockPick.confidence,
+                          lockPick.analysis,
+                          lockPick.pickTeam,
+                          lockPick.odds
                         )}
                       </pre>
                     </div>
@@ -1082,14 +1029,14 @@ export default function LoggedInLockPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-400 dark:to-amber-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(validLockPick.odds, validLockPick.pickType)}
+                  {formatOdds(lockPick.odds, lockPick.pickType)}
                 </span>
               </div>
               <div className="flex-shrink-0 ml-4">
-                {validLockPick.pickType === 'moneyline' && validLockPick.pickTeam === matchup.topTeam && (
+                {lockPick.pickType === 'moneyline' && lockPick.pickTeam === matchup.topTeam && (
                   <Button
                     size="sm"
-                    onClick={(e) => handleMakePick(e, 'h2h', validLockPick.pickTeam)}
+                    onClick={(e) => handleMakePick(e, 'h2h', lockPick.pickTeam)}
                     className="text-xs px-2 md:px-6 py-1 h-6 md:h-7 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
                   >
                     Pick
@@ -1099,7 +1046,7 @@ export default function LoggedInLockPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {matchup.topTeamPitcher === 'home' ? validLockPick.probablePitchers.home : validLockPick.probablePitchers.away || 'TBD'}
+                P: {matchup.topTeamPitcher === 'home' ? lockPick.probablePitchers.home : lockPick.probablePitchers.away || 'TBD'}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -1108,7 +1055,7 @@ export default function LoggedInLockPick() {
                 <span className="block">{matchup.bottomTeam}</span>
               </div>
               <div className="flex-shrink-0 ml-4">
-                {validLockPick.pickType === 'moneyline' && validLockPick.pickTeam !== matchup.bottomTeam && (
+                {lockPick.pickType === 'moneyline' && lockPick.pickTeam !== matchup.bottomTeam && (
                   <Button
                     size="sm"
                     onClick={(e) => handleMakePick(e, 'h2h', matchup.bottomTeam)}
@@ -1121,7 +1068,7 @@ export default function LoggedInLockPick() {
             </div>
             <div className="ml-4">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                P: {matchup.bottomTeamPitcher === 'home' ? validLockPick.probablePitchers.home : validLockPick.probablePitchers.away || 'TBD'}
+                P: {matchup.bottomTeamPitcher === 'home' ? lockPick.probablePitchers.home : lockPick.probablePitchers.away || 'TBD'}
               </p>
             </div>
             <div className="mt-3">
@@ -1151,7 +1098,7 @@ export default function LoggedInLockPick() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {liveLockGameScore.status === 'Final' ? 'Finished' : 
+                      {liveLockGameScore.status === 'Final' ? 'Final' : 
                        liveLockGameScore.status === 'In Progress' ? 
                          (liveLockGameScore.inning ? `${liveLockGameScore.inning}` : 'Live') : 
                        liveLockGameScore.status === 'Scheduled' ? 'Scheduled' :
@@ -1163,11 +1110,11 @@ export default function LoggedInLockPick() {
               
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500 dark:text-gray-500">
-                  {formatGameTime(validLockPick.gameTime)} • {validLockPick.venue}
+                  {formatGameTime(lockPick.gameTime)} • {lockPick.venue}
                 </p>
-                {/* Analysis dropdown toggle for medium and smaller screens */}
+                {/* Analysis dropdown toggle for all screen sizes */}
                 <button
-                  className="lg:hidden flex items-center text-xs text-amber-600 dark:text-amber-400 ml-2"
+                  className="flex items-center text-xs text-amber-600 dark:text-amber-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
                   {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
@@ -1177,31 +1124,11 @@ export default function LoggedInLockPick() {
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
                 </button>
-                
-                {/* Desktop analysis toggle for side-by-side layout */}
-                <button
-                  className="hidden lg:flex items-center text-xs text-amber-600 dark:text-amber-400 ml-2"
-                  onClick={() => {
-                    const newValue = !lockPickLargeOpen;
-                    setLockPickLargeOpen(newValue);
-                    // Dispatch event to sync both analysis sections
-                    window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { 
-                      detail: { source: 'lock', expanded: newValue } 
-                    }));
-                  }}
-                >
-                  {lockPickLargeOpen ? 'Hide' : 'Show'} Analysis
-                  {lockPickLargeOpen ? (
-                    <ChevronUp className="w-3 h-3 ml-1" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  )}
-                </button>
               </div>
 
-              {/* Analysis factors - Medium screens and below (dropdown) */}
+              {/* Analysis factors dropdown (all screen sizes) */}
               {mobileAnalysisOpen && (
-                <div className="lg:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-sm text-amber-600 dark:text-amber-400 mb-3 text-center">
                     Analysis Factors
                   </h5>
@@ -1209,33 +1136,7 @@ export default function LoggedInLockPick() {
                     {factors.map(({ key, title, score, info }) => {
                       // Create context for narrative generation
                       const gameContext = {
-                        isHomeGame: validLockPick.pickTeam === validLockPick.homeTeam,
-                        opponentHandedness: 'LHP' as const,
-                        starterERA: 3.8,
-                        last10Record: '6-4',
-                        offensiveStats: {
-                          xwOBA: 0.325,
-                          barrelRate: 7.2,
-                          exitVelo: 88.5
-                        }
-                      };
-                      return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Analysis factors - Desktop side-by-side layout */}
-              {lockPickLargeOpen && (
-                <div className="hidden lg:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <h5 className="font-semibold text-sm text-amber-600 dark:text-amber-400 mb-3 text-center">
-                    Analysis Factors
-                  </h5>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                    {factors.map(({ key, title, score, info }) => {
-                      // Create context for narrative generation
-                      const gameContext = {
-                        isHomeGame: validLockPick.pickTeam === validLockPick.homeTeam,
+                        isHomeGame: lockPick.pickTeam === lockPick.homeTeam,
                         opponentHandedness: 'LHP' as const,
                         starterERA: 3.8,
                         last10Record: '6-4',
@@ -1265,32 +1166,32 @@ export default function LoggedInLockPick() {
             setSelectedBet(null);
           }}
           gameInfo={{
-            homeTeam: validLockPick.homeTeam,
-            awayTeam: validLockPick.awayTeam,
-            gameId: validLockPick.gameId,
+            homeTeam: lockPick.homeTeam,
+            awayTeam: lockPick.awayTeam,
+            gameId: lockPick.gameId,
             sport: 'baseball_mlb',
-            gameTime: validLockPick.gameTime
+            gameTime: lockPick.gameTime
           }}
           bookmakers={(() => {
             const gamesArray = Array.isArray(gamesData) ? gamesData : [];
-            console.log('LoggedInLockPick: Searching for gameId:', validLockPick.gameId);
+            console.log('LoggedInLockPick: Searching for gameId:', lockPick.gameId);
             console.log('LoggedInLockPick: Available game IDs:', gamesArray.map(g => g.id).slice(0, 5), '... (showing first 5)');
             
-            let currentGame = gamesArray.find((game: any) => game.id === validLockPick.gameId);
+            let currentGame = gamesArray.find((game: any) => game.id === lockPick.gameId);
             let bookmakers = currentGame?.bookmakers || [];
             
             console.log('LoggedInLockPick: Found game by ID?', !!currentGame);
             
             if (!currentGame || bookmakers.length === 0) {
               // Enhanced fallback with multiple matching strategies
-              console.log('LoggedInLockPick: Trying team name fallback for:', validLockPick.awayTeam, '@', validLockPick.homeTeam);
+              console.log('LoggedInLockPick: Trying team name fallback for:', lockPick.awayTeam, '@', lockPick.homeTeam);
               
               currentGame = gamesArray.find((game: any) => {
                 const gameAway = game.away_team || game.awayTeam;
                 const gameHome = game.home_team || game.homeTeam;
                 
-                return (gameAway === validLockPick.awayTeam && gameHome === validLockPick.homeTeam) ||
-                       (gameAway === validLockPick.homeTeam && gameHome === validLockPick.awayTeam);
+                return (gameAway === lockPick.awayTeam && gameHome === lockPick.homeTeam) ||
+                       (gameAway === lockPick.homeTeam && gameHome === lockPick.awayTeam);
               });
               
               if (currentGame) {

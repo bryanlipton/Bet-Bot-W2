@@ -120,12 +120,12 @@ function BetBotIcon({ className = "w-8 h-8" }: { className?: string }) {
 }
 
 // Grade Badge Component
-function GradeBadge({ grade, isFinished = false }: { grade: string; isFinished?: boolean }) {
+function GradeBadge({ grade }: { grade: string }) {
   const colorClasses = getGradeColorClasses(grade);
   
   return (
     <Badge 
-      className={`${colorClasses.bg} ${isFinished ? 'text-black' : colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
+      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} font-bold px-2 py-0.5 text-sm md:px-3 md:py-1 md:text-lg cursor-pointer border rounded md:rounded-md`}
       onClick={(e) => e.stopPropagation()}
     >
       {grade}
@@ -146,7 +146,7 @@ function scoreToGrade(score: number): string {
 }
 
 // Unified Info Button Component with Dark Background
-function InfoButton({ info, title, score }: { info: string; title: string; score?: number | null }) {
+function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
   const getGradeExplanation = (score: number, factorTitle: string): string => {
     const grade = scoreToGrade(score);
     
@@ -207,7 +207,7 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
       <PopoverContent className="w-96 p-4 text-xs max-h-80 overflow-y-auto" side="top">
         <div className="font-medium mb-2">{title}</div>
         <div className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">{info.split('\n\n')[0]}</div>
-        {score !== undefined && score !== null && score > 0 && (
+        {score !== undefined && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
             <div className="text-gray-800 dark:text-gray-200 leading-relaxed">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
@@ -240,7 +240,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
 }
 
 // Factor Score Component with Info
-function FactorScore({ title, score, info, gameContext }: { title: string; score: number | null; info: string; gameContext?: any }) {
+function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
   const colorClasses = getFactorColorClasses(score);
   const tooltip = getFactorTooltip(score, title, gameContext);
 
@@ -272,11 +272,8 @@ function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
   const gameStart = new Date(gameTime);
   const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
   
-  // Add 15-minute buffer before considering game "live" to account for pre-game activities
-  const liveStartTime = new Date(gameStart.getTime() + (15 * 60 * 1000));
-  
-  if (now < liveStartTime) return 'upcoming';
-  if (now >= liveStartTime && now < gameEnd) return 'live';
+  if (now < gameStart) return 'upcoming';
+  if (now >= gameStart && now < gameEnd) return 'live';
   return 'completed';
 }
 
@@ -287,10 +284,7 @@ export default function DailyPick() {
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
-  // Always start expanded for desktop side-by-side layout
-  const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true);
-  
-
+  const [dailyPickLargeOpen, setDailyPickLargeOpen] = useState(true); // Start expanded for side-by-side
   const [isCollapsed, setIsCollapsed] = useState(false); // New collapsed state for entire pick
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   // Removed odds cycling functionality
@@ -332,8 +326,8 @@ export default function DailyPick() {
   useEffect(() => {
     const handleCollapseAnalysis = (e: any) => {
       if (e.detail?.source === 'lock') {
-        console.log('DailyPick: Received sync event from LoggedInLockPick, syncing state');
-        setDailyPickLargeOpen(e.detail.expanded);
+        console.log('DailyPick: Received collapse event from LoggedInLockPick, collapsing both');
+        setDailyPickLargeOpen(false);
       }
     };
     
@@ -356,24 +350,11 @@ export default function DailyPick() {
     }
   }, [dailyPick?.id]);
 
-  // Mark Daily Pick as seen after component loads
-  useEffect(() => {
-    if (dailyPick?.id) {
-      try {
-        localStorage.setItem('hasSeenDailyPick', 'true');
-      } catch (error) {
-        console.warn('Failed to save Daily Pick seen status:', error);
-      }
-    }
-  }, [dailyPick?.id]);
-
   // Check if game has started to hide the tile
   const isGameStarted = (gameTime: string) => {
     const now = new Date();
     const game = new Date(gameTime);
-    // Add 15-minute buffer before considering game "started" to match getGameStatus
-    const startWithBuffer = new Date(game.getTime() + (15 * 60 * 1000));
-    return now > startWithBuffer;
+    return now > game;
   };
 
   // Get current pitcher information from the latest game data
@@ -566,71 +547,13 @@ export default function DailyPick() {
 
   const gameResult = getGameResult();
 
-  // Get probable pitchers data and create factors for JSX usage
-  const probablePitchers = getCurrentPitchers();
-  
-  // Get all 6 factors with their info descriptions in permanent order
-  const getFactorsForPick = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
-    const factorData = [
-      {
-        key: 'marketInefficiency',
-        title: 'Market Edge',
-        score: analysis.marketInefficiency,
-        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
-      },
-      {
-        key: 'situationalEdge',
-        title: 'Situational Edge',
-        score: analysis.situationalEdge,
-        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
-      }
-    ];
-
-    // Always include Pitching Matchup, show NA if either pitcher is TBD
-    const homePitcher = probablePitchers.home || 'TBD';
-    const awayPitcher = probablePitchers.away || 'TBD';
-    
-    factorData.push({
-      key: 'pitchingMatchup',
-      title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : null,
-      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
-    });
-
-    factorData.push(
-      {
-        key: 'teamMomentum',
-        title: 'Team Momentum',
-        score: analysis.teamMomentum,
-        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
-      },
-      {
-        key: 'systemConfidence',
-        title: 'System Confidence',
-        score: analysis.systemConfidence,
-        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
-      },
-      {
-        key: 'offensiveProduction',
-        title: 'Offensive Production',
-        score: analysis.offensiveProduction,
-        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
-      }
-    );
-
-    return factorData;
-  };
-
-  // Create factors variable for use in JSX (must be after data is available)
-  const factors = dailyPick ? getFactorsForPick(dailyPick.analysis, probablePitchers) : [];
-
   // Show collapsed view when game has started
-  if (dailyPick && gameStarted && gameStartedCollapsed) {
+  if (gameStarted && gameStartedCollapsed) {
     return (
       <Card className="w-full relative">
         {isGameFinished && gameResult && (
-          <div className="absolute top-1 right-2 z-10">
-            <div className={`px-1.5 py-0.5 rounded text-xs font-bold text-white ${
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
               gameResult === 'won' ? 'bg-green-500' : 
               gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
             }`}>
@@ -650,7 +573,7 @@ export default function DailyPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
                     dailyPick.grade === 'A+' ? 'bg-blue-500' :
                     dailyPick.grade === 'A' ? 'bg-blue-400' :
                     dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
@@ -662,24 +585,21 @@ export default function DailyPick() {
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              {liveGameScore && (gameStarted || isGameFinished) && (
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-md px-2 py-1.5 text-xs mr-2">
-                  <div className="flex items-center justify-between space-x-3 min-w-[100px]">
-                    <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(dailyPick.awayTeam)}</div>
-                      <div className="font-bold text-sm">{liveGameScore.awayScore || 0}</div>
+            <div className="flex items-center space-x-3">
+              {liveGameScore && (
+                <div className="text-right">
+                  <div className="text-xs text-gray-500 mb-1">
+                    {liveGameScore.status === 'Final' ? 'Final' : 
+                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || ''}` : 'Live'}
+                  </div>
+                  <div className="font-mono text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.awayTeam}</span>
+                      <span className="font-bold">{liveGameScore.awayScore || 0}</span>
                     </div>
-                    <div className="text-center">
-                      <div className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                        {liveGameScore.status === 'Final' ? 'F' : 
-                         liveGameScore.status === 'In Progress' ? (liveGameScore.inning ? `${liveGameScore.inning}` : 'Live') : 
-                         'Live'}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-gray-600 dark:text-gray-300 font-medium text-xs">{getTeamAbbreviation(dailyPick.homeTeam)}</div>
-                      <div className="font-bold text-sm">{liveGameScore.homeScore || 0}</div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-600 dark:text-gray-300">{dailyPick.homeTeam}</span>
+                      <span className="font-bold">{liveGameScore.homeScore || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -750,7 +670,7 @@ export default function DailyPick() {
                 </div>
                 <div className="ml-4 text-right">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {liveGameScore.status === 'Final' ? 'Finished' : 
+                    {liveGameScore.status === 'Final' ? 'Final' : 
                      liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || 'Live'}` : 'Live'}
                   </div>
                 </div>
@@ -769,7 +689,7 @@ export default function DailyPick() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 self-start">
-                  <div className={`w-8 h-8 rounded text-xs font-bold ${isGameFinished ? 'text-black' : 'text-white'} flex items-center justify-center ${
+                  <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
                     dailyPick.grade === 'A+' ? 'bg-blue-500' :
                     dailyPick.grade === 'A' ? 'bg-blue-400' :
                     dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
@@ -827,7 +747,7 @@ export default function DailyPick() {
                               <div key={key} className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium">{title}</span>
-                                  <span className="font-bold">{(score !== null && score > 0) ? `${scoreToGrade(score as number)} (${score}/100)` : 'N/A'}</span>
+                                  <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                                 </div>
                                 <ColoredProgress value={score} className="h-2" />
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
@@ -842,7 +762,9 @@ export default function DailyPick() {
               </div>
             </div>
 
-            {/* Reasoning removed for live games to avoid problems */}
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <strong>Reasoning:</strong> {dailyPick.reasoning}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -851,7 +773,57 @@ export default function DailyPick() {
 
 
 
+  // Get all 6 factors with their info descriptions in permanent order
+  const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
+    const factorData = [
+      {
+        key: 'marketInefficiency',
+        title: 'Market Edge',
+        score: analysis.marketInefficiency,
+        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
+      },
+      {
+        key: 'situationalEdge',
+        title: 'Situational Edge',
+        score: analysis.situationalEdge,
+        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
+      }
+    ];
 
+    // Always include Pitching Matchup, show NA if either pitcher is TBD
+    const homePitcher = probablePitchers.home || 'TBD';
+    const awayPitcher = probablePitchers.away || 'TBD';
+    
+    factorData.push({
+      key: 'pitchingMatchup',
+      title: 'Pitching Matchup', 
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : 0,
+      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
+    });
+
+    factorData.push(
+      {
+        key: 'teamMomentum',
+        title: 'Team Momentum',
+        score: analysis.teamMomentum,
+        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
+      },
+      {
+        key: 'systemConfidence',
+        title: 'System Confidence',
+        score: analysis.systemConfidence,
+        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
+      },
+      {
+        key: 'offensiveProduction',
+        title: 'Offensive Production',
+        score: analysis.offensiveProduction,
+        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
+      }
+    );
+
+    return factorData;
+  };
 
   // Determine if pick team is away or home, format matchup accordingly
   const formatMatchup = (homeTeam: string, awayTeam: string, pickTeam: string) => {
@@ -887,6 +859,7 @@ export default function DailyPick() {
 
   const currentPitchers = getCurrentPitchers();
   const matchup = formatMatchup(dailyPick.homeTeam, dailyPick.awayTeam, dailyPick.pickTeam);
+  const factors = getFactors(dailyPick.analysis, currentPitchers);
 
   // Collapsed view when user has visited 2+ times
   if (isCollapsed) {
@@ -901,13 +874,13 @@ export default function DailyPick() {
                   Pick of the Day
                 </h3>
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                  {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds)} • Grade {dailyPick.grade}
+                  {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)} • Grade {dailyPick.grade}
                 </p>
                 {/* Show live score when game has started */}
                 {currentGameScore && isGameStarted(dailyPick.gameTime) && (
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                     {dailyPick.awayTeam} {currentGameScore.awayScore || 0} - {currentGameScore.homeScore || 0} {dailyPick.homeTeam}
-                    {currentGameScore.status === 'Final' ? ' (Finished)' : 
+                    {currentGameScore.status === 'Final' ? ' (Final)' : 
                      currentGameScore.status === 'In Progress' ? ` (${currentGameScore.inning || 'Live'})` : ' (Live)'}
                   </p>
                 )}
@@ -929,7 +902,7 @@ export default function DailyPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-blue-400 font-sans">Pick of the Day</h2>
-              <div className={`${getGradeColorClasses(dailyPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(dailyPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
+              <div className={`${getGradeColorClasses(dailyPick.grade).bg} ${getGradeColorClasses(dailyPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
                 {dailyPick.grade}
               </div>
             </div>
@@ -994,33 +967,31 @@ export default function DailyPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More - Hidden for live and finished games */}
-                  {getGameStatus(dailyPick.gameTime) === 'upcoming' && (
-                    <div className="bg-gray-800/20 rounded-lg p-3">
-                      <div className="text-sm text-gray-300 font-sans leading-relaxed">
-                        <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
-                           style={!mobileReasoningExpanded ? {
-                             display: '-webkit-box',
-                             WebkitLineClamp: 3,
-                             WebkitBoxOrient: 'vertical'
-                           } : {}}>
-                          {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds)}
-                        </p>
-                        {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds).split(' ').length > 15 && (
-                          <button
-                            onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
-                            className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"
-                          >
-                            {mobileReasoningExpanded ? (
-                              <>Show Less <ChevronUp className="h-3 w-3" /></>
-                            ) : (
-                              <>Show More <ChevronDown className="h-3 w-3" /></>
-                            )}
-                          </button>
-                        )}
-                      </div>
+                  {/* Analysis Summary Blurb with Show More */}
+                  <div className="bg-gray-800/20 rounded-lg p-3">
+                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                         style={!mobileReasoningExpanded ? {
+                           display: '-webkit-box',
+                           WebkitLineClamp: 3,
+                           WebkitBoxOrient: 'vertical'
+                         } : {}}>
+                        {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds)}
+                      </p>
+                      {getMobileReasoning(dailyPick.grade, dailyPick.analysis, dailyPick.pickTeam, dailyPick.odds).split(' ').length > 15 && (
+                        <button
+                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                          className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center gap-1"
+                        >
+                          {mobileReasoningExpanded ? (
+                            <>Show Less <ChevronUp className="h-3 w-3" /></>
+                          ) : (
+                            <>Show More <ChevronDown className="h-3 w-3" /></>
+                          )}
+                        </button>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1073,7 +1044,7 @@ export default function DailyPick() {
               </Button>
               <div className="flex items-start space-x-2">
                 <div className="relative flex items-center">
-                  <Badge className={`${getGradeColorClasses(dailyPick.grade).bg} hover:${getGradeColorClasses(dailyPick.grade).bg} ${isGameFinished ? 'text-black' : getGradeColorClasses(dailyPick.grade).text} font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer`}>
+                  <Badge className="bg-blue-500 hover:bg-blue-500 text-white font-bold w-8 h-8 text-xs border rounded flex items-center justify-center cursor-pointer">
                     {dailyPick.grade}
                   </Badge>
                   <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
@@ -1100,7 +1071,7 @@ export default function DailyPick() {
                       <h4 className="font-semibold mb-3">Pick Details</h4>
                       <div className="space-y-2 text-sm">
                         <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                        <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds)}</div>
+                        <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
                         <div><strong>Venue:</strong> {dailyPick.venue}</div>
                         <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
                       </div>
@@ -1126,7 +1097,7 @@ export default function DailyPick() {
                           <div key={key} className="space-y-1">
                             <div className="flex justify-between text-sm">
                               <span className="font-medium">{title}</span>
-                              <span className="font-bold">{(score !== null && score > 0) ? `${scoreToGrade(score as number)} (${score}/100)` : 'N/A'}</span>
+                              <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
                             </div>
                             <ColoredProgress value={score} className="h-2" />
                             <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
@@ -1152,7 +1123,7 @@ export default function DailyPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds)}
+                  {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
                 </span>
               </div>
               <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-4">
@@ -1223,7 +1194,7 @@ export default function DailyPick() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {currentGameScore.status === 'Final' ? 'Finished' : 
+                      {currentGameScore.status === 'Final' ? 'Final' : 
                        currentGameScore.status === 'In Progress' ? 
                          (currentGameScore.inning ? `${currentGameScore.inning}` : 'Live') : 
                        currentGameScore.status === 'Scheduled' ? 'Scheduled' :
@@ -1237,9 +1208,9 @@ export default function DailyPick() {
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
                 </p>
-                {/* Analysis dropdown toggle for medium and smaller screens */}
+                {/* Analysis dropdown toggle for all screen sizes */}
                 <button
-                  className="lg:hidden flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
+                  className="flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
                   onClick={() => setMobileAnalysisOpen(!mobileAnalysisOpen)}
                 >
                   {mobileAnalysisOpen ? 'Hide' : 'Show'} Analysis
@@ -1249,57 +1220,13 @@ export default function DailyPick() {
                     <ChevronDown className="w-3 h-3 ml-1" />
                   )}
                 </button>
-                
-                {/* Desktop analysis toggle for side-by-side layout */}
-                <button
-                  className="hidden lg:flex items-center text-xs text-blue-600 dark:text-blue-400 ml-2"
-                  onClick={() => {
-                    const newValue = !dailyPickLargeOpen;
-                    setDailyPickLargeOpen(newValue);
-                    // Dispatch event to sync both analysis sections
-                    window.dispatchEvent(new CustomEvent('collapseBothAnalysis', { 
-                      detail: { source: 'daily', expanded: newValue } 
-                    }));
-                  }}
-                >
-                  {dailyPickLargeOpen ? 'Hide' : 'Show'} Analysis
-                  {dailyPickLargeOpen ? (
-                    <ChevronUp className="w-3 h-3 ml-1" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  )}
-                </button>
               </div>
 
-              {/* Analysis factors - Medium screens and below (dropdown) */}
-              {mobileAnalysisOpen && (
-                <div className="lg:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
-                    Analysis Factors
-                  </h5>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                    {factors.map(({ key, title, score, info }) => {
-                      // Create context for narrative generation
-                      const gameContext = {
-                        isHomeGame: dailyPick.pickTeam === dailyPick.homeTeam,
-                        opponentHandedness: 'RHP' as const, // Could be enhanced with real data
-                        starterERA: 4.0, // Could be enhanced with real pitcher data
-                        last10Record: '7-3', // Could be enhanced with real team data
-                        offensiveStats: {
-                          xwOBA: 0.330,
-                          barrelRate: 6.5,
-                          exitVelo: 87.2
-                        }
-                      };
-                      return <FactorScore key={key} title={title} score={score} info={info} gameContext={gameContext} />;
-                    })}
-                  </div>
-                </div>
-              )}
 
-              {/* Analysis factors - Desktop side-by-side layout */}
-              {dailyPickLargeOpen && (
-                <div className="hidden lg:block mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+              {/* Analysis factors dropdown (all screen sizes) */}
+              {mobileAnalysisOpen && (
+                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <h5 className="font-semibold text-sm text-blue-600 dark:text-blue-400 mb-3 text-center">
                     Analysis Factors
                   </h5>

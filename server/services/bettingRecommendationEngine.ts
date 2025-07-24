@@ -56,34 +56,27 @@ export class BettingRecommendationEngine {
    * Calculate expected value of a bet (as ROI percentage)
    */
   private calculateExpectedValue(predictedProb: number, odds: number): number {
-    // Constrain predicted probability to realistic range (no higher than 80%)
-    const constrainedProb = Math.min(0.80, Math.max(0.20, predictedProb));
-    
     const payoutMultiplier = odds > 0 ? (odds / 100) : (100 / Math.abs(odds));
     
     // EV = (Probability of Win × Profit) - (Probability of Loss × Loss)
     // This gives us expected profit per $1 wagered
-    const expectedProfit = (constrainedProb * payoutMultiplier) - ((1 - constrainedProb) * 1);
+    const expectedProfit = (predictedProb * payoutMultiplier) - ((1 - predictedProb) * 1);
     
-    // Convert to ROI percentage and constrain to reasonable range (max ±20%)
-    const expectedValue = expectedProfit * 100;
-    return Math.max(-20, Math.min(20, expectedValue));
+    // Convert to ROI percentage (multiply by 100)
+    return expectedProfit * 100;
   }
 
   /**
    * Calculate Kelly Criterion bet size
    */
   private calculateKellyBetSize(predictedProb: number, odds: number): number {
-    // Constrain predicted probability to realistic range
-    const constrainedProb = Math.min(0.80, Math.max(0.20, predictedProb));
-    
     const impliedProb = this.oddsToImpliedProbability(odds);
     const payoutMultiplier = odds > 0 ? (odds / 100) : (100 / Math.abs(odds));
     
     // Kelly = (bp - q) / b where b = odds, p = win prob, q = lose prob
-    const kelly = ((payoutMultiplier * constrainedProb) - (1 - constrainedProb)) / payoutMultiplier;
+    const kelly = ((payoutMultiplier * predictedProb) - (1 - predictedProb)) / payoutMultiplier;
     
-    // Cap at 5% for safety and ensure minimum edge exists
+    // Cap at 5% for safety (0.05 = 5% of bankroll)
     return Math.max(0, Math.min(kelly, 0.05));
   }
 
@@ -195,7 +188,7 @@ export class BettingRecommendationEngine {
           edge: homeEdge,
           grade: this.assignGrade(homeEdge, prediction.confidence),
           confidence: prediction.confidence,
-          reasoning: `AI predicts ${homeTeam} wins ${(Math.min(0.80, Math.max(0.20, prediction.homeWinProbability)) * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.homeMoneyline) * 100).toFixed(1)}%`,
+          reasoning: `AI predicts ${homeTeam} wins ${(prediction.homeWinProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.homeMoneyline) * 100).toFixed(1)}%`,
           expectedValue: this.calculateExpectedValue(prediction.homeWinProbability, odds.homeMoneyline),
           kellyBetSize: this.calculateKellyBetSize(prediction.homeWinProbability, odds.homeMoneyline)
         });
@@ -213,7 +206,7 @@ export class BettingRecommendationEngine {
           edge: awayEdge,
           grade: this.assignGrade(awayEdge, prediction.confidence),
           confidence: prediction.confidence,
-          reasoning: `AI predicts ${awayTeam} wins ${(Math.min(0.80, Math.max(0.20, prediction.awayWinProbability)) * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.awayMoneyline) * 100).toFixed(1)}%`,
+          reasoning: `AI predicts ${awayTeam} wins ${(prediction.awayWinProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.awayMoneyline) * 100).toFixed(1)}%`,
           expectedValue: this.calculateExpectedValue(prediction.awayWinProbability, odds.awayMoneyline),
           kellyBetSize: this.calculateKellyBetSize(prediction.awayWinProbability, odds.awayMoneyline)
         });

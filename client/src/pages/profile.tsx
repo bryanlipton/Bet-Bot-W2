@@ -709,10 +709,6 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleSaveProfile = () => {
-    console.log('Saving profile with avatar data:', {
-      profileImage: editForm.profileImage,
-      avatar: editForm.avatar
-    });
     updateProfileMutation.mutate({
       username: editForm.username,
       bio: editForm.bio,
@@ -723,15 +719,10 @@ export default function ProfilePage() {
   };
 
   const handleImageSelect = (imageUrl: string) => {
-    // Check if it's the new emoji|background format
-    if (imageUrl.includes('|')) {
-      // New emoji|background format - store in profileImage and clear avatar
-      setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
-    } else if (isEmojiAvatar(imageUrl)) {
-      // Old emoji format - store in avatar and clear profileImage
+    // Check if it's an emoji avatar or a regular image URL
+    if (isEmojiAvatar(imageUrl)) {
       setEditForm({...editForm, avatar: imageUrl, profileImage: ''});
     } else {
-      // Regular image URL - store in profileImage and clear avatar
       setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
     }
   };
@@ -951,8 +942,8 @@ export default function ProfilePage() {
               <div className="relative flex-shrink-0">
                 <UserAvatar 
                   user={{
-                    profileImageUrl: user?.profileImageUrl,
-                    avatar: user?.avatar,
+                    profileImageUrl: user?.profileImageUrl?.startsWith('http') ? user.profileImageUrl : null,
+                    avatar: user?.avatar || '🐱',
                     username: userProfile.username
                   }}
                   size="xl"

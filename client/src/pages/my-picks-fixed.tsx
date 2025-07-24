@@ -6,8 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Target, 
@@ -30,20 +28,6 @@ export default function MyPicksPageFixed() {
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
-  
-  // Manual bet entry states
-  const [showManualEntry, setShowManualEntry] = useState(false);
-  const [availableGames, setAvailableGames] = useState<any[]>([]);
-  const [manualBet, setManualBet] = useState({
-    gameId: '',
-    awayTeam: '',
-    homeTeam: '',
-    market: 'moneyline' as 'moneyline' | 'spread' | 'total',
-    selection: '',
-    line: '',
-    odds: '',
-    units: 1
-  });
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -223,149 +207,6 @@ export default function MyPicksPageFixed() {
     setTempOdds('');
   };
 
-  // Load available games for manual entry
-  const loadAvailableGames = async () => {
-    try {
-      const response = await fetch('/api/odds');
-      const data = await response.json();
-      setAvailableGames(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error loading games:', error);
-    }
-  };
-
-  const handleOpenManualEntry = () => {
-    setShowManualEntry(true);
-    loadAvailableGames();
-  };
-
-  const handleCloseManualEntry = () => {
-    setShowManualEntry(false);
-    setManualBet({
-      gameId: '',
-      awayTeam: '',
-      homeTeam: '',
-      market: 'moneyline',
-      selection: '',
-      line: '',
-      odds: '',
-      units: 1
-    });
-  };
-
-  const handleGameSelect = (gameId: string) => {
-    const game = availableGames.find(g => g.id === gameId);
-    if (game) {
-      setManualBet(prev => ({
-        ...prev,
-        gameId: gameId,
-        awayTeam: game.awayTeam,
-        homeTeam: game.homeTeam,
-        selection: '',
-        line: ''
-      }));
-    }
-  };
-
-  const generateBettingOptions = () => {
-    if (!manualBet.awayTeam || !manualBet.homeTeam) return [];
-    
-    const options = [];
-    
-    // Moneyline options
-    options.push({
-      value: `${manualBet.awayTeam} ML`,
-      label: `${manualBet.awayTeam} Moneyline`,
-      market: 'moneyline',
-      line: ''
-    });
-    options.push({
-      value: `${manualBet.homeTeam} ML`,
-      label: `${manualBet.homeTeam} Moneyline`,
-      market: 'moneyline',
-      line: ''
-    });
-    
-    // Spread options (default lines)
-    options.push({
-      value: `${manualBet.awayTeam} +1.5`,
-      label: `${manualBet.awayTeam} +1.5`,
-      market: 'spread',
-      line: '+1.5'
-    });
-    options.push({
-      value: `${manualBet.homeTeam} -1.5`,
-      label: `${manualBet.homeTeam} -1.5`,
-      market: 'spread',
-      line: '-1.5'
-    });
-    
-    // Total options
-    options.push({
-      value: 'Over 8.5',
-      label: 'Over 8.5',
-      market: 'total',
-      line: '8.5'
-    });
-    options.push({
-      value: 'Under 8.5',
-      label: 'Under 8.5',
-      market: 'total',
-      line: '8.5'
-    });
-    
-    return options;
-  };
-
-  const handleSelectionChange = (value: string) => {
-    const option = generateBettingOptions().find(opt => opt.value === value);
-    if (option) {
-      setManualBet(prev => ({
-        ...prev,
-        selection: value,
-        market: option.market as 'moneyline' | 'spread' | 'total',
-        line: option.line
-      }));
-    }
-  };
-
-  const handleSaveManualBet = async () => {
-    if (!manualBet.gameId || !manualBet.selection || !manualBet.odds) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    const odds = parseFloat(manualBet.odds);
-    if (isNaN(odds)) {
-      alert('Please enter valid odds (e.g., -110, +150)');
-      return;
-    }
-
-    try {
-      const betData = {
-        gameId: manualBet.gameId,
-        awayTeam: manualBet.awayTeam,
-        homeTeam: manualBet.homeTeam,
-        market: manualBet.market,
-        selection: manualBet.selection,
-        line: manualBet.line || null,
-        odds: odds,
-        units: manualBet.units,
-        bookmaker: 'manual',
-        showOnProfile: true,
-        showOnFeed: true
-      };
-
-      await apiRequest('POST', '/api/user/picks/manual', betData);
-      refetch();
-      handleCloseManualEntry();
-      alert('Manual bet added successfully!');
-    } catch (error) {
-      console.error('Error saving manual bet:', error);
-      alert('Failed to save manual bet. Please try again.');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
@@ -420,17 +261,6 @@ export default function MyPicksPageFixed() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Add Manual Bet Button */}
-        <div className="flex justify-center">
-          <Button 
-            onClick={handleOpenManualEntry}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Bet Manually
-          </Button>
         </div>
 
         {/* Filter Tabs */}
@@ -538,114 +368,6 @@ export default function MyPicksPageFixed() {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Manual Bet Entry Modal */}
-      <Dialog open={showManualEntry} onOpenChange={setShowManualEntry}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Bet Manually</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Game Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Select Game</label>
-              <Select onValueChange={handleGameSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a game..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableGames.map(game => (
-                    <SelectItem key={game.id} value={game.id}>
-                      {game.awayTeam} @ {game.homeTeam}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Betting Selection */}
-            {manualBet.awayTeam && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Betting Selection</label>
-                <Select onValueChange={handleSelectionChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose bet type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {generateBettingOptions().map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Units */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Units</label>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setManualBet(prev => ({ ...prev, units: Math.max(0.5, prev.units - 0.5) }))}
-                  disabled={manualBet.units <= 0.5}
-                >
-                  -
-                </Button>
-                <Input
-                  type="number"
-                  value={manualBet.units}
-                  onChange={(e) => setManualBet(prev => ({ ...prev, units: parseFloat(e.target.value) || 1 }))}
-                  className="w-20 text-center"
-                  step="0.5"
-                  min="0.5"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setManualBet(prev => ({ ...prev, units: prev.units + 0.5 }))}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-
-            {/* Odds */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Odds</label>
-              <Input
-                type="text"
-                value={manualBet.odds}
-                onChange={(e) => setManualBet(prev => ({ ...prev, odds: e.target.value }))}
-                placeholder="e.g., -110, +150"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={handleSaveManualBet}
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                disabled={!manualBet.gameId || !manualBet.selection || !manualBet.odds}
-              >
-                Save Bet
-              </Button>
-              <Button 
-                onClick={handleCloseManualEntry}
-                variant="outline"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
