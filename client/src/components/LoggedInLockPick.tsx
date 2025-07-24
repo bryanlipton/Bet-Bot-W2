@@ -141,7 +141,7 @@ function scoreToGrade(score: number): string {
 }
 
 // Unified Info Button Component with Dark Background
-function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
+function InfoButton({ info, title, score }: { info: string; title: string; score?: number | null }) {
   const getGradeExplanation = (score: number, factorTitle: string): string => {
     // Enhanced explanations based on factor type with more detail
     switch (factorTitle) {
@@ -200,7 +200,7 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
       <PopoverContent className="w-96 p-4 text-xs max-h-80 overflow-y-auto" side="top">
         <div className="font-medium mb-2">{title}</div>
         <div className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">{info.split('\n\n')[0]}</div>
-        {score !== undefined && score > 0 && (
+        {score !== undefined && score !== null && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
             <div className="text-gray-800 dark:text-gray-200 leading-relaxed">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
@@ -233,7 +233,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
 }
 
 // Factor Score Component with Info Button
-function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
+function FactorScore({ title, score, info, gameContext }: { title: string; score: number | null; info: string; gameContext?: any }) {
   const colorClasses = getLockPickFactorColorClasses(score);
   const tooltip = getFactorTooltip(score, title, gameContext);
 
@@ -751,7 +751,7 @@ export default function LoggedInLockPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : 0,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : null,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 

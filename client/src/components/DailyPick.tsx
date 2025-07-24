@@ -146,7 +146,7 @@ function scoreToGrade(score: number): string {
 }
 
 // Unified Info Button Component with Dark Background
-function InfoButton({ info, title, score }: { info: string; title: string; score?: number }) {
+function InfoButton({ info, title, score }: { info: string; title: string; score?: number | null }) {
   const getGradeExplanation = (score: number, factorTitle: string): string => {
     const grade = scoreToGrade(score);
     
@@ -207,7 +207,7 @@ function InfoButton({ info, title, score }: { info: string; title: string; score
       <PopoverContent className="w-96 p-4 text-xs max-h-80 overflow-y-auto" side="top">
         <div className="font-medium mb-2">{title}</div>
         <div className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">{info.split('\n\n')[0]}</div>
-        {score !== undefined && score > 0 && (
+        {score !== undefined && score !== null && score > 0 && (
           <div className="border-t pt-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="font-medium mb-1">Grade Meaning:</div>
             <div className="text-gray-800 dark:text-gray-200 leading-relaxed">{info.split('\n\n')[1] || getGradeExplanation(score, title)}</div>
@@ -240,7 +240,7 @@ function ColoredProgress({ value, className }: { value: number | null; className
 }
 
 // Factor Score Component with Info
-function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {
+function FactorScore({ title, score, info, gameContext }: { title: string; score: number | null; info: string; gameContext?: any }) {
   const colorClasses = getFactorColorClasses(score);
   const tooltip = getFactorTooltip(score, title, gameContext);
 
@@ -593,7 +593,7 @@ export default function DailyPick() {
     factorData.push({
       key: 'pitchingMatchup',
       title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : 0,
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : null,
       info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
     });
 
@@ -827,7 +827,7 @@ export default function DailyPick() {
                               <div key={key} className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium">{title}</span>
-                                  <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                  <span className="font-bold">{(score !== null && score > 0) ? `${scoreToGrade(score as number)} (${score}/100)` : 'N/A'}</span>
                                 </div>
                                 <ColoredProgress value={score} className="h-2" />
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
@@ -901,7 +901,7 @@ export default function DailyPick() {
                   Pick of the Day
                 </h3>
                 <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                  {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)} • Grade {dailyPick.grade}
+                  {dailyPick.pickTeam} {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds)} • Grade {dailyPick.grade}
                 </p>
                 {/* Show live score when game has started */}
                 {currentGameScore && isGameStarted(dailyPick.gameTime) && (
@@ -1100,7 +1100,7 @@ export default function DailyPick() {
                       <h4 className="font-semibold mb-3">Pick Details</h4>
                       <div className="space-y-2 text-sm">
                         <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                        <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                        <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds)}</div>
                         <div><strong>Venue:</strong> {dailyPick.venue}</div>
                         <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
                       </div>
@@ -1126,7 +1126,7 @@ export default function DailyPick() {
                           <div key={key} className="space-y-1">
                             <div className="flex justify-between text-sm">
                               <span className="font-medium">{title}</span>
-                              <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                              <span className="font-bold">{(score !== null && score > 0) ? `${scoreToGrade(score as number)} (${score}/100)` : 'N/A'}</span>
                             </div>
                             <ColoredProgress value={score} className="h-2" />
                             <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
@@ -1152,7 +1152,7 @@ export default function DailyPick() {
                   {matchup.topTeam}
                 </h4>
                 <span className="font-bold text-sm md:text-lg bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-400 dark:to-blue-500 bg-clip-text text-transparent whitespace-nowrap">
-                  {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds, dailyPick.pickType)}
+                  {formatOdds(getCurrentOdds().pickTeamOdds || dailyPick.odds)}
                 </span>
               </div>
               <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-4">
