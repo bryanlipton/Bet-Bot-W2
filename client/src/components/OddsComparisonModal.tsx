@@ -182,8 +182,13 @@ export function OddsComparisonModal({
 
   const handleEnterManually = () => {
     if (onManualEntry) {
-      // Pass the game info and selected bet to the parent component
-      onManualEntry(gameInfo, selectedBet);
+      // Pass the game info and selected bet with best odds to the parent component
+      const bestOdds = sortedOdds[0]; // Get the best odds (first in sorted array)
+      const enrichedSelectedBet = {
+        ...selectedBet,
+        bestOdds: bestOdds?.odds || null
+      };
+      onManualEntry(gameInfo, enrichedSelectedBet);
     }
     // Close this modal
     handleClose();

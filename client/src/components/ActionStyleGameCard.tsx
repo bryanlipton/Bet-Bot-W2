@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -517,7 +518,22 @@ export function ActionStyleGameCard({
     odds: '',
     units: 1
   });
-  const [betUnit, setBetUnit] = useState(50);
+  const [betUnit, setBetUnit] = useState(10);
+  
+  const { isAuthenticated } = useAuth();
+  
+  // Fetch user preferences to get correct bet unit
+  const { data: userPreferences } = useQuery({
+    queryKey: ['/api/user/preferences'],
+    enabled: isAuthenticated
+  });
+  
+  // Set bet unit from user preferences
+  useEffect(() => {
+    if (userPreferences && (userPreferences as any).betUnit) {
+      setBetUnit((userPreferences as any).betUnit);
+    }
+  }, [userPreferences]);
 
   const handleMakePick = (event: React.MouseEvent, market: 'moneyline' | 'spread' | 'total', selection: string, line?: number) => {
     try {
@@ -570,11 +586,14 @@ export function ActionStyleGameCard({
 
   const handleManualEntry = (gameInfo: any, selectedBet: any) => {
     // Pre-fill the manual entry form with data from the odds comparison modal
+    const bestOdds = selectedBet.bestOdds;
+    const oddsValue = bestOdds ? (bestOdds > 0 ? `+${bestOdds}` : bestOdds.toString()) : '';
+    
     setManualEntry({
       market: selectedBet.market,
       selection: selectedBet.selection,
       line: selectedBet.line?.toString() || '',
-      odds: '',
+      odds: oddsValue,
       units: 1
     });
     setManualEntryOpen(true);
