@@ -1,81 +1,37 @@
-import { spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
 
-console.log('🚀 Starting deployment process...');
+console.log("🚀 Bet Bot Production Deployment");
+console.log("================================");
 
-// Copy files recursively
-function copyRecursive(src, dest) {
-  const stats = fs.statSync(src);
-  if (stats.isDirectory()) {
-    if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest);
+try {
+  // Step 1: Build the application
+  console.log("🏗️  Building application...");
+  execSync("npm run build", { stdio: "inherit" });
+
+  // Step 2: Ensure static files are in correct location
+  console.log("📁 Setting up static files...");
+  const distPublicPath = path.join(process.cwd(), 'dist', 'public');
+  const serverPublicPath = path.join(process.cwd(), 'server', 'public');
+
+  if (fs.existsSync(distPublicPath)) {
+    // Create server/public directory if it doesn't exist
+    if (!fs.existsSync(serverPublicPath)) {
+      fs.mkdirSync(serverPublicPath, { recursive: true });
     }
-    fs.readdirSync(src).forEach(file => {
-      copyRecursive(path.join(src, file), path.join(dest, file));
-    });
-  } else {
-    fs.copyFileSync(src, dest);
+    
+    // Copy files
+    execSync(`cp -r ${distPublicPath}/* ${serverPublicPath}/`, { stdio: "inherit" });
+    console.log("✅ Static files copied successfully");
   }
-}
 
-function startServer() {
-  console.log('🚀 Starting production server...');
-  
-  // Start the production server
-  const serverProcess = spawn('node', ['dist/index.js'], {
-    stdio: 'inherit',
-    shell: true,
-    env: {
-      ...process.env,
-      NODE_ENV: 'production'
-    }
-  });
-  
-  serverProcess.on('close', (code) => {
-    console.log(`Server process exited with code ${code}`);
-  });
-  
-  serverProcess.on('error', (error) => {
-    console.error('Server error:', error);
-  });
-}
+  // Step 3: Start production server
+  console.log("🚀 Starting production server...");
+  process.env.NODE_ENV = "production";
+  execSync("node dist/index.js", { stdio: "inherit" });
 
-// Ensure static files are in the correct location
-const distPublicPath = path.join(process.cwd(), 'dist', 'public');
-const serverPublicPath = path.join(process.cwd(), 'server', 'public');
-
-if (fs.existsSync(distPublicPath)) {
-  console.log('📁 Copying static files to server/public/...');
-  
-  // Create server/public directory if it doesn't exist
-  if (!fs.existsSync(serverPublicPath)) {
-    fs.mkdirSync(serverPublicPath, { recursive: true });
-  }
-  
-  copyRecursive(distPublicPath, serverPublicPath);
-  console.log('✅ Static files copied successfully');
-  startServer();
-} else {
-  console.log('⚠️  No dist/public directory found - running build first...');
-  
-  // Run build process
-  const buildProcess = spawn('npm', ['run', 'build'], {
-    stdio: 'inherit',
-    shell: true
-  });
-  
-  buildProcess.on('close', (code) => {
-    if (code === 0) {
-      console.log('✅ Build completed, copying files...');
-      if (fs.existsSync(distPublicPath)) {
-        copyRecursive(distPublicPath, serverPublicPath);
-        console.log('✅ Static files copied successfully');
-      }
-      startServer();
-    } else {
-      console.error('❌ Build failed with code', code);
-      process.exit(1);
-    }
-  });
+} catch (err) {
+  console.error("❌ Deployment failed:", err.message);
+  process.exit(1);
 }
