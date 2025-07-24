@@ -82,7 +82,7 @@ export default function MyFeedPage() {
     isAuthenticated,
     feedLoading,
     feedError,
-    feedPicksLength: feedPicks?.length || 0,
+    feedPicksLength: Array.isArray(feedPicks) ? feedPicks.length : 0,
     feedPicks: feedPicks
   });
 

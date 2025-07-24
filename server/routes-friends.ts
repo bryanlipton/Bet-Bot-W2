@@ -122,7 +122,7 @@ export function registerFriendsRoutes(app: Express) {
   // Unfollow a user
   app.delete('/api/users/follow', isAuthenticated, async (req, res) => {
     try {
-      const currentUserId = req.user?.claims?.sub;
+      const currentUserId = (req.user as any)?.claims?.sub;
       const { userId } = req.body;
       
       if (!userId || userId === currentUserId) {
@@ -139,7 +139,7 @@ export function registerFriendsRoutes(app: Express) {
           )
         );
       
-      if (deleted.count === 0) {
+      if ((deleted as any).count === 0) {
         return res.status(400).json({ message: 'Not following this user' });
       }
       
