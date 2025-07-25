@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Target, 
   ExternalLink, 
@@ -20,9 +20,14 @@ import {
   Save,
   X,
   Plus,
-  Settings
+  Settings,
+  Search,
+  UserPlus,
+  User
 } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import UserAvatar from '@/components/UserAvatar';
 
 export default function MyPicksPageFixed() {
   const [darkMode, setDarkMode] = useState(true);
@@ -33,6 +38,14 @@ export default function MyPicksPageFixed() {
   const [showUnitDialog, setShowUnitDialog] = useState(false);
   const [betUnit, setBetUnit] = useState(50);
   const [tempBetUnit, setTempBetUnit] = useState('50');
+  
+  // Friend search states
+  const [isFriendSearchOpen, setIsFriendSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const { toast } = useToast();
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -246,11 +259,169 @@ export default function MyPicksPageFixed() {
     }
   };
 
+  // Friend search functions
+  const handleSearch = async (searchQuery: string) => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await apiRequest('GET', `/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+      setSearchResults(response || []);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleFollowUser = async (targetUserId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to follow users.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await apiRequest('POST', '/api/user/follow', { targetUserId });
+      toast({
+        title: "Success",
+        description: "User followed successfully!",
+      });
+      // Refresh search results
+      if (searchTerm) {
+        handleSearch(searchTerm);
+      }
+    } catch (error) {
+      console.error('Error following user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to follow user. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
+        {/* Page Header with Friend Search */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+          </div>
+          
+          {/* Search for Friends Button */}
+          <Dialog open={isFriendSearchOpen} onOpenChange={setIsFriendSearchOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                Search for friends...
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Search for Friends</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by username or name..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      handleSearch(e.target.value);
+                    }}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Search Results */}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((searchUser) => (
+                      <div key={searchUser.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <div className="flex items-center gap-3">
+                          {/* User Avatar */}
+                          <UserAvatar 
+                            user={{
+                              username: searchUser.username,
+                              firstName: searchUser.firstName
+                            }}
+                            size="sm"
+                          />
+                          
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {searchUser.username || `${searchUser.firstName} ${searchUser.lastName}`.trim()}
+                            </p>
+                            {searchUser.bio && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-32">
+                                {searchUser.bio}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              window.open(`/user/${searchUser.id}`, '_blank');
+                            }}
+                            className="flex items-center gap-1"
+                          >
+                            <User className="w-3 h-3" />
+                            View
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            onClick={() => handleFollowUser(searchUser.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <UserPlus className="w-3 h-3" />
+                            Follow
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : searchTerm.length > 0 ? (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      No users found matching "{searchTerm}"
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      Start typing to search for friends
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
         {/* Stats Cards - 4 separate cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-white dark:bg-gray-800">
