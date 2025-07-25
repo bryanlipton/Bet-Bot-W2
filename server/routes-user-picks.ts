@@ -49,13 +49,13 @@ export function registerUserPicksRoutes(app: Express) {
       // Transform and validate request body
       const pickData = {
         userId,
-        gameId: req.body.gameId,
+        gameId: req.body.gameId?.toString() || `mlb_${Date.now()}`, // Convert to string
         homeTeam: req.body.homeTeam,
         awayTeam: req.body.awayTeam,
         selection: req.body.selection,
         game: req.body.game,
         market: req.body.market,
-        line: req.body.line || null,
+        line: req.body.line?.toString() || null, // Convert to string
         odds: req.body.odds || 0,
         units: req.body.units || 1,
         betUnitAtTime: req.body.betUnitAtTime || 10,
