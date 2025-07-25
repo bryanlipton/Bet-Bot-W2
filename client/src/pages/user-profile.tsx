@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
+import UserAvatar from "@/components/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -22,26 +23,29 @@ import {
   Target,
   Trophy,
   Clock,
-  Lock,
   ArrowLeft,
-  UserCheck,
-  X
+  UserCheck
 } from "lucide-react";
 
-interface UserProfileData {
+interface UserProfile {
   id: string;
   username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   profileImageUrl?: string;
-  bio?: string;
+  avatar?: string;
   followers: number;
   following: number;
-  createdAt: string;
-  stats: {
-    totalPicks?: number;
-    pendingPicks?: number;
-    winRate?: number;
-    winStreak?: number;
-  };
+  totalPicks: number;
+  winRate: number;
+  totalUnits: number;
+  joinDate: string;
+  bio?: string;
+  totalPicksPublic: boolean;
+  pendingPicksPublic: boolean;
+  winRatePublic: boolean;
+  winStreakPublic: boolean;
 }
 
 interface PublicFeedItem {
@@ -50,95 +54,52 @@ interface PublicFeedItem {
   pick: any;
   timestamp: string;
   result?: 'win' | 'loss' | 'push';
+  status?: 'win' | 'loss' | 'push' | 'pending';
 }
 
-interface UserProfilePageProps {
-  userId: string;
-}
-
-export default function UserProfilePage({ userId }: UserProfilePageProps) {
-  const [darkMode, setDarkMode] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const { user: currentUser } = useAuth();
+export default function UserProfile() {
+  const { userId } = useParams();
+  const { user: currentUser, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // Initialize dark mode from localStorage (default to dark mode)
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark' || 
+             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
-    if (savedDarkMode === null) {
-      localStorage.setItem('darkMode', 'true');
-    }
-  }, []);
+    return true;
+  });
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    document.documentElement.classList.toggle('dark', newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  // Fetch user profile
-  const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['/api/profile', userId],
+  // Fetch user profile data
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['/api/users', userId],
     enabled: !!userId,
   });
 
-  // Fetch user's public picks feed
-  const { data: publicFeed, isLoading: feedLoading } = useQuery({
-    queryKey: ['/api/public-feed', userId],
-    enabled: !!userId && !!profileData, // Only fetch if profile exists
+  // Fetch user's public feed
+  const { data: publicFeed = [], isLoading: feedLoading } = useQuery({
+    queryKey: ['/api/users', userId, 'feed'],
+    enabled: !!userId,
   });
 
-  // Check if current user is following this user
+  // Check follow status
   const { data: followStatus } = useQuery({
     queryKey: ['/api/user/follow-status', userId],
-    enabled: !!userId && !!currentUser,
+    enabled: !!userId && isAuthenticated,
   });
 
-  useEffect(() => {
-    if (followStatus) {
-      setIsFollowing(followStatus.isFollowing);
-    }
-  }, [followStatus]);
-
-  // Delete pick mutation
-  const deletePick = useMutation({
-    mutationFn: async (pickId: string) => {
-      await apiRequest(`/api/user/picks/${pickId}`, {
-        method: 'DELETE'
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Pick deleted",
-        description: "Your pick has been removed successfully.",
-      });
-      // Refresh the public feed
-      queryClient.invalidateQueries({ queryKey: ['/api/public-feed', userId] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete pick. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDeletePick = (pickId: string) => {
-    if (confirm("Are you sure you want to delete this pick?")) {
-      deletePick.mutate(pickId);
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   };
 
   const handleFollowToggle = async () => {
-    if (!currentUser) {
+    if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please log in to follow users.",
@@ -148,27 +109,24 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
     }
 
     try {
-      const endpoint = isFollowing ? '/api/user/unfollow' : '/api/user/follow';
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setIsFollowing(!isFollowing);
+      if (followStatus?.isFollowing) {
+        await apiRequest(`/api/user/unfollow/${userId}`, {
+          method: 'DELETE',
+        });
         toast({
-          title: isFollowing ? "Unfollowed" : "Following",
-          description: `You are now ${isFollowing ? 'not following' : 'following'} ${profileData?.username}`,
+          title: "Unfollowed",
+          description: `You are no longer following ${userProfile?.username || 'this user'}.`,
         });
       } else {
-        throw new Error('Failed to update follow status');
+        await apiRequest(`/api/user/follow/${userId}`, {
+          method: 'POST',
+        });
+        toast({
+          title: "Following",
+          description: `You are now following ${userProfile?.username || 'this user'}.`,
+        });
       }
     } catch (error) {
-      console.error('Error toggling follow:', error);
       toast({
         title: "Error",
         description: "Failed to update follow status. Please try again.",
@@ -177,260 +135,231 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
     }
   };
 
-  // Simple letter initial avatar - no complex avatar system
-  const renderAvatar = (username?: string) => {
-    return (
-      <UserAvatar 
-        user={{ username: username }}
-        size="xl"
-        className="border-4 border-gray-200 dark:border-gray-600"
-      />
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long' 
-    });
+  const goBack = () => {
+    window.history.back();
   };
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="animate-pulse space-y-6">
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+      <div className={darkMode ? 'dark' : ''}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            </div>
           </div>
+          <Footer />
         </div>
       </div>
     );
   }
 
-  if (profileError || !profileData) {
+  if (!userProfile) {
     return (
-      <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-        <div className="max-w-4xl mx-auto p-6">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Profile Not Found
-              </h3>
+      <div className={darkMode ? 'dark' : ''}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="text-center py-12">
+              <User className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                User Not Found
+              </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                This user's profile doesn't exist or is private.
+                The user profile you're looking for doesn't exist.
               </p>
-              <Button onClick={() => window.history.back()}>
+              <Button onClick={goBack} variant="outline">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Go Back
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          <Footer />
         </div>
       </div>
     );
   }
 
-  const isOwnProfile = currentUser?.sub === userId;
-
   return (
-    <div className="min-h-screen bg-background">
-      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-      
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Back Button */}
-        <Button variant="ghost" onClick={() => window.history.back()} className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <div className={darkMode ? 'dark' : ''}>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+        
+        <div className="max-w-4xl mx-auto p-4 space-y-6">
+          {/* Back Button */}
+          <Button onClick={goBack} variant="outline" className="mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
 
-        {/* Profile Header */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              {/* Avatar */}
-              <div className="flex-shrink-0">
-                {renderAvatar(profileData.profileImageUrl, profileData.username)}
-              </div>
+          {/* Profile Header */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+                <div className="flex flex-col items-center sm:items-start">
+                  <UserAvatar 
+                    user={{
+                      profileImageUrl: userProfile.profileImageUrl,
+                      avatar: userProfile.avatar,
+                      username: userProfile.username,
+                      firstName: userProfile.firstName
+                    }}
+                    size="lg"
+                  />
+                  
+                  {isAuthenticated && currentUser?.id !== userProfile.id && (
+                    <Button
+                      onClick={handleFollowToggle}
+                      variant={followStatus?.isFollowing ? "secondary" : "default"}
+                      className="mt-4 w-full sm:w-auto"
+                    >
+                      {followStatus?.isFollowing ? (
+                        <>
+                          <UserCheck className="w-4 h-4 mr-2" />
+                          Following
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Follow
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
 
-              {/* Profile Info */}
-              <div className="flex-1 text-center md:text-left space-y-4">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                    {profileData.username}
+                <div className="flex-1 text-center sm:text-left">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {userProfile.username || `${userProfile.firstName} ${userProfile.lastName}`.trim()}
                   </h1>
-                  <p className="text-gray-500 dark:text-gray-400 flex items-center justify-center md:justify-start gap-1">
-                    <Calendar className="w-4 h-4" />
-                    Joined {formatDate(profileData.createdAt)}
-                  </p>
-                </div>
+                  
+                  {userProfile.bio && (
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      {userProfile.bio}
+                    </p>
+                  )}
 
-                {profileData.bio && (
-                  <p className="text-gray-700 dark:text-gray-300">
-                    {profileData.bio}
-                  </p>
-                )}
-
-                {/* Stats */}
-                <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
-                  <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <Users className="w-4 h-4" />
-                    <span className="font-medium">{profileData.followers}</span> Followers
-                  </div>
-                  <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <UserCheck className="w-4 h-4" />
-                    <span className="font-medium">{profileData.following}</span> Following
-                  </div>
-                </div>
-
-                {/* Follow/Unfollow Button */}
-                {!isOwnProfile && currentUser && (
-                  <Button
-                    onClick={handleFollowToggle}
-                    variant={isFollowing ? "outline" : "default"}
-                    className={isFollowing ? 
-                      "border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950" : 
-                      "bg-blue-600 hover:bg-blue-700 text-white"
-                    }
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        Unfollow
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Follow
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {profileData.stats.totalPicks !== null && (
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Target className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {profileData.stats.totalPicks || 0}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Picks</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {profileData.stats.pendingPicks !== null && (
-            <Card>
-              <CardContent className="p-4 text-center">
-                <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {profileData.stats.pendingPicks || 0}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-              </CardContent>
-            </Card>
-          )}
-
-
-        </div>
-
-        {/* Public Picks Feed */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Public Picks
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {feedLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="p-4 border rounded-lg animate-pulse">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                  </div>
-                ))}
-              </div>
-            ) : publicFeed && publicFeed.length > 0 ? (
-              <div className="space-y-4">
-                {publicFeed.map((item: PublicFeedItem) => (
-                  <div key={item.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant={
-                        item.result === 'win' ? 'default' : 
-                        item.result === 'loss' ? 'destructive' : 
-                        'secondary'
-                      }>
-                        {item.result === 'win' ? 'Won' : 
-                         item.result === 'loss' ? 'Lost' : 
-                         'Pending'}
-                      </Badge>
+                  {/* Social Stats */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 mb-4">
+                    <div className="flex items-center justify-center sm:justify-start gap-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(item.timestamp).toLocaleDateString()}
+                        <Users className="w-4 h-4 text-gray-500" />
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {userProfile.followers}
                         </span>
-                        {isOwnProfile && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeletePick(item.id)}
-                            className="text-red-500 border-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            title="Delete this bet"
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Delete Bet
-                          </Button>
-                        )}
+                        <span className="text-sm text-gray-600 dark:text-gray-400">followers</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="w-4 h-4 text-gray-500" />
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {userProfile.following}
+                        </span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">following</span>
                       </div>
                     </div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {item.pick.selection}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.pick.gameInfo?.game || `${item.pick.gameInfo?.awayTeam} @ ${item.pick.gameInfo?.homeTeam}` || 'Game info unavailable'}
-                    </p>
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Joined {new Date(userProfile.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
                   </div>
-                ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                {isOwnProfile ? 
-                  "You haven't made any public picks yet." :
-                  "This user hasn't made any public picks yet."
-                }
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Private Profile Message */}
-        {Object.values(profileData.stats).every(stat => stat === null) && !isOwnProfile && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Private Profile
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                This user has made their stats private.
-              </p>
             </CardContent>
           </Card>
-        )}
-      </div>
 
-      <Footer />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {userProfile.totalPicksPublic && (
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Target className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {userProfile.totalPicks}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Picks</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {userProfile.winRatePublic && (
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Trophy className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {userProfile.winRate}%
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Win Rate</p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardContent className="p-4 text-center">
+                <TrendingUp className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {userProfile.totalUnits > 0 ? '+' : ''}{userProfile.totalUnits}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Units</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Public Feed */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {feedLoading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : publicFeed.length > 0 ? (
+                <div className="space-y-4">
+                  {publicFeed.map((item: PublicFeedItem) => (
+                    <div key={item.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {item.pick.selection}
+                        </span>
+                        <Badge variant={item.status === 'win' ? 'default' : item.status === 'loss' ? 'destructive' : 'secondary'}>
+                          {item.status || 'pending'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.pick.game} • {item.pick.market}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        {new Date(item.timestamp).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No public activity yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Footer />
+      </div>
     </div>
   );
 }

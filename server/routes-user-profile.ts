@@ -112,6 +112,99 @@ export function registerUserProfileRoutes(app: Express) {
     }
   });
 
+  // Alias for the users endpoint to match frontend expectations
+  app.get('/api/users/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Calculate actual stats from user's picks
+      const stats = await storage.getUserPickStats(userId);
+      
+      // Calculate win rate
+      const totalSettledPicks = stats.winCount + stats.lossCount + stats.pushCount;
+      const winRate = totalSettledPicks > 0 ? (stats.winCount / totalSettledPicks) * 100 : 0;
+      
+      // Calculate win streak (we'll need the picks to determine this)
+      const userPicks = await storage.getUserPicks(userId);
+      const sortedPicks = userPicks
+        .filter(pick => pick.status === 'win' || pick.status === 'loss')
+        .sort((a, b) => new Date(b.createdAt || new Date()).getTime() - new Date(a.createdAt || new Date()).getTime());
+      
+      let winStreak = 0;
+      for (const pick of sortedPicks) {
+        if (pick.status === 'win') {
+          winStreak++;
+        } else {
+          break;
+        }
+      }
+
+      // Return public profile data that matches frontend expectations
+      const publicProfile = {
+        id: user.id,
+        username: user.username || user.firstName,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        avatar: user.avatar,
+        bio: user.bio,
+        followers: user.followers || 0,
+        following: user.following || 0,
+        totalPicks: stats.totalPicks,
+        winRate: winRate,
+        totalUnits: stats.totalUnits || 0,
+        joinDate: user.createdAt,
+        totalPicksPublic: user.totalPicksPublic ?? true,
+        pendingPicksPublic: user.pendingPicksPublic ?? true,
+        winRatePublic: user.winRatePublic ?? true,
+        winStreakPublic: user.winStreakPublic ?? true
+      };
+
+      res.json(publicProfile);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ message: 'Failed to fetch user profile' });
+    }
+  });
+
+  // User feed endpoint to match frontend expectations
+  app.get('/api/users/:userId/feed', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user's public picks as feed items
+      const publicPicks = await storage.getUserPublicPicks(userId);
+      
+      const feedItems = publicPicks.map((pick: any) => ({
+        id: pick.id,
+        type: pick.status === 'win' || pick.status === 'loss' ? pick.status : 'pick',
+        pick: {
+          id: pick.id,
+          selection: pick.selection,
+          game: pick.game,
+          market: pick.market,
+          odds: pick.odds,
+          units: pick.units,
+          result: pick.result
+        },
+        timestamp: pick.createdAt,
+        status: pick.status,
+        result: pick.status === 'win' ? 'win' : pick.status === 'loss' ? 'loss' : undefined
+      }));
+      
+      res.json(feedItems);
+    } catch (error) {
+      console.error('Error fetching user feed:', error);
+      res.status(500).json({ message: 'Failed to fetch user feed' });
+    }
+  });
+
   // Get user's public picks feed - PUBLIC ENDPOINT
   app.get('/api/public-feed/:userId', async (req, res) => {
     try {

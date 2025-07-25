@@ -32,7 +32,7 @@ function Router() {
         <Route path="/my-feed" component={MyFeedPage} />
         <Route path="/feed" component={Feed} />
         <Route path="/profile" component={ProfilePage} />
-        <Route path="/user/:userId" component={({ params }) => <UserProfilePage userId={params.userId} />} />
+        <Route path="/user/:userId" component={UserProfilePage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/scores" component={ScoresPage} />
         <Route path="/get-pro" component={GetPro} />
