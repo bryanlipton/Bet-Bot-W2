@@ -765,7 +765,6 @@ export class DailyPickService {
     
     // Enhanced value calculation with multiple market efficiency indicators
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
-    const edgePercentage = edge / modelProb; // Edge as percentage of true probability
     
     // FIXED: Market inefficiency with linear scaling based on edge percentage
     // Edge scales from 76 (1% edge) to 99 (10%+ edge) in final 60-100 range
@@ -1239,7 +1238,8 @@ export class DailyPickService {
           analysis: pick.analysis as DailyPickAnalysis,
           probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
-          pickDate
+          pickDate,
+          createdAt: pick.createdAt?.toISOString() || new Date().toISOString()
         };
       }
       return null;
@@ -1307,17 +1307,7 @@ export class DailyPickService {
     return yesterdaysTeams.includes(teamName);
   }
 
-  // Helper method to convert grade to numeric value for comparison
-  private getGradeValue(grade: string): number {
-    const gradeMap: { [key: string]: number } = {
-      'A+': 12, 'A': 11, 'A-': 10,
-      'B+': 9, 'B': 8, 'B-': 7,
-      'C+': 6, 'C': 5, 'C-': 4,
-      'D+': 3, 'D': 2, 'D-': 1,
-      'F': 0
-    };
-    return gradeMap[grade] || 0;
-  }
+
 
   // Methods for logged-in lock picks
   async saveLockPick(pick: DailyPick): Promise<void> {
@@ -1375,7 +1365,8 @@ export class DailyPickService {
           analysis: pick.analysis as DailyPickAnalysis,
           probablePitchers: pick.probablePitchers as { home: string | null; away: string | null },
           gameTime,
-          pickDate
+          pickDate,
+          createdAt: pick.createdAt?.toISOString() || new Date().toISOString()
         };
       } else {
         console.log(`❌ No lock pick found in database for ${today}`);
