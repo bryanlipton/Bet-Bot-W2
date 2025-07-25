@@ -431,7 +431,7 @@ export function OddsComparisonModal({
                 min="0.5"
                 value={units}
                 onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                className="w-20 text-center border rounded px-2 py-1"
+                className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <Button
                 variant="outline"
