@@ -234,12 +234,15 @@ export default function MyPicksPageFixed() {
     }
 
     try {
-      await apiRequest('PUT', '/api/user/preferences', { betUnit: newBetUnit });
+      console.log('Saving unit size:', newBetUnit);
+      const response = await apiRequest('PUT', '/api/user/preferences', { betUnit: newBetUnit });
+      console.log('Unit size saved successfully:', response);
       setBetUnit(newBetUnit);
       setShowUnitDialog(false);
     } catch (error) {
       console.error('Error updating bet unit:', error);
-      alert('Failed to update unit size. Please try again.');
+      console.error('Error details:', error.response?.data || error.message);
+      alert('Failed to update unit size. Please try again. Error: ' + (error.response?.data?.message || error.message));
     }
   };
 
