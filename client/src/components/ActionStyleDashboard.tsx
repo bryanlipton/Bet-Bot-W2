@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
 import { getTeamColor } from "@/utils/teamLogos";
 import MobileHeader from "@/components/MobileHeader";
+import DailyPick from "./DailyPick";
+import LoggedInLockPick from "./LoggedInLockPick";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -51,6 +54,9 @@ interface ProcessedGame {
   total?: number;
   startTime?: string;
   sportKey: string;
+  gameId?: any;
+  probablePitchers?: any;
+  venue?: any;
   bookmakers?: Array<{
     name: string;
     homeOdds?: number;
@@ -73,16 +79,10 @@ interface ProcessedGame {
   }>;
 }
 
-
-
-import DailyPick from "./DailyPick";
-import LoggedInLockPick from "./LoggedInLockPick";
-import { useAuth } from "@/hooks/useAuth";
-
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
 
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isProUser, isLoading: authLoading } = useAuth();
   
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
@@ -110,11 +110,7 @@ export function ActionStyleDashboard() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Fetch user auth status
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/user'],
-    refetchInterval: 60 * 1000, // Refresh every minute
-  });
+  // isAuthenticated and isProUser now comes from useAuth hook above
 
   // Helper function to check if a game matches the daily pick
   const isGameDailyPick = (game: any) => {
@@ -191,10 +187,10 @@ export function ActionStyleDashboard() {
         id: game.id,
         homeTeam: game.home_team,
         awayTeam: game.away_team,
-        homeOdds: homeOutcome?.price || null,
-        awayOdds: awayOutcome?.price || null,
-        spread: spreadOutcome?.point || null,
-        total: totalOutcome?.point || null,
+        homeOdds: homeOutcome?.price || undefined,
+        awayOdds: awayOutcome?.price || undefined,
+        spread: spreadOutcome?.point || undefined,
+        total: totalOutcome?.point || undefined,
         startTime: new Date(game.commence_time).toLocaleString('en-US', { 
           month: 'short',
           day: 'numeric',
@@ -205,9 +201,9 @@ export function ActionStyleDashboard() {
         sportKey: game.sport_key,
         bookmakers,
         rawBookmakers: game.bookmakers, // Include raw bookmakers data for odds comparison
-        gameId: game.gameId || game.id,
-        probablePitchers: game.probablePitchers,
-        venue: game.venue
+        gameId: (game as any).gameId || game.id,
+        probablePitchers: (game as any).probablePitchers,
+        venue: (game as any).venue
       };
     });
     
@@ -215,7 +211,7 @@ export function ActionStyleDashboard() {
     return processedGames;
   };
 
-  const featuredGames = processLiveGames(liveOddsData || []);
+  const featuredGames = processLiveGames(liveOddsData as LiveOddsGame[] || []);
 
   // Mock prediction function (replace with actual API call)
   const getPrediction = (homeTeam: string, awayTeam: string) => {
@@ -268,8 +264,8 @@ export function ActionStyleDashboard() {
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
-            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
-              Free Users
+            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
+              {isProUser ? 'Pro User' : 'Free Users'}
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
@@ -396,7 +392,7 @@ export function ActionStyleDashboard() {
                   lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
                   lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
                   lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
-                  isAuthenticated={!!user}
+                  isAuthenticated={isAuthenticated}
                   rawBookmakers={game.rawBookmakers}
                 />
               ))}

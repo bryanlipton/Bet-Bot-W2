@@ -10,10 +10,19 @@ export function useAuth() {
   // If we get a 401 error, user is not authenticated
   const isAuthenticated = !!user && !error;
 
+  // Check if user has active Pro subscription
+  const isProUser = !!(user && 
+                       (user as any)?.subscriptionStatus === 'active' && 
+                       (user as any)?.subscriptionPlan && 
+                       (user as any)?.subscriptionPlan !== 'free' &&
+                       (user as any)?.subscriptionEndsAt &&
+                       new Date((user as any).subscriptionEndsAt) > new Date());
+
   return {
     user,
     isLoading,
     isAuthenticated,
+    isProUser,
     error,
   };
 }
