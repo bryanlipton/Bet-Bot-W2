@@ -4,6 +4,7 @@ import { registerOddsRoutes } from "./routes-odds";
 import { registerMLBRoutes } from "./mlb-api";
 import { registerArticleRoutes } from "./article-generator";
 import { registerEnhancedGradingRoutes } from "./routes-enhanced-grading";
+import { registerUserPicksRoutes } from "./routes-user-picks";
 import { dailyScheduler } from "./daily-scheduler";
 import { pickRotationService } from "./services/pickRotationService";
 import { automaticGradingService } from "./services/automaticGradingService";
@@ -238,6 +239,7 @@ app.post('/api/gpt/matchup', async (req, res) => {
   registerMLBRoutes(app);
   registerArticleRoutes(app);
   registerEnhancedGradingRoutes(app);
+  registerUserPicksRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
