@@ -3,7 +3,8 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Moon, Sun, Zap } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Moon, Sun, Zap, User, LogOut, ChevronDown } from "lucide-react";
 import { LoginButton } from "@/components/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/UserAvatar";
@@ -24,7 +25,6 @@ function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProp
     { path: "/scores", name: "Scores", active: location === "/scores" },
     { path: "/my-picks", name: "My Picks", active: location === "/my-picks" },
     { path: "/my-feed", name: "My Feed", active: location === "/my-feed" },
-    { path: "/profile", name: "My Profile", active: location === "/profile" },
   ];
 
   return (

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { LogIn, LogOut, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function LoginButton() {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const [location, navigate] = useLocation();
 
   if (isLoading) {
     return (
@@ -55,6 +57,10 @@ export function LoginButton() {
         <DropdownMenuItem disabled>
           <User className="w-4 h-4 mr-2" />
           {user?.email}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/profile')}>
+          <User className="w-4 h-4 mr-2" />
+          Profile
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
           <LogOut className="w-4 h-4 mr-2" />
