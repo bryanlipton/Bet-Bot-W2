@@ -205,10 +205,9 @@ export default function MyFeedPage() {
                   <div className="flex items-start gap-3">
                     {/* User Avatar */}
                     <div className="flex-shrink-0">
-                      {console.log('Feed avatar data:', { userAvatar: pick.userAvatar, username: pick.username })}
                       <UserAvatar 
                         user={{
-                          avatar: pick.userAvatar,
+                          avatar: pick.userAvatar?.split('|')[0] || pick.userAvatar, // Extract emoji from "🦁|bg-gray-200 dark:bg-gray-300" format
                           username: pick.username,
                           profileImageUrl: null
                         }}

@@ -223,8 +223,19 @@ export default function MyPicksPage() {
   const deletePick = async (pickId: string) => {
     if (confirm('Are you sure you want to delete this pick?')) {
       try {
-        await apiRequest('DELETE', `/api/user/picks/${pickId}`);
+        console.log('Deleting pick:', pickId);
+        const response = await fetch(`/api/user/picks/${pickId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to delete pick');
+        }
+        
         refetch(); // Refresh the picks data
+        console.log('Pick deleted successfully');
       } catch (error) {
         console.error('Error deleting pick:', error);
         alert('Failed to delete pick. Please try again.');
