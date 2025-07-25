@@ -811,37 +811,34 @@ export class DailyPickService {
     const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
     let edge = modelProb - bookmakerProb;
     
-    // REALISTIC CONSTRAINT: Cap edges at ±10% maximum for professional sports betting
-    // Even 10%+ edges are rare in efficient markets; 40%+ edges are unrealistic
-    edge = Math.max(-0.10, Math.min(0.10, edge));
+    // REALISTIC CONSTRAINT: Cap edges at ±4% maximum for professional sports betting
+    // 4%+ edges are rare in efficient markets; 10%+ edges are unrealistic for most picks
+    edge = Math.max(-0.04, Math.min(0.04, edge));
     
     // Enhanced value calculation with multiple market efficiency indicators
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
     
-    // UPDATED: Market inefficiency with linear scaling based on edge percentage (10% cap)
-    // Edge scales from 76 (1% edge) to 99 (10%+ edge) in final 60-100 range
+    // REALISTIC GRADING: Most professional picks should be in C+ to B+ range
+    // Exceptional A/A+ grades should be rare (5% edge is exceptional in sports betting)
     
     const edgePercentage = Math.abs(edge * 100); // Convert to percentage
     
     let finalScore;
     if (edgePercentage <= 0.5) {
-      // Very small or no edge: 60-75 range
-      finalScore = 60 + (edgePercentage * 30); // 0% = 60, 0.5% = 75
-    } else if (edgePercentage >= 10) {
-      // Maximum realistic edge (10%): 99 score - extremely rare but possible
-      finalScore = 99;
-    } else if (edgePercentage >= 6) {
-      // Exceptional inefficiency: 92-98 range
-      finalScore = 92 + ((edgePercentage - 6) / 4 * 6); // 6% = 92, 10% = 98
-    } else if (edgePercentage >= 3) {
-      // Strong inefficiency: 85-91 range
-      finalScore = 85 + ((edgePercentage - 3) / 3 * 6); // 3% = 85, 6% = 91
-    } else if (edgePercentage >= 1) {
-      // Good inefficiency: Linear scaling 1% = 76, 3% = 84
-      finalScore = 76 + ((edgePercentage - 1) * (8 / 2));
+      // Very small or no edge: 60-68 range (D to C- grades)
+      finalScore = 60 + (edgePercentage * 16); // 0% = 60, 0.5% = 68
+    } else if (edgePercentage <= 1.5) {
+      // Small edge: 68-73 range (C- to C+ grades) - Most common
+      finalScore = 68 + ((edgePercentage - 0.5) * 5); // 0.5% = 68, 1.5% = 73
+    } else if (edgePercentage <= 3) {
+      // Good edge: 73-78 range (C+ to B- grades) - Common good picks
+      finalScore = 73 + ((edgePercentage - 1.5) / 1.5 * 5); // 1.5% = 73, 3% = 78
+    } else if (edgePercentage <= 5) {
+      // Strong edge: 78-85 range (B- to B+ grades) - Uncommon but solid
+      finalScore = 78 + ((edgePercentage - 3) / 2 * 7); // 3% = 78, 5% = 85
     } else {
-      // Small edge: 0.5-1%: 75-76 range
-      finalScore = 75 + (edgePercentage - 0.5) * 2;
+      // Maximum edge (4%): 85 range (B+ grade) - Very rare but reasonable
+      finalScore = Math.min(85, 78 + ((edgePercentage - 3) / 1 * 7)); // 3% = 78, 4% = 85
     }
     
     // Add small Kelly criterion bonus/penalty
@@ -868,36 +865,36 @@ export class DailyPickService {
     let multipliedScore;
     
     if (score >= 90) {
-      // ELITE PERFORMANCE: Exponential reward for exceptional factors
-      const eliteBonus = Math.pow((score - 89) / 11, 1.5) * 8; // Up to +8 bonus for 100
+      // ELITE PERFORMANCE: Small bonus for exceptional factors (reduced)
+      const eliteBonus = Math.pow((score - 89) / 11, 1.2) * 2; // Up to +2 bonus for 100 (was +8)
       multipliedScore = score + eliteBonus;
     } else if (score >= 80) {
-      // STRONG PERFORMANCE: Linear bonus for good factors  
-      const strongBonus = (score - 79) / 10 * 3; // Up to +3 bonus for 89
+      // STRONG PERFORMANCE: Minimal bonus for good factors  
+      const strongBonus = (score - 79) / 10 * 1; // Up to +1 bonus for 89 (was +3)
       multipliedScore = score + strongBonus;
     } else if (score <= 60) {
-      // POOR PERFORMANCE: Exponential penalty for weak factors
-      const weaknessPenalty = Math.pow((60 - score) / 60, 1.3) * 10; // Up to -10 penalty for 0
+      // POOR PERFORMANCE: Moderate penalty for weak factors (reduced)
+      const weaknessPenalty = Math.pow((60 - score) / 60, 1.1) * 4; // Up to -4 penalty for 0 (was -10)
       multipliedScore = score - weaknessPenalty;
     } else if (score <= 70) {
-      // BELOW AVERAGE: Linear penalty for mediocre factors
-      const mediocrePenalty = (70 - score) / 10 * 4; // Up to -4 penalty for 60
+      // BELOW AVERAGE: Small penalty for mediocre factors
+      const mediocrePenalty = (70 - score) / 10 * 2; // Up to -2 penalty for 60 (was -4)
       multipliedScore = score - mediocrePenalty;
     } else {
-      // AVERAGE RANGE (71-79): Minimal adjustment to preserve neutral scores
-      multipliedScore = score + (deviation * 0.2); // Slight amplification
+      // AVERAGE RANGE (71-79): No adjustment to preserve neutral scores
+      multipliedScore = score; // No amplification
     }
     
-    // FACTOR-SPECIFIC ADJUSTMENTS: Some factors matter more in different contexts
+    // FACTOR-SPECIFIC ADJUSTMENTS: Minimal adjustments to preserve realistic distribution
     if (factorType === 'market' && score >= 95) {
-      // Market inefficiency above 95 is extremely valuable - extra bonus
-      multipliedScore += 3;
+      // Market inefficiency above 95 is valuable but rare - small bonus
+      multipliedScore += 1; // Was +3
     } else if (factorType === 'confidence' && score <= 60) {
-      // Low system confidence should be heavily penalized
-      multipliedScore -= 5;
+      // Low system confidence penalty - reduced
+      multipliedScore -= 2; // Was -5
     } else if (factorType === 'pitching' && score >= 92) {
-      // Elite pitching matchups deserve extra credit
-      multipliedScore += 2;
+      // Elite pitching matchups - small bonus
+      multipliedScore += 1; // Was +2
     }
     
     // BOUNDS: Keep scores within reasonable range (30-100)
@@ -929,13 +926,13 @@ export class DailyPickService {
     
     const weightedSum = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
     
-    // 3. ELITE FACTOR BONUS: Reward multiple elite factors (90+)
+    // 3. ELITE FACTOR BONUS: Small reward for multiple elite factors (90+) - REDUCED
     const eliteFactors = adjustedFactors.filter(score => score >= 90).length;
-    const eliteBonus = eliteFactors >= 3 ? 5 : eliteFactors >= 2 ? 3 : eliteFactors >= 1 ? 1 : 0;
+    const eliteBonus = eliteFactors >= 3 ? 2 : eliteFactors >= 2 ? 1 : 0; // Was 5/3/1, now 2/1/0
     
-    // 4. WEAKNESS PENALTY: Penalize multiple weak factors (<65)
+    // 4. WEAKNESS PENALTY: Small penalty for multiple weak factors (<65) - REDUCED  
     const weakFactors = adjustedFactors.filter(score => score < 65).length;
-    const weaknessPenalty = weakFactors >= 3 ? -8 : weakFactors >= 2 ? -5 : weakFactors >= 1 ? -2 : 0;
+    const weaknessPenalty = weakFactors >= 3 ? -3 : weakFactors >= 2 ? -2 : weakFactors >= 1 ? -1 : 0; // Was -8/-5/-2, now -3/-2/-1
     
     // 5. FINAL SCORE with bonuses and penalties
     const finalScore = Math.round(weightedSum + eliteBonus + weaknessPenalty);
