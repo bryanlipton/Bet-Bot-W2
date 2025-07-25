@@ -52,10 +52,14 @@ app.use((req, res, next) => {
 
 // Priority API routes - registered before any middleware to ensure external access
 app.use('/api', (req, res, next) => {
-  // Set CORS headers for all API routes
-  res.header('Access-Control-Allow-Origin', '*');
+  // Set CORS headers for all API routes - allowing credentials requires specific origin
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('replit.dev') || origin.includes('localhost'))) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);

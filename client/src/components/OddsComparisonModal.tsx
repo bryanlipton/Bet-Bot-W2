@@ -191,17 +191,30 @@ export function OddsComparisonModal({
       };
 
       console.log('Pick data to save:', pickData);
+      console.log('About to make API request to /api/user/picks...');
+      
       const response = await apiRequest('POST', '/api/user/picks', pickData);
-      console.log('Save response:', response);
+      console.log('Raw API response received:', response);
       
-      // Invalidate cache to refresh My Picks page
-      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
+      if (response.ok) {
+        console.log('✅ Pick saved successfully!');
+        // Invalidate cache to refresh My Picks page
+        queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
+        console.log('Cache invalidated.');
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Server returned error:', response.status, errorText);
+      }
       
-      console.log('Pick saved successfully! Cache invalidated.');
       handleClose();
     } catch (error) {
-      console.error('Error saving pick:', error);
+      console.error('❌ Error saving pick:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       // Still close the modal even if save fails
       handleClose();
     }
