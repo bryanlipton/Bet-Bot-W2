@@ -272,7 +272,7 @@ export function ActionStyleDashboard() {
               </h2>
             </div>
             <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
-              {isProUser ? 'Pro User' : 'Free Users'}
+              {isProUser ? 'Pro Users' : 'Free Users'}
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
