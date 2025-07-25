@@ -39,7 +39,12 @@ export function registerUserPicksRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       
-      console.log('Received pick data:', JSON.stringify(req.body, null, 2));
+      console.log('📝 NEW PICK REQUEST - User:', userId);
+      console.log('📝 Received pick data:', JSON.stringify(req.body, null, 2));
+      
+      // Check current pick count for debugging
+      const existingPicks = await storage.getUserPicks(userId);
+      console.log(`📊 User ${userId} currently has ${existingPicks.length} picks`);
       
       // Transform and validate request body
       const pickData = {
@@ -60,18 +65,21 @@ export function registerUserPicksRoutes(app: Express) {
         status: 'pending'
       };
       
-      console.log('Transformed pick data:', JSON.stringify(pickData, null, 2));
+      console.log('📝 Transformed pick data:', JSON.stringify(pickData, null, 2));
       
       // Validate with schema
       const validatedData = insertUserPickSchema.parse(pickData);
+      console.log('✅ Pick data validated successfully');
       
       const pick = await storage.createUserPick(validatedData);
-      console.log('Created pick:', JSON.stringify(pick, null, 2));
+      console.log('✅ Pick created successfully:', JSON.stringify(pick, null, 2));
+      console.log(`🎉 User ${userId} now has ${existingPicks.length + 1} total picks`);
+      
       res.json(pick);
     } catch (error) {
-      console.error("Error creating user pick:", error);
+      console.error("❌ Error creating user pick:", error);
       if (error instanceof z.ZodError) {
-        console.error("Validation errors:", error.errors);
+        console.error("❌ Validation errors:", error.errors);
         res.status(400).json({ message: "Invalid pick data", errors: error.errors });
       } else {
         res.status(500).json({ message: "Failed to create pick" });
