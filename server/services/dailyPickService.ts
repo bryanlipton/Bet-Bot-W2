@@ -900,8 +900,8 @@ export class DailyPickService {
       multipliedScore += 2;
     }
     
-    // BOUNDS: Keep scores within reasonable range (30-105)
-    return Math.max(30, Math.min(105, Math.round(multipliedScore)));
+    // BOUNDS: Keep scores within reasonable range (30-100)
+    return Math.max(30, Math.min(100, Math.round(multipliedScore)));
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
