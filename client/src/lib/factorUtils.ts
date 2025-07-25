@@ -1,5 +1,5 @@
 // Utility functions for normalizing and color-coding analysis factors
-import { getFactorNarrative } from './narrativeGenerator';
+import { generateNarrative } from './narrativeGenerator';
 
 /**
  * Normalizes a factor score to the 60-100 range
@@ -128,9 +128,8 @@ export function getFactorExplanation(factorName: string): string {
  * Uses the new narrative generator for more sophisticated explanations
  */
 export function getFactorNarrative(factorName: string, score: number, context: any = {}): string {
-  // Import the narrative generator dynamically to avoid circular dependencies
+  // Use the narrative generator for sophisticated explanations
   try {
-    const { generateNarrative } = require('./narrativeGenerator');
     return generateNarrative(factorName, score, context);
   } catch (error) {
     // Fallback to basic explanation if narrative generator isn't available
@@ -143,12 +142,12 @@ function getGradeExplanation(score: number, factorName: string): string {
   
   switch (factorName) {
     case 'Offensive Production':
-      if (score >= 95) return `Elite offensive dominance: xwOBA >0.360, barrel rate >10%, exit velocity >90 MPH. Team demonstrates exceptional run production efficiency with superior contact quality placing them among the top MLB offensive units.`;
-      if (score >= 90) return `Outstanding offensive metrics: xwOBA 0.340-0.360, barrel rate 7-10%, exit velocity 86-90 MPH. Advanced Baseball Savant data shows excellent contact quality and run-scoring capability well above league standards.`;
-      if (score >= 80) return `Strong offensive production: xwOBA 0.310-0.339, barrel rate 4.5-6.9%, solid exit velocity trends. Team shows reliable run-scoring with multiple offensive weapons and positive advanced metrics.`;
-      if (score >= 75) return `Above-average offensive capabilities: xwOBA 0.300-0.309, decent barrel rates and contact quality. Run production slightly exceeds league averages with balanced offensive approach.`;
+      if (score >= 95) return `Elite offensive dominance: Exceptional xwOBA, high barrel rate, and strong exit velocity. Team demonstrates exceptional run production efficiency with superior contact quality placing them among the top MLB offensive units.`;
+      if (score >= 90) return `Outstanding offensive metrics: Excellent xwOBA, solid barrel rate, and strong exit velocity. Advanced Baseball Savant data shows excellent contact quality and run-scoring capability well above league standards.`;
+      if (score >= 80) return `Strong offensive production: Above-average xwOBA, good barrel rate, and solid exit velocity trends. Team shows reliable run-scoring with multiple offensive weapons and positive advanced metrics.`;
+      if (score >= 75) return `Above-average offensive capabilities: Solid xwOBA, decent barrel rates and contact quality. Run production slightly exceeds league averages with balanced offensive approach.`;
       if (score === 75) return `League-average offensive production: Standard Baseball Savant metrics aligned to MLB norms with typical run-scoring patterns and balanced strengths/weaknesses.`;
-      return `Below-average offensive metrics: xwOBA under 0.300, reduced barrel rates and concerning contact quality. Run production efficiency falls below league standards with limited offensive weapons.`;
+      return `Below-average offensive metrics: Lower xwOBA, reduced barrel rates and concerning contact quality. Run production efficiency falls below league standards with limited offensive weapons.`;
     
     case 'Pitching Matchup':
       if (score >= 95) return `Dominant pitcher-vs-pitcher advantage: Our starter has significantly superior ERA, WHIP, and strikeout metrics compared to today's opposing pitcher. Direct matchup heavily favors our side based on 2025 season performance.`;
@@ -259,7 +258,7 @@ export function getMainGradeExplanation(
   // Add specific statistical highlights
   const highlights = [];
   if (analysis.offensiveProduction >= 90) {
-    highlights.push('elite offensive metrics with xwOBA above .340');
+    highlights.push('elite offensive metrics with exceptional xwOBA performance');
   }
   if (analysis.pitchingMatchup >= 90) {
     highlights.push('significant starting pitcher advantage based on superior 2025 season metrics');
