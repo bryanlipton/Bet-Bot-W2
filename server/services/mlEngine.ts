@@ -112,27 +112,38 @@ export class MLEngine {
           
           if (randomFactor < 0.05) {
             // 5% chance of exceptional edge (6-8%) - A+ territory
-            analyticalEdge = (Math.random() - 0.5) * 0.16; // ±8% max
+            analyticalEdge = (Math.random() - 0.5) * 0.08; // ±4% max to prevent extreme probabilities
           } else if (randomFactor < 0.15) {
             // 10% chance of strong edge (4-6%) - A territory  
-            analyticalEdge = (Math.random() - 0.5) * 0.12; // ±6% max
+            analyticalEdge = (Math.random() - 0.5) * 0.06; // ±3% max
           } else if (randomFactor < 0.35) {
             // 20% chance of good edge (2-4%) - A-/B+ territory
-            analyticalEdge = (Math.random() - 0.5) * 0.08; // ±4% max
+            analyticalEdge = (Math.random() - 0.5) * 0.04; // ±2% max
           } else if (randomFactor < 0.60) {
             // 25% chance of small edge (0.5-2%) - B/B- territory
-            analyticalEdge = (Math.random() - 0.5) * 0.06; // ±3% max
+            analyticalEdge = (Math.random() - 0.5) * 0.03; // ±1.5% max
           } else {
-            // 40% chance of neutral/negative edge (-2% to +1%) - C+/C/C-/D territory
-            analyticalEdge = (Math.random() - 0.7) * 0.06; // Biased toward negative edges
+            // 40% chance of neutral/negative edge (-1% to +1%) - C+/C/C-/D territory
+            analyticalEdge = (Math.random() - 0.5) * 0.02; // ±1% max
           }
-          homeWinProb = Math.max(0.30, Math.min(0.70, homeImplied + analyticalEdge));
-          awayWinProb = Math.max(0.30, Math.min(0.70, awayImplied - analyticalEdge));
           
-          // Ensure probabilities sum to 1
+          // Apply edge more conservatively to prevent extreme probabilities
+          homeWinProb = Math.max(0.35, Math.min(0.65, homeImplied + analyticalEdge));
+          awayWinProb = Math.max(0.35, Math.min(0.65, awayImplied - analyticalEdge));
+          
+          // Ensure probabilities sum to 1 and are realistic
           const total = homeWinProb + awayWinProb;
           homeWinProb = homeWinProb / total;
           awayWinProb = awayWinProb / total;
+          
+          // Final validation to prevent extreme values
+          homeWinProb = Math.max(0.25, Math.min(0.75, homeWinProb));
+          awayWinProb = Math.max(0.25, Math.min(0.75, awayWinProb));
+          
+          // Re-normalize after validation
+          const finalTotal = homeWinProb + awayWinProb;
+          homeWinProb = homeWinProb / finalTotal;
+          awayWinProb = awayWinProb / finalTotal;
         }
       }
     } else {
