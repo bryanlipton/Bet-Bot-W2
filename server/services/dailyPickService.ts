@@ -865,8 +865,42 @@ export class DailyPickService {
    * Rewards exceptional performance and penalizes poor performance
    */
   private applyFactorMultiplier(score: number, factorType: string): number {
-    // Use the raw factor scores without modification for authentic data-driven analysis
-    return Math.max(30, Math.min(100, Math.round(score)));
+    // ENHANCED VARIATION: Transform narrow 45-60 range to wider 35-85 distribution
+    let adjustedScore = score;
+    
+    // Apply factor-specific scaling to create more variation
+    switch (factorType) {
+      case 'offense':
+      case 'pitching':
+      case 'momentum':
+        // For most factors: Expand the range significantly
+        // Transform 45-60 range to 35-75 range
+        if (score >= 55) {
+          adjustedScore = 60 + ((score - 55) * 3); // Amplify high scores
+        } else if (score <= 45) {
+          adjustedScore = 35 + ((score - 35) * 1.5); // Compress low scores less
+        } else {
+          adjustedScore = 45 + ((score - 45) * 1.5); // Middle range gets moderate boost
+        }
+        break;
+        
+      case 'situation':
+        // Situational factors get even more variation
+        if (score >= 55) {
+          adjustedScore = 65 + ((score - 55) * 4); // Big boost for good situations
+        } else if (score <= 45) {
+          adjustedScore = 30 + ((score - 30) * 1.2); // Penalize bad situations
+        }
+        break;
+        
+      case 'market':
+      case 'confidence':
+        // Market and confidence already have good variation, apply minimal scaling
+        adjustedScore = Math.max(40, Math.min(100, score * 1.1));
+        break;
+    }
+    
+    return Math.max(30, Math.min(100, Math.round(adjustedScore)));
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
