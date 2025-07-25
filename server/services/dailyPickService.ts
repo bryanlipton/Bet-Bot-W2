@@ -864,38 +864,11 @@ export class DailyPickService {
     
     let multipliedScore;
     
-    if (score >= 90) {
-      // ELITE PERFORMANCE: Small bonus for exceptional factors (reduced)
-      const eliteBonus = Math.pow((score - 89) / 11, 1.2) * 2; // Up to +2 bonus for 100 (was +8)
-      multipliedScore = score + eliteBonus;
-    } else if (score >= 80) {
-      // STRONG PERFORMANCE: Minimal bonus for good factors  
-      const strongBonus = (score - 79) / 10 * 1; // Up to +1 bonus for 89 (was +3)
-      multipliedScore = score + strongBonus;
-    } else if (score <= 60) {
-      // POOR PERFORMANCE: Moderate penalty for weak factors (reduced)
-      const weaknessPenalty = Math.pow((60 - score) / 60, 1.1) * 4; // Up to -4 penalty for 0 (was -10)
-      multipliedScore = score - weaknessPenalty;
-    } else if (score <= 70) {
-      // BELOW AVERAGE: Small penalty for mediocre factors
-      const mediocrePenalty = (70 - score) / 10 * 2; // Up to -2 penalty for 60 (was -4)
-      multipliedScore = score - mediocrePenalty;
-    } else {
-      // AVERAGE RANGE (71-79): No adjustment to preserve neutral scores
-      multipliedScore = score; // No amplification
-    }
+    // ULTRA CONSERVATIVE: NO BONUSES OR PENALTIES - Use raw factor scores
+    // This prevents grade inflation and creates realistic professional distribution
+    multipliedScore = score;
     
-    // FACTOR-SPECIFIC ADJUSTMENTS: Minimal adjustments to preserve realistic distribution
-    if (factorType === 'market' && score >= 95) {
-      // Market inefficiency above 95 is valuable but rare - small bonus
-      multipliedScore += 1; // Was +3
-    } else if (factorType === 'confidence' && score <= 60) {
-      // Low system confidence penalty - reduced
-      multipliedScore -= 2; // Was -5
-    } else if (factorType === 'pitching' && score >= 92) {
-      // Elite pitching matchups - small bonus
-      multipliedScore += 1; // Was +2
-    }
+    // NO FACTOR-SPECIFIC ADJUSTMENTS: Pure raw scores for ultra-realistic distribution
     
     // BOUNDS: Keep scores within reasonable range (30-100)
     return Math.max(30, Math.min(100, Math.round(multipliedScore)));
@@ -926,33 +899,27 @@ export class DailyPickService {
     
     const weightedSum = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
     
-    // 3. ELITE FACTOR BONUS: Small reward for multiple elite factors (90+) - REDUCED
-    const eliteFactors = adjustedFactors.filter(score => score >= 90).length;
-    const eliteBonus = eliteFactors >= 3 ? 2 : eliteFactors >= 2 ? 1 : 0; // Was 5/3/1, now 2/1/0
+    // 3. NO ELITE BONUSES OR WEAKNESS PENALTIES: Pure weighted average for realistic distribution
     
-    // 4. WEAKNESS PENALTY: Small penalty for multiple weak factors (<65) - REDUCED  
-    const weakFactors = adjustedFactors.filter(score => score < 65).length;
-    const weaknessPenalty = weakFactors >= 3 ? -3 : weakFactors >= 2 ? -2 : weakFactors >= 1 ? -1 : 0; // Was -8/-5/-2, now -3/-2/-1
-    
-    // 5. FINAL SCORE with bonuses and penalties
-    const finalScore = Math.round(weightedSum + eliteBonus + weaknessPenalty);
+    // 4. FINAL SCORE: Pure weighted calculation without any adjustments
+    const finalScore = Math.round(weightedSum);
     
     // Log detailed calculation
     console.log(`📊 ENHANCED GRADE CALCULATION:`);
     console.log(`   Original factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
     console.log(`   Adjusted factors: [${adjustedFactors.join(', ')}]`);
-    console.log(`   Weighted base: ${Math.round(weightedSum)}, Elite bonus: +${eliteBonus}, Weakness penalty: ${weaknessPenalty}`);
+    console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // 6. ULTRA REALISTIC GRADING SCALE: Professional sports betting distribution
-    if (finalScore >= 90) return 'A+';   // Elite - extremely rare (2-3 per day max)
-    if (finalScore >= 84) return 'A';    // Excellent - very rare (2-3 per day max)  
-    if (finalScore >= 78) return 'A-';   // Very good - uncommon 
-    if (finalScore >= 73) return 'B+';   // Good - solid picks
-    if (finalScore >= 69) return 'B';    // Above average - common
-    if (finalScore >= 65) return 'B-';   // Slightly above average
-    if (finalScore >= 61) return 'C+';   // Average - most common
-    if (finalScore >= 57) return 'C';    // Below average
+    // 6. ULTRA REALISTIC GRADING SCALE: Shift all thresholds down by 8 points
+    if (finalScore >= 82) return 'A+';   // Elite - extremely rare (2-3 per day max)
+    if (finalScore >= 76) return 'A';    // Excellent - very rare (2-3 per day max)  
+    if (finalScore >= 70) return 'A-';   // Very good - uncommon 
+    if (finalScore >= 65) return 'B+';   // Good - solid picks
+    if (finalScore >= 61) return 'B';    // Above average - common
+    if (finalScore >= 57) return 'B-';   // Slightly above average
+    if (finalScore >= 53) return 'C+';   // Average - most common
+    if (finalScore >= 49) return 'C';    // Below average
     if (finalScore >= 52) return 'C-';   // Poor - significant concerns
     if (finalScore >= 45) return 'D+';   // Very poor - major red flags
     if (finalScore >= 35) return 'D';    // Terrible - avoid strongly
