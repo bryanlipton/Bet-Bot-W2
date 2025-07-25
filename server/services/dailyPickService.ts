@@ -1062,10 +1062,11 @@ export class DailyPickService {
 
   async generateAllGamePicks(games: any[]): Promise<DailyPick[]> {
     const eligibleGames = games.filter(game => 
-      game.hasOdds && 
       game.bookmakers?.length > 0 &&
       game.bookmakers[0].markets?.some((m: any) => m.key === 'h2h')
     );
+    
+    console.log(`🎯 generateAllGamePicks: Processing ${games.length} games, found ${eligibleGames.length} eligible games with odds`);
 
     if (eligibleGames.length === 0) {
       return [];

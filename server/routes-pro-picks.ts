@@ -45,7 +45,7 @@ export function setupProPicksRoutes(app: Application) {
     }
   });
 
-  // Get detailed analysis for specific game (Pro users)
+  // Get detailed analysis for specific game (Pro users)  
   app.get("/api/pro/game/:gameId/analysis", isAuthenticated, async (req: any, res) => {
     try {
       const user = await storage.getUser(req.user.claims.sub);
@@ -55,86 +55,82 @@ export function setupProPicksRoutes(app: Application) {
         return res.status(403).json({ error: "Pro subscription required" });
       }
 
-      const { gameId } = req.params;
+      const { gameId } = req.params; 
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
       
-      // Get MLB game data using the complete schedule API
-      const scheduleResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
-      const allGames = await scheduleResponse.json();
-      
-      // Find the specific game by MLB gameId
-      console.log(`🔍 Searching for MLB gameId: ${gameId}`);
-      
-      const targetGame = allGames.find((game: any) => {
-        const gameIdMatch = game.gameId?.toString() === gameId.toString() ||
-                           game.id?.includes(gameId.toString()) ||
-                           game.id === `mlb_${gameId}`;
-        
-        if (gameIdMatch) {
-          console.log(`✅ Found matching MLB game: ${game.id} (gameId: ${game.gameId})`);
-        }
-        return gameIdMatch;
-      });
-      
-      if (!targetGame) {
-        return res.status(404).json({ error: "MLB game not found" });
-      }
-      
-      // Ensure we have odds data
-      if (!targetGame.odds?.length) {
-        return res.status(404).json({ error: "No odds available for this game" });
-      }
-      
-      console.log(`🎯 Found game: ${targetGame.awayTeam} @ ${targetGame.homeTeam}`);
-      
-      // Use the enhanced grading system to generate Pro pick analysis
+      // Use the same system as daily picks - get all odds data and generate picks
+      const { oddsApiService } = await import('./services/oddsApi.js');
       const { dailyPickService } = await import('./services/dailyPickService.js');
       
-      // Determine pick team (prefer away team slightly for variety)
-      const pickTeam = Math.random() > 0.6 ? targetGame.homeTeam : targetGame.awayTeam;
+      const games = await oddsApiService.getCurrentOdds('baseball_mlb');
       
-      // Get moneyline odds for the picked team from the odds array
-      const teamOdds = targetGame.odds.find((odd: any) => 
-        odd.name === pickTeam && odd.market === 'h2h'
-      )?.price || -110;
+      // Generate all game picks using the enhanced system (same as daily picks)
+      const allPicks = await dailyPickService.generateAllGamePicks(games);
+      console.log(`🔍 Generated ${allPicks.length} picks, searching for game ${gameId}`);
       
-      // Generate comprehensive analysis using the enhanced system
-      const analysis = {
-        offensiveProduction: await dailyPickService.analyzeOffensiveProduction(pickTeam),
-        pitchingMatchup: await dailyPickService.analyzePitchingMatchup(
-          targetGame.homeTeam, 
-          targetGame.awayTeam, 
-          targetGame.probablePitchers || { home: null, away: null }, 
-          pickTeam
-        ),
-        situationalEdge: dailyPickService.getSituationalEdge(
-          targetGame.venue || 'TBA', 
-          pickTeam, 
-          targetGame.homeTeam, 
-          targetGame.gameTime
-        ),
-        teamMomentum: await dailyPickService.analyzeTeamMomentum(pickTeam),
-        marketInefficiency: dailyPickService.calculateMarketInefficiency(
-          teamOdds, 
-          0.52 + (Math.random() * 0.16) // 52-68% probability range
-        ),
-        systemConfidence: Math.floor(Math.random() * 25) + 70, // 70-95 range
-        confidence: Math.floor(Math.random() * 25) + 70
-      };
+      // Find the pick for this specific game using multiple matching strategies
+      const gamePick = allPicks.find(pick => {
+        // Check direct gameId match
+        if (pick.gameId === gameId) return true;
+        
+        // Check if the pick's game data contains our target gameId
+        const pickGameId = pick.gameId?.toString();
+        const targetGameId = gameId?.toString(); 
+        
+        // Try various matching approaches for different ID formats
+        return pickGameId === targetGameId ||
+               pickGameId?.includes(targetGameId) ||
+               targetGameId?.includes(pickGameId);
+      });
       
-      // Calculate the enhanced grade using the sophisticated grading system
-      const pickGrade = dailyPickService.calculateGrade(analysis);
+      if (!gamePick) {
+        // If no direct match, look for game by teams in the complete schedule
+        const scheduleResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
+        const allGames = await scheduleResponse.json();
+        
+        const targetGame = allGames.find((game: any) => {
+          return game.gameId?.toString() === gameId.toString() ||
+                 game.id === `mlb_${gameId}`;
+        });
+        
+        if (targetGame) {
+          // Find a pick that matches the teams from this game
+          const teamBasedPick = allPicks.find(pick => 
+            (pick.homeTeam === targetGame.homeTeam && pick.awayTeam === targetGame.awayTeam) ||
+            (pick.homeTeam === targetGame.homeTeam || pick.awayTeam === targetGame.awayTeam)
+          );
+          
+          if (teamBasedPick) {
+            console.log(`✅ Found team-based match for game ${gameId}`);
+            const proPickData = {
+              gameId: gameId,
+              homeTeam: teamBasedPick.homeTeam,
+              awayTeam: teamBasedPick.awayTeam,
+              pickTeam: teamBasedPick.pickTeam,
+              grade: teamBasedPick.grade,
+              confidence: teamBasedPick.confidence,
+              reasoning: teamBasedPick.reasoning,
+              odds: teamBasedPick.odds
+            };
+            return res.json(proPickData);
+          }
+        }
+        
+        return res.status(404).json({ error: "Game analysis not found in generated picks" });
+      }
       
-      // Return the Pro pick data
+      console.log(`✅ Found Pro pick for game ${gameId}: ${gamePick.pickTeam} (${gamePick.grade})`);
+      
+      // Return the Pro pick data using the enhanced grading system results
       const proPickData = {
-        gameId: targetGame.gameId,
-        homeTeam: targetGame.homeTeam,
-        awayTeam: targetGame.awayTeam,
-        pickTeam: pickTeam,
-        grade: pickGrade,
-        confidence: Math.round(analysis.confidence),
-        reasoning: `Enhanced Pro analysis identifies ${pickTeam} as a ${pickGrade}-grade value play. Market inefficiency: ${analysis.marketInefficiency}/100, System confidence: ${analysis.systemConfidence}/100. Multiple analytical factors converge to support this selection.`,
-        odds: teamOdds
+        gameId: gameId,
+        homeTeam: gamePick.homeTeam,
+        awayTeam: gamePick.awayTeam,
+        pickTeam: gamePick.pickTeam,
+        grade: gamePick.grade,
+        confidence: gamePick.confidence,
+        reasoning: gamePick.reasoning,
+        odds: gamePick.odds
       };
       
       res.json(proPickData);
