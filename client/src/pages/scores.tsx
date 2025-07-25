@@ -137,9 +137,16 @@ export default function ScoresPage() {
     setSelectedDate(easternTime);
   };
 
+  // Helper function to format date for API - ensures consistent timezone handling
+  function formatDateForAPI(date: Date): string {
+    // Convert to Eastern Time and format as YYYY-MM-DD
+    const easternDate = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    return easternDate.toISOString().split('T')[0];
+  }
+
   // Fetch real scores data based on selected sport with live updates
   const { data: scoresData, isLoading, refetch } = useQuery({
-    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]] : ['/api/scores', selectedSport],
+    queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', formatDateForAPI(selectedDate)] : ['/api/scores', selectedSport],
     refetchInterval: 15000, // Refresh every 15 seconds for live updates
     enabled: !!selectedDate, // Only fetch when we have a selected date
   });
@@ -179,25 +186,9 @@ export default function ScoresPage() {
   const sortedGames = useMemo(() => {
     if (!scoresData || !Array.isArray(scoresData)) return [];
 
-    // More robust date filtering - compare by YYYY-MM-DD format
-    const selectedDateStr = selectedDate.toISOString().split('T')[0];
-    
-    // Filter games for selected date
-    const dayGames = scoresData.filter((game: any) => {
-      // Handle various date field names from different APIs
-      const gameTime = game.startTime || game.commence_time || game.gameDate;
-      if (!gameTime) return false;
-      
-      // Convert game time to YYYY-MM-DD format for accurate comparison
-      const gameDate = new Date(gameTime);
-      const gameDateStr = gameDate.toISOString().split('T')[0];
-      
-      // Also check if the game date is within 24 hours of selected date (for timezone edge cases)
-      const timeDiff = Math.abs(gameDate.getTime() - selectedDate.getTime());
-      const isWithin24Hours = timeDiff < 24 * 60 * 60 * 1000;
-      
-      return gameDateStr === selectedDateStr || isWithin24Hours;
-    });
+    // Since the API already filters by date, we should get all games for the selected date
+    // Just ensure we're working with the games returned by the API
+    const dayGames = scoresData || [];
 
     // Convert to ScoreGame format
     const processedGames: ScoreGame[] = dayGames.map((game: any) => {
