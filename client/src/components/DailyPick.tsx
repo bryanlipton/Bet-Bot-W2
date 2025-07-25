@@ -1153,7 +1153,7 @@ export default function DailyPick() {
                     
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
                       <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                      <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {getMainGradeExplanation(
                           dailyPick.grade,
                           dailyPick.confidence,
@@ -1161,7 +1161,7 @@ export default function DailyPick() {
                           dailyPick.pickTeam,
                           dailyPick.odds
                         )}
-                      </pre>
+                      </div>
                     </div>
 
                     <div>
