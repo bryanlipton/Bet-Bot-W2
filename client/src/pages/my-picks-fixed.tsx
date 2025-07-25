@@ -28,6 +28,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import UserAvatar from '@/components/UserAvatar';
+import { queryClient } from '@/lib/queryClient';
 
 export default function MyPicksPageFixed() {
   const [darkMode, setDarkMode] = useState(true);
@@ -252,6 +253,9 @@ export default function MyPicksPageFixed() {
       console.log('Unit size saved successfully:', response);
       setBetUnit(newBetUnit);
       setShowUnitDialog(false);
+      
+      // Invalidate cache to ensure data persists across sessions
+      await queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
     } catch (error) {
       console.error('Error updating bet unit:', error);
       console.error('Error details:', error.response?.data || error.message);
