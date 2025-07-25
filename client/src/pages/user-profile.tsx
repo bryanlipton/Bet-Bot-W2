@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 import UserAvatar from "@/components/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   User, 
   Users, 
@@ -142,6 +142,10 @@ export default function UserProfile() {
           description: `You are now following ${userProfile?.username || 'this user'}.`,
         });
       }
+      
+      // Invalidate the follow status cache to refresh the button
+      queryClient.invalidateQueries({ queryKey: ['/api/user/follow-status', userId] });
+      
     } catch (error) {
       toast({
         title: "Error",
