@@ -921,21 +921,20 @@ export class DailyPickService {
     console.log(`   All factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
     console.log(`   Weighted average: ${weightedSum.toFixed(1)}`);
     
-    // Apply BettingRecommendationEngine thresholds but to the weighted average
-    // Based on realistic factor ranges (65-100), most scores will be 75-95
-    if (weightedSum >= 95) return 'A+';  // Exceptional - top 5%
-    if (weightedSum >= 90) return 'A';   // Excellent - top 10%
-    if (weightedSum >= 85) return 'A-';  // Very good - top 20%
-    if (weightedSum >= 82) return 'B+';  // Good plus - top 30%
-    if (weightedSum >= 79) return 'B';   // Good - top 45%
-    if (weightedSum >= 76) return 'B-';  // Decent - top 60%
-    if (weightedSum >= 73) return 'C+';  // Average plus
-    if (weightedSum >= 70) return 'C';   // Average
-    if (weightedSum >= 67) return 'C-';  // Below average
-    if (weightedSum >= 64) return 'D+';  // Poor
-    if (weightedSum >= 61) return 'D';   // Very poor
-    if (weightedSum >= 58) return 'D-';  // Terrible
-    return 'F';                          // Catastrophic
+    // BALANCED THRESHOLDS: Realistic distribution across typical score range (70-90)
+    if (weightedSum >= 88) return 'A+';  // Top tier - exceptional games
+    if (weightedSum >= 85) return 'A';   // Elite games
+    if (weightedSum >= 82) return 'A-';  // Very strong games
+    if (weightedSum >= 79) return 'B+';  // Strong games
+    if (weightedSum >= 76) return 'B';   // Good games  
+    if (weightedSum >= 73) return 'B-';  // Decent games
+    if (weightedSum >= 70) return 'C+';  // Above average
+    if (weightedSum >= 68) return 'C';   // Average games
+    if (weightedSum >= 66) return 'C-';  // Below average
+    if (weightedSum >= 64) return 'D+';  // Poor games
+    if (weightedSum >= 62) return 'D';   // Very poor
+    if (weightedSum >= 60) return 'D-';  // Terrible
+    return 'F';                          // Avoid completely
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
