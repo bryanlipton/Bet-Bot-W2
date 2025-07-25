@@ -817,42 +817,43 @@ export class DailyPickService {
     const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
     let edge = modelProb - bookmakerProb;
     
-    // ULTRA REALISTIC CONSTRAINT: Cap edges at ±2% maximum for professional sports betting
-    // Even 2%+ edges are uncommon in efficient MLB markets; 4%+ edges are extremely rare
-    edge = Math.max(-0.02, Math.min(0.02, edge));
+    // EXPANDED EDGE CAP: Allow up to 8% edges for wider grade distribution
+    // This captures real market inefficiencies while preventing unrealistic edges
+    edge = Math.max(-0.08, Math.min(0.08, edge));
     
     // Enhanced value calculation with multiple market efficiency indicators
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
     
-    // REALISTIC GRADING: Most professional picks should be in C+ to B+ range
-    // Exceptional A/A+ grades should be rare (5% edge is exceptional in sports betting)
-    
     const edgePercentage = Math.abs(edge * 100); // Convert to percentage
     
+    // EXPANDED GRADING SCALE: Create wider distribution from 40-95 range
     let finalScore;
-    if (edgePercentage <= 0.3) {
-      // Very small or no edge: 60-68 range (C- to C grades) - Most picks
-      finalScore = 60 + (edgePercentage / 0.3 * 8); // 0% = 60, 0.3% = 68
-    } else if (edgePercentage <= 0.8) {
-      // Small edge: 68-73 range (C to C+ grades) - Common
-      finalScore = 68 + ((edgePercentage - 0.3) / 0.5 * 5); // 0.3% = 68, 0.8% = 73
-    } else if (edgePercentage <= 1.3) {
-      // Good edge: 73-78 range (C+ to B- grades) - Uncommon
-      finalScore = 73 + ((edgePercentage - 0.8) / 0.5 * 5); // 0.8% = 73, 1.3% = 78
-    } else if (edgePercentage <= 1.7) {
-      // Strong edge: 78-83 range (B- to B+ grades) - Rare
-      finalScore = 78 + ((edgePercentage - 1.3) / 0.4 * 5); // 1.3% = 78, 1.7% = 83
+    if (edgePercentage <= 0.5) {
+      // Very small or no edge: 40-60 range (D+ to C- grades) - Poor picks
+      finalScore = 40 + (edgePercentage / 0.5 * 20); // 0% = 40, 0.5% = 60
+    } else if (edgePercentage <= 1.5) {
+      // Small edge: 60-72 range (C- to C+ grades) - Average picks
+      finalScore = 60 + ((edgePercentage - 0.5) / 1.0 * 12); // 0.5% = 60, 1.5% = 72
+    } else if (edgePercentage <= 3.0) {
+      // Good edge: 72-80 range (C+ to B grades) - Good picks
+      finalScore = 72 + ((edgePercentage - 1.5) / 1.5 * 8); // 1.5% = 72, 3.0% = 80
+    } else if (edgePercentage <= 5.0) {
+      // Strong edge: 80-88 range (B to A- grades) - Strong picks
+      finalScore = 80 + ((edgePercentage - 3.0) / 2.0 * 8); // 3.0% = 80, 5.0% = 88
+    } else if (edgePercentage <= 7.0) {
+      // Excellent edge: 88-94 range (A- to A grades) - Excellent picks
+      finalScore = 88 + ((edgePercentage - 5.0) / 2.0 * 6); // 5.0% = 88, 7.0% = 94
     } else {
-      // Maximum edge (2%): 83-85 range (B+ to A- grades) - Extremely rare
-      finalScore = Math.min(85, 83 + ((edgePercentage - 1.7) / 0.3 * 2)); // 1.7% = 83, 2% = 85
+      // Maximum edge (8%): 94-95 range (A to A+ grades) - Elite picks
+      finalScore = Math.min(95, 94 + ((edgePercentage - 7.0) / 1.0 * 1)); // 7.0% = 94, 8.0% = 95
     }
     
-    // Add small Kelly criterion bonus/penalty
-    const kellyBonus = Math.min(Math.max(kellyValue * 2, -2), 2);
+    // Add Kelly criterion bonus/penalty for additional variation
+    const kellyBonus = Math.min(Math.max(kellyValue * 3, -3), 3);
     finalScore += kellyBonus;
     
-    // Clamp to 60-100 range
-    finalScore = Math.max(60, Math.min(100, finalScore));
+    // Clamp to 40-100 range
+    finalScore = Math.max(40, Math.min(100, finalScore));
     
     console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${edgePercentage.toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Final Score: ${finalScore.toFixed(1)}`);
     console.log(`🎯 DEBUG: Raw modelProb: ${modelProb.toFixed(3)}, Bookmaker Prob: ${((odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100))).toFixed(3)}, Odds: ${odds}`);
@@ -905,18 +906,18 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // 6. ULTRA REALISTIC GRADING SCALE: Proper order and realistic distribution
-    if (finalScore >= 82) return 'A+';   // Elite - extremely rare (2-3 per day max)
-    if (finalScore >= 76) return 'A';    // Excellent - very rare (2-3 per day max)  
-    if (finalScore >= 70) return 'B+';   // Very good - uncommon (changed from A-)
-    if (finalScore >= 65) return 'B';    // Good - solid picks (changed from B+)
-    if (finalScore >= 61) return 'C+';   // Above average - common (changed from B)
-    if (finalScore >= 57) return 'C';    // Average - most common (changed from B-)
-    if (finalScore >= 53) return 'C-';   // Below average (changed from C+)
-    if (finalScore >= 49) return 'D+';   // Poor - significant concerns (changed from C)
-    if (finalScore >= 45) return 'D';    // Very poor - major red flags
-    if (finalScore >= 35) return 'D-';   // Terrible - avoid strongly (changed from D)
-    return 'F';                          // Catastrophic - never bet
+    // REALISTIC GRADING SCALE: Based on actual weighted score distribution (scores typically 45-85)
+    if (finalScore >= 78) return 'A+';   // Elite - top 5% of picks
+    if (finalScore >= 74) return 'A';    // Excellent - top 10% of picks  
+    if (finalScore >= 70) return 'B+';   // Very good - top 20% of picks
+    if (finalScore >= 66) return 'B';    // Good - top 35% of picks
+    if (finalScore >= 62) return 'C+';   // Above average - top 50% of picks
+    if (finalScore >= 58) return 'C';    // Average - middle 50% of picks
+    if (finalScore >= 54) return 'C-';   // Below average - bottom 35% of picks
+    if (finalScore >= 50) return 'D+';   // Poor - bottom 20% of picks
+    if (finalScore >= 46) return 'D';    // Very poor - bottom 10% of picks
+    if (finalScore >= 42) return 'D-';   // Terrible - bottom 5% of picks
+    return 'F';                          // Catastrophic - avoid completely
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
