@@ -89,10 +89,10 @@ export class DailyPickService {
     }
   }
   private normalizeToGradingScale(score: number): number {
-    // Normalize 0-100 raw score to 60-100 grading scale as requested
-    // This ensures proper letter grade distribution (A+ through D)
+    // Normalize 0-100 raw score to 80-95 grading scale as requested
+    // This creates a tighter, more professional scoring range
     const clampedScore = Math.max(0, Math.min(100, score));
-    return Math.round(60 + (clampedScore * 0.4));
+    return Math.round(80 + (clampedScore * 0.15));
   }
 
   private async analyzeOffensiveProduction(team: string): Promise<number> {
@@ -808,14 +808,14 @@ export class DailyPickService {
     // Log calculation for transparency
     console.log(`📊 GRADE CALCULATION: Weighted Score = ${overallScore} (Factors: ${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence})`);
     
-    // Use the weighted average for grade assignment - back to original 60-100 scale
-    if (overallScore >= 95) return 'A+';
-    if (overallScore >= 90) return 'A';
-    if (overallScore >= 85) return 'B+';
-    if (overallScore >= 80) return 'B';
-    if (overallScore >= 75) return 'C+';
-    if (overallScore >= 70) return 'C';
-    if (overallScore >= 60) return 'D';
+    // Use the weighted average for grade assignment - updated for 80-95 scale
+    if (overallScore >= 94) return 'A+';
+    if (overallScore >= 92) return 'A';
+    if (overallScore >= 90) return 'B+';
+    if (overallScore >= 88) return 'B';
+    if (overallScore >= 86) return 'C+';
+    if (overallScore >= 84) return 'C';
+    if (overallScore >= 80) return 'D';
     return 'F';
   }
 
