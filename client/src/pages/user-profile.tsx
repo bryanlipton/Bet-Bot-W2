@@ -24,7 +24,8 @@ import {
   Trophy,
   Clock,
   ArrowLeft,
-  UserCheck
+  UserCheck,
+  Flame
 } from "lucide-react";
 
 interface UserProfile {
@@ -37,15 +38,30 @@ interface UserProfile {
   avatar?: string;
   followers: number;
   following: number;
-  totalPicks: number;
-  winRate: number;
+  totalPicks?: number; // Legacy field for backwards compatibility
+  winRate?: number; // Legacy field for backwards compatibility
   totalUnits: number;
   joinDate: string;
   bio?: string;
-  totalPicksPublic: boolean;
-  pendingPicksPublic: boolean;
-  winRatePublic: boolean;
-  winStreakPublic: boolean;
+  // Legacy privacy settings for backwards compatibility
+  totalPicksPublic?: boolean;
+  pendingPicksPublic?: boolean;
+  winRatePublic?: boolean;
+  winStreakPublic?: boolean;
+  // New structure
+  stats?: {
+    totalPicks?: number;
+    pendingPicks?: number;
+    winRate?: number;
+    winStreak?: number;
+    record?: string; // e.g., "5-2"
+  };
+  privacySettings?: {
+    totalPicksPublic: boolean;
+    pendingPicksPublic: boolean;
+    winRatePublic: boolean;
+    winStreakPublic: boolean;
+  };
 }
 
 interface PublicFeedItem {
@@ -272,41 +288,59 @@ export default function UserProfile() {
             </CardContent>
           </Card>
 
-          {/* Stats Grid */}
+          {/* Stats Grid - Only show stats that are public */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {userProfile.totalPicksPublic && (
+            {/* Total Picks - only show if user made it public */}
+            {userProfile.privacySettings?.totalPicksPublic && userProfile.stats?.totalPicks !== undefined && (
               <Card>
                 <CardContent className="p-4 text-center">
                   <Target className="w-8 h-8 mx-auto mb-2 text-blue-500" />
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {userProfile.totalPicks}
+                    {userProfile.stats.totalPicks}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Picks</p>
                 </CardContent>
               </Card>
             )}
 
-            {userProfile.winRatePublic && (
+            {/* Pending Picks - only show if user made it public */}
+            {userProfile.privacySettings?.pendingPicksPublic && userProfile.stats?.pendingPicks !== undefined && (
               <Card>
                 <CardContent className="p-4 text-center">
-                  <Trophy className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                  <Clock className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {userProfile.winRate}%
+                    {userProfile.stats.pendingPicks}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Win Rate</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
                 </CardContent>
               </Card>
             )}
 
-            <Card>
-              <CardContent className="p-4 text-center">
-                <TrendingUp className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {userProfile.totalUnits > 0 ? '+' : ''}{userProfile.totalUnits}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Units</p>
-              </CardContent>
-            </Card>
+            {/* Win Streak - only show if user made it public */}
+            {userProfile.privacySettings?.winStreakPublic && userProfile.stats?.winStreak !== undefined && (
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Flame className="w-8 h-8 mx-auto mb-2 text-orange-500" />
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {userProfile.stats.winStreak}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Win Streak</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Record (Win Rate) - only show if user made it public */}
+            {userProfile.privacySettings?.winRatePublic && userProfile.stats?.record !== undefined && (
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Trophy className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {userProfile.stats.record}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Record</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Public Feed */}

@@ -41,7 +41,8 @@ import {
   Search,
   UserCheck,
   X,
-  Trash2
+  Trash2,
+  Camera
 } from "lucide-react";
 
 interface UserProfile {

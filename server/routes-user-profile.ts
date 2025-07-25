@@ -86,6 +86,27 @@ export function registerUserProfileRoutes(app: Express) {
         }
       }
 
+      // Filter stats based on privacy settings - only show if user has enabled public display
+      const filteredStats: any = {};
+      
+      // Only include stats if the user has made them public
+      if (user.totalPicksPublic !== false) { // Default to true if not set
+        filteredStats.totalPicks = stats.totalPicks;
+      }
+      
+      if (user.pendingPicksPublic !== false) { // Default to true if not set
+        filteredStats.pendingPicks = stats.pendingPicks;
+      }
+      
+      if (user.winRatePublic !== false) { // Default to true if not set
+        filteredStats.winRate = winRate;
+        filteredStats.record = `${stats.winCount}-${stats.lossCount}`;
+      }
+      
+      if (user.winStreakPublic !== false) { // Default to true if not set
+        filteredStats.winStreak = winStreak;
+      }
+
       // Filter out sensitive data based on privacy settings
       const publicProfile = {
         id: user.id,
@@ -96,12 +117,14 @@ export function registerUserProfileRoutes(app: Express) {
         followers: user.followers || 0,
         following: user.following || 0,
         createdAt: user.createdAt,
-        // Include calculated stats for public viewing
-        stats: {
-          totalPicks: stats.totalPicks,
-          pendingPicks: stats.pendingPicks,
-          winRate: winRate,
-          winStreak: winStreak,
+        // Include only public stats
+        stats: filteredStats,
+        // Privacy settings for frontend to know what's visible
+        privacySettings: {
+          totalPicksPublic: user.totalPicksPublic !== false,
+          pendingPicksPublic: user.pendingPicksPublic !== false,
+          winRatePublic: user.winRatePublic !== false,
+          winStreakPublic: user.winStreakPublic !== false
         }
       };
 
@@ -144,6 +167,27 @@ export function registerUserProfileRoutes(app: Express) {
         }
       }
 
+      // Filter stats based on privacy settings for /api/users/:userId endpoint
+      const filteredUserStats: any = {};
+      
+      // Only include stats if the user has made them public
+      if (user.totalPicksPublic !== false) { // Default to true if not set
+        filteredUserStats.totalPicks = stats.totalPicks;
+      }
+      
+      if (user.pendingPicksPublic !== false) { // Default to true if not set
+        filteredUserStats.pendingPicks = stats.pendingPicks;
+      }
+      
+      if (user.winRatePublic !== false) { // Default to true if not set
+        filteredUserStats.winRate = winRate;
+        filteredUserStats.record = `${stats.winCount}-${stats.lossCount}`;
+      }
+      
+      if (user.winStreakPublic !== false) { // Default to true if not set
+        filteredUserStats.winStreak = winStreak;
+      }
+
       // Return public profile data that matches frontend expectations
       const publicProfile = {
         id: user.id,
@@ -156,14 +200,25 @@ export function registerUserProfileRoutes(app: Express) {
         bio: user.bio,
         followers: user.followers || 0,
         following: user.following || 0,
-        totalPicks: stats.totalPicks,
-        winRate: winRate,
+        // Only include stats that are public
+        totalPicks: filteredUserStats.totalPicks,
+        winRate: filteredUserStats.winRate,
         totalUnits: stats.totalUnits || 0,
         joinDate: user.createdAt,
+        // Privacy settings for frontend reference
         totalPicksPublic: user.totalPicksPublic ?? true,
         pendingPicksPublic: user.pendingPicksPublic ?? true,
         winRatePublic: user.winRatePublic ?? true,
-        winStreakPublic: user.winStreakPublic ?? true
+        winStreakPublic: user.winStreakPublic ?? true,
+        // Grouped stats object
+        stats: filteredUserStats,
+        // Privacy settings for frontend to know what's visible
+        privacySettings: {
+          totalPicksPublic: user.totalPicksPublic !== false,
+          pendingPicksPublic: user.pendingPicksPublic !== false,
+          winRatePublic: user.winRatePublic !== false,
+          winStreakPublic: user.winStreakPublic !== false
+        }
       };
 
       res.json(publicProfile);
