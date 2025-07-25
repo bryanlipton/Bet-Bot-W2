@@ -742,10 +742,12 @@ export function ActionStyleGameCard({
                     <InfoButton pickId={lockPickId} pickType="lock" />
                   </div>
                 </div>
-              ) : isDailyPick || (isAuthenticated && lockPickTeam && lockPickTeam !== homeTeam) ? (
+              ) : (isAuthenticated && lockPickTeam === homeTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
-              ) : (
+              ) : !isAuthenticated ? (
                 <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              ) : (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
           </div>
@@ -798,10 +800,12 @@ export function ActionStyleGameCard({
                     <InfoButton pickId={lockPickId} pickType="lock" />
                   </div>
                 </div>
-              ) : isDailyPick || (isAuthenticated && lockPickTeam && lockPickTeam !== awayTeam) ? (
+              ) : (isAuthenticated && lockPickTeam === awayTeam) ? (
                 <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
-              ) : (
+              ) : !isAuthenticated ? (
                 <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              ) : (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
               )}
             </div>
           </div>
