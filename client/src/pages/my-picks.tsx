@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ActionStyleHeader } from "@/components/ActionStyleHeader";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { apiRequest } from '@/lib/queryClient';
 import { 
   Target, 

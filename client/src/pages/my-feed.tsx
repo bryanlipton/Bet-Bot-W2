@@ -1,304 +1,138 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ActionStyleHeader } from '@/components/ActionStyleHeader';
-import UserAvatar from '@/components/UserAvatar';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  Rss,
-  TrendingUp,
-  Calendar,
-  Clock,
-  Star,
-  MessageSquare,
-  Heart,
-  Share2,
-  BookOpen,
-  Trophy,
-  Target,
-  Zap,
-  Users,
-  Plus
-} from 'lucide-react';
+import ActionStyleHeader from '@/components/ActionStyleHeader';
+import MobileBottomNavigation from '@/components/MobileBottomNavigation';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Users, Clock, Sparkles } from 'lucide-react';
 
-interface FeedPick {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar?: string;
-  game: string;
-  selection: string;
-  market: string;
-  line?: string;
-  odds: number;
-  units: number;
-  status: 'pending' | 'win' | 'loss' | 'push';
-  createdAt: string;
-  gameDate?: string;
-  gradedAt?: string;
-  parlayLegs?: Array<{
-    game: string;
-    selection: string;
-    market: string;
-    line?: string | number;
-  }>;
-}
-
-export default function MyFeedPage() {
-  const [darkMode, setDarkMode] = useState(false);
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-
-  // Initialize dark mode from localStorage (default to dark mode)
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+export default function MyFeed() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode');
+      return saved ? JSON.parse(saved) : true;
     }
-    if (savedDarkMode === null) {
-      localStorage.setItem('darkMode', 'true');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    document.documentElement.classList.toggle('dark', newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  // Fetch social feed data from users you follow
-  const { data: feedPicks = [], isLoading: feedLoading, error: feedError } = useQuery({
-    queryKey: ['/api/users/feed'],
-    retry: false,
-    enabled: isAuthenticated,
+    return true;
   });
 
-  // Helper functions for display
-  const formatOdds = (odds: number): string => {
-    if (odds > 0) return `+${odds}`;
-    return odds.toString();
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('darkMode', JSON.stringify(newMode));
+    document.documentElement.classList.toggle('dark', newMode);
   };
 
-  const formatTimeAgo = (dateString: string): string => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    return date.toLocaleDateString();
-  };
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'win': return 'text-green-600 dark:text-green-400';
-      case 'loss': return 'text-red-600 dark:text-red-400';
-      case 'push': return 'text-yellow-600 dark:text-yellow-400';
-      default: return 'text-blue-600 dark:text-blue-400';
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'win': return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Won</Badge>;
-      case 'loss': return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">Lost</Badge>;
-      case 'push': return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Push</Badge>;
-      default: return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Pending</Badge>;
-    }
-  };
-
-  if (!isAuthenticated && !authLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
+      <div className="min-h-screen bg-background">
         <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-6 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Log in Required
-              </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
-                Log in to see picks from people you follow
-              </p>
-              <Button onClick={() => window.location.href = '/api/login'} className="text-base">
-                Log in
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
         </div>
+        <MobileBottomNavigation darkMode={darkMode} />
       </div>
     );
   }
 
-  // Show loading state
-  if (feedLoading || authLoading) {
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
+      <div className="min-h-screen bg-background">
         <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <Card key={i} className="bg-white dark:bg-gray-800">
-                <CardContent className="p-4">
-                  <div className="animate-pulse">
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="text-center py-12">
+            <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My Feed</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              See picks and activity from people you follow
+            </p>
+            <Button 
+              onClick={() => window.location.href = '/api/login'}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Log in to view your feed
+            </Button>
           </div>
         </div>
+        <MobileBottomNavigation darkMode={darkMode} />
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-6">
+    <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Rss className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Feed</h1>
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Coming Soon Content */}
+        <div className="text-center py-16">
+          <div className="relative mb-8">
+            <Sparkles className="w-20 h-20 mx-auto text-blue-500 dark:text-blue-400 mb-4" />
+            <Clock className="w-8 h-8 absolute top-0 right-1/2 transform translate-x-8 text-orange-500" />
+          </div>
+          
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            My Feed
+          </h1>
+          
+          <div className="max-w-lg mx-auto">
+            <h2 className="text-2xl font-semibold text-blue-600 dark:text-blue-400 mb-4">
+              Coming Soon!
+            </h2>
+            
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+              We're building an amazing social feed where you can follow other bettors, 
+              see their picks, and share your winning strategies. This feature will be 
+              available soon!
+            </p>
+            
+            <div className="space-y-4 text-left bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
+              <h3 className="font-semibold text-gray-900 dark:text-white">What's coming:</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  Follow your favorite bettors
+                </li>
+                <li className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-green-500" />
+                  See real-time picks and results
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                  Track performance over time
+                </li>
+              </ul>
+            </div>
+            
+            <div className="flex gap-4 justify-center">
+              <Button 
+                onClick={() => window.location.href = '/'}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Back to Home
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/my-picks'}
+                variant="outline"
+                className="border-gray-300 dark:border-gray-600"
+              >
+                View My Picks
+              </Button>
+            </div>
           </div>
         </div>
-
-        {/* Feed Content */}
-        {(feedPicks as FeedPick[]).length === 0 ? (
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-8 text-center">
-              <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No Picks to Show
-              </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
-                Follow other users to see their betting activity in your feed
-              </p>
-              <Button onClick={() => window.location.href = '/profile'} className="text-base">
-                <Plus className="w-4 h-4 mr-2" />
-                Find People to Follow
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {(feedPicks as FeedPick[]).map((pick: FeedPick) => (
-              <Card key={pick.id} className="bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    {/* User Avatar */}
-                    <div className="flex-shrink-0">
-                      <UserAvatar 
-                        user={{
-                          username: pick.username
-                        }}
-                        size="md"
-                      />
-                    </div>
-                    
-                    {/* Pick Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <button
-                            onClick={() => window.open(`/user/${pick.userId}`, '_blank')}
-                            className="font-semibold text-base text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate"
-                          >
-                            {pick.username}
-                          </button>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm whitespace-nowrap">
-                            {formatTimeAgo(pick.createdAt)}
-                          </span>
-                        </div>
-                        <div className="flex-shrink-0">
-                          {getStatusBadge(pick.status)}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-2">
-                        {/* Check if it's a parlay */}
-                        {pick.market === 'parlay' && pick.parlayLegs && pick.parlayLegs.length > 0 ? (
-                          <div>
-                            <div className="font-medium text-base text-gray-900 dark:text-white mb-2">
-                              {pick.parlayLegs.length}-Leg Parlay @ Multiple Games
-                            </div>
-                            <div className="space-y-2 mb-3">
-                              {pick.parlayLegs.map((leg, index) => (
-                                <div key={index} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="font-medium text-gray-900 dark:text-white truncate">{leg.game}</div>
-                                  <div className="text-blue-600 dark:text-blue-400">
-                                    {leg.selection}
-                                    {leg.market === 'spread' && leg.line ? ` ${(typeof leg.line === 'number' && leg.line > 0) ? '+' : ''}${leg.line}` : ''}
-                                    {leg.market === 'total' && leg.line ? ` ${leg.line}` : ''}
-                                    {leg.market === 'moneyline' ? ' ML' : ''}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap">
-                              <span className="font-mono font-medium">
-                                {formatOdds(pick.odds)}
-                              </span>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="font-medium text-base text-gray-900 dark:text-white mb-1 break-words">
-                              {pick.game}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm flex-wrap">
-                              <span className="font-medium text-blue-600 dark:text-blue-400 break-words">
-                                {pick.selection}
-                              </span>
-                              {pick.line && (
-                                <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                  {pick.line}
-                                </span>
-                              )}
-                              <span className="font-mono font-medium whitespace-nowrap">
-                                {formatOdds(pick.odds)}
-                              </span>
-                              <span className="text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                {pick.units} unit{pick.units !== 1 ? 's' : ''}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 break-words">
-                          <span className="inline-block">Game: {pick.gameDate ? new Date(pick.gameDate).toLocaleDateString() : 'TBD'}</span>
-                          <span className="mx-1">•</span>
-                          <span className="inline-block">Placed: {formatTimeAgo(pick.createdAt)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
+
+      <MobileBottomNavigation darkMode={darkMode} />
+      <Footer />
     </div>
   );
 }

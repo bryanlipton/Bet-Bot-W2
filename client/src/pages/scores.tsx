@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ActionStyleHeader } from "@/components/ActionStyleHeader";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { LiveGameModal } from "@/components/LiveGameModal";
 import { GameDetailsModal } from "@/components/GameDetailsModal";

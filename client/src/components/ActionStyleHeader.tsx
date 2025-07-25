@@ -15,7 +15,7 @@ interface ActionStyleHeaderProps {
   onToggleDarkMode: () => void;
 }
 
-export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
+function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHeaderProps) {
   const [location, navigate] = useLocation();
   const { isAuthenticated, user } = useAuth();
 
@@ -121,3 +121,5 @@ export function ActionStyleHeader({ darkMode, onToggleDarkMode }: ActionStyleHea
     </TooltipProvider>
   );
 }
+
+export default ActionStyleHeader;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ActionStyleHeader } from "@/components/ActionStyleHeader";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ChatSidebar from "@/components/ChatSidebar";
 import MainDashboard from "@/components/MainDashboard";
