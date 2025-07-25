@@ -213,7 +213,7 @@ export default function MyPicksPageFixed() {
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -241,22 +241,10 @@ export default function MyPicksPageFixed() {
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-green-500" />
+                <BarChart3 className="w-5 h-5 text-purple-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Won</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Lost</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.lost}</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Record</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
                 </div>
               </div>
             </CardContent>
