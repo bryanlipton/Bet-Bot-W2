@@ -13,6 +13,7 @@ import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
 import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
+import { apiRequest } from "@/lib/queryClient";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 
@@ -507,17 +508,13 @@ export default function DailyPick() {
       };
 
       // Save to database
-      const response = await fetch('/api/user/picks', {
+      await apiRequest('/api/user/picks', {
         method: 'POST',
+        body: JSON.stringify(pickData),
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(pickData)
+        }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to save pick');
-      }
 
       // Close modal and reset form
       setManualEntryOpen(false);
