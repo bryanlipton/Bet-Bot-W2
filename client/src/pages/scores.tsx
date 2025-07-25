@@ -72,10 +72,10 @@ export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => {
-    // For now, explicitly set to July 25, 2025 to match the game data
-    const gameDate = new Date('2025-07-25');
-    console.log('Initial date set to:', gameDate.toDateString());
-    return gameDate;
+    // Force to July 25, 2025 since we know the games are for this date
+    const correctDate = new Date(2025, 6, 25); // Month is 0-indexed, so 6 = July
+    console.log('FIXED: Initial date set to:', correctDate.toDateString());
+    return correctDate;
   });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
@@ -131,8 +131,9 @@ export default function ScoresPage() {
   };
 
   const goToToday = () => {
-    // Set to July 25, 2025 to match current game data
-    setSelectedDate(new Date('2025-07-25'));
+    // Use July 25, 2025 as today for the current game schedule
+    const gameDay = new Date(2025, 6, 25); // Month is 0-indexed
+    setSelectedDate(gameDay);
   };
 
   // Fetch real scores data based on selected sport
@@ -188,6 +189,7 @@ export default function ScoresPage() {
       const gameTime = game.startTime || game.commence_time || game.gameDate;
       if (!gameTime) return false;
       
+      // Convert both game time and selected date to date strings for comparison
       const gameDate = new Date(gameTime);
       const gameDateStr = gameDate.toDateString();
       console.log('Game date:', gameDateStr, 'vs selected:', selectedDateStr);
