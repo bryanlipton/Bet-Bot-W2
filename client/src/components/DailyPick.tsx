@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
@@ -281,6 +282,14 @@ export default function DailyPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [manualEntry, setManualEntry] = useState({
+    market: 'moneyline' as 'moneyline' | 'spread' | 'total',
+    selection: '',
+    line: '',
+    odds: '',
+    units: 1
+  });
   const [mobileAnalysisOpen, setMobileAnalysisOpen] = useState(false);
   const [mobileReasoningExpanded, setMobileReasoningExpanded] = useState(false);
   const [dailyPickMediumOpen, setDailyPickMediumOpen] = useState(false); // Start collapsed for stacked layout
@@ -460,6 +469,70 @@ export default function DailyPick() {
       setSelectedBet(betInfo);
       setOddsModalOpen(true);
     }, 50);
+  };
+
+  // Handle manual entry from odds comparison modal
+  const handleManualEntry = (gameInfo: any, selectedBet: any) => {
+    // Pre-fill the manual entry form with data from the odds comparison modal
+    setManualEntry({
+      market: selectedBet.market,
+      selection: selectedBet.selection,
+      line: selectedBet.line?.toString() || '',
+      odds: selectedBet.odds?.toString() || '',
+      units: 1
+    });
+    setManualEntryOpen(true);
+  };
+
+  // Handle manual entry submission
+  const handleManualEntrySubmit = async () => {
+    if (!manualEntry.selection || !dailyPick) {
+      alert('Please enter a selection');
+      return;
+    }
+
+    try {
+      // Save pick to database via API
+      const pickData = {
+        gameId: dailyPick.gameId?.toString() || '',
+        selection: manualEntry.selection,
+        betType: manualEntry.market === 'total' ? 
+          (manualEntry.selection === 'Over' ? 'over' : 'under') : 
+          manualEntry.market,
+        odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0,
+        units: manualEntry.units || 1,
+        bookmaker: 'Manual Entry',
+        confidence: 75, // Default confidence
+        reasoning: `Manual entry: ${manualEntry.selection} at ${manualEntry.odds ? (parseFloat(manualEntry.odds) > 0 ? '+' : '') + manualEntry.odds : 'N/A'} odds`
+      };
+
+      // Save to database
+      const response = await fetch('/api/user/picks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(pickData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save pick');
+      }
+
+      // Close modal and reset form
+      setManualEntryOpen(false);
+      setManualEntry({
+        market: 'moneyline',
+        selection: '',
+        line: '',
+        odds: '',
+        units: 1
+      });
+
+    } catch (error) {
+      console.error('Error saving manual pick:', error);
+      alert('Error saving pick. Please try again.');
+    }
   };
 
   if (isLoading) {
@@ -1304,8 +1377,143 @@ export default function DailyPick() {
             return bookmakers;
           })()}
           selectedBet={selectedBet}
+          onManualEntry={handleManualEntry}
         />
       )}
+
+      {/* Manual Entry Modal */}
+      <Dialog open={manualEntryOpen} onOpenChange={setManualEntryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Enter Manual Pick</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Game
+              </label>
+              <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded text-sm">
+                {dailyPick?.awayTeam} @ {dailyPick?.homeTeam}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Bet Type
+              </label>
+              <select
+                value={manualEntry.market}
+                onChange={(e) => setManualEntry({
+                  ...manualEntry, 
+                  market: e.target.value as 'moneyline' | 'spread' | 'total',
+                  selection: '' // Reset selection when market changes
+                })}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+              >
+                <option value="moneyline">Moneyline</option>
+                <option value="spread">Spread</option>
+                <option value="total">Total (Over/Under)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Selection
+              </label>
+              {manualEntry.market === 'moneyline' ? (
+                <select
+                  value={manualEntry.selection}
+                  onChange={(e) => setManualEntry({...manualEntry, selection: e.target.value})}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                >
+                  <option value="">Choose team...</option>
+                  <option value={dailyPick?.awayTeam}>{dailyPick?.awayTeam}</option>
+                  <option value={dailyPick?.homeTeam}>{dailyPick?.homeTeam}</option>
+                </select>
+              ) : manualEntry.market === 'total' ? (
+                <select
+                  value={manualEntry.selection}
+                  onChange={(e) => setManualEntry({...manualEntry, selection: e.target.value})}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                >
+                  <option value="">Choose...</option>
+                  <option value="Over">Over</option>
+                  <option value="Under">Under</option>
+                </select>
+              ) : (
+                <select
+                  value={manualEntry.selection}
+                  onChange={(e) => setManualEntry({...manualEntry, selection: e.target.value})}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800"
+                >
+                  <option value="">Choose team...</option>
+                  <option value={dailyPick?.awayTeam}>{dailyPick?.awayTeam}</option>
+                  <option value={dailyPick?.homeTeam}>{dailyPick?.homeTeam}</option>
+                </select>
+              )}
+            </div>
+
+            {(manualEntry.market === 'spread' || manualEntry.market === 'total') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Line
+                </label>
+                <Input
+                  value={manualEntry.line}
+                  onChange={(e) => setManualEntry({...manualEntry, line: e.target.value})}
+                  placeholder="e.g., -1.5, 8.5"
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Odds (adjustable)
+              </label>
+              <Input
+                value={manualEntry.odds}
+                onChange={(e) => setManualEntry({...manualEntry, odds: e.target.value})}
+                placeholder="e.g., -110, +150"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Units
+              </label>
+              <Input
+                type="number"
+                min="0.1"
+                step="0.1"
+                value={manualEntry.units}
+                onChange={(e) => setManualEntry({...manualEntry, units: parseFloat(e.target.value) || 1})}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                onClick={handleManualEntrySubmit}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={!manualEntry.selection}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Pick
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setManualEntryOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

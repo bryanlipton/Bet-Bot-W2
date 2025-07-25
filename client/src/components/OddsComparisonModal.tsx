@@ -67,6 +67,20 @@ export function OddsComparisonModal({
     onClose();
   };
 
+  // Handle manual entry button click
+  const handleEnterManually = () => {
+    if (onManualEntry) {
+      // Find the best available odds to pre-populate
+      const bestOdds = sortedOdds.length > 0 ? sortedOdds[0] : null;
+      const currentOdds = bestOdds?.odds || 0;
+      
+      // Pass the game info and selected bet with current odds to the parent component
+      onManualEntry(gameInfo, { ...selectedBet, odds: currentOdds });
+    }
+    // Close this modal
+    handleClose();
+  };
+
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
     const market = bookmaker.markets.find(m => {
@@ -210,17 +224,7 @@ export function OddsComparisonModal({
     }
   };
 
-  const handleEnterManually = () => {
-    if (onManualEntry) {
-      // Find the best available odds to pre-populate
-      const currentOdds = bestOdds?.odds || selectedBet.odds;
-      
-      // Pass the game info and selected bet with current odds to the parent component
-      onManualEntry(gameInfo, { ...selectedBet, odds: currentOdds });
-    }
-    // Close this modal
-    handleClose();
-  };
+
 
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : odds.toString();
