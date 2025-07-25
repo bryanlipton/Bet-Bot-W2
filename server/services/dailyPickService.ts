@@ -944,15 +944,15 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, Elite bonus: +${eliteBonus}, Weakness penalty: ${weaknessPenalty}`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // 6. EXPANDED GRADING SCALE: Better distribution across full range
-    if (finalScore >= 95) return 'A+';   // Elite - multiple 90+ factors + bonus
-    if (finalScore >= 88) return 'A';    // Excellent - strong across most factors  
-    if (finalScore >= 82) return 'A-';   // Very good - above average in most areas
-    if (finalScore >= 77) return 'B+';   // Good - solid pick with some strengths
-    if (finalScore >= 72) return 'B';    // Above average - decent opportunity
-    if (finalScore >= 67) return 'B-';   // Slightly above average - mild value
-    if (finalScore >= 62) return 'C+';   // Average - neutral betting conditions
-    if (finalScore >= 57) return 'C';    // Below average - limited appeal
+    // 6. EXPANDED GRADING SCALE: Realistic professional distribution
+    if (finalScore >= 92) return 'A+';   // Elite - extremely rare (was 95)
+    if (finalScore >= 86) return 'A';    // Excellent - very rare (was 88)  
+    if (finalScore >= 80) return 'A-';   // Very good - uncommon (was 82)
+    if (finalScore >= 75) return 'B+';   // Good - solid picks (was 77)
+    if (finalScore >= 71) return 'B';    // Above average - common (was 72)
+    if (finalScore >= 67) return 'B-';   // Slightly above average (unchanged)
+    if (finalScore >= 63) return 'C+';   // Average - most common (was 62)
+    if (finalScore >= 58) return 'C';    // Below average (was 57)
     if (finalScore >= 52) return 'C-';   // Poor - significant concerns
     if (finalScore >= 45) return 'D+';   // Very poor - major red flags
     if (finalScore >= 35) return 'D';    // Terrible - avoid strongly
