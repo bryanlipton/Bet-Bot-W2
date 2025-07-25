@@ -234,13 +234,7 @@ export default function MyPicksPageFixed() {
     }
 
     try {
-      await apiRequest('/api/user/preferences', {
-        method: 'PUT',
-        body: JSON.stringify({ betUnit: newBetUnit }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      await apiRequest('PUT', '/api/user/preferences', { betUnit: newBetUnit });
       setBetUnit(newBetUnit);
       setShowUnitDialog(false);
     } catch (error) {

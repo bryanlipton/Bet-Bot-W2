@@ -191,13 +191,7 @@ export function OddsComparisonModal({
       };
 
       console.log('Pick data to save:', pickData);
-      const response = await apiRequest('/api/user/picks', {
-        method: 'POST',
-        body: JSON.stringify(pickData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiRequest('POST', '/api/user/picks', pickData);
       console.log('Save response:', response);
       
       // Invalidate cache to refresh My Picks page
