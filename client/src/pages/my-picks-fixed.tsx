@@ -248,8 +248,8 @@ export default function MyPicksPageFixed() {
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
-        {/* Stats Cards - Combined Won/Lost into Record */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {/* Stats Cards - 4 separate cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
@@ -276,12 +276,24 @@ export default function MyPicksPageFixed() {
 
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5 text-purple-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Record</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <BarChart3 className="w-5 h-5 text-purple-500" />
+                  <DollarSign className="w-5 h-5 text-green-500" />
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Record</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Unit Size</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">${betUnit}</p>
                   </div>
                 </div>
                 <Button 
@@ -290,8 +302,7 @@ export default function MyPicksPageFixed() {
                   onClick={() => setShowUnitDialog(true)}
                   className="ml-2"
                 >
-                  <Settings className="w-4 h-4 mr-1" />
-                  Set Unit Size
+                  <Settings className="w-4 h-4" />
                 </Button>
               </div>
             </CardContent>
