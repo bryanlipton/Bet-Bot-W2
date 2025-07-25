@@ -63,11 +63,24 @@ export function setupProPicksRoutes(app: Application) {
       const games = await oddsApiService.getCurrentOdds('baseball_mlb');
       
       // Find the specific game by ID
-      const targetGame = games.find(game => 
-        game.id === gameId || 
-        game.id.includes(gameId) || 
-        gameId.includes(game.id)
-      );
+      console.log(`🔍 Searching for gameId: ${gameId}`);
+      console.log(`🔍 Available game IDs: ${games.map(g => g.id).slice(0,5).join(', ')}...`);
+      
+      const targetGame = games.find(game => {
+        // More flexible matching for different ID formats
+        const gameIdStr = gameId.toString();
+        const gameIdMatch = game.id === gameIdStr || 
+                           game.id.includes(gameIdStr) || 
+                           gameIdStr.includes(game.id) ||
+                           // Try matching just the numeric part
+                           game.id.replace(/[^0-9]/g, '') === gameIdStr ||
+                           gameIdStr === game.id.replace(/[^0-9]/g, '');
+        
+        if (gameIdMatch) {
+          console.log(`✅ Found matching game: ${game.id} for requested ${gameId}`);
+        }
+        return gameIdMatch;
+      });
       
       if (!targetGame || !targetGame.bookmakers?.length) {
         return res.status(404).json({ error: "Game not found or no odds available" });
@@ -75,8 +88,8 @@ export function setupProPicksRoutes(app: Application) {
       
       console.log(`🎯 Found game: ${targetGame.away_team} @ ${targetGame.home_team}`);
       
-      // Generate a simple Pro pick grade directly
-      const grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C'];
+      // Generate a simple Pro pick grade directly (A+ through F range)
+      const grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
       const pickGrade = grades[Math.floor(Math.random() * grades.length)];
       
       // Determine pick team (prefer away team slightly)
