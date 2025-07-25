@@ -267,20 +267,26 @@ export function registerUserPicksRoutes(app: Express) {
   app.put('/api/user/preferences', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log('Updating preferences for user:', userId);
+      console.log('Request body:', req.body);
       
       const preferencesData = insertUserPreferencesSchema.parse({
         ...req.body,
         userId,
       });
       
+      console.log('Parsed preferences data:', preferencesData);
+      
       const preferences = await storage.upsertUserPreferences(preferencesData);
+      console.log('Updated preferences:', preferences);
       res.json(preferences);
     } catch (error) {
       console.error("Error updating user preferences:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
       } else {
-        res.status(500).json({ message: "Failed to update preferences" });
+        res.status(500).json({ message: "Failed to update preferences", error: error.message });
       }
     }
   });
