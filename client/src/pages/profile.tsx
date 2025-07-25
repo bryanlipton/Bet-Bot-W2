@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
-import AvatarPicker from "@/components/AvatarPicker";
+
 import UserAvatar from "@/components/UserAvatar";
 import { getAvatarUrl, getRandomAnimalAvatar, isEmojiAvatar, getAnimalAvatarById, getAnimalAvatarByEmoji } from '@/data/avatars';
 import { pickStorage } from '@/services/pickStorage';
@@ -35,7 +35,7 @@ import {
   Edit,
   Eye,
   EyeOff,
-  Camera,
+
   Flame,
   Lock,
   Search,
@@ -78,7 +78,7 @@ export default function ProfilePage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [publicFeed, setPublicFeed] = useState<PublicFeedItem[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+
   const [isFriendSearchOpen, setIsFriendSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -718,14 +718,7 @@ export default function ProfilePage() {
     });
   };
 
-  const handleImageSelect = (imageUrl: string) => {
-    // Check if it's an emoji avatar or a regular image URL
-    if (isEmojiAvatar(imageUrl)) {
-      setEditForm({...editForm, avatar: imageUrl, profileImage: ''});
-    } else {
-      setEditForm({...editForm, profileImage: imageUrl, avatar: ''});
-    }
-  };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -1001,17 +994,7 @@ export default function ProfilePage() {
                               size="lg"
                               className="border-2 border-gray-200 dark:border-gray-600"
                             />
-                            <div className="flex items-center justify-between w-full">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsImagePickerOpen(true)}
-                                className="flex items-center gap-2"
-                              >
-                                <Camera className="w-4 h-4" />
-                                Choose Avatar
-                              </Button>
-                              
+                            <div className="flex items-center justify-end w-full">
                               {/* Save Button - Aligned with right edge of inputs below */}
                               <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending || usernameError !== ''}>
                                 {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
@@ -1383,14 +1366,7 @@ export default function ProfilePage() {
 
       </div>
       <Footer />
-      
-      {/* Avatar Picker Modal */}
-      <AvatarPicker
-        isOpen={isImagePickerOpen}
-        onClose={() => setIsImagePickerOpen(false)}
-        currentAvatar={editForm.profileImage}
-        onAvatarChange={handleImageSelect}
-      />
+
 
       {/* Followers Modal */}
       <Dialog open={showFollowersModal} onOpenChange={setShowFollowersModal}>
