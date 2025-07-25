@@ -767,26 +767,33 @@ export class DailyPickService {
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
     const edgePercentage = edge / modelProb; // Edge as percentage of true probability
     
-    // FIXED: Market inefficiency calculation for 60-100 range after normalization
-    // Raw score range 0-100, will be normalized to 60-100
-    let inefficiencyScore = 50; // Base neutral (becomes 80 after normalization)
+    // FIXED: Market inefficiency with linear scaling based on edge percentage
+    // Edge scales from 76 (1% edge) to 99 (10%+ edge) in final 60-100 range
     
-    // Primary edge component - more conservative scaling
-    inefficiencyScore += (edge * 100); // Reduced scaling for realistic range
+    const edgePercentage = Math.abs(edge * 100); // Convert to percentage
     
-    // Kelly value component - cap extreme values
-    const kellyContribution = Math.min(Math.max(kellyValue * 20, -10), 10);
-    inefficiencyScore += kellyContribution;
+    let finalScore;
+    if (edgePercentage <= 0.5) {
+      // Very small or no edge: 60-75 range
+      finalScore = 60 + (edgePercentage * 30); // 0% = 60, 0.5% = 75
+    } else if (edgePercentage >= 10) {
+      // 10%+ edge gets maximum score
+      finalScore = 99;
+    } else {
+      // Linear scaling: 1% = 76, 2% = 78.5, 5% = 86, 10% = 99
+      // Formula: 76 + (edge% - 1) * (23/9)
+      finalScore = 76 + ((edgePercentage - 1) * (23 / 9));
+    }
     
-    // Relative efficiency component - smaller impact
-    const efficiencyContribution = Math.min(Math.max(edgePercentage * 30, -5), 5);
-    inefficiencyScore += efficiencyContribution;
+    // Add small Kelly criterion bonus/penalty
+    const kellyBonus = Math.min(Math.max(kellyValue * 2, -2), 2);
+    finalScore += kellyBonus;
     
-    // Clamp to 0-100 range before normalization
-    const rawScore = Math.max(0, Math.min(100, inefficiencyScore));
+    // Clamp to 60-100 range
+    finalScore = Math.max(60, Math.min(100, finalScore));
     
-    console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${(edge*100).toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Raw Score: ${rawScore.toFixed(1)}`);
-    return this.normalizeToGradingScale(rawScore);
+    console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${edgePercentage.toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Final Score: ${finalScore.toFixed(1)}`);
+    return Math.round(finalScore);
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
