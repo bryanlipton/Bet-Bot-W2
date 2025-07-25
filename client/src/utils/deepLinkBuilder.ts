@@ -67,9 +67,8 @@ function buildManualDeepLink(
       return `https://www.fanduel.com/sportsbook${affiliate}`;
 
     case 'betmgm':
-      // Enhanced MLB-specific URL with game targeting
-      const betTypeCode = betInfo?.market === 'spread' ? 'spread' : betInfo?.market === 'total' ? 'total' : 'moneyline';
-      return `https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75?market=${betTypeCode}${affiliate}`;
+      // BetMGM homepage - sports section blocked by 403
+      return `https://betmgm.com/${affiliate.replace('?', '#')}`;
 
     case 'caesars':
       // Enhanced MLB-specific targeting

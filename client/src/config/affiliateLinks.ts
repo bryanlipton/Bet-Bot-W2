@@ -33,10 +33,10 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   betmgm: {
     bookmaker: 'betmgm',
     displayName: 'BetMGM',
-    affiliateUrl: 'https://account.betmgm.com/en/registration?wm=betbot123', // Login/signup page with dummy affiliate
+    affiliateUrl: 'https://betmgm.com/#ref=betbot123', // Main homepage with affiliate tracking
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: false, // BetMGM doesn't have public bet slip API
-    deepLinkTemplate: 'https://sports.betmgm.com/en/sports/baseball-23/betting/usa-9/mlb-75' // Takes to MLB section only
+    deepLinkTemplate: 'https://betmgm.com/' // Working homepage URL
   },
   
   caesars: {
@@ -87,7 +87,7 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
 export const fallbackUrls: Record<string, string> = {
   draftkings: 'https://sportsbook.draftkings.com',
   fanduel: 'https://sportsbook.fanduel.com',
-  betmgm: 'https://sports.betmgm.com',
+  betmgm: 'https://betmgm.com',
   caesars: 'https://sportsbook.caesars.com',
   betrivers: 'https://pa.betrivers.com',
   bovada: 'https://www.bovada.lv',
