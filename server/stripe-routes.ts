@@ -79,6 +79,16 @@ export function registerStripeRoutes(app: Express) {
   // Get subscription status
   app.get("/api/subscription/status", isAuthenticated, async (req: any, res) => {
     try {
+      // TEMPORARY: Simulate Pro status for testing
+      return res.json({ 
+        status: 'active', 
+        plan: 'pro',
+        currentPeriodEnd: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days from now
+        cancelAtPeriodEnd: false
+      });
+
+      // Original code commented out for testing
+      /*
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
@@ -94,6 +104,7 @@ export function registerStripeRoutes(app: Express) {
         currentPeriodEnd: subscription.current_period_end,
         cancelAtPeriodEnd: subscription.cancel_at_period_end
       });
+      */
     } catch (error: any) {
       console.error('Stripe subscription status error:', error);
       res.status(500).json({ error: error.message });
