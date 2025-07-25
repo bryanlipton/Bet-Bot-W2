@@ -77,12 +77,15 @@ interface ProcessedGame {
 
 import DailyPick from "./DailyPick";
 import LoggedInLockPick from "./LoggedInLockPick";
+import { ProGameCard } from "./ProGameCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useProStatus } from "@/hooks/useProStatus";
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
 
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isProUser, isLoading: proLoading } = useProStatus();
   
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
@@ -268,8 +271,8 @@ export function ActionStyleDashboard() {
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
-            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
-              Free Users
+            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
+              {isProUser ? 'Pro User' : 'Free Users'}
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
@@ -290,8 +293,8 @@ export function ActionStyleDashboard() {
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
-            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
-              Free Users
+            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
+              {isProUser ? 'Pro User' : 'Free Users'}
             </Badge>
           </div>
         {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
@@ -376,29 +379,43 @@ export function ActionStyleDashboard() {
             {/* Mobile-optimized game cards grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {featuredGames.map((game) => (
-                <ActionStyleGameCard
-                  key={game.id}
-                  homeTeam={game.homeTeam}
-                  awayTeam={game.awayTeam}
-                  homeOdds={game.homeOdds}
-                  awayOdds={game.awayOdds}
-                  spread={game.spread}
-                  total={game.total}
-                  startTime={game.startTime}
-                  prediction={getPrediction(game.homeTeam, game.awayTeam)}
-                  bookmakers={game.bookmakers}
-                  gameId={game.gameId}
-                  probablePitchers={game.probablePitchers}
-                  isDailyPick={isGameDailyPick(game)}
-                  dailyPickTeam={dailyPick?.pickTeam}
-                  dailyPickGrade={dailyPick?.grade}
-                  dailyPickId={dailyPick?.id}
-                  lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
-                  lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
-                  lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
-                  isAuthenticated={!!user}
-                  rawBookmakers={game.rawBookmakers}
-                />
+                isProUser ? (
+                  <ProGameCard
+                    key={game.id}
+                    homeTeam={game.homeTeam}
+                    awayTeam={game.awayTeam}
+                    homeOdds={game.homeOdds}
+                    awayOdds={game.awayOdds}
+                    startTime={game.startTime}
+                    gameId={game.gameId}
+                    probablePitchers={game.probablePitchers}
+                    rawBookmakers={game.rawBookmakers}
+                  />
+                ) : (
+                  <ActionStyleGameCard
+                    key={game.id}
+                    homeTeam={game.homeTeam}
+                    awayTeam={game.awayTeam}
+                    homeOdds={game.homeOdds}
+                    awayOdds={game.awayOdds}
+                    spread={game.spread}
+                    total={game.total}
+                    startTime={game.startTime}
+                    prediction={getPrediction(game.homeTeam, game.awayTeam)}
+                    bookmakers={game.bookmakers}
+                    gameId={game.gameId}
+                    probablePitchers={game.probablePitchers}
+                    isDailyPick={isGameDailyPick(game)}
+                    dailyPickTeam={dailyPick?.pickTeam}
+                    dailyPickGrade={dailyPick?.grade}
+                    dailyPickId={dailyPick?.id}
+                    lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
+                    lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
+                    lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
+                    isAuthenticated={!!user}
+                    rawBookmakers={game.rawBookmakers}
+                  />
+                )
               ))}
             </div>
           </div>

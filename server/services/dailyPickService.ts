@@ -1267,6 +1267,41 @@ export class DailyPickService {
     return gradeMap[grade] || 0;
   }
 
+  async getGameAnalysis(gameId: string): Promise<any> {
+    try {
+      // Find the game from complete schedule
+      const completeSchedule = await this.oddsService.getCompleteSchedule();
+      const game = completeSchedule.find(g => g.id === gameId || g.gameId.toString() === gameId);
+      
+      if (!game) {
+        throw new Error(`Game not found: ${gameId}`);
+      }
+
+      // Generate analysis for this specific game
+      const analysis = await this.generateGameAnalysis(
+        game.homeTeam,
+        game.awayTeam,
+        game.homeTeam, // Default to home team for analysis
+        game.homeOdds || -110,
+        game.startTime || new Date().toISOString(),
+        game.venue || 'TBD'
+      );
+
+      return {
+        gameId,
+        homeTeam: game.homeTeam,
+        awayTeam: game.awayTeam,
+        analysis,
+        grade: analysis.grade,
+        confidence: analysis.confidence,
+        reasoning: analysis.reasoning
+      };
+    } catch (error) {
+      console.error(`Error getting game analysis for ${gameId}:`, error);
+      throw error;
+    }
+  }
+
   async generateGameAnalysis(homeTeam: string, awayTeam: string, pickTeam: string, odds: number, gameTime: string, venue: string): Promise<{
     grade: string;
     confidence: number;
