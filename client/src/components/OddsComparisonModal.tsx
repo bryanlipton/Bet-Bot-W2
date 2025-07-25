@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock, Zap, Edit3 } from "lucide-react";
+import { ExternalLink, TrendingUp, Crown, Clock, Zap } from "lucide-react";
 import { Link } from 'wouter';
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { buildDeepLink } from '@/utils/deepLinkBuilder';
@@ -48,7 +48,6 @@ interface OddsComparisonModalProps {
     selection: string;
     line?: number;
   };
-  onManualEntry?: (gameInfo: any, selectedBet: any) => void;
 }
 
 export function OddsComparisonModal({
@@ -56,8 +55,7 @@ export function OddsComparisonModal({
   onClose,
   gameInfo,
   bookmakers,
-  selectedBet,
-  onManualEntry
+  selectedBet
 }: OddsComparisonModalProps) {
   const [isPlacingBet, setIsPlacingBet] = useState(false);
 
@@ -67,19 +65,7 @@ export function OddsComparisonModal({
     onClose();
   };
 
-  // Handle manual entry button click
-  const handleEnterManually = () => {
-    if (onManualEntry) {
-      // Find the best available odds to pre-populate
-      const bestOdds = sortedOdds.length > 0 ? sortedOdds[0] : null;
-      const currentOdds = bestOdds?.odds || 0;
-      
-      // Pass the game info and selected bet with current odds to the parent component
-      onManualEntry(gameInfo, { ...selectedBet, odds: currentOdds });
-    }
-    // Close this modal
-    handleClose();
-  };
+
 
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
@@ -373,17 +359,7 @@ export function OddsComparisonModal({
             )}
           </div>
 
-          {/* Enter Manually Button */}
-          <div className="flex justify-center pt-4">
-            <Button
-              onClick={handleEnterManually}
-              variant="outline"
-              className="bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
-            >
-              <Edit3 className="w-4 h-4 mr-2" />
-              Enter Manually
-            </Button>
-          </div>
+
 
           {/* Footer */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">

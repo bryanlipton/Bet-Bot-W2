@@ -1,0 +1,19 @@
+Error saving pick: 
+TypeError {message: "Failed to execute 'fetch' on 'Window': '/api/user/picks' is not a valid HTTP method."}
+message: "Failed to execute 'fetch' on 'Window': '/api/user/picks' is not a valid HTTP method."
+stack: "TypeError: '/api/user/picks' is not a valid HTTP method.↵ at window.fetch (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)↵ at apiRequest (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/src/lib/queryClient.ts:9:21)↵ at handleMakePick (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/src/components/OddsComparisonModal.tsx:125:13)↵ at onClick (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/src/components/OddsComparisonModal.tsx:384:38)↵ at HTMLUnknownElement.callCallback2 (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:3674:22)↵ at Object.invokeGuardedCallbackDev (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:3699:24)↵ at invokeGuardedCallback (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:3733:39)↵ at invokeGuardedCallbackAndCatchFirstError (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:3736:33)↵ at executeDispatch (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:7014:11)↵ at processDispatchQueueItemsInOrder (https://bcf82f42-0092-45b1-b3e5-6e0e17caa9e1-00-kofmmxnlt6n5.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=d3f252f3:7034:15)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+Failed to execute 'fetch' on 'Window': '/api/user/picks' is not a valid HTTP method.
+Processing 18 games from API
+Processing game 1: Miami Marlins @ Milwaukee Brewers - Bookmakers: 11
+Processing game 2: Arizona Diamondbacks @ Pittsburgh Pirates - Bookmakers: 11
+Processing game 3: Colorado Rockies @ Baltimore Orioles - Bookmakers: 11
+Processing game 4: Philadelphia Phillies @ New York Yankees - Bookmakers: 11
+Processing game 5: Los Angeles Dodgers @ Boston Red Sox - Bookmakers: 11
+Processing game 6: Tampa Bay Rays @ Cincinnati Reds - Bookmakers: 11
+Processing game 7: Toronto Blue Jays @ Detroit Tigers - Bookmakers: 11
+Processing game 8: San Diego Padres @ St. Louis Cardinals - Bookmakers: 11
+Processing game 9: Chicago Cubs @ Chicago White Sox - Bookmakers: 11

@@ -1374,7 +1374,7 @@ export default function DailyPick() {
             return bookmakers;
           })()}
           selectedBet={selectedBet}
-          onManualEntry={handleManualEntry}
+
         />
       )}
 

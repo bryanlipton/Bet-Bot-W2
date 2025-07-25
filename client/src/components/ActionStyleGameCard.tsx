@@ -1101,7 +1101,7 @@ export function ActionStyleGameCard({
           }}
           bookmakers={rawBookmakers}
           selectedBet={selectedBet}
-          onManualEntry={handleManualEntry}
+
         />
       )}
 
