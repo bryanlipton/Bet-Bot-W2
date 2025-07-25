@@ -856,35 +856,110 @@ export class DailyPickService {
     return Math.round(finalScore);
   }
 
+  /**
+   * Apply factor-specific multipliers to create wider grade distribution
+   * Rewards exceptional performance and penalizes poor performance
+   */
+  private applyFactorMultiplier(score: number, factorType: string): number {
+    // BASE PRINCIPLE: 75 is neutral/average, amplify deviations from this baseline
+    const baseline = 75;
+    const deviation = score - baseline;
+    
+    let multipliedScore;
+    
+    if (score >= 90) {
+      // ELITE PERFORMANCE: Exponential reward for exceptional factors
+      const eliteBonus = Math.pow((score - 89) / 11, 1.5) * 8; // Up to +8 bonus for 100
+      multipliedScore = score + eliteBonus;
+    } else if (score >= 80) {
+      // STRONG PERFORMANCE: Linear bonus for good factors  
+      const strongBonus = (score - 79) / 10 * 3; // Up to +3 bonus for 89
+      multipliedScore = score + strongBonus;
+    } else if (score <= 60) {
+      // POOR PERFORMANCE: Exponential penalty for weak factors
+      const weaknessPenalty = Math.pow((60 - score) / 60, 1.3) * 10; // Up to -10 penalty for 0
+      multipliedScore = score - weaknessPenalty;
+    } else if (score <= 70) {
+      // BELOW AVERAGE: Linear penalty for mediocre factors
+      const mediocrePenalty = (70 - score) / 10 * 4; // Up to -4 penalty for 60
+      multipliedScore = score - mediocrePenalty;
+    } else {
+      // AVERAGE RANGE (71-79): Minimal adjustment to preserve neutral scores
+      multipliedScore = score + (deviation * 0.2); // Slight amplification
+    }
+    
+    // FACTOR-SPECIFIC ADJUSTMENTS: Some factors matter more in different contexts
+    if (factorType === 'market' && score >= 95) {
+      // Market inefficiency above 95 is extremely valuable - extra bonus
+      multipliedScore += 3;
+    } else if (factorType === 'confidence' && score <= 60) {
+      // Low system confidence should be heavily penalized
+      multipliedScore -= 5;
+    } else if (factorType === 'pitching' && score >= 92) {
+      // Elite pitching matchups deserve extra credit
+      multipliedScore += 2;
+    }
+    
+    // BOUNDS: Keep scores within reasonable range (30-105)
+    return Math.max(30, Math.min(105, Math.round(multipliedScore)));
+  }
+
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
-    // Calculate overall grade using weighted average of all factors for transparency
-    // This ensures factor scores logically add up to justify the overall grade
-    const factors = [
-      { score: analysis.offensiveProduction, weight: 0.15 }, // 15%
-      { score: analysis.pitchingMatchup, weight: 0.15 },     // 15%  
-      { score: analysis.situationalEdge, weight: 0.15 },    // 15%
-      { score: analysis.teamMomentum, weight: 0.15 },       // 15%
-      { score: analysis.marketInefficiency, weight: 0.25 }, // 25% (most important for betting)
-      { score: analysis.systemConfidence, weight: 0.15 }    // 15%
+    // ENHANCED GRADING SYSTEM: Multiple approaches to create wider distribution
+    
+    // 1. FACTOR MULTIPLIERS: Reward exceptional strength, penalize weaknesses
+    const adjustedFactors = [
+      this.applyFactorMultiplier(analysis.offensiveProduction, 'offense'),
+      this.applyFactorMultiplier(analysis.pitchingMatchup, 'pitching'), 
+      this.applyFactorMultiplier(analysis.situationalEdge, 'situation'),
+      this.applyFactorMultiplier(analysis.teamMomentum, 'momentum'),
+      this.applyFactorMultiplier(analysis.marketInefficiency, 'market'),
+      this.applyFactorMultiplier(analysis.systemConfidence, 'confidence')
     ];
     
-    // Calculate weighted average
+    // 2. WEIGHTED CALCULATION with adjusted factors
+    const factors = [
+      { score: adjustedFactors[0], weight: 0.15 }, // Offensive Production 15%
+      { score: adjustedFactors[1], weight: 0.15 }, // Pitching Matchup 15%  
+      { score: adjustedFactors[2], weight: 0.15 }, // Situational Edge 15%
+      { score: adjustedFactors[3], weight: 0.15 }, // Team Momentum 15%
+      { score: adjustedFactors[4], weight: 0.25 }, // Market Inefficiency 25% (most important)
+      { score: adjustedFactors[5], weight: 0.15 }  // System Confidence 15%
+    ];
+    
     const weightedSum = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
-    const overallScore = Math.round(weightedSum);
     
-    // Log calculation for transparency
-    console.log(`📊 GRADE CALCULATION: Weighted Score = ${overallScore} (Factors: ${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence})`);
+    // 3. ELITE FACTOR BONUS: Reward multiple elite factors (90+)
+    const eliteFactors = adjustedFactors.filter(score => score >= 90).length;
+    const eliteBonus = eliteFactors >= 3 ? 5 : eliteFactors >= 2 ? 3 : eliteFactors >= 1 ? 1 : 0;
     
-    // REALISTIC GRADING SCALE: A+ should be truly exceptional, not easily achievable
-    // Professional sports betting requires much higher standards for top grades
-    if (overallScore >= 98) return 'A+';  // Extremely rare - near perfect conditions
-    if (overallScore >= 94) return 'A';   // Outstanding - all factors aligned
-    if (overallScore >= 89) return 'B+';  // Strong pick - most factors positive
-    if (overallScore >= 83) return 'B';   // Good pick - solid analytical support
-    if (overallScore >= 77) return 'C+';  // Above average - reasonable value
-    if (overallScore >= 70) return 'C';   // Average pick - neutral conditions
-    if (overallScore >= 60) return 'D';   // Below average - limited confidence
-    return 'F';                           // Poor pick - avoid
+    // 4. WEAKNESS PENALTY: Penalize multiple weak factors (<65)
+    const weakFactors = adjustedFactors.filter(score => score < 65).length;
+    const weaknessPenalty = weakFactors >= 3 ? -8 : weakFactors >= 2 ? -5 : weakFactors >= 1 ? -2 : 0;
+    
+    // 5. FINAL SCORE with bonuses and penalties
+    const finalScore = Math.round(weightedSum + eliteBonus + weaknessPenalty);
+    
+    // Log detailed calculation
+    console.log(`📊 ENHANCED GRADE CALCULATION:`);
+    console.log(`   Original factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
+    console.log(`   Adjusted factors: [${adjustedFactors.join(', ')}]`);
+    console.log(`   Weighted base: ${Math.round(weightedSum)}, Elite bonus: +${eliteBonus}, Weakness penalty: ${weaknessPenalty}`);
+    console.log(`   Final Score: ${finalScore}`);
+    
+    // 6. EXPANDED GRADING SCALE: Better distribution across full range
+    if (finalScore >= 95) return 'A+';   // Elite - multiple 90+ factors + bonus
+    if (finalScore >= 88) return 'A';    // Excellent - strong across most factors  
+    if (finalScore >= 82) return 'A-';   // Very good - above average in most areas
+    if (finalScore >= 77) return 'B+';   // Good - solid pick with some strengths
+    if (finalScore >= 72) return 'B';    // Above average - decent opportunity
+    if (finalScore >= 67) return 'B-';   // Slightly above average - mild value
+    if (finalScore >= 62) return 'C+';   // Average - neutral betting conditions
+    if (finalScore >= 57) return 'C';    // Below average - limited appeal
+    if (finalScore >= 52) return 'C-';   // Poor - significant concerns
+    if (finalScore >= 45) return 'D+';   // Very poor - major red flags
+    if (finalScore >= 35) return 'D';    // Terrible - avoid strongly
+    return 'F';                          // Catastrophic - never bet
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
