@@ -221,15 +221,18 @@ export function getMainGradeExplanation(
   pickTeam: string, 
   odds: number
 ): string {
+  // Ensure odds is a number for calculation
+  const oddsNum = typeof odds === 'string' ? parseFloat(odds.replace('+', '')) : odds;
+  
   // Convert odds to probability (as percentage)
-  const marketProbDecimal = odds > 0 ? (100 / (odds + 100)) : (Math.abs(odds) / (Math.abs(odds) + 100));
+  const marketProbDecimal = oddsNum > 0 ? (100 / (oddsNum + 100)) : (Math.abs(oddsNum) / (Math.abs(oddsNum) + 100));
   const marketProb = marketProbDecimal * 100; // Convert to percentage
   
   // Calculate model probability with edge from market inefficiency 
   const inefficiencyEdge = (analysis.marketInefficiency - 75) * 0.2; // Convert score to edge percentage
   const modelProb = marketProb + inefficiencyEdge;
   const edge = modelProb - marketProb;
-  const oddsDisplay = odds > 0 ? `+${odds}` : `${odds}`;
+  const oddsDisplay = oddsNum > 0 ? `+${oddsNum}` : `${oddsNum}`;
 
   const factors = [
     { name: 'Offensive Production', score: analysis.offensiveProduction || 0 },
