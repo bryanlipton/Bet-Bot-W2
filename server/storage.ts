@@ -1,14 +1,14 @@
 import { 
   users, games, odds, recommendations, chatMessages, modelMetrics,
   baseballGames, baseballPlayerStats, baseballGamePredictions, baseballModelTraining,
-  userBets, userPicks, userPreferences,
+  userBets, userPicks, userPreferences, userFollows, userFollows,
   type User, type InsertUser, type UpsertUser, type Game, type InsertGame, 
   type Odds, type InsertOdds, type Recommendation, type InsertRecommendation,
   type ChatMessage, type InsertChatMessage, type ModelMetrics, type InsertModelMetrics,
   type BaseballGame, type InsertBaseballGame, type BaseballPlayerStats, type InsertBaseballPlayerStats,
   type BaseballGamePrediction, type InsertBaseballGamePrediction, type BaseballModelTraining, type InsertBaseballModelTraining,
   type UserBet, type InsertUserBet, type UserPick, type InsertUserPick, 
-  type UserPreferences, type InsertUserPreferences
+  type UserPreferences, type InsertUserPreferences, type UserFollow, type InsertUserFollow
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql, or, gte, lte } from "drizzle-orm";
@@ -1052,9 +1052,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async isUserFollowing(currentUserId: string, targetUserId: string): Promise<boolean> {
-    // For now, return false since we haven't implemented the following system yet
-    // This can be implemented when we add a followers/following table
-    return false;
+    try {
+      const follow = await db
+        .select()
+        .from(userFollows)
+        .where(
+          and(
+            eq(userFollows.followerId, currentUserId),
+            eq(userFollows.followingId, targetUserId)
+          )
+        )
+        .limit(1);
+      
+      return follow.length > 0;
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+      return false;
+    }
   }
 }
 
