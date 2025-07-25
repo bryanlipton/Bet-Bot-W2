@@ -924,20 +924,20 @@ export class DailyPickService {
     console.log(`   Edge Score: ${edgeScore.toFixed(1)}, Confidence Score: ${confidenceScore.toFixed(1)}`);
     console.log(`   Average Score: ${avgScore.toFixed(1)}`);
     
-    // Grade assignment matching BettingRecommendationEngine with A- and B- support
-    if (avgScore >= 95) return 'A+';
-    if (avgScore >= 92) return 'A'; 
-    if (avgScore >= 88) return 'A-';
-    if (avgScore >= 85) return 'B+';
-    if (avgScore >= 82) return 'B';
-    if (avgScore >= 78) return 'B-';
-    if (avgScore >= 75) return 'C+';
-    if (avgScore >= 70) return 'C';
-    if (avgScore >= 65) return 'C-';
-    if (avgScore >= 60) return 'D+';
-    if (avgScore >= 55) return 'D';
-    if (avgScore >= 50) return 'D-';
-    return 'F';
+    // AGGRESSIVE THRESHOLDS: Target realistic game score range (95-99 → spread to A+ through C)
+    if (avgScore >= 98.5) return 'A+';  // Only the absolute best
+    if (avgScore >= 97.5) return 'A';   // Elite picks  
+    if (avgScore >= 96.5) return 'A-';  // Very strong
+    if (avgScore >= 95.5) return 'B+';  // Strong
+    if (avgScore >= 94.5) return 'B';   // Good
+    if (avgScore >= 93.5) return 'B-';  // Decent
+    if (avgScore >= 92.5) return 'C+';  // Average plus
+    if (avgScore >= 91.5) return 'C';   // Average
+    if (avgScore >= 90.5) return 'C-';  // Below average
+    if (avgScore >= 89.5) return 'D+';  // Poor
+    if (avgScore >= 88.5) return 'D';   // Very poor  
+    if (avgScore >= 87.5) return 'D-';  // Terrible
+    return 'F';                         // Catastrophic
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
