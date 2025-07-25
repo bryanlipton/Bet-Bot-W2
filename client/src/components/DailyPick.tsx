@@ -510,10 +510,10 @@ export default function DailyPick() {
       // Save to database
       await apiRequest('/api/user/picks', {
         method: 'POST',
-        body: JSON.stringify(pickData),
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(pickData)
       });
 
       // Close modal and reset form

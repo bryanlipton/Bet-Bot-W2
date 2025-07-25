@@ -97,7 +97,7 @@ export function OddsComparisonModal({
       if (selectedBet.market === 'moneyline') {
         return o.name === selectedBet.selection;
       }
-      if (selectedBet.market === 'h2h') {
+      if (selectedBet.market === 'h2h' || selectedBet.market === 'moneyline') {
         return o.name === selectedBet.selection;
       }
       if (selectedBet.market === 'spread') {
@@ -178,10 +178,10 @@ export function OddsComparisonModal({
       // Save to database
       await apiRequest('/api/user/picks', {
         method: 'POST',
-        body: JSON.stringify(pickData),
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(pickData)
       });
 
       // Also save to localStorage for backup
