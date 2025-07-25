@@ -212,7 +212,7 @@ export default function MyPicksPageFixed() {
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
-        {/* Stats Cards */}
+        {/* Stats Cards - Combined Won/Lost into Record */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
