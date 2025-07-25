@@ -202,7 +202,12 @@ export class BettingRecommendationEngine {
     if (odds.homeMoneyline && odds.awayMoneyline) {
       // Home moneyline
       const homeEdge = prediction.homeWinProbability - this.oddsToImpliedProbability(odds.homeMoneyline);
+      console.log(`🎯 DEBUG Home ${homeTeam}: ModelProb=${(prediction.homeWinProbability * 100).toFixed(1)}%, MarketProb=${(this.oddsToImpliedProbability(odds.homeMoneyline) * 100).toFixed(1)}%, Edge=${(homeEdge * 100).toFixed(1)}%`);
+      
       if (homeEdge > -0.05) { // Include picks with up to -5% edge for full grade spectrum
+        const homeGrade = this.assignGrade(homeEdge, prediction.confidence);
+        console.log(`✅ Adding ${homeTeam} pick: Edge=${(homeEdge * 100).toFixed(1)}%, Confidence=${(prediction.confidence * 100).toFixed(1)}%, Grade=${homeGrade}`);
+        
         recommendations.push({
           betType: 'moneyline',
           selection: `${homeTeam} ML`,
@@ -210,7 +215,7 @@ export class BettingRecommendationEngine {
           impliedProbability: this.oddsToImpliedProbability(odds.homeMoneyline),
           predictedProbability: prediction.homeWinProbability,
           edge: homeEdge,
-          grade: this.assignGrade(homeEdge, prediction.confidence),
+          grade: homeGrade,
           confidence: prediction.confidence,
           reasoning: `AI predicts ${homeTeam} wins ${(prediction.homeWinProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.homeMoneyline) * 100).toFixed(1)}%`,
           expectedValue: this.calculateExpectedValue(prediction.homeWinProbability, odds.homeMoneyline),
@@ -220,7 +225,12 @@ export class BettingRecommendationEngine {
 
       // Away moneyline
       const awayEdge = prediction.awayWinProbability - this.oddsToImpliedProbability(odds.awayMoneyline);
+      console.log(`🎯 DEBUG Away ${awayTeam}: ModelProb=${(prediction.awayWinProbability * 100).toFixed(1)}%, MarketProb=${(this.oddsToImpliedProbability(odds.awayMoneyline) * 100).toFixed(1)}%, Edge=${(awayEdge * 100).toFixed(1)}%`);
+      
       if (awayEdge > -0.05) { // Include picks with up to -5% edge for full grade spectrum
+        const awayGrade = this.assignGrade(awayEdge, prediction.confidence);
+        console.log(`✅ Adding ${awayTeam} pick: Edge=${(awayEdge * 100).toFixed(1)}%, Confidence=${(prediction.confidence * 100).toFixed(1)}%, Grade=${awayGrade}`);
+        
         recommendations.push({
           betType: 'moneyline',
           selection: `${awayTeam} ML`,
@@ -228,7 +238,7 @@ export class BettingRecommendationEngine {
           impliedProbability: this.oddsToImpliedProbability(odds.awayMoneyline),
           predictedProbability: prediction.awayWinProbability,
           edge: awayEdge,
-          grade: this.assignGrade(awayEdge, prediction.confidence),
+          grade: awayGrade,
           confidence: prediction.confidence,
           reasoning: `AI predicts ${awayTeam} wins ${(prediction.awayWinProbability * 100).toFixed(1)}% vs market ${(this.oddsToImpliedProbability(odds.awayMoneyline) * 100).toFixed(1)}%`,
           expectedValue: this.calculateExpectedValue(prediction.awayWinProbability, odds.awayMoneyline),
