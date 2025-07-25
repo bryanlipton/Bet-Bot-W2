@@ -10,6 +10,7 @@ import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
+import { apiRequest } from "@/lib/queryClient";
 
 interface BookmakerOdds {
   key: string;
@@ -69,7 +70,8 @@ export function OddsComparisonModal({
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
     const market = bookmaker.markets.find(m => {
-      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') return m.key === 'h2h';
+      if (selectedBet.market === 'moneyline') return m.key === 'h2h';
+      if (selectedBet.market === 'h2h') return m.key === 'h2h';
       if (selectedBet.market === 'spread') return m.key === 'spreads';
       if (selectedBet.market === 'total') return m.key === 'totals';
       return false;
@@ -78,7 +80,10 @@ export function OddsComparisonModal({
     if (!market) return null;
 
     let outcome = market.outcomes.find(o => {
-      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') {
+      if (selectedBet.market === 'moneyline') {
+        return o.name === selectedBet.selection;
+      }
+      if (selectedBet.market === 'h2h') {
         return o.name === selectedBet.selection;
       }
       if (selectedBet.market === 'spread') {
@@ -136,54 +141,82 @@ export function OddsComparisonModal({
 
   const bestOdds = sortedOdds[0];
 
-  const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
+  const handleMakePick = async (bookmakerData: typeof sortedOdds[0]) => {
     if (!bookmakerData) return;
 
     setIsPlacingBet(true);
 
-    // Get current bet unit from storage
-    const currentBetUnit = pickStorage.getBetUnit();
-
-    // Save pick to localStorage
-    const pickData: Omit<Pick, 'id' | 'timestamp'> = {
-      gameInfo: {
-        homeTeam: gameInfo.homeTeam,
-        awayTeam: gameInfo.awayTeam,
-        gameId: gameInfo.gameId,
-        sport: gameInfo.sport || 'baseball_mlb',
-        gameTime: gameInfo.gameTime
-      },
-      betInfo: {
-        market: selectedBet.market === 'total' ? 
+    try {
+      // Save pick to database via API
+      const pickData = {
+        gameId: gameInfo.gameId?.toString() || '',
+        selection: selectedBet.selection,
+        betType: selectedBet.market === 'total' ? 
           (selectedBet.selection === 'Over' ? 'over' : 'under') : 
           selectedBet.market,
-        selection: selectedBet.selection,
         odds: bookmakerData.odds,
-        line: selectedBet.line || bookmakerData.line,
-        units: 1 // Default to 1 unit
-      },
-      bookmaker: {
-        key: bookmakerData.bookmaker,
-        displayName: bookmakerData.displayName,
-        url: bookmakerData.url
-      },
-      status: 'pending'
-    };
+        units: 1, // Default to 1 unit
+        bookmaker: bookmakerData.displayName,
+        confidence: 75, // Default confidence
+        reasoning: `Picked ${selectedBet.selection} at ${bookmakerData.odds > 0 ? '+' : ''}${bookmakerData.odds} odds via ${bookmakerData.displayName}`
+      };
 
-    pickStorage.savePick(pickData);
+      // Save to database
+      await apiRequest('/api/user/picks', {
+        method: 'POST',
+        body: JSON.stringify(pickData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-    // Open bookmaker in new tab
-    window.open(bookmakerData.url, '_blank');
+      // Also save to localStorage for backup
+      const localPickData: Omit<Pick, 'id' | 'timestamp'> = {
+        gameInfo: {
+          homeTeam: gameInfo.homeTeam,
+          awayTeam: gameInfo.awayTeam,
+          gameId: gameInfo.gameId,
+          sport: gameInfo.sport || 'baseball_mlb',
+          gameTime: gameInfo.gameTime
+        },
+        betInfo: {
+          market: selectedBet.market === 'total' ? 
+            (selectedBet.selection === 'Over' ? 'over' : 'under') : 
+            selectedBet.market,
+          selection: selectedBet.selection,
+          odds: bookmakerData.odds,
+          line: selectedBet.line || bookmakerData.line,
+          units: 1
+        },
+        bookmaker: {
+          key: bookmakerData.bookmaker,
+          displayName: bookmakerData.displayName,
+          url: bookmakerData.url
+        },
+        status: 'pending'
+      };
 
-    // Immediately close modal and reset state
-    setIsPlacingBet(false);
-    handleClose();
+      pickStorage.savePick(localPickData);
+
+      // Open bookmaker in new tab
+      window.open(bookmakerData.url, '_blank');
+
+    } catch (error) {
+      console.error('Error saving pick:', error);
+    } finally {
+      // Close modal and reset state
+      setIsPlacingBet(false);
+      handleClose();
+    }
   };
 
   const handleEnterManually = () => {
     if (onManualEntry) {
-      // Pass the game info and selected bet to the parent component
-      onManualEntry(gameInfo, selectedBet);
+      // Find the best available odds to pre-populate
+      const currentOdds = bestOdds?.odds || selectedBet.odds;
+      
+      // Pass the game info and selected bet with current odds to the parent component
+      onManualEntry(gameInfo, { ...selectedBet, odds: currentOdds });
     }
     // Close this modal
     handleClose();
@@ -287,13 +320,7 @@ export function OddsComparisonModal({
                                   odds!.linkType === 'bet-slip' ? 'text-green-600' :
                                   odds!.linkType === 'market' ? 'text-blue-500' :
                                   'text-amber-500'
-                                }`} 
-                                title={
-                                  odds!.linkType === 'bet-slip' ? 'Direct bet slip link' :
-                                  odds!.linkType === 'market' ? 'Market-specific page' :
-                                  odds!.linkType === 'game' ? 'Game-specific page' :
-                                  'Manual deep link'
-                                }
+                                }`}
                               />
                             )}
                           </div>
