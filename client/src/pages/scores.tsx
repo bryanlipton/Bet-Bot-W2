@@ -71,7 +71,12 @@ const formatDateDisplay = (date: Date) => {
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    // Ensure we start with today's date
+    const today = new Date();
+    console.log('Initial date set to:', today.toDateString());
+    return today;
+  });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
     homeTeam: string;
@@ -170,13 +175,24 @@ export default function ScoresPage() {
   const sortedGames = useMemo(() => {
     if (!scoresData || !Array.isArray(scoresData)) return [];
 
+    console.log('ScoresData:', scoresData.length, 'games');
+    console.log('Selected date:', selectedDate.toDateString());
+    
     const selectedDateStr = selectedDate.toDateString();
     
     // Filter games for selected date
     const dayGames = scoresData.filter((game: any) => {
-      const gameDate = new Date(game.commence_time || game.startTime);
-      return gameDate.toDateString() === selectedDateStr;
+      // Handle various date field names from different APIs
+      const gameTime = game.startTime || game.commence_time || game.gameDate;
+      if (!gameTime) return false;
+      
+      const gameDate = new Date(gameTime);
+      const gameDateStr = gameDate.toDateString();
+      console.log('Game date:', gameDateStr, 'vs selected:', selectedDateStr);
+      return gameDateStr === selectedDateStr;
     });
+    
+    console.log('Filtered games:', dayGames.length);
 
     // Convert to ScoreGame format
     const processedGames: ScoreGame[] = dayGames.map((game: any) => {
