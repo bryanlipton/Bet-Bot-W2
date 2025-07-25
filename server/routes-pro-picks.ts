@@ -19,7 +19,7 @@ export function setupProPicksRoutes(app: Application) {
       console.log("Pro user requesting all picks with grades");
       
       // Get all games first
-      const { oddsService } = await import('../services/oddsService.js');
+      const { oddsService } = await import('./services/oddsApi.js');
       const games = await oddsService.getLiveOdds('baseball_mlb');
       
       // Generate analysis for all games with grades
@@ -59,7 +59,7 @@ export function setupProPicksRoutes(app: Application) {
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
       
       // Get all games first
-      const { oddsService } = await import('../services/oddsService.js');
+      const { oddsService } = await import('./services/oddsApi.js');
       const games = await oddsService.getLiveOdds('baseball_mlb');
       
       // Get all picks and find the one for this game

@@ -386,6 +386,8 @@ export function ActionStyleDashboard() {
                     awayTeam={game.awayTeam}
                     homeOdds={game.homeOdds}
                     awayOdds={game.awayOdds}
+                    spread={game.spread}
+                    total={game.total}
                     startTime={game.startTime}
                     gameId={game.gameId}
                     probablePitchers={game.probablePitchers}
