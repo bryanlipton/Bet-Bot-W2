@@ -716,6 +716,59 @@ export default function MyPicksPage() {
           </div>
         </div>
 
+        {/* Quick Unit Size Adjustment */}
+        <Card className="mb-4 sm:mb-6 border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                  <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Betting Unit Size</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Set your default bet amount per unit</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {editingBetUnit ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">$</span>
+                    <Input
+                      value={tempBetUnit}
+                      onChange={(e) => setTempBetUnit(e.target.value)}
+                      className="w-20 h-10 text-xl font-bold text-center border-2 border-blue-300 focus:border-blue-500"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="10"
+                      autoFocus
+                    />
+                    <Button size="sm" onClick={handleSaveBetUnit} className="bg-green-600 hover:bg-green-700 text-white">
+                      <Save className="w-4 h-4 mr-1" />
+                      Save
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit}>
+                      <X className="w-4 h-4 mr-1" />
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">${betUnit}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">per unit</p>
+                    </div>
+                    <Button onClick={handleEditBetUnit} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Edit3 className="w-4 h-4 mr-1" />
+                      Change
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Mobile-optimized Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
@@ -782,40 +835,42 @@ export default function MyPicksPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="ring-2 ring-blue-500/20 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
             <CardContent className="p-3 sm:p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-600 mb-1 sm:mb-0" />
+                <DollarSign className="w-5 h-5 text-blue-600 mb-1 sm:mb-0" />
                 <div className="text-center sm:text-left">
                   {editingBetUnit ? (
-                    <div className="flex items-center justify-center sm:justify-start gap-1">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">$</span>
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <span className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">$</span>
                       <Input
                         value={tempBetUnit}
                         onChange={(e) => setTempBetUnit(e.target.value)}
-                        className="w-12 sm:w-16 h-6 sm:h-8 text-sm sm:text-lg font-bold p-1 text-center"
+                        className="w-16 sm:w-20 h-8 sm:h-10 text-lg sm:text-xl font-bold p-2 text-center border-2 border-blue-300 focus:border-blue-500"
                         type="number"
                         step="0.01"
                         min="0"
+                        placeholder="10"
+                        autoFocus
                       />
-                      <Button size="sm" onClick={handleSaveBetUnit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
-                        <Save className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <Button size="sm" onClick={handleSaveBetUnit} className="h-8 w-8 sm:h-10 sm:w-10 p-0 bg-green-600 hover:bg-green-700">
+                        <Save className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
-                        <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <Button size="sm" variant="outline" onClick={handleCancelBetUnitEdit} className="h-8 w-8 sm:h-10 sm:w-10 p-0 border-gray-300 hover:border-gray-400">
+                        <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center sm:justify-start gap-1">
-                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <p className="text-lg sm:text-2xl font-bold text-blue-700 dark:text-blue-300">
                         ${betUnit}
                       </p>
-                      <Button size="sm" variant="ghost" onClick={handleEditBetUnit} className="h-5 w-5 sm:h-6 sm:w-6 p-0">
-                        <Edit3 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <Button size="sm" variant="ghost" onClick={handleEditBetUnit} className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900">
+                        <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </Button>
                     </div>
                   )}
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Bet Unit</p>
+                  <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-medium">Unit Size (Click to Edit)</p>
                 </div>
               </div>
             </CardContent>
