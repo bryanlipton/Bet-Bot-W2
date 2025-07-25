@@ -89,10 +89,10 @@ export class DailyPickService {
     }
   }
   private normalizeToGradingScale(score: number): number {
-    // FIXED: Use direct 0-100 scale for more realistic scoring
-    // Old normalization was compressing everything to 60-100 range
+    // Normalize 0-100 raw score to 60-100 grading scale as requested
+    // This ensures proper letter grade distribution (A+ through D)
     const clampedScore = Math.max(0, Math.min(100, score));
-    return Math.round(clampedScore);
+    return Math.round(60 + (clampedScore * 0.4));
   }
 
   private async analyzeOffensiveProduction(team: string): Promise<number> {
@@ -767,26 +767,26 @@ export class DailyPickService {
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
     const edgePercentage = edge / modelProb; // Edge as percentage of true probability
     
-    // FIXED: Use 0-100 scale directly instead of normalizing (which was causing all 100s)
-    // Market inefficiency score - realistic range 20-95
-    let inefficiencyScore = 50; // Base neutral
+    // FIXED: Market inefficiency calculation for 60-100 range after normalization
+    // Raw score range 0-100, will be normalized to 60-100
+    let inefficiencyScore = 50; // Base neutral (becomes 80 after normalization)
     
-    // Primary edge component - scale to realistic range
-    inefficiencyScore += (edge * 150); // Reduced from 200 for more realistic scoring
+    // Primary edge component - more conservative scaling
+    inefficiencyScore += (edge * 100); // Reduced scaling for realistic range
     
     // Kelly value component - cap extreme values
-    const kellyContribution = Math.min(Math.max(kellyValue * 30, -15), 15);
+    const kellyContribution = Math.min(Math.max(kellyValue * 20, -10), 10);
     inefficiencyScore += kellyContribution;
     
     // Relative efficiency component - smaller impact
-    const efficiencyContribution = Math.min(Math.max(edgePercentage * 50, -10), 10);
+    const efficiencyContribution = Math.min(Math.max(edgePercentage * 30, -5), 5);
     inefficiencyScore += efficiencyContribution;
     
-    // Clamp to realistic betting range (20-95, never perfect)
-    const finalScore = Math.max(20, Math.min(95, inefficiencyScore));
+    // Clamp to 0-100 range before normalization
+    const rawScore = Math.max(0, Math.min(100, inefficiencyScore));
     
-    console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${(edge*100).toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Final Score: ${finalScore.toFixed(1)}`);
-    return Math.round(finalScore);
+    console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${(edge*100).toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Raw Score: ${rawScore.toFixed(1)}`);
+    return this.normalizeToGradingScale(rawScore);
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
@@ -808,14 +808,14 @@ export class DailyPickService {
     // Log calculation for transparency
     console.log(`📊 GRADE CALCULATION: Weighted Score = ${overallScore} (Factors: ${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence})`);
     
-    // Use the weighted average for grade assignment - updated thresholds for realistic scoring
-    if (overallScore >= 85) return 'A+';
-    if (overallScore >= 80) return 'A';
-    if (overallScore >= 75) return 'B+';
-    if (overallScore >= 70) return 'B';
-    if (overallScore >= 65) return 'C+';
-    if (overallScore >= 60) return 'C';
-    if (overallScore >= 50) return 'D';
+    // Use the weighted average for grade assignment - back to original 60-100 scale
+    if (overallScore >= 95) return 'A+';
+    if (overallScore >= 90) return 'A';
+    if (overallScore >= 85) return 'B+';
+    if (overallScore >= 80) return 'B';
+    if (overallScore >= 75) return 'C+';
+    if (overallScore >= 70) return 'C';
+    if (overallScore >= 60) return 'D';
     return 'F';
   }
 
