@@ -260,8 +260,15 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
 }
 
 // Helper functions declared at module level to avoid hoisting issues
-const formatOdds = (odds: number) => {
-  return odds > 0 ? `+${odds}` : odds.toString();
+const formatOdds = (odds: number, betType?: string) => {
+  const oddsText = odds > 0 ? `+${odds}` : odds.toString();
+  
+  // Add bet type indicator for moneyline bets
+  if (betType === 'moneyline') {
+    return `ML ${oddsText}`;
+  }
+  
+  return oddsText;
 };
 
 const formatGameTime = (gameTime: string) => {
@@ -788,7 +795,7 @@ export default function DailyPick() {
                           <h4 className="font-semibold mb-3">Pick Details</h4>
                           <div className="space-y-2 text-sm">
                             <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds)}</div>
+                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
                             <div><strong>Venue:</strong> {dailyPick.venue}</div>
                             <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
                           </div>
