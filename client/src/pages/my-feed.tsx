@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ActionStyleHeader } from '@/components/ActionStyleHeader';
+import UserAvatar from '@/components/UserAvatar';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Rss,
@@ -204,28 +205,14 @@ export default function MyFeedPage() {
                   <div className="flex items-start gap-3">
                     {/* User Avatar */}
                     <div className="flex-shrink-0">
-                      {(() => {
-                        const avatarString = pick.userAvatar;
-                        
-                        if (avatarString?.includes('|')) {
-                          // New format: emoji|background
-                          const [emoji, backgroundClass] = avatarString.split('|');
-                          return (
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-                              <span className="text-lg">{emoji}</span>
-                            </div>
-                          );
-                        } else {
-                          return (
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={avatarString} alt={pick.username} />
-                              <AvatarFallback className="bg-blue-600 text-white text-sm">
-                                {pick.username?.charAt(0).toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                          );
-                        }
-                      })()}
+                      <UserAvatar 
+                        user={{
+                          avatar: pick.userAvatar,
+                          username: pick.username,
+                          profileImageUrl: null
+                        }}
+                        size="md"
+                      />
                     </div>
                     
                     {/* Pick Content */}
