@@ -64,12 +64,22 @@ export function setupProPicksRoutes(app: Application) {
       
       // Get all picks and find the one for this game
       const allPicks = await dailyPickService.generateAllGamePicks(games);
-      const gamePick = allPicks.find(pick => 
-        pick.gameId === gameId || 
-        pick.gameId.toString() === gameId ||
-        pick.gameDetails?.gameId === gameId ||
-        pick.gameDetails?.gameId?.toString() === gameId
-      );
+      
+      console.log(`🔍 Looking for game ${gameId} in ${allPicks.length} picks`);
+      console.log(`🔍 Available game IDs: ${allPicks.map(p => p.gameId).join(', ')}`);
+      
+      const gamePick = allPicks.find(pick => {
+        // Try multiple matching strategies
+        const pickGameId = pick.gameId?.toString();
+        const targetGameId = gameId?.toString();
+        
+        // Check if gameId contains the target or vice versa
+        return pickGameId === targetGameId || 
+               pickGameId?.includes(targetGameId) || 
+               targetGameId?.includes(pickGameId) ||
+               pick.gameId === gameId ||
+               pick.gameDetails?.gameId === gameId;
+      });
       
       if (!gamePick) {
         return res.status(404).json({ error: "Game analysis not found" });
