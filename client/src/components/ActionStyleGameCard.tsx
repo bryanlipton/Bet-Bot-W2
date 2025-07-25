@@ -177,17 +177,19 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   };
 
   const scoreToGrade = (score: number): string => {
-    if (score >= 82) return 'A+';   // Elite - extremely rare
-    if (score >= 76) return 'A';    // Excellent - very rare  
-    if (score >= 70) return 'B+';   // Very good - uncommon
-    if (score >= 65) return 'B';    // Good - solid picks
-    if (score >= 61) return 'C+';   // Above average - common
-    if (score >= 57) return 'C';    // Average - most common
-    if (score >= 53) return 'C-';   // Below average
-    if (score >= 49) return 'D+';   // Poor - significant concerns
-    if (score >= 45) return 'D';    // Very poor - major red flags
-    if (score >= 35) return 'D-';   // Terrible - avoid strongly
-    return 'F';                     // Catastrophic - never bet
+    if (score >= 76) return 'A+';   // Elite - exceptional picks (76+)
+    if (score >= 73) return 'A';    // Excellent - top tier picks (73-75)
+    if (score >= 70) return 'A-';   // Very good - strong picks (70-72)
+    if (score >= 67) return 'B+';   // Good plus - above good (67-69)
+    if (score >= 64) return 'B';    // Good - solid picks (64-66)
+    if (score >= 61) return 'B-';   // Good minus - decent picks (61-63)
+    if (score >= 58) return 'C+';   // Above average - okay picks (58-60)
+    if (score >= 55) return 'C';    // Average - neutral picks (55-57)
+    if (score >= 52) return 'C-';   // Below average - weak picks (52-54)
+    if (score >= 49) return 'D+';   // Poor - bad picks (49-51)
+    if (score >= 46) return 'D';    // Very poor - avoid picks (46-48)
+    if (score >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
+    return 'F';                     // Catastrophic - never bet (below 43)
   };
 
   const getGradeExplanation = (score: number, factorTitle: string): string => {

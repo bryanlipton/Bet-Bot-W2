@@ -906,18 +906,20 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // OPTIMIZED GRADING SCALE: Based on observed score distribution (most games 60-75 range)
-    if (finalScore >= 73) return 'A+';   // Elite - top 5% of picks (73+)
-    if (finalScore >= 70) return 'A';    // Excellent - top 10% of picks (70-72) 
-    if (finalScore >= 68) return 'B+';   // Very good - top 20% of picks (68-69)
-    if (finalScore >= 65) return 'B';    // Good - top 35% of picks (65-67)
-    if (finalScore >= 62) return 'C+';   // Above average - top 50% of picks (62-64)
-    if (finalScore >= 59) return 'C';    // Average - middle range (59-61)
-    if (finalScore >= 56) return 'C-';   // Below average - lower middle (56-58)
-    if (finalScore >= 53) return 'D+';   // Poor - bottom 20% of picks (53-55)
-    if (finalScore >= 50) return 'D';    // Very poor - bottom 10% of picks (50-52)
-    if (finalScore >= 45) return 'D-';   // Terrible - bottom 5% of picks (45-49)
-    return 'F';                          // Catastrophic - avoid completely (below 45)
+    // BALANCED GRADING SCALE: Evenly distributed across actual score range (50-80)
+    if (finalScore >= 76) return 'A+';   // Elite - exceptional picks (76+)
+    if (finalScore >= 73) return 'A';    // Excellent - top tier picks (73-75)
+    if (finalScore >= 70) return 'A-';   // Very good - strong picks (70-72)
+    if (finalScore >= 67) return 'B+';   // Good plus - above good (67-69)
+    if (finalScore >= 64) return 'B';    // Good - solid picks (64-66)
+    if (finalScore >= 61) return 'B-';   // Good minus - decent picks (61-63)
+    if (finalScore >= 58) return 'C+';   // Above average - okay picks (58-60)
+    if (finalScore >= 55) return 'C';    // Average - neutral picks (55-57)
+    if (finalScore >= 52) return 'C-';   // Below average - weak picks (52-54)
+    if (finalScore >= 49) return 'D+';   // Poor - bad picks (49-51)
+    if (finalScore >= 46) return 'D';    // Very poor - avoid picks (46-48)
+    if (finalScore >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
+    return 'F';                          // Catastrophic - never bet (below 43)
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {

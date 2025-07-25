@@ -31,17 +31,19 @@ export function getFactorColor(normalizedScore: number): string {
 
 // Grade conversion function (matching backend grading scale)
 function scoreToGrade(score: number): string {
-  if (score >= 82) return 'A+';   // Elite - extremely rare
-  if (score >= 76) return 'A';    // Excellent - very rare  
-  if (score >= 70) return 'B+';   // Very good - uncommon
-  if (score >= 65) return 'B';    // Good - solid picks
-  if (score >= 61) return 'C+';   // Above average - common
-  if (score >= 57) return 'C';    // Average - most common
-  if (score >= 53) return 'C-';   // Below average
-  if (score >= 49) return 'D+';   // Poor - significant concerns
-  if (score >= 45) return 'D';    // Very poor - major red flags
-  if (score >= 35) return 'D-';   // Terrible - avoid strongly
-  return 'F';                     // Catastrophic - never bet
+  if (score >= 76) return 'A+';   // Elite - exceptional picks (76+)
+  if (score >= 73) return 'A';    // Excellent - top tier picks (73-75)
+  if (score >= 70) return 'A-';   // Very good - strong picks (70-72)
+  if (score >= 67) return 'B+';   // Good plus - above good (67-69)
+  if (score >= 64) return 'B';    // Good - solid picks (64-66)
+  if (score >= 61) return 'B-';   // Good minus - decent picks (61-63)
+  if (score >= 58) return 'C+';   // Above average - okay picks (58-60)
+  if (score >= 55) return 'C';    // Average - neutral picks (55-57)
+  if (score >= 52) return 'C-';   // Below average - weak picks (52-54)
+  if (score >= 49) return 'D+';   // Poor - bad picks (49-51)
+  if (score >= 46) return 'D';    // Very poor - avoid picks (46-48)
+  if (score >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
+  return 'F';                     // Catastrophic - never bet (below 43)
 }
 
 /**
@@ -387,13 +389,21 @@ export function getGradeColorClasses(grade: string): { text: string; bg: string;
       return { text: 'text-yellow-900', bg: 'bg-yellow-400', border: 'border-yellow-500' }; // Gold
     case 'A':
       return { text: 'text-green-900', bg: 'bg-green-400', border: 'border-green-500' }; // Green
+    case 'A-':
+      return { text: 'text-green-900', bg: 'bg-green-300', border: 'border-green-400' }; // Light Green
     case 'B+':
-    case 'B':
       return { text: 'text-blue-900', bg: 'bg-blue-400', border: 'border-blue-500' }; // Blue
+    case 'B':
+      return { text: 'text-blue-900', bg: 'bg-blue-300', border: 'border-blue-400' }; // Medium Blue
+    case 'B-':
+      return { text: 'text-blue-900', bg: 'bg-blue-200', border: 'border-blue-300' }; // Light Blue
     case 'C+':
     case 'C':
+    case 'C-':
       return { text: 'text-orange-900', bg: 'bg-orange-400', border: 'border-orange-500' }; // Orange
+    case 'D+':
     case 'D':
+    case 'D-':
     case 'F':
       return { text: 'text-red-900', bg: 'bg-red-400', border: 'border-red-500' }; // Red
     default:
