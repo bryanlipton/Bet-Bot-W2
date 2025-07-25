@@ -904,56 +904,40 @@ export class DailyPickService {
   }
 
   private calculateGrade(analysis: DailyPickAnalysis): DailyPick['grade'] {
-    // ENHANCED GRADING SYSTEM: Multiple approaches to create wider distribution
+    // USE SAME GRADING SYSTEM AS PICK OF THE DAY AND LOCK PICKS
+    // This is the proven system that creates good grade distribution
     
-    // 1. FACTOR MULTIPLIERS: Reward exceptional strength, penalize weaknesses
-    const adjustedFactors = [
-      this.applyFactorMultiplier(analysis.offensiveProduction, 'offense'),
-      this.applyFactorMultiplier(analysis.pitchingMatchup, 'pitching'), 
-      this.applyFactorMultiplier(analysis.situationalEdge, 'situation'),
-      this.applyFactorMultiplier(analysis.teamMomentum, 'momentum'),
-      this.applyFactorMultiplier(analysis.marketInefficiency, 'market'),
-      this.applyFactorMultiplier(analysis.systemConfidence, 'confidence')
-    ];
+    // Calculate edge from market inefficiency factor (0-100 scale to 0-0.10 edge)
+    const edge = (analysis.marketInefficiency - 50) / 500; // Convert 50-100 to 0-0.10 edge
     
-    // 2. WEIGHTED CALCULATION with adjusted factors
-    const factors = [
-      { score: adjustedFactors[0], weight: 0.15 }, // Offensive Production 15%
-      { score: adjustedFactors[1], weight: 0.15 }, // Pitching Matchup 15%  
-      { score: adjustedFactors[2], weight: 0.15 }, // Situational Edge 15%
-      { score: adjustedFactors[3], weight: 0.15 }, // Team Momentum 15%
-      { score: adjustedFactors[4], weight: 0.25 }, // Market Inefficiency 25% (most important)
-      { score: adjustedFactors[5], weight: 0.15 }  // System Confidence 15%
-    ];
+    // Use system confidence as confidence (0-100 scale to 0-1.0)
+    const confidence = analysis.systemConfidence / 100;
     
-    const weightedSum = factors.reduce((sum, factor) => sum + (factor.score * factor.weight), 0);
+    // Apply the same grading logic as BettingRecommendationEngine
+    const edgeScore = Math.min(100, 60 + (Math.max(0, edge) * 400)); // edge 0.1 = 100
+    const confidenceScore = Math.min(100, 60 + (confidence * 40)); // confidence 1.0 = 100
+    const avgScore = (edgeScore + confidenceScore) / 2;
     
-    // 3. NO ELITE BONUSES OR WEAKNESS PENALTIES: Pure weighted average for realistic distribution
+    console.log(`📊 BETTING ENGINE GRADE CALCULATION:`);
+    console.log(`   Market Inefficiency: ${analysis.marketInefficiency} -> Edge: ${edge.toFixed(3)}`);
+    console.log(`   System Confidence: ${analysis.systemConfidence} -> Confidence: ${confidence.toFixed(2)}`);
+    console.log(`   Edge Score: ${edgeScore.toFixed(1)}, Confidence Score: ${confidenceScore.toFixed(1)}`);
+    console.log(`   Average Score: ${avgScore.toFixed(1)}`);
     
-    // 4. FINAL SCORE: Pure weighted calculation without any adjustments
-    const finalScore = Math.round(weightedSum);
-    
-    // Log detailed calculation
-    console.log(`📊 ENHANCED GRADE CALCULATION:`);
-    console.log(`   Original factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
-    console.log(`   Adjusted factors: [${adjustedFactors.join(', ')}]`);
-    console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
-    console.log(`   Final Score: ${finalScore}`);
-    
-    // BALANCED GRADING SCALE: Evenly distributed across actual score range (50-80)
-    if (finalScore >= 76) return 'A+';   // Elite - exceptional picks (76+)
-    if (finalScore >= 73) return 'A';    // Excellent - top tier picks (73-75)
-    if (finalScore >= 70) return 'A-';   // Very good - strong picks (70-72)
-    if (finalScore >= 67) return 'B+';   // Good plus - above good (67-69)
-    if (finalScore >= 64) return 'B';    // Good - solid picks (64-66)
-    if (finalScore >= 61) return 'B-';   // Good minus - decent picks (61-63)
-    if (finalScore >= 58) return 'C+';   // Above average - okay picks (58-60)
-    if (finalScore >= 55) return 'C';    // Average - neutral picks (55-57)
-    if (finalScore >= 52) return 'C-';   // Below average - weak picks (52-54)
-    if (finalScore >= 49) return 'D+';   // Poor - bad picks (49-51)
-    if (finalScore >= 46) return 'D';    // Very poor - avoid picks (46-48)
-    if (finalScore >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
-    return 'F';                          // Catastrophic - never bet (below 43)
+    // Grade assignment matching BettingRecommendationEngine with A- and B- support
+    if (avgScore >= 95) return 'A+';
+    if (avgScore >= 92) return 'A'; 
+    if (avgScore >= 88) return 'A-';
+    if (avgScore >= 85) return 'B+';
+    if (avgScore >= 82) return 'B';
+    if (avgScore >= 78) return 'B-';
+    if (avgScore >= 75) return 'C+';
+    if (avgScore >= 70) return 'C';
+    if (avgScore >= 65) return 'C-';
+    if (avgScore >= 60) return 'D+';
+    if (avgScore >= 55) return 'D';
+    if (avgScore >= 50) return 'D-';
+    return 'F';
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
