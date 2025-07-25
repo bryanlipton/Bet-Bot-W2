@@ -221,7 +221,7 @@ export function registerUserPicksRoutes(app: Express) {
         return res.status(403).json({ message: "Not authorized to delete this pick" });
       }
       
-      await storage.deleteUserPick(numericPickId);
+      await storage.deleteUserPick(userId, numericPickId);
       res.json({ message: "Pick deleted successfully" });
     } catch (error) {
       console.error("Error deleting user pick:", error);

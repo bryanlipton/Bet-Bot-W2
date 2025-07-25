@@ -172,6 +172,7 @@ export function OddsComparisonModal({
     if (!confirmationData) return;
 
     try {
+      console.log('=== SAVING PICK ===');
       const pickData = {
         gameId: gameInfo.gameId || `mlb_${Date.now()}`,
         game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
@@ -189,12 +190,15 @@ export function OddsComparisonModal({
         gameDate: new Date(gameInfo.gameTime || Date.now())
       };
 
-      await apiRequest('POST', '/api/user/picks', pickData);
+      console.log('Pick data to save:', pickData);
+      const response = await apiRequest('POST', '/api/user/picks', pickData);
+      console.log('Save response:', response);
       
       // Invalidate cache to refresh My Picks page
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
       
+      console.log('Pick saved successfully! Cache invalidated.');
       handleClose();
     } catch (error) {
       console.error('Error saving pick:', error);
