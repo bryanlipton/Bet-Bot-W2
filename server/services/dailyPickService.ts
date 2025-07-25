@@ -906,18 +906,18 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // REALISTIC GRADING SCALE: Based on actual weighted score distribution (scores typically 45-85)
-    if (finalScore >= 78) return 'A+';   // Elite - top 5% of picks
-    if (finalScore >= 74) return 'A';    // Excellent - top 10% of picks  
-    if (finalScore >= 70) return 'B+';   // Very good - top 20% of picks
-    if (finalScore >= 66) return 'B';    // Good - top 35% of picks
-    if (finalScore >= 62) return 'C+';   // Above average - top 50% of picks
-    if (finalScore >= 58) return 'C';    // Average - middle 50% of picks
-    if (finalScore >= 54) return 'C-';   // Below average - bottom 35% of picks
-    if (finalScore >= 50) return 'D+';   // Poor - bottom 20% of picks
-    if (finalScore >= 46) return 'D';    // Very poor - bottom 10% of picks
-    if (finalScore >= 42) return 'D-';   // Terrible - bottom 5% of picks
-    return 'F';                          // Catastrophic - avoid completely
+    // OPTIMIZED GRADING SCALE: Based on observed score distribution (most games 60-75 range)
+    if (finalScore >= 73) return 'A+';   // Elite - top 5% of picks (73+)
+    if (finalScore >= 70) return 'A';    // Excellent - top 10% of picks (70-72) 
+    if (finalScore >= 68) return 'B+';   // Very good - top 20% of picks (68-69)
+    if (finalScore >= 65) return 'B';    // Good - top 35% of picks (65-67)
+    if (finalScore >= 62) return 'C+';   // Above average - top 50% of picks (62-64)
+    if (finalScore >= 59) return 'C';    // Average - middle range (59-61)
+    if (finalScore >= 56) return 'C-';   // Below average - lower middle (56-58)
+    if (finalScore >= 53) return 'D+';   // Poor - bottom 20% of picks (53-55)
+    if (finalScore >= 50) return 'D';    // Very poor - bottom 10% of picks (50-52)
+    if (finalScore >= 45) return 'D-';   // Terrible - bottom 5% of picks (45-49)
+    return 'F';                          // Catastrophic - avoid completely (below 45)
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
