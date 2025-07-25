@@ -118,6 +118,10 @@ export function ActionStyleDashboard() {
     enabled: isProUser, // Only fetch for Pro users
   });
 
+  // Debug Pro picks data
+  console.log('🏆 Pro User Status:', isProUser);
+  console.log('📊 All Pro Picks Data:', allProPicks);
+
   // isAuthenticated and isProUser now comes from useAuth hook above
 
   // Helper function to check if a game matches the daily pick
@@ -136,10 +140,21 @@ export function ActionStyleDashboard() {
   const getProPickForGame = (game: any) => {
     if (!isProUser || !allProPicks?.picks) return null;
     
-    return allProPicks.picks.find((pick: any) => 
+    console.log('🔍 Looking for Pro pick for game:', game.homeTeam, 'vs', game.awayTeam);
+    console.log('📊 Total Pro picks available:', allProPicks.picks.length);
+    
+    const proPick = allProPicks.picks.find((pick: any) => 
       (game.homeTeam === pick.homeTeam && game.awayTeam === pick.awayTeam) ||
       (game.homeTeam === pick.awayTeam && game.awayTeam === pick.homeTeam)
     );
+    
+    if (proPick) {
+      console.log('✅ Found Pro pick:', proPick.pickTeam, 'Grade:', proPick.grade);
+    } else {
+      console.log('❌ No Pro pick found for this game');
+    }
+    
+    return proPick;
   };
 
   // Process live odds data into game format
