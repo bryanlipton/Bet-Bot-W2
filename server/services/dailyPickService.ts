@@ -811,9 +811,9 @@ export class DailyPickService {
     const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
     let edge = modelProb - bookmakerProb;
     
-    // REALISTIC CONSTRAINT: Cap edges at ±4% maximum for professional sports betting
-    // 4%+ edges are rare in efficient markets; 10%+ edges are unrealistic for most picks
-    edge = Math.max(-0.04, Math.min(0.04, edge));
+    // ULTRA REALISTIC CONSTRAINT: Cap edges at ±2% maximum for professional sports betting
+    // Even 2%+ edges are uncommon in efficient MLB markets; 4%+ edges are extremely rare
+    edge = Math.max(-0.02, Math.min(0.02, edge));
     
     // Enhanced value calculation with multiple market efficiency indicators
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
@@ -824,21 +824,21 @@ export class DailyPickService {
     const edgePercentage = Math.abs(edge * 100); // Convert to percentage
     
     let finalScore;
-    if (edgePercentage <= 0.5) {
-      // Very small or no edge: 60-68 range (D to C- grades)
-      finalScore = 60 + (edgePercentage * 16); // 0% = 60, 0.5% = 68
-    } else if (edgePercentage <= 1.5) {
-      // Small edge: 68-73 range (C- to C+ grades) - Most common
-      finalScore = 68 + ((edgePercentage - 0.5) * 5); // 0.5% = 68, 1.5% = 73
-    } else if (edgePercentage <= 3) {
-      // Good edge: 73-78 range (C+ to B- grades) - Common good picks
-      finalScore = 73 + ((edgePercentage - 1.5) / 1.5 * 5); // 1.5% = 73, 3% = 78
-    } else if (edgePercentage <= 5) {
-      // Strong edge: 78-85 range (B- to B+ grades) - Uncommon but solid
-      finalScore = 78 + ((edgePercentage - 3) / 2 * 7); // 3% = 78, 5% = 85
+    if (edgePercentage <= 0.3) {
+      // Very small or no edge: 60-68 range (C- to C grades) - Most picks
+      finalScore = 60 + (edgePercentage / 0.3 * 8); // 0% = 60, 0.3% = 68
+    } else if (edgePercentage <= 0.8) {
+      // Small edge: 68-73 range (C to C+ grades) - Common
+      finalScore = 68 + ((edgePercentage - 0.3) / 0.5 * 5); // 0.3% = 68, 0.8% = 73
+    } else if (edgePercentage <= 1.3) {
+      // Good edge: 73-78 range (C+ to B- grades) - Uncommon
+      finalScore = 73 + ((edgePercentage - 0.8) / 0.5 * 5); // 0.8% = 73, 1.3% = 78
+    } else if (edgePercentage <= 1.7) {
+      // Strong edge: 78-83 range (B- to B+ grades) - Rare
+      finalScore = 78 + ((edgePercentage - 1.3) / 0.4 * 5); // 1.3% = 78, 1.7% = 83
     } else {
-      // Maximum edge (4%): 85 range (B+ grade) - Very rare but reasonable
-      finalScore = Math.min(85, 78 + ((edgePercentage - 3) / 1 * 7)); // 3% = 78, 4% = 85
+      // Maximum edge (2%): 83-85 range (B+ to A- grades) - Extremely rare
+      finalScore = Math.min(85, 83 + ((edgePercentage - 1.7) / 0.3 * 2)); // 1.7% = 83, 2% = 85
     }
     
     // Add small Kelly criterion bonus/penalty
@@ -944,15 +944,15 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, Elite bonus: +${eliteBonus}, Weakness penalty: ${weaknessPenalty}`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // 6. EXPANDED GRADING SCALE: Realistic professional distribution
-    if (finalScore >= 92) return 'A+';   // Elite - extremely rare (was 95)
-    if (finalScore >= 86) return 'A';    // Excellent - very rare (was 88)  
-    if (finalScore >= 80) return 'A-';   // Very good - uncommon (was 82)
-    if (finalScore >= 75) return 'B+';   // Good - solid picks (was 77)
-    if (finalScore >= 71) return 'B';    // Above average - common (was 72)
-    if (finalScore >= 67) return 'B-';   // Slightly above average (unchanged)
-    if (finalScore >= 63) return 'C+';   // Average - most common (was 62)
-    if (finalScore >= 58) return 'C';    // Below average (was 57)
+    // 6. ULTRA REALISTIC GRADING SCALE: Professional sports betting distribution
+    if (finalScore >= 90) return 'A+';   // Elite - extremely rare (2-3 per day max)
+    if (finalScore >= 84) return 'A';    // Excellent - very rare (2-3 per day max)  
+    if (finalScore >= 78) return 'A-';   // Very good - uncommon 
+    if (finalScore >= 73) return 'B+';   // Good - solid picks
+    if (finalScore >= 69) return 'B';    // Above average - common
+    if (finalScore >= 65) return 'B-';   // Slightly above average
+    if (finalScore >= 61) return 'C+';   // Average - most common
+    if (finalScore >= 57) return 'C';    // Below average
     if (finalScore >= 52) return 'C-';   // Poor - significant concerns
     if (finalScore >= 45) return 'D+';   // Very poor - major red flags
     if (finalScore >= 35) return 'D';    // Terrible - avoid strongly

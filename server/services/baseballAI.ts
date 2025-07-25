@@ -522,9 +522,19 @@ export class BaseballAI {
         weatherData
       );
 
+      // REALISTIC CONSTRAINT: Baseball games rarely have extreme probabilities
+      // Cap win probabilities to realistic 25-75% range for competitive games
+      let homeWinProb = Math.max(0.25, Math.min(0.75, predictionData[0]));
+      let awayWinProb = Math.max(0.25, Math.min(0.75, predictionData[1]));
+      
+      // Normalize to ensure they sum to 1.0
+      const total = homeWinProb + awayWinProb;
+      homeWinProb = homeWinProb / total;
+      awayWinProb = awayWinProb / total;
+
       const prediction_result: BaseballPrediction = {
-        homeWinProbability: predictionData[0],
-        awayWinProbability: predictionData[1],
+        homeWinProbability: homeWinProb,
+        awayWinProbability: awayWinProb,
         overProbability: overUnderAnalysis.overProbability,
         underProbability: overUnderAnalysis.underProbability,
         predictedTotal: overUnderAnalysis.predictedTotal,
