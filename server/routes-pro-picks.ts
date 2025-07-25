@@ -67,9 +67,10 @@ export function setupProPicksRoutes(app: Application) {
       // Generate all game picks using the enhanced system (same as daily picks)
       const allPicks = await dailyPickService.generateAllGamePicks(games);
       console.log(`🔍 Generated ${allPicks.length} picks, searching for game ${gameId}`);
+      console.log(`📋 Generated picks: ${allPicks.map(p => `${p.gameId}:${p.pickTeam}(${p.grade})`).join(', ')}`);
       
       // Find the pick for this specific game using multiple matching strategies
-      const gamePick = allPicks.find(pick => {
+      let gamePick = allPicks.find(pick => {
         // Check direct gameId match
         if (pick.gameId === gameId) return true;
         
@@ -83,8 +84,11 @@ export function setupProPicksRoutes(app: Application) {
                targetGameId?.includes(pickGameId);
       });
       
+      // If no direct ID match, try to match by team names from the complete schedule
       if (!gamePick) {
-        // If no direct match, look for game by teams in the complete schedule
+        console.log(`🔍 No direct ID match for ${gameId}, trying team-based matching...`);
+        
+        // Get the target game from complete schedule to find team names
         const scheduleResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
         const allGames = await scheduleResponse.json();
         
@@ -94,28 +98,22 @@ export function setupProPicksRoutes(app: Application) {
         });
         
         if (targetGame) {
+          console.log(`🎯 Found target game: ${targetGame.awayTeam} @ ${targetGame.homeTeam}`);
+          
           // Find a pick that matches the teams from this game
-          const teamBasedPick = allPicks.find(pick => 
+          gamePick = allPicks.find(pick => 
             (pick.homeTeam === targetGame.homeTeam && pick.awayTeam === targetGame.awayTeam) ||
             (pick.homeTeam === targetGame.homeTeam || pick.awayTeam === targetGame.awayTeam)
           );
           
-          if (teamBasedPick) {
-            console.log(`✅ Found team-based match for game ${gameId}`);
-            const proPickData = {
-              gameId: gameId,
-              homeTeam: teamBasedPick.homeTeam,
-              awayTeam: teamBasedPick.awayTeam,
-              pickTeam: teamBasedPick.pickTeam,
-              grade: teamBasedPick.grade,
-              confidence: teamBasedPick.confidence,
-              reasoning: teamBasedPick.reasoning,
-              odds: teamBasedPick.odds
-            };
-            return res.json(proPickData);
+          if (gamePick) {
+            console.log(`✅ Found team-based match: ${gamePick.pickTeam} (${gamePick.grade})`);
           }
         }
-        
+      }
+      
+      if (!gamePick) {
+        console.log(`❌ No match found for game ${gameId} in ${allPicks.length} generated picks`);
         return res.status(404).json({ error: "Game analysis not found in generated picks" });
       }
       
