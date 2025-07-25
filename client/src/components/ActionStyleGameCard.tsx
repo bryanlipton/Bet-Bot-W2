@@ -177,14 +177,17 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   };
 
   const scoreToGrade = (score: number): string => {
-    if (score >= 95) return 'A+';
-    if (score >= 90) return 'A';
-    if (score >= 85) return 'B+';
-    if (score >= 80) return 'B';
-    if (score >= 75) return 'C+';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
-    return 'F';
+    if (score >= 82) return 'A+';   // Elite - extremely rare
+    if (score >= 76) return 'A';    // Excellent - very rare  
+    if (score >= 70) return 'B+';   // Very good - uncommon
+    if (score >= 65) return 'B';    // Good - solid picks
+    if (score >= 61) return 'C+';   // Above average - common
+    if (score >= 57) return 'C';    // Average - most common
+    if (score >= 53) return 'C-';   // Below average
+    if (score >= 49) return 'D+';   // Poor - significant concerns
+    if (score >= 45) return 'D';    // Very poor - major red flags
+    if (score >= 35) return 'D-';   // Terrible - avoid strongly
+    return 'F';                     // Catastrophic - never bet
   };
 
   const getGradeExplanation = (score: number, factorTitle: string): string => {

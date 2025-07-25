@@ -917,18 +917,17 @@ export class DailyPickService {
     console.log(`   Weighted base: ${Math.round(weightedSum)}, No bonuses/penalties applied`);
     console.log(`   Final Score: ${finalScore}`);
     
-    // 6. ULTRA REALISTIC GRADING SCALE: Shift all thresholds down by 8 points
+    // 6. ULTRA REALISTIC GRADING SCALE: Proper order and realistic distribution
     if (finalScore >= 82) return 'A+';   // Elite - extremely rare (2-3 per day max)
     if (finalScore >= 76) return 'A';    // Excellent - very rare (2-3 per day max)  
-    if (finalScore >= 70) return 'A-';   // Very good - uncommon 
-    if (finalScore >= 65) return 'B+';   // Good - solid picks
-    if (finalScore >= 61) return 'B';    // Above average - common
-    if (finalScore >= 57) return 'B-';   // Slightly above average
-    if (finalScore >= 53) return 'C+';   // Average - most common
-    if (finalScore >= 49) return 'C';    // Below average
-    if (finalScore >= 52) return 'C-';   // Poor - significant concerns
-    if (finalScore >= 45) return 'D+';   // Very poor - major red flags
-    if (finalScore >= 35) return 'D';    // Terrible - avoid strongly
+    if (finalScore >= 70) return 'B+';   // Very good - uncommon (changed from A-)
+    if (finalScore >= 65) return 'B';    // Good - solid picks (changed from B+)
+    if (finalScore >= 61) return 'C+';   // Above average - common (changed from B)
+    if (finalScore >= 57) return 'C';    // Average - most common (changed from B-)
+    if (finalScore >= 53) return 'C-';   // Below average (changed from C+)
+    if (finalScore >= 49) return 'D+';   // Poor - significant concerns (changed from C)
+    if (finalScore >= 45) return 'D';    // Very poor - major red flags
+    if (finalScore >= 35) return 'D-';   // Terrible - avoid strongly (changed from D)
     return 'F';                          // Catastrophic - never bet
   }
 
