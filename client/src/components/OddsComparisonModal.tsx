@@ -173,10 +173,11 @@ export function OddsComparisonModal({
 
     try {
       const pickData = {
+        gameId: gameInfo.gameId || `mlb_${Date.now()}`,
         game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
         homeTeam: gameInfo.homeTeam,
         awayTeam: gameInfo.awayTeam,
-        teamBet: selectedBet.selection,
+        selection: selectedBet.selection,
         market: selectedBet.market === 'total' ? 
           (selectedBet.selection === 'Over' ? 'over' : 'under') : 
           selectedBet.market,
