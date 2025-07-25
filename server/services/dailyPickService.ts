@@ -921,19 +921,19 @@ export class DailyPickService {
     console.log(`   All factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
     console.log(`   Weighted average: ${weightedSum.toFixed(1)}`);
     
-    // BALANCED THRESHOLDS: Realistic distribution across typical score range (70-90)
-    if (weightedSum >= 88) return 'A+';  // Top tier - exceptional games
-    if (weightedSum >= 85) return 'A';   // Elite games
-    if (weightedSum >= 82) return 'A-';  // Very strong games
-    if (weightedSum >= 79) return 'B+';  // Strong games
-    if (weightedSum >= 76) return 'B';   // Good games  
-    if (weightedSum >= 73) return 'B-';  // Decent games
-    if (weightedSum >= 70) return 'C+';  // Above average
-    if (weightedSum >= 68) return 'C';   // Average games
-    if (weightedSum >= 66) return 'C-';  // Below average
-    if (weightedSum >= 64) return 'D+';  // Poor games
-    if (weightedSum >= 62) return 'D';   // Very poor
-    if (weightedSum >= 60) return 'D-';  // Terrible
+    // REALISTIC THRESHOLDS: Based on actual weighted score range (60-80)
+    if (weightedSum >= 78) return 'A+';  // Top 5% - exceptional
+    if (weightedSum >= 75) return 'A';   // Top 10% - elite  
+    if (weightedSum >= 72) return 'A-';  // Top 15% - very strong
+    if (weightedSum >= 69) return 'B+';  // Top 25% - strong
+    if (weightedSum >= 66) return 'B';   // Top 40% - good
+    if (weightedSum >= 63) return 'B-';  // Top 55% - decent
+    if (weightedSum >= 60) return 'C+';  // Top 70% - above average
+    if (weightedSum >= 57) return 'C';   // Average games
+    if (weightedSum >= 54) return 'C-';  // Below average
+    if (weightedSum >= 51) return 'D+';  // Poor games
+    if (weightedSum >= 48) return 'D';   // Very poor
+    if (weightedSum >= 45) return 'D-';  // Terrible
     return 'F';                          // Avoid completely
   }
 
