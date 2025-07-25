@@ -912,8 +912,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register bet tracking routes
   registerBetRoutes(app);
 
-  // Register user preferences routes (bet unit & picks database persistence)
-  app.use('/api/user', isAuthenticated, userPreferencesRoutes);
+  // Register user preferences routes (bet unit & picks database persistence) - DISABLED: Using working routes in routes-user-picks.ts
+  // app.use('/api/user', isAuthenticated, userPreferencesRoutes);
   
   // Register user picks routes (persistent storage for picks)
   registerUserPicksRoutes(app);
