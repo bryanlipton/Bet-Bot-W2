@@ -72,9 +72,10 @@ export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => {
-    // Force to July 25, 2025 since we know the games are for this date
-    const correctDate = new Date(2025, 6, 25); // Month is 0-indexed, so 6 = July
-    return correctDate;
+    // Initialize to current date in Eastern Time
+    const now = new Date();
+    const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    return easternTime;
   });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
@@ -130,9 +131,10 @@ export default function ScoresPage() {
   };
 
   const goToToday = () => {
-    // Use July 25, 2025 as today for the current game schedule
-    const gameDay = new Date(2025, 6, 25); // Month is 0-indexed
-    setSelectedDate(gameDay);
+    // Get current date in Eastern Time for accurate "today" navigation
+    const now = new Date();
+    const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    setSelectedDate(easternTime);
   };
 
   // Fetch real scores data based on selected sport with live updates
