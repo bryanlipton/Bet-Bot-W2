@@ -39,17 +39,39 @@ export function registerUserPicksRoutes(app: Express) {
     try {
       const userId = req.user.claims.sub;
       
-      // Validate request body
-      const pickData = insertUserPickSchema.parse({
-        ...req.body,
-        userId,
-      });
+      console.log('Received pick data:', JSON.stringify(req.body, null, 2));
       
-      const pick = await storage.createUserPick(pickData);
+      // Transform and validate request body
+      const pickData = {
+        userId,
+        gameId: req.body.gameId,
+        homeTeam: req.body.homeTeam,
+        awayTeam: req.body.awayTeam,
+        selection: req.body.selection,
+        game: req.body.game,
+        market: req.body.market,
+        line: req.body.line || null,
+        odds: req.body.odds || 0,
+        units: req.body.units || 1,
+        betUnitAtTime: req.body.betUnitAtTime || 10,
+        bookmaker: req.body.bookmaker || 'manual',
+        bookmakerDisplayName: req.body.bookmakerDisplayName || 'Manual Entry',
+        gameDate: req.body.gameDate ? new Date(req.body.gameDate) : new Date(),
+        status: 'pending'
+      };
+      
+      console.log('Transformed pick data:', JSON.stringify(pickData, null, 2));
+      
+      // Validate with schema
+      const validatedData = insertUserPickSchema.parse(pickData);
+      
+      const pick = await storage.createUserPick(validatedData);
+      console.log('Created pick:', JSON.stringify(pick, null, 2));
       res.json(pick);
     } catch (error) {
       console.error("Error creating user pick:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         res.status(400).json({ message: "Invalid pick data", errors: error.errors });
       } else {
         res.status(500).json({ message: "Failed to create pick" });
