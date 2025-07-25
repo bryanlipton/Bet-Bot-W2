@@ -751,7 +751,10 @@ export function registerMLBRoutes(app: Express) {
       // Start with ALL odds games (these have betting lines)
       const allGames = [...oddsGames.map(game => ({
         ...game,
-        hasOdds: true
+        hasOdds: true,
+        // Ensure consistent naming - explicitly set camelCase fields
+        homeTeam: game.home_team,
+        awayTeam: game.away_team
       }))];
       
       // Enrich odds games with MLB pitcher data
@@ -790,7 +793,10 @@ export function registerMLBRoutes(app: Express) {
           allGames.push({
             ...mlbGame,
             hasOdds: false,
-            bookmakers: []
+            bookmakers: [],
+            // Ensure consistent naming for MLB games too - explicitly use existing fields
+            homeTeam: mlbGame.home_team,
+            awayTeam: mlbGame.away_team
           });
         }
       });

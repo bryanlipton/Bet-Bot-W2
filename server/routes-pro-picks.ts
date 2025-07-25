@@ -98,16 +98,25 @@ export function setupProPicksRoutes(app: Application) {
         });
         
         if (targetGame) {
-          console.log(`🎯 Found target game: ${targetGame.awayTeam} @ ${targetGame.homeTeam}`);
+          console.log(`🎯 Found target game: ${targetGame.awayTeam} @ ${targetGame.homeTeam} (gameId: ${targetGame.gameId})`);
           
           // Find a pick that matches the teams from this game
-          gamePick = allPicks.find(pick => 
-            (pick.homeTeam === targetGame.homeTeam && pick.awayTeam === targetGame.awayTeam) ||
-            (pick.homeTeam === targetGame.homeTeam || pick.awayTeam === targetGame.awayTeam)
-          );
+          gamePick = allPicks.find(pick => {
+            const homeMatch = pick.homeTeam === targetGame.homeTeam;
+            const awayMatch = pick.awayTeam === targetGame.awayTeam;
+            const exactMatch = homeMatch && awayMatch;
+            const partialMatch = homeMatch || awayMatch;
+            
+            console.log(`🔍 Comparing pick ${pick.homeTeam} vs ${pick.awayTeam} with target ${targetGame.homeTeam} vs ${targetGame.awayTeam}: exact=${exactMatch}, partial=${partialMatch}`);
+            
+            return exactMatch || partialMatch;
+          });
           
           if (gamePick) {
-            console.log(`✅ Found team-based match: ${gamePick.pickTeam} (${gamePick.grade})`);
+            console.log(`✅ Found team-based match: ${gamePick.pickTeam} (${gamePick.grade}) for ${gamePick.homeTeam} vs ${gamePick.awayTeam}`);
+          } else {
+            console.log(`❌ No team match found for ${targetGame.homeTeam} vs ${targetGame.awayTeam}`);
+            console.log(`📋 Available teams in picks: ${allPicks.map(p => `${p.homeTeam} vs ${p.awayTeam}`).slice(0, 5).join(', ')}...`);
           }
         }
       }
