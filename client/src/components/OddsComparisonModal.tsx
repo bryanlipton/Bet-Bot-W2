@@ -61,7 +61,6 @@ export function OddsComparisonModal({
 
   // Reset state when modal opens/closes
   const handleClose = () => {
-    setIsPlacingBet(false);
     onClose();
   };
 
