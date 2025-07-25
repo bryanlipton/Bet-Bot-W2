@@ -250,6 +250,17 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
   );
 }
 
+// Helper function to determine game status
+function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
+  const now = new Date();
+  const gameStart = new Date(gameTime);
+  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
+  
+  if (now < gameStart) return 'upcoming';
+  if (now >= gameStart && now < gameEnd) return 'live';
+  return 'completed';
+}
+
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
@@ -855,31 +866,36 @@ export default function LoggedInLockPick() {
                     ))}
                   </div>
                   
-                  {/* Analysis Summary Blurb with Show More */}
-                  <div className="bg-gray-800/20 rounded-lg p-3">
-                    <div className="text-sm text-gray-300 font-sans leading-relaxed">
-                      <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
-                         style={!mobileReasoningExpanded ? {
-                           display: '-webkit-box',
-                           WebkitLineClamp: 3,
-                           WebkitBoxOrient: 'vertical'
-                         } : {}}>
-                        {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
-                      </p>
-                      {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
-                        <button
-                          onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
-                          className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
-                        >
-                          {mobileReasoningExpanded ? (
-                            <>Show Less <ChevronUp className="h-3 w-3" /></>
-                          ) : (
-                            <>Show More <ChevronDown className="h-3 w-3" /></>
+                  {/* Analysis Summary Blurb with Show More - Only for upcoming games */}
+                  {(() => {
+                    const gameStatus = getGameStatus(lockPick.gameTime);
+                    return gameStatus === 'upcoming' ? (
+                      <div className="bg-gray-800/20 rounded-lg p-3">
+                        <div className="text-sm text-gray-300 font-sans leading-relaxed">
+                          <p className={!mobileReasoningExpanded ? 'overflow-hidden' : ''} 
+                             style={!mobileReasoningExpanded ? {
+                               display: '-webkit-box',
+                               WebkitLineClamp: 3,
+                               WebkitBoxOrient: 'vertical'
+                             } : {}}>
+                            {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds)}
+                          </p>
+                          {getMobileReasoning(lockPick.grade, lockPick.analysis, lockPick.pickTeam, lockPick.odds).split(' ').length > 15 && (
+                            <button
+                              onClick={() => setMobileReasoningExpanded(!mobileReasoningExpanded)}
+                              className="text-amber-400 hover:text-amber-300 text-xs mt-2 flex items-center gap-1"
+                            >
+                              {mobileReasoningExpanded ? (
+                                <>Show Less <ChevronUp className="h-3 w-3" /></>
+                              ) : (
+                                <>Show More <ChevronDown className="h-3 w-3" /></>
+                              )}
+                            </button>
                           )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                        </div>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               )}
             </div>

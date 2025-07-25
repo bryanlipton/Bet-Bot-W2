@@ -836,9 +836,12 @@ export default function DailyPick() {
               </div>
             </div>
 
-            <div className="text-sm text-gray-700 dark:text-gray-300">
-              <strong>Reasoning:</strong> {dailyPick.reasoning}
-            </div>
+            {/* Only show reasoning for upcoming games */}
+            {getGameStatus(dailyPick.gameTime) === 'upcoming' && (
+              <div className="text-sm text-gray-700 dark:text-gray-300">
+                <strong>Reasoning:</strong> {dailyPick.reasoning}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
