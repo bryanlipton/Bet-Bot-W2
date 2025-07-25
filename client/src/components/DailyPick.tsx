@@ -508,13 +508,7 @@ export default function DailyPick() {
       };
 
       // Save to database
-      await apiRequest('/api/user/picks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(pickData)
-      });
+      await apiRequest('POST', '/api/user/picks', pickData);
 
       // Close modal and reset form
       setManualEntryOpen(false);

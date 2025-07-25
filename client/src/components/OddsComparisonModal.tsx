@@ -162,13 +162,7 @@ export function OddsComparisonModal({
       };
 
       // Save to database
-      await apiRequest('/api/user/picks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(pickData)
-      });
+      await apiRequest('POST', '/api/user/picks', pickData);
 
       // Also save to localStorage for backup
       const localPickData: Omit<Pick, 'id' | 'timestamp'> = {
