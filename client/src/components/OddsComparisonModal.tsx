@@ -149,16 +149,19 @@ export function OddsComparisonModal({
     try {
       // Save pick to database via API
       const pickData = {
-        gameId: gameInfo.gameId?.toString() || '',
-        selection: selectedBet.selection,
-        betType: selectedBet.market === 'total' ? 
+        game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
+        homeTeam: gameInfo.homeTeam,
+        awayTeam: gameInfo.awayTeam,
+        teamBet: selectedBet.selection,
+        market: selectedBet.market === 'total' ? 
           (selectedBet.selection === 'Over' ? 'over' : 'under') : 
           selectedBet.market,
+        line: selectedBet.line || bookmakerData.line?.toString() || null,
         odds: bookmakerData.odds,
         units: 1, // Default to 1 unit
-        bookmaker: bookmakerData.displayName,
-        confidence: 75, // Default confidence
-        reasoning: `Picked ${selectedBet.selection} at ${bookmakerData.odds > 0 ? '+' : ''}${bookmakerData.odds} odds via ${bookmakerData.displayName}`
+        bookmaker: bookmakerData.bookmaker,
+        bookmakerDisplayName: bookmakerData.displayName,
+        gameDate: new Date(gameInfo.gameTime)
       };
 
       // Save to database

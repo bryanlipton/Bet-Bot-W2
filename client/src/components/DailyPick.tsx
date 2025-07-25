@@ -495,16 +495,19 @@ export default function DailyPick() {
     try {
       // Save pick to database via API
       const pickData = {
-        gameId: dailyPick.gameId?.toString() || '',
-        selection: manualEntry.selection,
-        betType: manualEntry.market === 'total' ? 
+        game: `${dailyPick.awayTeam} @ ${dailyPick.homeTeam}`,
+        homeTeam: dailyPick.homeTeam,
+        awayTeam: dailyPick.awayTeam,
+        teamBet: manualEntry.selection,
+        market: manualEntry.market === 'total' ? 
           (manualEntry.selection === 'Over' ? 'over' : 'under') : 
           manualEntry.market,
+        line: manualEntry.line || null,
         odds: manualEntry.odds ? parseFloat(manualEntry.odds) : 0,
         units: manualEntry.units || 1,
-        bookmaker: 'Manual Entry',
-        confidence: 75, // Default confidence
-        reasoning: `Manual entry: ${manualEntry.selection} at ${manualEntry.odds ? (parseFloat(manualEntry.odds) > 0 ? '+' : '') + manualEntry.odds : 'N/A'} odds`
+        bookmaker: 'manual',
+        bookmakerDisplayName: 'Manual Entry',
+        gameDate: new Date(dailyPick.gameTime)
       };
 
       // Save to database
