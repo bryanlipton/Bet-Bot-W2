@@ -57,7 +57,7 @@ export function OddsComparisonModal({
   bookmakers,
   selectedBet
 }: OddsComparisonModalProps) {
-  const [isPlacingBet, setIsPlacingBet] = useState(false);
+
 
   // Reset state when modal opens/closes
   const handleClose = () => {
@@ -141,70 +141,14 @@ export function OddsComparisonModal({
 
   const bestOdds = sortedOdds[0];
 
-  const handleMakePick = async (bookmakerData: typeof sortedOdds[0]) => {
+  const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     if (!bookmakerData) return;
 
-    setIsPlacingBet(true);
-
-    try {
-      // Save pick to database via API
-      const pickData = {
-        game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
-        homeTeam: gameInfo.homeTeam,
-        awayTeam: gameInfo.awayTeam,
-        teamBet: selectedBet.selection,
-        market: selectedBet.market === 'total' ? 
-          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
-          selectedBet.market,
-        line: selectedBet.line || bookmakerData.line?.toString() || null,
-        odds: bookmakerData.odds,
-        units: 1, // Default to 1 unit
-        bookmaker: bookmakerData.bookmaker,
-        bookmakerDisplayName: bookmakerData.displayName,
-        gameDate: new Date(gameInfo.gameTime)
-      };
-
-      // Save to database
-      await apiRequest('POST', '/api/user/picks', pickData);
-
-      // Also save to localStorage for backup
-      const localPickData: Omit<Pick, 'id' | 'timestamp'> = {
-        gameInfo: {
-          homeTeam: gameInfo.homeTeam,
-          awayTeam: gameInfo.awayTeam,
-          gameId: gameInfo.gameId,
-          sport: gameInfo.sport || 'baseball_mlb',
-          gameTime: gameInfo.gameTime
-        },
-        betInfo: {
-          market: selectedBet.market === 'total' ? 
-            (selectedBet.selection === 'Over' ? 'over' : 'under') : 
-            selectedBet.market,
-          selection: selectedBet.selection,
-          odds: bookmakerData.odds,
-          line: selectedBet.line || bookmakerData.line,
-          units: 1
-        },
-        bookmaker: {
-          key: bookmakerData.bookmaker,
-          displayName: bookmakerData.displayName,
-          url: bookmakerData.url
-        },
-        status: 'pending'
-      };
-
-      pickStorage.savePick(localPickData);
-
-      // Open bookmaker in new tab
-      window.open(bookmakerData.url, '_blank');
-
-    } catch (error) {
-      console.error('Error saving pick:', error);
-    } finally {
-      // Close modal and reset state
-      setIsPlacingBet(false);
-      handleClose();
-    }
+    // Close modal first
+    handleClose();
+    
+    // Open bookmaker in new tab immediately
+    window.open(bookmakerData.url, '_blank');
   };
 
 
@@ -338,7 +282,6 @@ export function OddsComparisonModal({
                         
                         <Button
                           onClick={() => handleMakePick(odds)}
-                          disabled={isPlacingBet}
                           className={`${
                             index === 0 
                               ? 'bg-green-600 hover:bg-green-700' 
@@ -346,7 +289,7 @@ export function OddsComparisonModal({
                           } text-white`}
                         >
                           <ExternalLink className="w-4 h-4 mr-2" />
-                          {isPlacingBet ? 'Saving...' : 'Bet Now'}
+                          Bet Now
                         </Button>
                       </div>
                     </div>
@@ -361,8 +304,7 @@ export function OddsComparisonModal({
           {/* Footer */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Click "Bet Now" to save this pick and open the sportsbook. 
-              Your pick will be tracked in "My Picks".
+              Click "Bet Now" to open the sportsbook and place your bet.
             </p>
             <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
