@@ -104,10 +104,18 @@ export function ActionStyleDashboard() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Fetch lock pick data
+  // Fetch lock pick data for regular users OR all Pro picks for Pro users
   const { data: lockPick } = useQuery({
     queryKey: ['/api/daily-pick/lock'],
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    enabled: !isProUser, // Only fetch for non-Pro users
+  });
+
+  // Fetch all Pro picks for Pro users
+  const { data: allProPicks } = useQuery({
+    queryKey: ['/api/daily-pick/all-grades'],
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    enabled: isProUser, // Only fetch for Pro users
   });
 
   // isAuthenticated and isProUser now comes from useAuth hook above
@@ -122,6 +130,16 @@ export function ActionStyleDashboard() {
   const isGameLockPick = (game: any) => {
     if (!lockPick) return false;
     return game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam;
+  };
+
+  // Helper function to get Pro pick for a specific game
+  const getProPickForGame = (game: any) => {
+    if (!isProUser || !allProPicks?.picks) return null;
+    
+    return allProPicks.picks.find((pick: any) => 
+      (game.homeTeam === pick.homeTeam && game.awayTeam === pick.awayTeam) ||
+      (game.homeTeam === pick.awayTeam && game.awayTeam === pick.homeTeam)
+    );
   };
 
   // Process live odds data into game format
@@ -389,9 +407,9 @@ export function ActionStyleDashboard() {
                   dailyPickTeam={dailyPick?.pickTeam}
                   dailyPickGrade={dailyPick?.grade}
                   dailyPickId={dailyPick?.id}
-                  lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
-                  lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
-                  lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
+                  lockPickTeam={isProUser ? getProPickForGame(game)?.pickTeam : (isGameLockPick(game) ? lockPick?.pickTeam : undefined)}
+                  lockPickGrade={isProUser ? getProPickForGame(game)?.grade : (isGameLockPick(game) ? lockPick?.grade : undefined)}
+                  lockPickId={isProUser ? getProPickForGame(game)?.id : (isGameLockPick(game) ? lockPick?.id : undefined)}
                   isAuthenticated={isAuthenticated}
                   rawBookmakers={game.rawBookmakers}
                 />
