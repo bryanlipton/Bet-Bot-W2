@@ -72,10 +72,11 @@ export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => {
-    // Initialize to current date in Eastern Time
+    // Initialize to current date in Eastern Time - use local date object for UI consistency
     const now = new Date();
     const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    return easternTime;
+    // Create local date object with Eastern Time's date values
+    return new Date(easternTime.getFullYear(), easternTime.getMonth(), easternTime.getDate());
   });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
@@ -134,14 +135,18 @@ export default function ScoresPage() {
     // Get current date in Eastern Time for accurate "today" navigation
     const now = new Date();
     const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    setSelectedDate(easternTime);
+    // Create local date object with Eastern Time's date values
+    setSelectedDate(new Date(easternTime.getFullYear(), easternTime.getMonth(), easternTime.getDate()));
   };
 
   // Helper function to format date for API - ensures consistent timezone handling
   function formatDateForAPI(date: Date): string {
     // Convert to Eastern Time and format as YYYY-MM-DD
     const easternDate = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    return easternDate.toISOString().split('T')[0];
+    const year = easternDate.getFullYear();
+    const month = String(easternDate.getMonth() + 1).padStart(2, '0');
+    const day = String(easternDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // Fetch real scores data based on selected sport with live updates
