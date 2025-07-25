@@ -136,11 +136,11 @@ export class MLEngine {
           homeWinProb = homeWinProb / total;
           awayWinProb = awayWinProb / total;
           
-          // Final validation to prevent extreme values
-          homeWinProb = Math.max(0.25, Math.min(0.75, homeWinProb));
-          awayWinProb = Math.max(0.25, Math.min(0.75, awayWinProb));
+          // Final validation to prevent extreme values and ensure realistic probabilities
+          homeWinProb = Math.max(0.30, Math.min(0.70, homeWinProb));
+          awayWinProb = Math.max(0.30, Math.min(0.70, awayWinProb));
           
-          // Re-normalize after validation
+          // Ensure they sum to 1 and are competitive
           const finalTotal = homeWinProb + awayWinProb;
           homeWinProb = homeWinProb / finalTotal;
           awayWinProb = awayWinProb / finalTotal;
@@ -168,7 +168,7 @@ export class MLEngine {
       underProbability: underProb,
       homeSpreadProbability: homeSpreadProb,
       awaySpreadProbability: awaySpreadProb,
-      confidence: 65 + Math.random() * 20 // 65-85% confidence (more realistic)
+      confidence: (65 + Math.random() * 20) / 100 // 0.65-0.85 confidence (normalized)
     };
   }
 
