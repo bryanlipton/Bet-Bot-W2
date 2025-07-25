@@ -168,7 +168,7 @@ export default function ScoresPage() {
 
   // Sort and filter games by selected date and status
   const sortedGames = useMemo(() => {
-    if (!scoresData) return [];
+    if (!scoresData || !Array.isArray(scoresData)) return [];
 
     const selectedDateStr = selectedDate.toDateString();
     
