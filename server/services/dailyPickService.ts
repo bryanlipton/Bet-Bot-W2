@@ -89,10 +89,16 @@ export class DailyPickService {
     }
   }
   private normalizeToGradingScale(score: number): number {
-    // Normalize 0-100 raw score to 60-100 grading scale
-    // This ensures proper letter grade distribution (A+ through D)
-    const clampedScore = Math.max(0, Math.min(100, score));
-    return Math.round(60 + (clampedScore * 0.4));
+    // RECALIBRATED: Transform high raw scores (70-95) to realistic range (55-75)
+    // This prevents the systematic grade inflation that was causing all A+ grades
+    
+    // Apply compression transformation to counter the natural high scoring bias
+    const compressedScore = 55 + ((score - 70) * 0.8); // Compress 70-95 range to 55-75
+    
+    // Ensure reasonable bounds for analysis quality
+    const finalScore = Math.max(50, Math.min(80, Math.round(compressedScore)));
+    
+    return finalScore;
   }
 
   private async analyzeOffensiveProduction(team: string): Promise<number> {
