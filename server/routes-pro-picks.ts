@@ -54,10 +54,32 @@ export function setupProPicksRoutes(app: Application) {
       const { gameId } = req.params;
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
       
-      // Get detailed analysis for specific game
-      const analysis = await dailyPickService.getGameAnalysis(gameId);
+      // Get all picks and find the one for this game
+      const allPicks = await dailyPickService.generateAllGamePicks();
+      const gamePick = allPicks.find(pick => 
+        pick.gameId === gameId || 
+        pick.gameId.toString() === gameId ||
+        pick.gameDetails?.gameId === gameId ||
+        pick.gameDetails?.gameId?.toString() === gameId
+      );
       
-      res.json(analysis);
+      if (!gamePick) {
+        return res.status(404).json({ error: "Game analysis not found" });
+      }
+      
+      // Return the Pro pick data
+      const proPickData = {
+        gameId: gamePick.gameId,
+        homeTeam: gamePick.gameDetails?.homeTeam,
+        awayTeam: gamePick.gameDetails?.awayTeam,
+        pickTeam: gamePick.gameDetails?.pickTeam,
+        grade: gamePick.grade,
+        confidence: gamePick.overall?.confidence || 75,
+        reasoning: gamePick.overall?.reasoning || "AI analysis indicates value in this selection",
+        odds: gamePick.gameDetails?.odds || -110
+      };
+      
+      res.json(proPickData);
     } catch (error: any) {
       console.error(`Error fetching Pro game analysis for ${req.params.gameId}:`, error);
       res.status(500).json({ error: error.message });

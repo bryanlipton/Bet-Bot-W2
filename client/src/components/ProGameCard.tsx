@@ -190,12 +190,19 @@ export function ProGameCard({
       {/* Odds Modal - Same as Free Tiles */}
       {showOddsModal && rawBookmakers && (
         <OddsComparisonModal
-          isOpen={showOddsModal}
+          open={showOddsModal}
           onClose={() => setShowOddsModal(false)}
-          homeTeam={homeTeam}
-          awayTeam={awayTeam}
+          gameInfo={{
+            homeTeam,
+            awayTeam,
+            gameId: gameId?.toString() || "",
+            sport: "baseball_mlb"
+          }}
           bookmakers={rawBookmakers}
-          gameId={gameId?.toString() || ""}
+          selectedBet={{
+            market: 'moneyline',
+            selection: proPick?.pickTeam || homeTeam
+          }}
         />
       )}
     </>
