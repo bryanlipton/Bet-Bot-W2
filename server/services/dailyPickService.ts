@@ -809,12 +809,16 @@ export class DailyPickService {
   private calculateMarketInefficiency(odds: number, modelProb: number): number {
     // Calculate market inefficiency using Kelly Criterion concepts
     const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
-    const edge = modelProb - bookmakerProb;
+    let edge = modelProb - bookmakerProb;
+    
+    // REALISTIC CONSTRAINT: Cap edges at ±10% maximum for professional sports betting
+    // Even 10%+ edges are rare in efficient markets; 40%+ edges are unrealistic
+    edge = Math.max(-0.10, Math.min(0.10, edge));
     
     // Enhanced value calculation with multiple market efficiency indicators
     const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
     
-    // FIXED: Market inefficiency with linear scaling based on edge percentage
+    // UPDATED: Market inefficiency with linear scaling based on edge percentage (10% cap)
     // Edge scales from 76 (1% edge) to 99 (10%+ edge) in final 60-100 range
     
     const edgePercentage = Math.abs(edge * 100); // Convert to percentage
@@ -824,12 +828,20 @@ export class DailyPickService {
       // Very small or no edge: 60-75 range
       finalScore = 60 + (edgePercentage * 30); // 0% = 60, 0.5% = 75
     } else if (edgePercentage >= 10) {
-      // 10%+ edge gets maximum score
+      // Maximum realistic edge (10%): 99 score - extremely rare but possible
       finalScore = 99;
+    } else if (edgePercentage >= 6) {
+      // Exceptional inefficiency: 92-98 range
+      finalScore = 92 + ((edgePercentage - 6) / 4 * 6); // 6% = 92, 10% = 98
+    } else if (edgePercentage >= 3) {
+      // Strong inefficiency: 85-91 range
+      finalScore = 85 + ((edgePercentage - 3) / 3 * 6); // 3% = 85, 6% = 91
+    } else if (edgePercentage >= 1) {
+      // Good inefficiency: Linear scaling 1% = 76, 3% = 84
+      finalScore = 76 + ((edgePercentage - 1) * (8 / 2));
     } else {
-      // Linear scaling: 1% = 76, 2% = 78.5, 5% = 86, 10% = 99
-      // Formula: 76 + (edge% - 1) * (23/9)
-      finalScore = 76 + ((edgePercentage - 1) * (23 / 9));
+      // Small edge: 0.5-1%: 75-76 range
+      finalScore = 75 + (edgePercentage - 0.5) * 2;
     }
     
     // Add small Kelly criterion bonus/penalty
@@ -840,6 +852,7 @@ export class DailyPickService {
     finalScore = Math.max(60, Math.min(100, finalScore));
     
     console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${edgePercentage.toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Final Score: ${finalScore.toFixed(1)}`);
+    console.log(`🎯 DEBUG: Raw modelProb: ${modelProb.toFixed(3)}, Bookmaker Prob: ${((odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100))).toFixed(3)}, Odds: ${odds}`);
     return Math.round(finalScore);
   }
 
@@ -862,15 +875,16 @@ export class DailyPickService {
     // Log calculation for transparency
     console.log(`📊 GRADE CALCULATION: Weighted Score = ${overallScore} (Factors: ${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence})`);
     
-    // Use the weighted average for grade assignment - back to 60-100 scale
-    if (overallScore >= 95) return 'A+';
-    if (overallScore >= 90) return 'A';
-    if (overallScore >= 85) return 'B+';
-    if (overallScore >= 80) return 'B';
-    if (overallScore >= 75) return 'C+';
-    if (overallScore >= 70) return 'C';
-    if (overallScore >= 60) return 'D';
-    return 'F';
+    // REALISTIC GRADING SCALE: A+ should be truly exceptional, not easily achievable
+    // Professional sports betting requires much higher standards for top grades
+    if (overallScore >= 98) return 'A+';  // Extremely rare - near perfect conditions
+    if (overallScore >= 94) return 'A';   // Outstanding - all factors aligned
+    if (overallScore >= 89) return 'B+';  // Strong pick - most factors positive
+    if (overallScore >= 83) return 'B';   // Good pick - solid analytical support
+    if (overallScore >= 77) return 'C+';  // Above average - reasonable value
+    if (overallScore >= 70) return 'C';   // Average pick - neutral conditions
+    if (overallScore >= 60) return 'D';   // Below average - limited confidence
+    return 'F';                           // Poor pick - avoid
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
