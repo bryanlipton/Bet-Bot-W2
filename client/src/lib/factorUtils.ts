@@ -221,8 +221,8 @@ export function getMainGradeExplanation(
   pickTeam: string, 
   odds: number
 ): string {
-  // Ensure odds is a number for calculation
-  const oddsNum = typeof odds === 'string' ? parseFloat(odds.replace('+', '')) : odds;
+  // Ensure odds is a number for calculation - handle both positive (+223) and negative (-150) odds
+  const oddsNum = typeof odds === 'string' ? parseFloat(odds) : odds;
   
   // Convert odds to probability (as percentage)
   const marketProbDecimal = oddsNum > 0 ? (100 / (oddsNum + 100)) : (Math.abs(oddsNum) / (Math.abs(oddsNum) + 100));
