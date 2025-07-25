@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock, Zap } from "lucide-react";
+import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle } from "lucide-react";
 import { Link } from 'wouter';
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { buildDeepLink } from '@/utils/deepLinkBuilder';
@@ -57,10 +57,19 @@ export function OddsComparisonModal({
   bookmakers,
   selectedBet
 }: OddsComparisonModalProps) {
-
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{
+    bookmaker: string;
+    odds: number;
+    url: string;
+  } | null>(null);
+  const [units, setUnits] = useState<number>(1);
 
   // Reset state when modal opens/closes
   const handleClose = () => {
+    setShowConfirmation(false);
+    setConfirmationData(null);
+    setUnits(1);
     onClose();
   };
 
@@ -143,11 +152,53 @@ export function OddsComparisonModal({
   const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     if (!bookmakerData) return;
 
-    // Close modal first
-    handleClose();
+    // Store data for confirmation
+    setConfirmationData({
+      bookmaker: bookmakerData.displayName,
+      odds: bookmakerData.odds,
+      url: bookmakerData.url
+    });
     
-    // Open bookmaker in new tab immediately
+    // Open bookmaker in new tab
     window.open(bookmakerData.url, '_blank');
+    
+    // Show confirmation popup after a delay to let user return
+    setTimeout(() => {
+      setShowConfirmation(true);
+    }, 3000); // 3 second delay
+  };
+
+  const handleSaveBet = async () => {
+    if (!confirmationData) return;
+
+    try {
+      const pickData = {
+        game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
+        homeTeam: gameInfo.homeTeam,
+        awayTeam: gameInfo.awayTeam,
+        teamBet: selectedBet.selection,
+        market: selectedBet.market === 'total' ? 
+          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
+          selectedBet.market,
+        line: selectedBet.line?.toString() || null,
+        odds: confirmationData.odds,
+        units: units,
+        bookmaker: 'confirmed',
+        bookmakerDisplayName: confirmationData.bookmaker,
+        gameDate: new Date(gameInfo.gameTime || Date.now())
+      };
+
+      await apiRequest('POST', '/api/user/picks', pickData);
+      handleClose();
+    } catch (error) {
+      console.error('Error saving pick:', error);
+      // Still close the modal even if save fails
+      handleClose();
+    }
+  };
+
+  const handleSkip = () => {
+    handleClose();
   };
 
 
@@ -171,7 +222,8 @@ export function OddsComparisonModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <>
+      <Dialog open={open && !showConfirmation} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -324,5 +376,93 @@ export function OddsComparisonModal({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Confirmation Modal */}
+    <Dialog open={showConfirmation} onOpenChange={() => setShowConfirmation(false)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            Did you place this bet?
+          </DialogTitle>
+          <DialogDescription>
+            Save your bet to track its performance in My Picks
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Bet Details */}
+          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                <div className="font-medium text-green-900 dark:text-green-100">
+                  {gameInfo.awayTeam} @ {gameInfo.homeTeam}
+                </div>
+                <div className="text-sm text-green-700 dark:text-green-300">
+                  {getBetDescription()}
+                </div>
+                <div className="text-sm">
+                  <span className="text-green-600 dark:text-green-400">Odds:</span> {confirmationData ? formatOdds(confirmationData.odds) : ''}
+                </div>
+                <div className="text-sm">
+                  <span className="text-green-600 dark:text-green-400">Bookmaker:</span> {confirmationData?.bookmaker}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Units Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Unit Size
+            </label>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUnits(Math.max(0.5, units - 0.5))}
+                disabled={units <= 0.5}
+              >
+                -
+              </Button>
+              <input
+                type="number"
+                step="0.5"
+                min="0.5"
+                value={units}
+                onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
+                className="w-20 text-center border rounded px-2 py-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUnits(units + 0.5)}
+              >
+                +
+              </Button>
+              <span className="text-sm text-gray-500">units</span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveBet}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            >
+              Save
+            </Button>
+            <Button
+              onClick={handleSkip}
+              variant="outline"
+              className="flex-1"
+            >
+              Skip
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
