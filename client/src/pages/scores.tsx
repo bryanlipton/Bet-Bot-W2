@@ -72,10 +72,10 @@ export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const [darkMode, setDarkMode] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => {
-    // Ensure we start with today's date
-    const today = new Date();
-    console.log('Initial date set to:', today.toDateString());
-    return today;
+    // For now, explicitly set to July 25, 2025 to match the game data
+    const gameDate = new Date('2025-07-25');
+    console.log('Initial date set to:', gameDate.toDateString());
+    return gameDate;
   });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
     gameId: string;
@@ -131,13 +131,15 @@ export default function ScoresPage() {
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date());
+    // Set to July 25, 2025 to match current game data
+    setSelectedDate(new Date('2025-07-25'));
   };
 
   // Fetch real scores data based on selected sport
   const { data: scoresData, isLoading, refetch } = useQuery({
     queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]] : ['/api/scores', selectedSport],
     refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: !!selectedDate, // Only fetch when we have a selected date
   });
 
   const getStatusBadge = (status: string) => {
