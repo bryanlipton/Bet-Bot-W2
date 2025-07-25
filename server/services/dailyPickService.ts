@@ -417,7 +417,9 @@ export class DailyPickService {
   }
 
   private calculateSystemConfidence(dataQuality: { [key: string]: number }): number {
-    // Calculate model confidence based on data availability and quality
+    // Enhanced system confidence calculation using comprehensive data quality assessment
+    
+    // Calculate weighted data completeness score
     const weights = {
       offensiveData: 0.2,     // 20% - Advanced metrics availability
       pitchingData: 0.25,     // 25% - Pitcher information quality
@@ -426,25 +428,71 @@ export class DailyPickService {
       marketData: 0.15        // 15% - Odds and market information
     };
     
-    // Base confidence starts at 75 (good baseline)
-    let confidenceScore = 75;
+    // Calculate weighted average of data quality scores
+    let weightedQualitySum = 0;
+    let totalWeight = 0;
     
-    // Adjust based on data quality scores (each factor: 0-100)
     Object.keys(weights).forEach(key => {
       const quality = dataQuality[key] || 50; // Default to neutral if missing
-      const weightedContribution = (quality - 75) * weights[key as keyof typeof weights];
-      confidenceScore += weightedContribution;
+      const weight = weights[key as keyof typeof weights];
+      weightedQualitySum += quality * weight;
+      totalWeight += weight;
     });
     
-    // Consensus factor: Higher confidence when multiple factors agree
+    const averageDataQuality = weightedQualitySum / totalWeight;
+    
+    // Calculate factor consensus (how much factors agree with each other)
     const factorValues = Object.values(dataQuality);
     const variance = this.calculateVariance(factorValues);
-    const consensusBonus = Math.max(0, (100 - variance) / 10); // Lower variance = higher bonus
+    const consensusStrength = Math.max(0, 100 - variance); // Lower variance = higher consensus
     
-    confidenceScore += consensusBonus;
+    // Calculate data coverage completeness (how many factors have high-quality data)
+    const highQualityFactors = factorValues.filter(val => val >= 80).length;
+    const totalFactors = factorValues.length;
+    const dataCompleteness = (highQualityFactors / totalFactors) * 100;
     
-    console.log(`System confidence: Data quality variance ${variance.toFixed(1)}, Consensus bonus ${consensusBonus.toFixed(1)}, Final: ${confidenceScore.toFixed(1)}`);
-    return this.normalizeToGradingScale(Math.max(0, Math.min(100, confidenceScore)));
+    // Enhanced confidence calculation with multiple components
+    let baseConfidence = 70; // Start with moderate baseline
+    
+    // Data quality component (0-20 points)
+    const qualityBonus = ((averageDataQuality - 50) / 50) * 20;
+    
+    // Consensus component (0-15 points) - when factors align, confidence increases
+    const consensusBonus = (consensusStrength / 100) * 15;
+    
+    // Completeness component (0-10 points) - more high-quality factors = higher confidence
+    const completenessBonus = (dataCompleteness / 100) * 10;
+    
+    // Information reliability premium (0-5 points) - extra confidence for verified real data
+    const reliabilityBonus = factorValues.every(val => val >= 75) ? 5 : 0;
+    
+    const finalConfidence = baseConfidence + qualityBonus + consensusBonus + completenessBonus + reliabilityBonus;
+    
+    // Apply enhanced scoring scale similar to market inefficiency
+    let scaledScore;
+    if (finalConfidence <= 75) {
+      // Poor to average confidence: 60-76 range
+      scaledScore = 60 + ((finalConfidence - 60) * 16 / 15); // 60 = 60, 75 = 76
+    } else if (finalConfidence >= 95) {
+      // Exceptional confidence gets maximum score
+      scaledScore = 100;
+    } else {
+      // Good to excellent confidence: 76-100 range (more granular)
+      // Linear scaling: 76 at 76%, 84 at 82%, 92 at 88%, 100 at 95%+
+      scaledScore = 76 + ((finalConfidence - 76) * 24 / 19); // (100-76) / (95-76)
+    }
+    
+    // Final adjustments for exceptional cases
+    if (consensusStrength >= 95 && averageDataQuality >= 90) {
+      scaledScore = Math.min(100, scaledScore + 3); // Bonus for perfect consensus + excellent data
+    }
+    
+    // Clamp to valid range
+    const result = Math.max(60, Math.min(100, Math.round(scaledScore)));
+    
+    console.log(`🎯 System confidence analysis: Avg Quality ${averageDataQuality.toFixed(1)}, Consensus ${consensusStrength.toFixed(1)}, Completeness ${dataCompleteness.toFixed(0)}%, Final Score: ${result}`);
+    
+    return result;
   }
   
   private calculateVariance(values: number[]): number {

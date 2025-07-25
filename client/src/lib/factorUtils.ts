@@ -182,12 +182,12 @@ function getGradeExplanation(score: number, factorName: string): string {
       return `Negative expected value: Market significantly overpricing our selection with unfavorable betting conditions. Probability analysis indicates bookmakers have inflated odds beyond fair value.`;
     
     case 'System Confidence':
-      if (score >= 95) return `Maximum analytical confidence: Comprehensive data availability, exceptional factor consensus, premium information quality, and robust model agreement providing elite prediction reliability.`;
-      if (score >= 90) return `Outstanding system confidence: Complete data coverage, strong analytical consensus, high-quality sources, and minimal uncertainty across all prediction components.`;
-      if (score >= 80) return `High confidence level: Good data quality, reasonable factor alignment, reliable information sources supporting solid prediction reliability with minor uncertainty.`;
-      if (score >= 75) return `Above-average confidence: Adequate data completeness and acceptable information quality with standard analytical uncertainty within normal ranges for quality sports predictions.`;
-      if (score === 75) return `Moderate confidence: Typical sports prediction uncertainty with mixed signals and standard data limitations creating average reliability expectations.`;
-      return `Limited confidence: Significant analytical uncertainties, substantial data gaps, and information quality issues reducing prediction reliability well below acceptable standards.`;
+      if (score >= 95) return `Maximum analytical confidence: Perfect data consensus across all factors (95%+ agreement), exceptional information quality from verified sources, complete coverage of all analytical components, and robust statistical convergence providing elite prediction reliability with minimal uncertainty.`;
+      if (score >= 90) return `Outstanding system confidence: Strong factor consensus (90%+ alignment), comprehensive high-quality data coverage, excellent source reliability, and solid analytical agreement creating premium prediction reliability with controlled uncertainty levels.`;
+      if (score >= 80) return `High confidence level: Good factor alignment (80%+ consensus), reliable data quality across most components, adequate source verification, and reasonable analytical convergence supporting solid prediction reliability with manageable uncertainty.`;
+      if (score >= 75) return `Above-average confidence: Moderate factor consensus, acceptable data completeness and quality standards, mixed source reliability, and typical analytical uncertainty within normal ranges for professional sports predictions.`;
+      if (score === 75) return `Baseline confidence: Standard sports prediction uncertainty with neutral factor alignment, average data limitations, and typical information gaps creating moderate reliability expectations.`;
+      return `Limited confidence: Poor factor consensus, significant data quality issues, substantial information gaps, and elevated analytical uncertainty reducing prediction reliability below professional standards.`;
     
     default:
       if (score >= 90) return `Elite performance indicators`;
