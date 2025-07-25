@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
 import { getTeamColor } from "@/utils/teamLogos";
 import MobileHeader from "@/components/MobileHeader";
-import DailyPick from "./DailyPick";
-import LoggedInLockPick from "./LoggedInLockPick";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -54,9 +51,6 @@ interface ProcessedGame {
   total?: number;
   startTime?: string;
   sportKey: string;
-  gameId?: any;
-  probablePitchers?: any;
-  venue?: any;
   bookmakers?: Array<{
     name: string;
     homeOdds?: number;
@@ -79,10 +73,16 @@ interface ProcessedGame {
   }>;
 }
 
+
+
+import DailyPick from "./DailyPick";
+import LoggedInLockPick from "./LoggedInLockPick";
+import { useAuth } from "@/hooks/useAuth";
+
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
 
-  const { isAuthenticated, isProUser, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
@@ -104,25 +104,17 @@ export function ActionStyleDashboard() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Fetch lock pick data for regular users OR all Pro picks for Pro users
+  // Fetch lock pick data
   const { data: lockPick } = useQuery({
     queryKey: ['/api/daily-pick/lock'],
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
-    enabled: !isProUser, // Only fetch for non-Pro users
   });
 
-  // Fetch all Pro picks for Pro users
-  const { data: allProPicks } = useQuery({
-    queryKey: ['/api/daily-pick/all-grades'],
-    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
-    enabled: isProUser, // Only fetch for Pro users
+  // Fetch user auth status
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+    refetchInterval: 60 * 1000, // Refresh every minute
   });
-
-  // Debug Pro picks data
-  console.log('🏆 Pro User Status:', isProUser);
-  console.log('📊 All Pro Picks Data:', allProPicks);
-
-  // isAuthenticated and isProUser now comes from useAuth hook above
 
   // Helper function to check if a game matches the daily pick
   const isGameDailyPick = (game: any) => {
@@ -134,27 +126,6 @@ export function ActionStyleDashboard() {
   const isGameLockPick = (game: any) => {
     if (!lockPick) return false;
     return game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam;
-  };
-
-  // Helper function to get Pro pick for a specific game
-  const getProPickForGame = (game: any) => {
-    if (!isProUser || !allProPicks?.picks) return null;
-    
-    console.log('🔍 Looking for Pro pick for game:', game.homeTeam, 'vs', game.awayTeam);
-    console.log('📊 Total Pro picks available:', allProPicks.picks.length);
-    
-    const proPick = allProPicks.picks.find((pick: any) => 
-      (game.homeTeam === pick.homeTeam && game.awayTeam === pick.awayTeam) ||
-      (game.homeTeam === pick.awayTeam && game.awayTeam === pick.homeTeam)
-    );
-    
-    if (proPick) {
-      console.log('✅ Found Pro pick:', proPick.pickTeam, 'Grade:', proPick.grade);
-    } else {
-      console.log('❌ No Pro pick found for this game');
-    }
-    
-    return proPick;
   };
 
   // Process live odds data into game format
@@ -220,10 +191,10 @@ export function ActionStyleDashboard() {
         id: game.id,
         homeTeam: game.home_team,
         awayTeam: game.away_team,
-        homeOdds: homeOutcome?.price || undefined,
-        awayOdds: awayOutcome?.price || undefined,
-        spread: spreadOutcome?.point || undefined,
-        total: totalOutcome?.point || undefined,
+        homeOdds: homeOutcome?.price || null,
+        awayOdds: awayOutcome?.price || null,
+        spread: spreadOutcome?.point || null,
+        total: totalOutcome?.point || null,
         startTime: new Date(game.commence_time).toLocaleString('en-US', { 
           month: 'short',
           day: 'numeric',
@@ -234,9 +205,9 @@ export function ActionStyleDashboard() {
         sportKey: game.sport_key,
         bookmakers,
         rawBookmakers: game.bookmakers, // Include raw bookmakers data for odds comparison
-        gameId: (game as any).gameId || game.id,
-        probablePitchers: (game as any).probablePitchers,
-        venue: (game as any).venue
+        gameId: game.gameId || game.id,
+        probablePitchers: game.probablePitchers,
+        venue: game.venue
       };
     });
     
@@ -244,7 +215,7 @@ export function ActionStyleDashboard() {
     return processedGames;
   };
 
-  const featuredGames = processLiveGames(liveOddsData as LiveOddsGame[] || []);
+  const featuredGames = processLiveGames(liveOddsData || []);
 
   // Mock prediction function (replace with actual API call)
   const getPrediction = (homeTeam: string, awayTeam: string) => {
@@ -297,8 +268,8 @@ export function ActionStyleDashboard() {
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
-            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
-              {isProUser ? 'Pro User' : 'Free Users'}
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
+              Free Users
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
@@ -422,10 +393,10 @@ export function ActionStyleDashboard() {
                   dailyPickTeam={dailyPick?.pickTeam}
                   dailyPickGrade={dailyPick?.grade}
                   dailyPickId={dailyPick?.id}
-                  lockPickTeam={isProUser ? getProPickForGame(game)?.pickTeam : (isGameLockPick(game) ? lockPick?.pickTeam : undefined)}
-                  lockPickGrade={isProUser ? getProPickForGame(game)?.grade : (isGameLockPick(game) ? lockPick?.grade : undefined)}
-                  lockPickId={isProUser ? getProPickForGame(game)?.id : (isGameLockPick(game) ? lockPick?.id : undefined)}
-                  isAuthenticated={isAuthenticated}
+                  lockPickTeam={isGameLockPick(game) ? lockPick?.pickTeam : undefined}
+                  lockPickGrade={isGameLockPick(game) ? lockPick?.grade : undefined}
+                  lockPickId={isGameLockPick(game) ? lockPick?.id : undefined}
+                  isAuthenticated={!!user}
                   rawBookmakers={game.rawBookmakers}
                 />
               ))}

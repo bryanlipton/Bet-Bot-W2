@@ -89,52 +89,6 @@ export function registerDailyPickRoutes(app: Express) {
     }
   });
 
-  // Pro endpoint: Get all picks with full grade spectrum (A+ through D/F)
-  app.get("/api/daily-pick/all-grades", isAuthenticated, async (req: Request, res: Response) => {
-    try {
-      // Get today's games
-      const gamesResponse = await fetch('http://localhost:5000/api/mlb/complete-schedule');
-      const games = await gamesResponse.json();
-      
-      // Filter for upcoming games with odds
-      const today = new Date();
-      const todaysGames = games.filter((game: any) => {
-        const gameDate = new Date(game.commence_time);
-        const daysDiff = Math.floor((gameDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        return daysDiff >= 0 && daysDiff <= 3 && game.hasOdds;
-      });
-
-      if (todaysGames.length === 0) {
-        return res.status(400).json({ error: "No games with odds available" });
-      }
-
-      // Generate picks for ALL games to show full grade spectrum
-      const allPicks = await dailyPickService.generateAllGamePicks(todaysGames);
-      
-      // Sort by grade (A+ first, F last) to show quality distribution
-      const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F'];
-      const sortedPicks = allPicks.sort((a, b) => {
-        return gradeOrder.indexOf(a.grade) - gradeOrder.indexOf(b.grade);
-      });
-      
-      // Add grade distribution summary for Pro analytics
-      const gradeDistribution = gradeOrder.reduce((acc, grade) => {
-        acc[grade] = sortedPicks.filter(pick => pick.grade === grade).length;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      res.json({ 
-        picks: sortedPicks,
-        gradeDistribution,
-        totalPicks: sortedPicks.length,
-        message: "Pro Version: Full grade spectrum analysis (A+ through D/F)" 
-      });
-    } catch (error) {
-      console.error("Failed to get all grades:", error);
-      res.status(500).json({ error: "Failed to generate full grade analysis" });
-    }
-  });
-
   // Test grading endpoint (development only)
   app.post("/api/daily-pick/test-new-grading", async (req: Request, res: Response) => {
     try {
