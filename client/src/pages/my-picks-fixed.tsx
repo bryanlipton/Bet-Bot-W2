@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Target, 
   ExternalLink, 
@@ -18,7 +19,8 @@ import {
   Edit3,
   Save,
   X,
-  Plus
+  Plus,
+  Settings
 } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 
@@ -28,6 +30,9 @@ export default function MyPicksPageFixed() {
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
+  const [showUnitDialog, setShowUnitDialog] = useState(false);
+  const [betUnit, setBetUnit] = useState(50);
+  const [tempBetUnit, setTempBetUnit] = useState('50');
 
   // Initialize dark mode from localStorage (default to dark mode)
   useEffect(() => {
@@ -54,6 +59,20 @@ export default function MyPicksPageFixed() {
     queryKey: ['/api/user/picks'],
     enabled: isAuthenticated
   });
+
+  // Get user preferences for bet unit
+  const { data: userPreferences } = useQuery({
+    queryKey: ['/api/user/preferences'],
+    enabled: isAuthenticated
+  });
+
+  // Set bet unit from user preferences
+  useEffect(() => {
+    if (userPreferences && (userPreferences as any).betUnit) {
+      setBetUnit((userPreferences as any).betUnit);
+      setTempBetUnit((userPreferences as any).betUnit.toString());
+    }
+  }, [userPreferences]);
 
   // Authentication guard
   if (!isAuthenticated && !authLoading) {
@@ -207,6 +226,29 @@ export default function MyPicksPageFixed() {
     setTempOdds('');
   };
 
+  const handleSaveBetUnit = async () => {
+    const newBetUnit = parseFloat(tempBetUnit);
+    if (isNaN(newBetUnit) || newBetUnit <= 0) {
+      alert('Please enter a valid unit size (e.g., 50, 100)');
+      return;
+    }
+
+    try {
+      await apiRequest('/api/user/preferences', {
+        method: 'PUT',
+        body: JSON.stringify({ betUnit: newBetUnit }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      setBetUnit(newBetUnit);
+      setShowUnitDialog(false);
+    } catch (error) {
+      console.error('Error updating bet unit:', error);
+      alert('Failed to update unit size. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
@@ -240,12 +282,23 @@ export default function MyPicksPageFixed() {
 
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Record</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5 text-purple-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Record</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
+                  </div>
                 </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowUnitDialog(true)}
+                  className="ml-2"
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  Set Unit Size
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -356,6 +409,50 @@ export default function MyPicksPageFixed() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Set Unit Size Dialog */}
+      <Dialog open={showUnitDialog} onOpenChange={setShowUnitDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Set Unit Size
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Set your betting unit size in dollars. This will be used to calculate bet amounts when you select units for picks.
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium">$</span>
+                <Input
+                  type="number"
+                  value={tempBetUnit}
+                  onChange={(e) => setTempBetUnit(e.target.value)}
+                  placeholder="50"
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-500">per unit</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Current: ${betUnit} per unit
+              </p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowUnitDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveBetUnit}>
+                Save Unit Size
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
