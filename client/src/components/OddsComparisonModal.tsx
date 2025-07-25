@@ -10,7 +10,7 @@ import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
 import { databasePickStorage } from '@/services/databasePickStorage';
 import { Pick } from '@/types/picks';
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface BookmakerOdds {
   key: string;
@@ -189,6 +189,11 @@ export function OddsComparisonModal({
       };
 
       await apiRequest('POST', '/api/user/picks', pickData);
+      
+      // Invalidate cache to refresh My Picks page
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
+      
       handleClose();
     } catch (error) {
       console.error('Error saving pick:', error);
