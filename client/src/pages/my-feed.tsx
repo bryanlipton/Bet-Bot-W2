@@ -207,9 +207,7 @@ export default function MyFeedPage() {
                     <div className="flex-shrink-0">
                       <UserAvatar 
                         user={{
-                          avatar: pick.userAvatar?.split('|')[0] || pick.userAvatar, // Extract emoji from "🦁|bg-gray-200 dark:bg-gray-300" format
-                          username: pick.username,
-                          profileImageUrl: null
+                          username: pick.username
                         }}
                         size="md"
                       />

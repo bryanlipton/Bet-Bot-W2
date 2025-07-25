@@ -864,8 +864,6 @@ export default function ProfilePage() {
                           {/* User Avatar */}
                           <UserAvatar 
                             user={{
-                              profileImageUrl: user.profileImageUrl,
-                              avatar: user.avatar,
                               username: user.username,
                               firstName: user.firstName
                             }}

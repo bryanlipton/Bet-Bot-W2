@@ -177,25 +177,15 @@ export default function UserProfilePage({ userId }: UserProfilePageProps) {
     }
   };
 
-  const renderAvatar = (avatarString?: string, username?: string) => {
-    if (avatarString?.includes('|')) {
-      // New format: emoji|background
-      const [emoji, backgroundClass] = avatarString.split('|');
-      return (
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 border-gray-200 dark:border-gray-600 ${backgroundClass}`}>
-          <span className="text-4xl">{emoji}</span>
-        </div>
-      );
-    } else {
-      return (
-        <Avatar className="w-24 h-24">
-          <AvatarImage src={avatarString} alt={username} />
-          <AvatarFallback className="bg-blue-600 text-white text-2xl">
-            {username?.charAt(0).toUpperCase() || 'U'}
-          </AvatarFallback>
-        </Avatar>
-      );
-    }
+  // Simple letter initial avatar - no complex avatar system
+  const renderAvatar = (username?: string) => {
+    return (
+      <UserAvatar 
+        user={{ username: username }}
+        size="xl"
+        className="border-4 border-gray-200 dark:border-gray-600"
+      />
+    );
   };
 
   const formatDate = (dateString: string) => {

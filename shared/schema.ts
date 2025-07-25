@@ -20,7 +20,6 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
-  avatar: text("avatar"), // Emoji avatar selection (🐱, 🐶, etc.)
   googleId: text("google_id").unique(), // For backwards compatibility
   // Social profile features
   username: text("username").unique(),

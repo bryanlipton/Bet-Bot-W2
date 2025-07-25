@@ -1,11 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAnimalAvatarByEmoji } from '@/data/avatars';
-import { User } from "lucide-react";
-
 interface UserAvatarProps {
   user?: {
-    profileImageUrl?: string | null;
-    avatar?: string | null;
     username?: string;
     firstName?: string;
   };
@@ -15,61 +9,36 @@ interface UserAvatarProps {
 
 export default function UserAvatar({ user, size = "md", className = "" }: UserAvatarProps) {
   const sizeClasses = {
-    sm: "h-8 w-8",
-    md: "h-10 w-10", 
-    lg: "h-12 w-12",
-    xl: "h-16 w-16"
+    sm: "h-8 w-8 text-sm",
+    md: "h-10 w-10 text-base", 
+    lg: "h-12 w-12 text-lg",
+    xl: "h-16 w-16 text-xl"
   };
 
-  const textSizes = {
-    sm: "text-xs",
-    md: "text-sm",
-    lg: "text-base", 
-    xl: "text-lg"
+  const getInitial = () => {
+    return user?.username?.[0]?.toUpperCase() || user?.firstName?.[0]?.toUpperCase() || '?';
   };
 
-  console.log('UserAvatar rendering:', { 
-    avatar: user?.avatar, 
-    profileImageUrl: user?.profileImageUrl,
-    username: user?.username 
-  });
+  // Generate a consistent color based on username
+  const getColorFromName = (name: string) => {
+    const colors = [
+      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 
+      'bg-yellow-500', 'bg-indigo-500', 'bg-pink-500', 'bg-teal-500',
+      'bg-orange-500', 'bg-cyan-500', 'bg-emerald-500', 'bg-violet-500'
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
 
-  // Priority 1: If user has an emoji avatar, use that with colored background
-  if (user?.avatar && user?.avatar.length <= 2) { // Emoji check
-    const avatarData = getAnimalAvatarByEmoji(user.avatar);
-    console.log('Using emoji avatar:', user.avatar, avatarData);
-    return (
-      <div 
-        className={`${sizeClasses[size]} ${className} rounded-full flex items-center justify-center text-white font-bold ${textSizes[size]}`}
-        style={{ backgroundColor: avatarData?.background || '#6B7280' }}
-      >
-        <span className="text-lg">{user.avatar}</span>
-      </div>
-    );
-  }
+  const backgroundColor = getColorFromName(user?.username || user?.firstName || 'default');
 
-  // Priority 2: If user has a profile image URL and no emoji avatar, use that
-  if (user?.profileImageUrl && !user?.avatar) {
-    console.log('Using profile image URL:', user.profileImageUrl);
-    return (
-      <Avatar className={`${sizeClasses[size]} ${className}`}>
-        <AvatarImage src={user.profileImageUrl} alt={user.username || user.firstName || "User"} />
-        <AvatarFallback className={textSizes[size]}>
-          <User className="h-4 w-4" />
-        </AvatarFallback>
-      </Avatar>
-    );
-  }
-
-  // Fallback to username initial or User icon
-  const initial = user?.username?.[0]?.toUpperCase() || user?.firstName?.[0]?.toUpperCase();
-  console.log('Using fallback initial:', initial);
-  
   return (
-    <Avatar className={`${sizeClasses[size]} ${className}`}>
-      <AvatarFallback className={textSizes[size]}>
-        {initial || <User className="h-4 w-4" />}
-      </AvatarFallback>
-    </Avatar>
+    <div className={`${sizeClasses[size]} ${backgroundColor} ${className} rounded-full flex items-center justify-center font-semibold text-white`}>
+      {getInitial()}
+    </div>
   );
 }
