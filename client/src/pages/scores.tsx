@@ -179,7 +179,8 @@ export default function ScoresPage() {
   const sortedGames = useMemo(() => {
     if (!scoresData || !Array.isArray(scoresData)) return [];
 
-    const selectedDateStr = selectedDate.toDateString();
+    // More robust date filtering - compare by YYYY-MM-DD format
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
     
     // Filter games for selected date
     const dayGames = scoresData.filter((game: any) => {
@@ -187,10 +188,15 @@ export default function ScoresPage() {
       const gameTime = game.startTime || game.commence_time || game.gameDate;
       if (!gameTime) return false;
       
-      // Convert both game time and selected date to date strings for comparison
+      // Convert game time to YYYY-MM-DD format for accurate comparison
       const gameDate = new Date(gameTime);
-      const gameDateStr = gameDate.toDateString();
-      return gameDateStr === selectedDateStr;
+      const gameDateStr = gameDate.toISOString().split('T')[0];
+      
+      // Also check if the game date is within 24 hours of selected date (for timezone edge cases)
+      const timeDiff = Math.abs(gameDate.getTime() - selectedDate.getTime());
+      const isWithin24Hours = timeDiff < 24 * 60 * 60 * 1000;
+      
+      return gameDateStr === selectedDateStr || isWithin24Hours;
     });
 
     // Convert to ScoreGame format
