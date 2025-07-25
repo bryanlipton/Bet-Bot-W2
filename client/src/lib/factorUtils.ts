@@ -221,18 +221,23 @@ export function getMainGradeExplanation(
   pickTeam: string, 
   odds: number
 ): string {
-  const marketProb = odds > 0 ? (100 / (odds + 100)) * 100 : (Math.abs(odds) / (Math.abs(odds) + 100)) * 100;
-  const modelProb = marketProb + ((analysis.marketInefficiency - 75) * 0.2);
+  // Convert odds to probability (as percentage)
+  const marketProbDecimal = odds > 0 ? (100 / (odds + 100)) : (Math.abs(odds) / (Math.abs(odds) + 100));
+  const marketProb = marketProbDecimal * 100; // Convert to percentage
+  
+  // Calculate model probability with edge from market inefficiency 
+  const inefficiencyEdge = (analysis.marketInefficiency - 75) * 0.2; // Convert score to edge percentage
+  const modelProb = marketProb + inefficiencyEdge;
   const edge = modelProb - marketProb;
   const oddsDisplay = odds > 0 ? `+${odds}` : `${odds}`;
 
   const factors = [
-    { name: 'Offensive Production', score: analysis.offensiveProduction },
-    { name: 'Pitching Matchup', score: analysis.pitchingMatchup },
-    { name: 'Situational Edge', score: analysis.situationalEdge },
-    { name: 'Team Momentum', score: analysis.teamMomentum },
-    { name: 'Market Inefficiency', score: analysis.marketInefficiency },
-    { name: 'System Confidence', score: analysis.systemConfidence }
+    { name: 'Offensive Production', score: analysis.offensiveProduction || 0 },
+    { name: 'Pitching Matchup', score: analysis.pitchingMatchup || 0 },
+    { name: 'Situational Edge', score: analysis.situationalEdge || 0 },
+    { name: 'Team Momentum', score: analysis.teamMomentum || 0 },
+    { name: 'Market Inefficiency', score: analysis.marketInefficiency || 0 },
+    { name: 'System Confidence', score: analysis.systemConfidence || 0 }
   ];
   
   const eliteFactors = factors.filter(f => f.score >= 90).length;
@@ -241,19 +246,19 @@ export function getMainGradeExplanation(
   // Create grade-specific confident opening statements
   let explanation = '';
   if (grade === 'A+' || grade === 'A') {
-    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical certainty - our highest conviction ${grade} play. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical certainty - our highest conviction ${grade} play.\n\n`;
   } else if (grade === 'B+' || grade === 'B') {
-    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model certainty and exceptional ${grade} value potential. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model certainty and exceptional ${grade} value potential.\n\n`;
   } else if (grade === 'C+' || grade === 'C') {
-    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical confidence and solid ${grade} betting value. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% analytical confidence and solid ${grade} betting value.\n\n`;
   } else {
-    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model support as a calculated ${grade} opportunity. `;
+    explanation = `Our model shows that ${pickTeam} is a profitable pick with ${confidence}% model support as a calculated ${grade} opportunity.\n\n`;
   }
   
   explanation += `Our analysis shows the market odds of ${oddsDisplay} imply a ${marketProb.toFixed(1)}% win probability, `;
-  explanation += `while our model projects ${modelProb.toFixed(1)}%, creating a ${edge.toFixed(1)}% edge. `;
+  explanation += `while our model projects ${modelProb.toFixed(1)}%, creating a ${edge.toFixed(1)}% edge.\n\n`;
   
-  explanation += `The pick earned ${eliteFactors} elite scores (90+) and ${strongFactors} strong scores (80+) across our six analytical factors. `;
+  explanation += `The pick earned ${eliteFactors} elite scores (90+) and ${strongFactors} strong scores (80+) across our six analytical factors.\n\n`;
   
   // Add specific statistical highlights
   const highlights = [];
@@ -274,7 +279,7 @@ export function getMainGradeExplanation(
   }
   
   if (highlights.length > 0) {
-    explanation += `Key strengths include ${highlights.join(', ')}. `;
+    explanation += `Key strengths include ${highlights.join(', ')}.\n\n`;
   }
   
   if (confidence >= 90) {
