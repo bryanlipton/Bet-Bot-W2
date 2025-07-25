@@ -1,11 +1,13 @@
 import { Express, Request, Response } from "express";
 
 interface MLBScore {
-  gameId: number;
+  gamePk: number;
+  gameId?: number;
   gameDate: string;
   status: {
     abstractGameState: string;
     detailedState: string;
+    statusCode: string;
   };
   teams: {
     away: {
@@ -24,6 +26,12 @@ interface MLBScore {
   linescore?: {
     currentInning?: number;
     inningState?: string;
+    balls?: number;
+    strikes?: number;
+    outs?: number;
+  };
+  venue?: {
+    name: string;
   };
 }
 
@@ -49,9 +57,9 @@ export function registerScoresRoutes(app: Express) {
       
       console.log(`Fetching MLB scores for date: ${date}`);
       
-      // Use MLB Stats API for scores
+      // Use enhanced MLB Stats API for live scores with detailed hydration
       const response = await fetch(
-        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team,linescore`
+        `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=team,linescore,venue,probablePitcher,weather`
       );
       
       if (!response.ok) {
@@ -62,16 +70,25 @@ export function registerScoresRoutes(app: Express) {
       
       const scores = data.dates.flatMap(date => 
         date.games.map((game, index) => ({
-          id: `mlb_${game.gamePk || game.gameId || `${date.date}_${index}`}`,
-          gameId: game.gamePk || game.gameId || `${date.date}_${index}`,
+          id: `mlb_${game.gamePk}`,
+          gameId: game.gamePk,
           homeTeam: game.teams.home.team.name,
           awayTeam: game.teams.away.team.name,
           homeScore: game.teams.home.score,
           awayScore: game.teams.away.score,
           status: game.status.detailedState,
           abstractGameState: game.status.abstractGameState,
+          statusCode: game.status.statusCode,
           startTime: game.gameDate,
-          inning: game.linescore?.currentInning ? `${game.linescore.currentInning}${game.linescore.inningState?.charAt(0) || ''}` : undefined,
+          venue: game.venue?.name,
+          inning: game.linescore?.currentInning ? `${game.linescore.inningState || ''} ${game.linescore.currentInning}` : undefined,
+          linescore: game.linescore ? {
+            currentInning: game.linescore.currentInning,
+            inningState: game.linescore.inningState,
+            balls: game.linescore.balls,
+            strikes: game.linescore.strikes,
+            outs: game.linescore.outs
+          } : undefined,
           sportKey: 'baseball_mlb'
         }))
       );
@@ -95,7 +112,7 @@ export function registerScoresRoutes(app: Express) {
         const startDate = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // Last 15 days for proper L10 calculation
         
         const response = await fetch(
-          `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${today}&hydrate=team,linescore`
+          `https://statsapi.mlb.com/api/v1/schedule?sportId=1&startDate=${startDate}&endDate=${today}&hydrate=team,linescore,venue,probablePitcher`
         );
         
         if (!response.ok) {
@@ -106,14 +123,24 @@ export function registerScoresRoutes(app: Express) {
         
         const scores = data.dates.flatMap(date => 
           date.games.map(game => ({
-            id: `mlb_${game.gameId}`,
+            id: `mlb_${game.gamePk}`,
+            gameId: game.gamePk,
             homeTeam: game.teams.home.team.name,
             awayTeam: game.teams.away.team.name,
             homeScore: game.teams.home.score,
             awayScore: game.teams.away.score,
             status: game.status.detailedState,
+            abstractGameState: game.status.abstractGameState,
             startTime: game.gameDate,
-            inning: game.linescore?.currentInning ? `${game.linescore.currentInning}${game.linescore.inningState?.charAt(0) || ''}` : undefined,
+            venue: game.venue?.name,
+            inning: game.linescore?.currentInning ? `${game.linescore.inningState || ''} ${game.linescore.currentInning}` : undefined,
+            linescore: game.linescore ? {
+              currentInning: game.linescore.currentInning,
+              inningState: game.linescore.inningState,
+              balls: game.linescore.balls,
+              strikes: game.linescore.strikes,
+              outs: game.linescore.outs
+            } : undefined,
             sportKey: 'baseball_mlb'
           }))
         );

@@ -74,7 +74,6 @@ export default function ScoresPage() {
   const [selectedDate, setSelectedDate] = useState(() => {
     // Force to July 25, 2025 since we know the games are for this date
     const correctDate = new Date(2025, 6, 25); // Month is 0-indexed, so 6 = July
-    console.log('FIXED: Initial date set to:', correctDate.toDateString());
     return correctDate;
   });
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
@@ -136,10 +135,10 @@ export default function ScoresPage() {
     setSelectedDate(gameDay);
   };
 
-  // Fetch real scores data based on selected sport
+  // Fetch real scores data based on selected sport with live updates
   const { data: scoresData, isLoading, refetch } = useQuery({
     queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', selectedDate.toISOString().split('T')[0]] : ['/api/scores', selectedSport],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 15000, // Refresh every 15 seconds for live updates
     enabled: !!selectedDate, // Only fetch when we have a selected date
   });
 
@@ -178,9 +177,6 @@ export default function ScoresPage() {
   const sortedGames = useMemo(() => {
     if (!scoresData || !Array.isArray(scoresData)) return [];
 
-    console.log('ScoresData:', scoresData.length, 'games');
-    console.log('Selected date:', selectedDate.toDateString());
-    
     const selectedDateStr = selectedDate.toDateString();
     
     // Filter games for selected date
@@ -192,11 +188,8 @@ export default function ScoresPage() {
       // Convert both game time and selected date to date strings for comparison
       const gameDate = new Date(gameTime);
       const gameDateStr = gameDate.toDateString();
-      console.log('Game date:', gameDateStr, 'vs selected:', selectedDateStr);
       return gameDateStr === selectedDateStr;
     });
-    
-    console.log('Filtered games:', dayGames.length);
 
     // Convert to ScoreGame format
     const processedGames: ScoreGame[] = dayGames.map((game: any) => {
