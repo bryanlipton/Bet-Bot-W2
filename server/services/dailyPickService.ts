@@ -4,6 +4,7 @@ import { dailyPicks, loggedInLockPicks } from '../../shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { dataVerificationService } from './dataVerificationService';
 import { pickStabilityService } from './pickStabilityService';
+import { gradeStabilityService } from './gradeStabilityService';
 
 const MLB_API_BASE_URL = "https://statsapi.mlb.com/api/v1";
 
@@ -1134,6 +1135,57 @@ export class DailyPickService {
 
     for (const game of eligibleGames) {
       try {
+        // Check if we have a stable grade for this game
+        const gameInfo = {
+          gameId: game.id || game.gameId,
+          homeTeam: game.home_team,
+          awayTeam: game.away_team,
+          gameTime: game.commence_time,
+          homePitcher: game.probablePitchers?.home,
+          awayPitcher: game.probablePitchers?.away,
+          homeLineup: game.homeLineup,
+          awayLineup: game.awayLineup
+        };
+
+        const stableGrade = gradeStabilityService.getStableGrade(gameInfo.gameId);
+        
+        if (stableGrade && !gradeStabilityService.shouldGenerateGrade(gameInfo)) {
+          // Use existing stable grade
+          console.log(`🔒 Using stable grade for ${game.home_team} vs ${game.away_team}: ${stableGrade.grade}`);
+          
+          const stablePick: DailyPick = {
+            id: stableGrade.gameId,
+            gameId: stableGrade.gameId,
+            homeTeam: gameInfo.homeTeam,
+            awayTeam: gameInfo.awayTeam,
+            pickTeam: stableGrade.pickTeam,
+            pickType: 'moneyline',
+            odds: stableGrade.odds,
+            grade: stableGrade.grade as any,
+            confidence: stableGrade.confidence,
+            reasoning: stableGrade.reasoning,
+            analysis: stableGrade.analysis,
+            gameTime: gameInfo.gameTime,
+            venue: game.venue || 'TBA',
+            probablePitchers: {
+              home: gameInfo.homePitcher,
+              away: gameInfo.awayPitcher
+            },
+            createdAt: new Date().toISOString(),
+            pickDate: new Date().toISOString().split('T')[0]
+          };
+          
+          allPicks.push(stablePick);
+          continue;
+        }
+
+        // Generate new grade if needed
+        if (!gradeStabilityService.shouldGenerateGrade(gameInfo)) {
+          console.log(`⏸️ Skipping grade generation for ${game.home_team} vs ${game.away_team}: waiting for more info`);
+          continue;
+        }
+
+        console.log(`🔄 Generating new grade for ${game.home_team} vs ${game.away_team}`);
         // Get AI prediction for this game
         const predictionResponse = await fetch(`http://localhost:5000/api/baseball/predict`, {
           method: 'POST',
@@ -1213,6 +1265,17 @@ export class DailyPickService {
           createdAt: new Date().toISOString(),
           pickDate: new Date().toISOString().split('T')[0]
         };
+
+        // Lock this grade in the stability service
+        gradeStabilityService.lockGrade(
+          gameInfo,
+          dailyPick.grade,
+          dailyPick.confidence,
+          dailyPick.reasoning,
+          dailyPick.analysis,
+          dailyPick.pickTeam,
+          dailyPick.odds
+        );
 
         allPicks.push(dailyPick);
         console.log(`✅ Added BetBot pick: ${dailyPick.pickTeam} (${dailyPick.grade}) for ${game.home_team} vs ${game.away_team}`);
