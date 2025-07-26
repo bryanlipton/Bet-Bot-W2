@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, Target } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
-import { getGradeColorClasses } from "@/lib/factorUtils";
+import { getGradeColorClasses, scoreToGrade } from "@/lib/factorUtils";
+import { ColoredProgress } from "@/components/ui/colored-progress";
 
 interface ProPickData {
   gameId: string;
@@ -48,10 +49,35 @@ interface ProGameCardProps {
   }>;
 }
 
-// Pro Grade Bubble with info button
+// Pro Grade Bubble with factor analysis modal
 function ProGradeBubble({ grade, proPick }: { grade: string; proPick?: ProPickData }) {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const colorClasses = getGradeColorClasses(grade);
+  
+  // Extract factor scores from proPick if available
+  const getFactors = () => {
+    if (!proPick?.analysis) {
+      // Default factors if no analysis available
+      return [
+        { key: 'marketInefficiency', title: 'Market Edge', score: 75, info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.' },
+        { key: 'situationalEdge', title: 'Situational Edge', score: 75, info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.' },
+        { key: 'pitchingMatchup', title: 'Pitching Matchup', score: 75, info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.' },
+        { key: 'teamMomentum', title: 'Team Momentum', score: 75, info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.' },
+        { key: 'systemConfidence', title: 'System Confidence', score: 75, info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.' },
+        { key: 'offensiveProduction', title: 'Offensive Production', score: 75, info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.' }
+      ];
+    }
+    
+    const analysis = proPick.analysis;
+    return [
+      { key: 'marketInefficiency', title: 'Market Edge', score: analysis.marketInefficiency || 75, info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.' },
+      { key: 'situationalEdge', title: 'Situational Edge', score: analysis.situationalEdge || 75, info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.' },
+      { key: 'pitchingMatchup', title: 'Pitching Matchup', score: analysis.pitchingMatchup || 75, info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.' },
+      { key: 'teamMomentum', title: 'Team Momentum', score: analysis.teamMomentum || 75, info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.' },
+      { key: 'systemConfidence', title: 'System Confidence', score: analysis.systemConfidence || 75, info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.' },
+      { key: 'offensiveProduction', title: 'Offensive Production', score: analysis.offensiveProduction || 75, info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.' }
+    ];
+  };
   
   return (
     <>
@@ -96,10 +122,19 @@ function ProGradeBubble({ grade, proPick }: { grade: string; proPick?: ProPickDa
                 </div>
                 
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                  <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {proPick.reasoning}
-                  </p>
+                  <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                  <div className="space-y-3">
+                    {getFactors().map(({ key, title, score, info }) => (
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">{title}</span>
+                          <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                        </div>
+                        <ColoredProgress value={score} className="h-2" />
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </DialogContent>
