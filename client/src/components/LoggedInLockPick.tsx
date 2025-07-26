@@ -647,11 +647,11 @@ export default function LoggedInLockPick() {
     const formattedOdds = pickOdds > 0 ? `+${pickOdds}` : `${pickOdds}`;
     
     return (
-      <Card className="w-full relative">
+      <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
         {/* Win/Loss Badge */}
         {lockPick.status && lockPick.status !== 'pending' && (
-          <div className="absolute top-2 right-2 z-10">
-            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+          <div className="absolute top-3 right-3 z-10">
+            <div className={`px-3 py-1 rounded-full text-sm font-bold text-white shadow-lg ${
               lockPick.status === 'won' ? 'bg-green-500' : 'bg-red-500'
             }`}>
               {lockPick.status.toUpperCase()}
@@ -659,28 +659,35 @@ export default function LoggedInLockPick() {
           </div>
         )}
         
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-1">
-                <BetBotIcon className="w-8 h-8" />
-                <Lock className="w-4 h-4 text-amber-500" />
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0 relative">
+                <BetBotIcon className="w-12 h-12 rounded-lg shadow-md" />
+                <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400 absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-1" />
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1">
-                  Logged In Lock
-                </h3>
-                <p className="text-sm text-gray-900 dark:text-white">
-                  The Logged In Lock was <strong>{lockPick.pickTeam} ML {formattedOdds}</strong>
-                </p>
-                <div className="flex items-center space-x-2 mt-2">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <h3 className="text-lg font-bold text-amber-700 dark:text-amber-400">
+                    Logged In Lock
+                  </h3>
                   <GradeBadge grade={lockPick.grade} />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg text-gray-900 dark:text-white font-medium">
+                    The lock was <span className="font-bold text-amber-700 dark:text-amber-400">{lockPick.pickTeam} ML {formattedOdds}</span>
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {lockPick.awayTeam} @ {lockPick.homeTeam} • {formatGameTime(lockPick.gameTime)}
+                  </p>
+                </div>
+                <div className="mt-3">
                   <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        variant="ghost" 
+                        variant="outline" 
                         size="sm" 
-                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 p-0 h-auto"
+                        className="text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-300 dark:border-amber-600"
                       >
                         View Analysis
                       </Button>
@@ -733,10 +740,10 @@ export default function LoggedInLockPick() {
               </div>
             </div>
             
-            <div>
+            <div className="flex-shrink-0">
               <Link href="/scores">
-                <Button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white">
-                  <ExternalLink className="w-4 h-4" />
+                <Button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold">
+                  <ExternalLink className="w-5 h-5" />
                   <span>Check Live Scores</span>
                 </Button>
               </Link>
