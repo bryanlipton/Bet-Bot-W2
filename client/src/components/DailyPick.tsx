@@ -779,7 +779,7 @@ export default function DailyPick() {
               <div className="flex items-center space-x-4">
                 <BetBotIcon className="w-12 h-12" />
                 <div className="flex items-center space-x-3">
-                  <h3 className="text-xl font-bold text-blue-700 dark:text-blue-400">
+                  <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-400">
                     Pick of the Day
                   </h3>
                   <GradeBadge grade={dailyPick.grade} />
@@ -789,8 +789,8 @@ export default function DailyPick() {
             
             {/* Pick Information - Main Content */}
             <div className="space-y-4 flex-1">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                The pick was <span className="text-blue-700 dark:text-blue-400">{dailyPick.pickTeam} ML {formattedOdds}</span>
+              <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                The pick was <span className="text-lg text-blue-700 dark:text-blue-400">{dailyPick.pickTeam} ML {formattedOdds}</span>
               </p>
               <p className="text-base text-gray-600 dark:text-gray-400">
                 {dailyPick.awayTeam} @ {dailyPick.homeTeam}

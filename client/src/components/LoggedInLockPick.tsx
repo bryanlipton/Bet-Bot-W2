@@ -669,7 +669,7 @@ export default function LoggedInLockPick() {
                   <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400 absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-1" />
                 </div>
                 <div className="flex items-center space-x-3">
-                  <h3 className="text-xl font-bold text-amber-700 dark:text-amber-400">
+                  <h3 className="text-2xl font-bold text-amber-700 dark:text-amber-400">
                     Logged In Lock
                   </h3>
                   <GradeBadge grade={lockPick.grade} />
@@ -679,8 +679,8 @@ export default function LoggedInLockPick() {
             
             {/* Pick Information - Main Content */}
             <div className="space-y-4 flex-1">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                The lock was <span className="text-amber-700 dark:text-amber-400">{lockPick.pickTeam} ML {formattedOdds}</span>
+              <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                The lock was <span className="text-lg text-amber-700 dark:text-amber-400">{lockPick.pickTeam} ML {formattedOdds}</span>
               </p>
               <p className="text-base text-gray-600 dark:text-gray-400">
                 {lockPick.awayTeam} @ {lockPick.homeTeam}
