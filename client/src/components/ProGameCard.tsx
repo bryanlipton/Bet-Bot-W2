@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getTeamColor } from "@/utils/teamLogos";
 import { Clock, Target } from "lucide-react";
 import { OddsComparisonModal } from "./OddsComparisonModal";
@@ -47,19 +48,65 @@ interface ProGameCardProps {
   }>;
 }
 
-// Pro Grade Bubble - same style as ActionStyleGameCard
-function ProGradeBubble({ grade }: { grade: string }) {
+// Pro Grade Bubble with info button
+function ProGradeBubble({ grade, proPick }: { grade: string; proPick?: ProPickData }) {
+  const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const colorClasses = getGradeColorClasses(grade);
   
   return (
-    <div 
-      className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border`}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <span className="text-xs font-bold">
-        {grade}
-      </span>
-    </div>
+    <>
+      <div className="relative">
+        <div 
+          className={`${colorClasses.bg} ${colorClasses.text} ${colorClasses.border} w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="text-xs font-bold">
+            {grade}
+          </span>
+        </div>
+        {proPick && (
+          <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute -top-1 -right-1 p-1 h-3 w-3 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="text-[8px] font-bold">i</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <Target className="w-6 h-6" />
+                  <span>Pro Pick Analysis: {grade} Grade</span>
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3">Pick Details</h4>
+                  <div className="space-y-2 text-sm">
+                    <div><strong>Game:</strong> {proPick.awayTeam} @ {proPick.homeTeam}</div>
+                    <div><strong>Pick:</strong> {proPick.pickTeam} ML {proPick.odds > 0 ? `+${proPick.odds}` : proPick.odds}</div>
+                    <div><strong>Grade:</strong> {proPick.grade}</div>
+                    <div><strong>Confidence:</strong> {proPick.confidence}%</div>
+                  </div>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                  <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {proPick.reasoning}
+                  </p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -174,7 +221,7 @@ export function ProGameCard({
                 {proPickLoading ? (
                   <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-8 h-8 rounded-lg"></div>
                 ) : isProPickTeam(awayTeam) ? (
-                  <ProGradeBubble grade={proPick?.grade || "C+"} />
+                  <ProGradeBubble grade={proPick?.grade || "C+"} proPick={proPick} />
                 ) : (
                   <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
                 )}
@@ -218,7 +265,7 @@ export function ProGameCard({
                 {proPickLoading ? (
                   <div className="animate-pulse bg-gray-200 dark:bg-gray-700 w-8 h-8 rounded-lg"></div>
                 ) : isProPickTeam(homeTeam) ? (
-                  <ProGradeBubble grade={proPick?.grade || "C+"} />
+                  <ProGradeBubble grade={proPick?.grade || "C+"} proPick={proPick} />
                 ) : (
                   <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
                 )}

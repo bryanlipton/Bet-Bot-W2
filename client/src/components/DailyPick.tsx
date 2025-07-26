@@ -479,6 +479,16 @@ export default function DailyPick() {
     }
   }, [dailyPick?.id]);
 
+  // Find current game score data
+  const liveGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
+    if (!dailyPick) return false;
+    const gameIdMatch = game.gameId === parseInt(dailyPick.gameId || '0') || 
+                       game.gameId === dailyPick.gameId;
+    const teamMatch = game.homeTeam === dailyPick.homeTeam && 
+                     game.awayTeam === dailyPick.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
+
   // Check if game has actually started based on live data and timing
   const isGameStarted = (gameTime: string) => {
     // If we have live game score data, use that to determine status
@@ -716,16 +726,6 @@ export default function DailyPick() {
   // When game starts, show collapsed view by default
   const gameStarted = dailyPick ? isGameStarted(dailyPick.gameTime) : false;
 
-  // Find current game score data
-  const liveGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!dailyPick) return false;
-    const gameIdMatch = game.gameId === parseInt(dailyPick.gameId || '0') || 
-                       game.gameId === dailyPick.gameId;
-    const teamMatch = game.homeTeam === dailyPick.homeTeam && 
-                     game.awayTeam === dailyPick.awayTeam;
-    return gameIdMatch || teamMatch;
-  });
-
   // Check if game is finished
   const isGameFinished = liveGameScore?.status === 'Final' || liveGameScore?.status === 'Completed';
   
@@ -773,13 +773,76 @@ export default function DailyPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
-                    dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                    dailyPick.grade === 'A' ? 'bg-blue-400' :
-                    dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                    dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                  }`}>
-                    Grade {dailyPick.grade}
+                  <div className="relative">
+                    <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
+                      dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                      dailyPick.grade === 'A' ? 'bg-blue-400' :
+                      dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                      dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                    }`}>
+                      Grade {dailyPick.grade}
+                    </div>
+                    <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute -top-1 -right-1 p-1 h-3 w-3 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="text-[8px] font-bold">i</span>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center space-x-2">
+                            <BetBotIcon className="w-6 h-6" />
+                            <span>Pick Analysis: {dailyPick.grade} Grade</span>
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-3">Pick Details</h4>
+                            <div className="space-y-2 text-sm">
+                              <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
+                              <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                              <div><strong>Venue:</strong> {dailyPick.venue}</div>
+                              <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                            <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                            <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                              {getMainGradeExplanation(
+                                dailyPick.grade,
+                                dailyPick.confidence,
+                                dailyPick.analysis,
+                                dailyPick.pickTeam,
+                                dailyPick.odds
+                              )}
+                            </pre>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                            <div className="space-y-3">
+                              {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
+                                <div key={key} className="space-y-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{title}</span>
+                                    <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                  </div>
+                                  <ColoredProgress value={score} className="h-2" />
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   {isGameFinished && (
                     <div className="text-xs font-bold text-gray-600 dark:text-gray-400">
