@@ -778,19 +778,34 @@ export default function DailyPick() {
             
             <div className="flex items-center space-x-3">
               {liveGameScore && (
-                <div className="text-right">
-                  <div className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
-                    <div className="text-center text-gray-600 dark:text-gray-300 mb-1">
-                      {isGameFinished ? 'F' : formatGameStatus(liveGameScore)}
-                    </div>
-                    <div className="font-mono">
-                      <div className="flex items-center justify-between space-x-2">
-                        <span className="text-gray-600 dark:text-gray-300">{getTeamAbbreviation(dailyPick.awayTeam)}</span>
-                        <span className="font-bold">{liveGameScore.awayScore || 0}</span>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                        {getTeamAbbreviation(dailyPick.awayTeam)}
                       </div>
-                      <div className="flex items-center justify-between space-x-2">
-                        <span className="text-gray-600 dark:text-gray-300">{getTeamAbbreviation(dailyPick.homeTeam)}</span>
-                        <span className="font-bold">{liveGameScore.homeScore || 0}</span>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                        {liveGameScore.awayScore || 0}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center">
+                      <div className={`px-2 py-1 rounded-full text-xs font-bold text-white mb-1 ${
+                        isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
+                      }`}>
+                        {isGameFinished ? 'FINAL' : 'LIVE'}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {isGameFinished ? '' : formatGameStatus(liveGameScore)}
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
+                        {getTeamAbbreviation(dailyPick.homeTeam)}
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                        {liveGameScore.homeScore || 0}
                       </div>
                     </div>
                   </div>
@@ -846,23 +861,45 @@ export default function DailyPick() {
             </Button>
           </div>
 
-          {/* Game status and score */}
+          {/* Enhanced Game Score Display */}
           {liveGameScore && (
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold">{dailyPick.awayTeam}</span>
-                    <span className="text-2xl font-bold">{liveGameScore.awayScore || 0}</span>
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
+              <div className="grid grid-cols-3 gap-6 items-center">
+                {/* Away Team */}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
+                    {getTeamAbbreviation(dailyPick.awayTeam)}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">{dailyPick.homeTeam}</span>
-                    <span className="text-2xl font-bold">{liveGameScore.homeScore || 0}</span>
+                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                    {liveGameScore.awayScore || 0}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {dailyPick.awayTeam}
                   </div>
                 </div>
-                <div className="ml-4 text-right">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                
+                {/* Game Status */}
+                <div className="text-center">
+                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white mb-3 ${
+                    isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
+                  }`}>
+                    {isGameFinished ? '🏁 FINAL' : '🔴 LIVE'}
+                  </div>
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
                     {formatGameStatus(liveGameScore)}
+                  </div>
+                </div>
+                
+                {/* Home Team */}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
+                    {getTeamAbbreviation(dailyPick.homeTeam)}
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                    {liveGameScore.homeScore || 0}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {dailyPick.homeTeam}
                   </div>
                 </div>
               </div>

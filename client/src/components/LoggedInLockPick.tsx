@@ -652,19 +652,34 @@ export default function LoggedInLockPick() {
             
             <div className="flex items-center space-x-3">
               {liveLockGameScore && gameStarted && (
-                <div className="text-right">
-                  <div className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
-                    <div className="text-center text-gray-600 dark:text-gray-300 mb-1">
-                      {isGameFinished ? 'F' : formatGameStatus(liveLockGameScore)}
-                    </div>
-                    <div className="font-mono">
-                      <div className="flex items-center justify-between space-x-2">
-                        <span className="text-gray-600 dark:text-gray-300">{getTeamAbbreviation(lockPick.awayTeam)}</span>
-                        <span className="font-bold">{liveLockGameScore.awayScore || 0}</span>
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-700">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">
+                        {getTeamAbbreviation(lockPick.awayTeam)}
                       </div>
-                      <div className="flex items-center justify-between space-x-2">
-                        <span className="text-gray-600 dark:text-gray-300">{getTeamAbbreviation(lockPick.homeTeam)}</span>
-                        <span className="font-bold">{liveLockGameScore.homeScore || 0}</span>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                        {liveLockGameScore.awayScore || 0}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center">
+                      <div className={`px-2 py-1 rounded-full text-xs font-bold text-white mb-1 ${
+                        isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
+                      }`}>
+                        {isGameFinished ? 'FINAL' : 'LIVE'}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {isGameFinished ? '' : formatGameStatus(liveLockGameScore)}
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">
+                        {getTeamAbbreviation(lockPick.homeTeam)}
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                        {liveLockGameScore.homeScore || 0}
                       </div>
                     </div>
                   </div>
@@ -718,23 +733,45 @@ export default function LoggedInLockPick() {
             </Button>
           </div>
 
-          {/* Game status and score */}
+          {/* Enhanced Game Score Display */}
           {liveLockGameScore && (
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold">{lockPick.awayTeam}</span>
-                    <span className="text-2xl font-bold">{liveLockGameScore.awayScore || 0}</span>
+            <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700">
+              <div className="grid grid-cols-3 gap-6 items-center">
+                {/* Away Team */}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">
+                    {getTeamAbbreviation(lockPick.awayTeam)}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">{lockPick.homeTeam}</span>
-                    <span className="text-2xl font-bold">{liveLockGameScore.homeScore || 0}</span>
+                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                    {liveLockGameScore.awayScore || 0}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {lockPick.awayTeam}
                   </div>
                 </div>
-                <div className="ml-4 text-right">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                
+                {/* Game Status */}
+                <div className="text-center">
+                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white mb-3 ${
+                    isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
+                  }`}>
+                    {isGameFinished ? '🏁 FINAL' : '🔴 LIVE'}
+                  </div>
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
                     {formatGameStatus(liveLockGameScore)}
+                  </div>
+                </div>
+                
+                {/* Home Team */}
+                <div className="text-center">
+                  <div className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-2">
+                    {getTeamAbbreviation(lockPick.homeTeam)}
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                    {liveLockGameScore.homeScore || 0}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {lockPick.homeTeam}
                   </div>
                 </div>
               </div>
