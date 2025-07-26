@@ -408,6 +408,16 @@ export default function LoggedInLockPick() {
     }
   }, [lockPick?.id]);
 
+  // Find current game score data with improved matching logic
+  const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
+    if (!lockPick) return false;
+    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
+                       game.gameId === lockPick.gameId;
+    const teamMatch = game.homeTeam === lockPick.homeTeam && 
+                     game.awayTeam === lockPick.awayTeam;
+    return gameIdMatch || teamMatch;
+  });
+
   // Check if game has actually started based on live data and timing
   const isGameStarted = (gameTime: string) => {
     // If we have live game score data, use that to determine status
@@ -586,16 +596,6 @@ export default function LoggedInLockPick() {
 
   // When game starts, show collapsed view by default
   const gameStarted = lockPick ? isGameStarted(lockPick.gameTime) : false;
-
-  // Find current game score data with improved matching logic
-  const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!lockPick) return false;
-    const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
-                       game.gameId === lockPick.gameId;
-    const teamMatch = game.homeTeam === lockPick.homeTeam && 
-                     game.awayTeam === lockPick.awayTeam;
-    return gameIdMatch || teamMatch;
-  });
 
   // Check if game is finished
   const isGameFinished = liveLockGameScore?.status === 'Final' || liveLockGameScore?.status === 'Completed';
