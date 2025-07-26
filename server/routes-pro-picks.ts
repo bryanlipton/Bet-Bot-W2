@@ -3,6 +3,10 @@ import { storage } from "./storage";
 import { isAuthenticated } from "./replitAuth";
 import { DailyPickService } from "./services/dailyPickService";
 
+// Cache for Pro picks to prevent constant regeneration
+const proPicksCache = new Map();
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
 export function setupProPicksRoutes(app: Application) {
   const dailyPickService = new DailyPickService();
 
@@ -18,6 +22,14 @@ export function setupProPicksRoutes(app: Application) {
 
       console.log("Pro user requesting all picks with grades");
       
+      // Check cache first
+      const cacheKey = 'all-picks';
+      const cached = proPicksCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+        console.log('📋 Returning cached Pro picks data');
+        return res.json(cached.data);
+      }
+      
       // Get all games first
       const { oddsApiService } = await import('./services/oddsApi.js');
       const games = await oddsApiService.getCurrentOdds('baseball_mlb');
@@ -28,15 +40,22 @@ export function setupProPicksRoutes(app: Application) {
       // Return picks with enhanced grades and analysis
       const proPicksData = allPicks.map(pick => ({
         gameId: pick.gameId,
-        homeTeam: pick.gameDetails?.homeTeam,
-        awayTeam: pick.gameDetails?.awayTeam,
-        pickTeam: pick.gameDetails?.pickTeam,
+        homeTeam: pick.homeTeam,
+        awayTeam: pick.awayTeam,
+        pickTeam: pick.pickTeam,
         grade: pick.grade,
-        confidence: pick.overall?.confidence,
-        reasoning: pick.overall?.reasoning,
+        confidence: pick.confidence,
+        reasoning: pick.reasoning,
         analysis: pick.analysis,
-        odds: pick.gameDetails?.odds
+        odds: pick.odds
       }));
+
+      // Cache the result
+      proPicksCache.set(cacheKey, {
+        data: proPicksData,
+        timestamp: Date.now()
+      });
+      console.log('💾 Cached Pro picks data for 15 minutes');
 
       res.json(proPicksData);
     } catch (error: any) {
@@ -57,6 +76,14 @@ export function setupProPicksRoutes(app: Application) {
 
       const { gameId } = req.params; 
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
+      
+      // Check cache first
+      const cacheKey = `game-${gameId}`;
+      const cached = proPicksCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+        console.log(`📋 Returning cached analysis for game ${gameId}`);
+        return res.json(cached.data);
+      }
       
       // Use the same system as daily picks - get all odds data and generate picks
       const { oddsApiService } = await import('./services/oddsApi.js');
@@ -139,6 +166,13 @@ export function setupProPicksRoutes(app: Application) {
         reasoning: gamePick.reasoning,
         odds: gamePick.odds
       };
+      
+      // Cache the result
+      proPicksCache.set(cacheKey, {
+        data: proPickData,
+        timestamp: Date.now()
+      });
+      console.log(`💾 Cached analysis for game ${gameId} for 15 minutes`);
       
       res.json(proPickData);
     } catch (error: any) {

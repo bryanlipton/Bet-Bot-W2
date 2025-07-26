@@ -131,11 +131,15 @@ export function ActionStyleDashboard() {
     return game.homeTeam === lockPick.homeTeam && game.awayTeam === lockPick.awayTeam;
   };
 
-  // Process live odds data into game format
+  // Process live odds data into game format  
   const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
     if (!oddsData) return [];
     
-    console.log(`Processing ${oddsData.length} games from API`);
+    // Only log every 5th processing to reduce console noise
+    const shouldLog = Math.floor(Date.now() / 30000) % 5 === 0; // Log every 2.5 minutes
+    if (shouldLog) {
+      console.log(`Processing ${oddsData.length} games from API`);
+    }
     
     // Filter out games that have already started
     const now = new Date();
@@ -150,7 +154,9 @@ export function ActionStyleDashboard() {
     );
     
     const processedGames = sortedGames.map((game, index) => {
-      console.log(`Processing game ${index + 1}: ${game.away_team} @ ${game.home_team} - Bookmakers: ${game.bookmakers?.length || 0}`);
+      if (shouldLog) {
+        console.log(`Processing game ${index + 1}: ${game.away_team} @ ${game.home_team} - Bookmakers: ${game.bookmakers?.length || 0}`);
+      }
       const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
       const spreadsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
       const totalsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals');
@@ -214,7 +220,9 @@ export function ActionStyleDashboard() {
       };
     });
     
-    console.log(`Processed ${processedGames.length} games successfully`);
+    if (shouldLog) {
+      console.log(`Processed ${processedGames.length} games successfully`);
+    }
     return processedGames;
   };
 
