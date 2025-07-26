@@ -648,13 +648,13 @@ export default function LoggedInLockPick() {
     
     return (
       <Card className="w-full relative bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
-        {/* Win/Loss Badge */}
-        {lockPick.status && lockPick.status !== 'pending' && (
+        {/* Win/Loss Badge for Finished Games */}
+        {(lockPick.status === 'won' || lockPick.status === 'lost' || gameResult === 'won' || gameResult === 'lost') && (
           <div className="absolute top-3 right-3 z-10">
             <div className={`px-3 py-1 rounded-full text-sm font-bold text-white shadow-lg ${
-              lockPick.status === 'won' ? 'bg-green-500' : 'bg-red-500'
+              (lockPick.status === 'won' || gameResult === 'won') ? 'bg-green-500' : 'bg-red-500'
             }`}>
-              {lockPick.status.toUpperCase()}
+              {(lockPick.status === 'won' || gameResult === 'won') ? 'WON' : 'LOST'}
             </div>
           </div>
         )}

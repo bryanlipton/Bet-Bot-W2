@@ -761,13 +761,13 @@ export default function DailyPick() {
     
     return (
       <Card className="w-full relative bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
-        {/* Win/Loss Badge */}
-        {dailyPick.status && dailyPick.status !== 'pending' && (
+        {/* Win/Loss Badge for Finished Games */}
+        {(dailyPick.status === 'won' || dailyPick.status === 'lost' || gameResult === 'won' || gameResult === 'lost') && (
           <div className="absolute top-3 right-3 z-10">
             <div className={`px-3 py-1 rounded-full text-sm font-bold text-white shadow-lg ${
-              dailyPick.status === 'won' ? 'bg-green-500' : 'bg-red-500'
+              (dailyPick.status === 'won' || gameResult === 'won') ? 'bg-green-500' : 'bg-red-500'
             }`}>
-              {dailyPick.status.toUpperCase()}
+              {(dailyPick.status === 'won' || gameResult === 'won') ? 'WON' : 'LOST'}
             </div>
           </div>
         )}
