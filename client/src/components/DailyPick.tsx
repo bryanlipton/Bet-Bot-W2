@@ -769,7 +769,7 @@ export default function DailyPick() {
                 <div className="flex items-center space-x-2">
                   <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
                   <span className="text-xs text-gray-500">
-                    {dailyPick.pickTeam} {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)} vs {dailyPick.pickTeam === dailyPick.homeTeam ? getTeamAbbreviation(dailyPick.awayTeam) : getTeamAbbreviation(dailyPick.homeTeam)}
+                    {dailyPick.pickTeam} {(getCurrentOdds()?.pickTeamOdds && getCurrentOdds()?.pickTeamOdds! > 0) ? `+${getCurrentOdds()?.pickTeamOdds}` : (getCurrentOdds()?.pickTeamOdds ?? dailyPick.odds)} vs {dailyPick.pickTeam === dailyPick.homeTeam ? getTeamAbbreviation(dailyPick.awayTeam) : getTeamAbbreviation(dailyPick.homeTeam)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
@@ -990,7 +990,7 @@ export default function DailyPick() {
                 <div>
                   <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Moneyline {(getCurrentOdds().pickTeamOdds && getCurrentOdds().pickTeamOdds > 0) ? `+${getCurrentOdds().pickTeamOdds}` : (getCurrentOdds().pickTeamOdds ?? dailyPick.odds)}
+                    Moneyline {(getCurrentOdds()?.pickTeamOdds && getCurrentOdds()?.pickTeamOdds! > 0) ? `+${getCurrentOdds()?.pickTeamOdds}` : (getCurrentOdds()?.pickTeamOdds ?? dailyPick.odds)}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 self-start">

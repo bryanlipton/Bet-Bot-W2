@@ -246,6 +246,10 @@ app.post('/api/gpt/matchup', async (req, res) => {
   registerEnhancedGradingRoutes(app);
   registerUserPicksRoutes(app);
   setupProPicksRoutes(app);
+  
+  // Import and register daily pick routes
+  const { registerDailyPickRoutes } = await import('./routes-daily-pick');
+  registerDailyPickRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

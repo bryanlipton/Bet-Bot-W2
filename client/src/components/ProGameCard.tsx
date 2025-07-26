@@ -19,6 +19,14 @@ interface ProPickData {
   confidence: number;
   reasoning: string;
   odds: number;
+  analysis?: {
+    marketInefficiency?: number;
+    situationalEdge?: number;
+    pitchingMatchup?: number;
+    teamMomentum?: number;
+    systemConfidence?: number;
+    offensiveProduction?: number;
+  };
 }
 
 interface ProGameCardProps {

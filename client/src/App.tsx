@@ -15,7 +15,7 @@ import ScoresPage from "@/pages/scores";
 import GetPro from "@/pages/GetPro";
 import Subscribe from "@/pages/Subscribe";
 import NotFound from "@/pages/not-found";
-import Feed from "@/pages/feed";
+import Feed from "@/pages/Feed";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
 
 

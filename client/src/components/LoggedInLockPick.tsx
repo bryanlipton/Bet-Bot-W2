@@ -408,9 +408,22 @@ export default function LoggedInLockPick() {
     }
   }, [lockPick?.id]);
 
+  // Early return if no authenticated user or still loading
+  if (!isAuthenticated || authLoading || isLoading) {
+    return null;
+  }
+
+  // Early return if no lock pick data is available
+  if (!lockPick) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No lock pick available for today</p>
+      </div>
+    );
+  }
+
   // Find current game score data with improved matching logic
   const liveLockGameScore = (Array.isArray(gameScore) ? gameScore : []).find((game: any) => {
-    if (!lockPick) return false;
     const gameIdMatch = game.gameId === parseInt(lockPick.gameId || '0') || 
                        game.gameId === lockPick.gameId;
     const teamMatch = game.homeTeam === lockPick.homeTeam && 
