@@ -309,6 +309,58 @@ export default function DailyPick() {
   const [gameStartedCollapsed, setGameStartedCollapsed] = useState(true);
   // Removed odds cycling functionality
 
+  // Get all 6 factors with their info descriptions in permanent order
+  const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
+    const factorData = [
+      {
+        key: 'marketInefficiency',
+        title: 'Market Edge',
+        score: analysis.marketInefficiency,
+        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
+      },
+      {
+        key: 'situationalEdge',
+        title: 'Situational Edge',
+        score: analysis.situationalEdge,
+        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
+      }
+    ];
+
+    // Always include Pitching Matchup, show NA if either pitcher is TBD
+    const homePitcher = probablePitchers.home || 'TBD';
+    const awayPitcher = probablePitchers.away || 'TBD';
+    
+    factorData.push({
+      key: 'pitchingMatchup',
+      title: 'Pitching Matchup', 
+      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : 0,
+      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
+    });
+
+    factorData.push(
+      {
+        key: 'teamMomentum',
+        title: 'Team Momentum',
+        score: analysis.teamMomentum,
+        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
+      },
+      {
+        key: 'systemConfidence',
+        title: 'System Confidence',
+        score: analysis.systemConfidence,
+        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
+      },
+      {
+        key: 'offensiveProduction',
+        title: 'Offensive Production',
+        score: analysis.offensiveProduction,
+        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
+      }
+    );
+
+    return factorData;
+  };
+
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
     queryKey: ['/api/daily-pick'],
@@ -820,7 +872,7 @@ export default function DailyPick() {
                         <div>
                           <h4 className="font-semibold mb-3">Analysis Factors</h4>
                           <div className="space-y-3">
-                            {factors.map(({ key, title, score, info }) => (
+                            {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
                               <div key={key} className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium">{title}</span>
@@ -850,60 +902,6 @@ export default function DailyPick() {
       </Card>
     );
   }
-
-
-
-  // Get all 6 factors with their info descriptions in permanent order
-  const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
-    const factorData = [
-      {
-        key: 'marketInefficiency',
-        title: 'Market Edge',
-        score: analysis.marketInefficiency,
-        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
-      },
-      {
-        key: 'situationalEdge',
-        title: 'Situational Edge',
-        score: analysis.situationalEdge,
-        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
-      }
-    ];
-
-    // Always include Pitching Matchup, show NA if either pitcher is TBD
-    const homePitcher = probablePitchers.home || 'TBD';
-    const awayPitcher = probablePitchers.away || 'TBD';
-    
-    factorData.push({
-      key: 'pitchingMatchup',
-      title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup ?? 0) : 0,
-      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
-    });
-
-    factorData.push(
-      {
-        key: 'teamMomentum',
-        title: 'Team Momentum',
-        score: analysis.teamMomentum,
-        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
-      },
-      {
-        key: 'systemConfidence',
-        title: 'System Confidence',
-        score: analysis.systemConfidence,
-        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
-      },
-      {
-        key: 'offensiveProduction',
-        title: 'Offensive Production',
-        score: analysis.offensiveProduction,
-        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
-      }
-    );
-
-    return factorData;
-  };
 
   // Determine if pick team is away or home, format matchup accordingly
   const formatMatchup = (homeTeam: string, awayTeam: string, pickTeam: string) => {
@@ -1036,7 +1034,7 @@ export default function DailyPick() {
                 <div className="space-y-3 pt-2">
                   {/* Analysis Factors with Info Buttons */}
                   <div className="space-y-2 bg-gray-800/30 rounded-lg p-3">
-                    {factors.map((factor) => (
+                    {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map((factor) => (
                       <FactorScore 
                         key={factor.key}
                         title={factor.title}
@@ -1173,7 +1171,7 @@ export default function DailyPick() {
                     <div>
                       <h4 className="font-semibold mb-3">Analysis Factors</h4>
                       <div className="space-y-3">
-                        {factors.map(({ key, title, score, info }) => (
+                        {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
                           <div key={key} className="space-y-1">
                             <div className="flex justify-between text-sm">
                               <span className="font-medium">{title}</span>
@@ -1311,7 +1309,7 @@ export default function DailyPick() {
                     Analysis Factors
                   </h5>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
-                    {factors.map(({ key, title, score, info }) => {
+                    {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => {
                       // Create context for narrative generation
                       const gameContext = {
                         isHomeGame: dailyPick.pickTeam === dailyPick.homeTeam,
