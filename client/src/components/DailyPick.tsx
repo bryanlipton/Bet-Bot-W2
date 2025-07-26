@@ -13,6 +13,7 @@ import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
 import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
+import { generatePickAnalysisContent } from "@/lib/pickAnalysisUtils";
 import { apiRequest } from "@/lib/queryClient";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
@@ -245,6 +246,8 @@ function ColoredProgress({ value, className }: { value: number | null; className
     </div>
   );
 }
+
+
 
 // Factor Score Component with Info
 function FactorScore({ title, score, info, gameContext }: { title: string; score: number; info: string; gameContext?: any }) {

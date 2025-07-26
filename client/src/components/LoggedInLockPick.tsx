@@ -12,6 +12,7 @@ import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import removed
 import { trackPickVisit, cleanupOldVisits } from "@/lib/visitTracker";
 import { getFactorColorClasses, getLockPickFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation, getMobileReasoning } from "@/lib/factorUtils";
+import { generatePickAnalysisContent } from "@/lib/pickAnalysisUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -265,6 +266,22 @@ function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
   if (now >= gameStart && now < gameEnd) return 'live';
   return 'completed';
 }
+
+// Helper functions
+const formatOdds = (odds: number, betType?: string) => {
+  const oddsText = odds > 0 ? `+${odds}` : odds.toString();
+  
+  // Add bet type indicator for moneyline bets
+  if (betType === 'moneyline') {
+    return `ML ${oddsText}`;
+  }
+  
+  return oddsText;
+};
+
+const formatGameTime = (gameTime: string) => {
+  return new Date(gameTime).toLocaleString();
+};
 
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
@@ -806,8 +823,71 @@ export default function LoggedInLockPick() {
             {/* Header: Title and Grade Badge */}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-amber-400 font-sans">Logged In Lock</h2>
-              <div className={`${getGradeColorClasses(lockPick.grade).bg} ${getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
-                {lockPick.grade}
+              <div className="flex items-center space-x-2">
+                <div className={`${getGradeColorClasses(lockPick.grade).bg} ${getGradeColorClasses(lockPick.grade).text} px-3 py-1 rounded-md text-sm font-bold`}>
+                  {lockPick.grade}
+                </div>
+                <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Info className="h-3 w-3 text-black dark:text-white" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center space-x-2">
+                        <BetBotIcon className="w-6 h-6" />
+                        <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-3">Pick Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                          <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                          <div><strong>Venue:</strong> {lockPick.venue}</div>
+                          <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                        <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                        <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                          {getMainGradeExplanation(
+                            lockPick.grade,
+                            lockPick.confidence,
+                            lockPick.analysis,
+                            lockPick.pickTeam,
+                            lockPick.odds
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                        <div className="space-y-3">
+                          {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
+                            <div key={key} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium">{title}</span>
+                                <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                              </div>
+                              <ColoredProgress value={score} className="h-2" />
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
 
@@ -1007,7 +1087,7 @@ export default function LoggedInLockPick() {
                     
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
                       <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                      <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                         {getMainGradeExplanation(
                           lockPick.grade,
                           lockPick.confidence,
@@ -1015,13 +1095,13 @@ export default function LoggedInLockPick() {
                           lockPick.pickTeam,
                           lockPick.odds
                         )}
-                      </pre>
+                      </div>
                     </div>
 
                     <div>
                       <h4 className="font-semibold mb-3">Analysis Factors</h4>
                       <div className="space-y-3">
-                        {factors.map(({ key, title, score, info }) => (
+                        {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
                           <div key={key} className="space-y-1">
                             <div className="flex justify-between text-sm">
                               <span className="font-medium">{title}</span>
