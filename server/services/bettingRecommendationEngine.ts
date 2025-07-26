@@ -81,7 +81,7 @@ export class BettingRecommendationEngine {
   }
 
   /**
-   * Assign letter grade based on edge and confidence - aligned with analysis factors scale
+   * Assign letter grade based on edge and confidence - aligned with optimized threshold system
    */
   private assignGrade(edge: number, confidence: number): 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D+' | 'D' | 'F' {
     // Convert edge and confidence to 60-100 scale to match analysis factors display
@@ -89,16 +89,19 @@ export class BettingRecommendationEngine {
     const confidenceScore = Math.min(100, 60 + (confidence * 40)); // confidence 1.0 = 100
     const avgScore = (edgeScore + confidenceScore) / 2;
     
-    // Grade based on average score to match analysis factors logic
-    if (avgScore >= 95) return 'A+';
-    if (avgScore >= 90) return 'A'; 
-    if (avgScore >= 85) return 'B+';
-    if (avgScore >= 80) return 'B';
-    if (avgScore >= 75) return 'C+';
-    if (avgScore >= 70) return 'C';
-    if (avgScore >= 65) return 'D+';
-    if (avgScore >= 60) return 'D';
-    return 'F';
+    // OPTIMIZED THRESHOLDS: Target 3+ A- or better games per day from ~30 game slate
+    if (avgScore >= 78.5) return 'A+';  // Top 3-5% - exceptional (1-2 games)
+    if (avgScore >= 76.0) return 'A';   // Top 8-10% - elite (2-3 games)  
+    if (avgScore >= 73.5) return 'A-';  // Top 13-15% - very strong (2-3 games)
+    if (avgScore >= 70.0) return 'B+';  // Top 20-25% - strong (4-5 games)
+    if (avgScore >= 66.0) return 'B';   // Top 35-40% - good (6-7 games)
+    if (avgScore >= 62.0) return 'B-';  // Top 50-55% - decent (4-5 games)
+    if (avgScore >= 58.0) return 'C+';  // Top 65-70% - above average (3-4 games)
+    if (avgScore >= 54.0) return 'C';   // Average games (3-4 games)
+    if (avgScore >= 50.0) return 'C-';  // Below average (2-3 games)
+    if (avgScore >= 47.0) return 'D+';  // Poor games (1-2 games)
+    if (avgScore >= 44.0) return 'D';   // Very poor (0-1 games)
+    return 'F';                         // Avoid completely
   }
 
   /**

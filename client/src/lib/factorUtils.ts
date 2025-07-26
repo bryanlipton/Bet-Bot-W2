@@ -29,21 +29,21 @@ export function getFactorColor(normalizedScore: number): string {
   return '#FF3333'; // Bright Red
 }
 
-// Grade conversion function (matching backend grading scale)
-function scoreToGrade(score: number): string {
-  if (score >= 76) return 'A+';   // Elite - exceptional picks (76+)
-  if (score >= 73) return 'A';    // Excellent - top tier picks (73-75)
-  if (score >= 70) return 'A-';   // Very good - strong picks (70-72)
-  if (score >= 67) return 'B+';   // Good plus - above good (67-69)
-  if (score >= 64) return 'B';    // Good - solid picks (64-66)
-  if (score >= 61) return 'B-';   // Good minus - decent picks (61-63)
-  if (score >= 58) return 'C+';   // Above average - okay picks (58-60)
-  if (score >= 55) return 'C';    // Average - neutral picks (55-57)
-  if (score >= 52) return 'C-';   // Below average - weak picks (52-54)
-  if (score >= 49) return 'D+';   // Poor - bad picks (49-51)
-  if (score >= 46) return 'D';    // Very poor - avoid picks (46-48)
-  if (score >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
-  return 'F';                     // Catastrophic - never bet (below 43)
+// Grade conversion function (optimized threshold system)
+export function scoreToGrade(score: number): string {
+  // OPTIMIZED THRESHOLDS: Target 3+ A- or better games per day from ~30 game slate
+  if (score >= 78.5) return 'A+';  // Top 3-5% - exceptional (1-2 games)
+  if (score >= 76.0) return 'A';   // Top 8-10% - elite (2-3 games)  
+  if (score >= 73.5) return 'A-';  // Top 13-15% - very strong (2-3 games)
+  if (score >= 70.0) return 'B+';  // Top 20-25% - strong (4-5 games)
+  if (score >= 66.0) return 'B';   // Top 35-40% - good (6-7 games)
+  if (score >= 62.0) return 'B-';  // Top 50-55% - decent (4-5 games)
+  if (score >= 58.0) return 'C+';  // Top 65-70% - above average (3-4 games)
+  if (score >= 54.0) return 'C';   // Average games (3-4 games)
+  if (score >= 50.0) return 'C-';  // Below average (2-3 games)
+  if (score >= 47.0) return 'D+';  // Poor games (1-2 games)
+  if (score >= 44.0) return 'D';   // Very poor (0-1 games)
+  return 'F';                      // Avoid completely
 }
 
 /**
