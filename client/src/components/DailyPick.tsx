@@ -759,13 +759,76 @@ export default function DailyPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
-                    dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                    dailyPick.grade === 'A' ? 'bg-blue-400' :
-                    dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                    dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                  }`}>
-                    Grade {dailyPick.grade}
+                  <div className="relative">
+                    <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                      dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                      dailyPick.grade === 'A' ? 'bg-blue-400' :
+                      dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                      dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                    }`}>
+                      Grade {dailyPick.grade}
+                    </div>
+                    <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute -top-2 -right-2 p-1 h-4 w-4 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="text-xs font-bold">i</span>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center space-x-2">
+                            <BetBotIcon className="w-6 h-6" />
+                            <span>Pick Analysis: {dailyPick.grade} Grade</span>
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-3">Pick Details</h4>
+                            <div className="space-y-2 text-sm">
+                              <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
+                              <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                              <div><strong>Venue:</strong> {dailyPick.venue}</div>
+                              <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                            <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                            <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                              {getMainGradeExplanation(
+                                dailyPick.grade,
+                                dailyPick.confidence,
+                                dailyPick.analysis,
+                                dailyPick.pickTeam,
+                                dailyPick.odds
+                              )}
+                            </pre>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                            <div className="space-y-3">
+                              {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
+                                <div key={key} className="space-y-1">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{title}</span>
+                                    <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                  </div>
+                                  <ColoredProgress value={score} className="h-2" />
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -873,25 +936,26 @@ export default function DailyPick() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 self-start">
-                  <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
-                    dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                    dailyPick.grade === 'A' ? 'bg-blue-400' :
-                    dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                    dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                  }`}>
-                    {dailyPick.grade}
-                  </div>
-                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="p-0 h-4 w-4 bg-transparent hover:bg-gray-100 dark:bg-black/80 dark:hover:bg-black/90 rounded-full flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Info className="h-3 w-3 text-black dark:text-white" />
-                      </Button>
-                    </DialogTrigger>
+                  <div className="relative">
+                    <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
+                      dailyPick.grade === 'A+' ? 'bg-blue-500' :
+                      dailyPick.grade === 'A' ? 'bg-blue-400' :
+                      dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
+                      dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
+                    }`}>
+                      {dailyPick.grade}
+                    </div>
+                    <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute -top-2 -right-2 p-1 h-4 w-4 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="text-xs font-bold">i</span>
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="flex items-center space-x-2">
@@ -941,7 +1005,8 @@ export default function DailyPick() {
                         </div>
                       </div>
                     </DialogContent>
-                  </Dialog>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </div>
