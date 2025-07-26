@@ -61,7 +61,7 @@ export function registerUserPicksRoutes(app: Express) {
         betUnitAtTime: req.body.betUnitAtTime || 10,
         bookmaker: req.body.bookmaker || 'manual',
         bookmakerDisplayName: req.body.bookmakerDisplayName || 'Manual Entry',
-        gameDate: req.body.gameDate ? new Date(req.body.gameDate) : new Date(),
+        gameDate: req.body.gameDate ? new Date(req.body.gameDate.replace('2001', '2025')) : new Date(),
         status: 'pending'
       };
       

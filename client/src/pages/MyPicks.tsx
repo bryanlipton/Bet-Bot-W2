@@ -587,7 +587,10 @@ export default function MyPicks() {
                               {bet.betType.charAt(0).toUpperCase() + bet.betType.slice(1)} • {bet.teamBet} • {formatOdds(bet.odds)}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(bet.gameDate).toLocaleDateString()} • {bet.bookmaker}
+                              Game: {new Date(bet.gameDate).toLocaleDateString()} {new Date(bet.gameDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {bet.bookmaker}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Bet Placed: {new Date(bet.placedAt).toLocaleDateString()} {new Date(bet.placedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </p>
                           </div>
                         </div>
@@ -647,7 +650,10 @@ export default function MyPicks() {
                               {bet.betType.charAt(0).toUpperCase() + bet.betType.slice(1)} • {bet.teamBet} • {formatOdds(bet.odds)}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(bet.gameDate).toLocaleDateString()} • {bet.bookmaker}
+                              Game: {new Date(bet.gameDate).toLocaleDateString()} {new Date(bet.gameDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • {bet.bookmaker}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Bet Placed: {new Date(bet.placedAt).toLocaleDateString()} {new Date(bet.placedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </p>
                           </div>
                         </div>
