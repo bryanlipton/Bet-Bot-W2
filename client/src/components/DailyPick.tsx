@@ -441,14 +441,20 @@ export default function DailyPick() {
   const { data: liveOdds } = useQuery({
     queryKey: ['/api/odds/live/baseball_mlb'],
     enabled: !!dailyPick?.gameId,
-    refetchInterval: 60 * 1000, // Refetch every minute for odds updates
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Fetch live scores for the game
   const { data: gameScore } = useQuery({
     queryKey: ['/api/mlb/scores', dailyPick?.gameTime ? new Date(dailyPick.gameTime).toISOString().split('T')[0] : ''],
     enabled: !!dailyPick?.gameTime,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live updates
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Listen for events to collapse both when one collapses (only for large screens)

@@ -90,13 +90,19 @@ export function ActionStyleDashboard() {
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
     queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/complete-schedule'] : ['/api/odds/events', selectedSport],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Fetch recommendations
   const { data: recommendations = [] } = useQuery({
     queryKey: ['/api/recommendations', selectedSport],
-    refetchInterval: 60000, // Refresh every minute
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    gcTime: 20 * 60 * 1000, // Keep in cache for 20 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
 
@@ -104,19 +110,28 @@ export function ActionStyleDashboard() {
   // Fetch daily pick data
   const { data: dailyPick } = useQuery({
     queryKey: ['/api/daily-pick'],
-    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Fetch lock pick data
   const { data: lockPick } = useQuery({
     queryKey: ['/api/daily-pick/lock'],
-    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Fetch user auth status
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
-    refetchInterval: 60 * 1000, // Refresh every minute
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    gcTime: 20 * 60 * 1000, // Keep in cache for 20 minutes
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable automatic refetching
   });
 
   // Helper function to check if a game matches the daily pick

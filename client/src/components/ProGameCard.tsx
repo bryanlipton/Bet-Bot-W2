@@ -177,6 +177,10 @@ export function ProGameCard({
     queryKey: [`/api/pro/game/${gameId}/analysis`],
     enabled: !!gameId,
     retry: false,
+    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes (same as server cache)
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchInterval: false, // Disable automatic refetching
   });
 
   const formatOdds = (odds?: number) => {
