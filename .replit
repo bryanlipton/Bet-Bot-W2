@@ -8,7 +8,7 @@ packages = ["jq"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "install", "&&", "npm", "run", "build"]
+build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
 
 [[ports]]
