@@ -43,39 +43,52 @@ class GradeStabilityService {
       return this.hasBothPitchers(gameInfo);
     }
     
-    // Has stable grade - only update for significant changes
+    // Has stable grade - be extremely conservative about updates
     const timeSinceUpdate = Date.now() - existing.lastUpdate;
     const hoursSinceUpdate = timeSinceUpdate / (1000 * 60 * 60);
     
-    // Only allow updates if:
-    // 1. Lineups weren't available before but are now
-    // 2. More than 4 hours have passed (for daily refresh)
-    // 3. Pitcher changes detected
+    // Only allow updates for truly significant information changes:
+    // 1. Lineups weren't available before but are now (major info milestone)
+    // 2. More than 8 hours have passed (daily refresh only)
+    // 3. Confirmed pitcher changes (rare but important)
     
     if (this.lineupsNowAvailable(gameInfo, existing)) {
-      console.log(`🔄 Updating grade for ${gameInfo.gameId}: Lineups now available`);
+      console.log(`🔄 SIGNIFICANT UPDATE for ${gameInfo.gameId}: Lineups now available - allowing controlled grade adjustment`);
       return true;
     }
     
-    if (hoursSinceUpdate > 4) {
-      console.log(`🔄 Updating grade for ${gameInfo.gameId}: Daily refresh (${hoursSinceUpdate.toFixed(1)}h since last)`);
+    if (hoursSinceUpdate > 8) {
+      console.log(`🔄 DAILY REFRESH for ${gameInfo.gameId}: Major refresh after ${hoursSinceUpdate.toFixed(1)}h`);
       return true;
     }
     
     if (this.pitcherChanged(gameInfo)) {
-      console.log(`🔄 Updating grade for ${gameInfo.gameId}: Pitcher change detected`);
+      console.log(`🔄 PITCHER CHANGE for ${gameInfo.gameId}: Confirmed roster change`);
       return true;
     }
     
-    console.log(`🔒 Grade locked for ${gameInfo.gameId}: ${existing.grade} (${existing.lockedReason})`);
+    console.log(`🔒 Grade LOCKED for ${gameInfo.gameId}: ${existing.grade} (${existing.lockedReason}) - preventing volatility`);
     return false;
   }
   
   /**
-   * Store a stable grade that won't change frequently
+   * Store a stable grade with controlled update logic
    */
   lockGrade(gameInfo: GameInfo, grade: string, confidence: number, reasoning: string, analysis: any, pickTeam: string, odds: number): void {
+    const existing = this.stableGrades.get(gameInfo.gameId);
     const lockReason = this.hasLineups(gameInfo) ? 'lineups_posted' : 'pitchers_available';
+    
+    // If updating existing grade, apply stability controls
+    if (existing) {
+      const gradeChange = this.calculateGradeChange(existing.grade, grade);
+      
+      // Limit grade changes to max 1 level (e.g., B+ to A- is ok, B+ to A is too much)
+      if (Math.abs(gradeChange) > 1) {
+        const limitedGrade = this.limitGradeChange(existing.grade, grade);
+        console.log(`🛡️ Grade stability control: ${gameInfo.gameId} limited from ${existing.grade}→${grade} to ${existing.grade}→${limitedGrade}`);
+        grade = limitedGrade;
+      }
+    }
     
     const stableGrade: StableGrade = {
       gameId: gameInfo.gameId,
@@ -85,13 +98,55 @@ class GradeStabilityService {
       analysis,
       pickTeam,
       odds,
-      lockedAt: Date.now(),
+      lockedAt: existing?.lockedAt || Date.now(), // Keep original lock time
       lockedReason: lockReason,
       lastUpdate: Date.now()
     };
     
     this.stableGrades.set(gameInfo.gameId, stableGrade);
-    console.log(`🔒 Locked grade for ${gameInfo.gameId}: ${grade} (${lockReason})`);
+    
+    if (existing) {
+      console.log(`🔄 Updated stable grade for ${gameInfo.gameId}: ${existing.grade}→${grade} (${lockReason})`);
+    } else {
+      console.log(`🔒 Locked new grade for ${gameInfo.gameId}: ${grade} (${lockReason})`);
+    }
+  }
+  
+  /**
+   * Calculate numeric difference between grades
+   */
+  private calculateGradeChange(oldGrade: string, newGrade: string): number {
+    const gradeValues: { [key: string]: number } = {
+      'A+': 12, 'A': 11, 'A-': 10,
+      'B+': 9, 'B': 8, 'B-': 7,
+      'C+': 6, 'C': 5, 'C-': 4,
+      'D+': 3, 'D': 2, 'F': 1
+    };
+    
+    return (gradeValues[newGrade] || 5) - (gradeValues[oldGrade] || 5);
+  }
+  
+  /**
+   * Limit grade changes to maximum 1 level
+   */
+  private limitGradeChange(oldGrade: string, newGrade: string): string {
+    const gradeOrder = ['F', 'D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+'];
+    const oldIndex = gradeOrder.indexOf(oldGrade);
+    const newIndex = gradeOrder.indexOf(newGrade);
+    
+    if (oldIndex === -1 || newIndex === -1) return newGrade; // Fallback
+    
+    const difference = newIndex - oldIndex;
+    
+    if (difference > 1) {
+      // Limit to +1 grade level
+      return gradeOrder[oldIndex + 1] || oldGrade;
+    } else if (difference < -1) {
+      // Limit to -1 grade level  
+      return gradeOrder[oldIndex - 1] || oldGrade;
+    }
+    
+    return newGrade; // Change is within 1 level, allow it
   }
   
   /**
