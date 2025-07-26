@@ -408,11 +408,25 @@ export default function LoggedInLockPick() {
     }
   }, [lockPick?.id]);
 
-  // Check if game has started to hide the tile
+  // Check if game has actually started based on live data and timing
   const isGameStarted = (gameTime: string) => {
+    // If we have live game score data, use that to determine status
+    if (liveLockGameScore) {
+      const status = liveLockGameScore.status?.toLowerCase() || '';
+      // Only show live displays if game is actually in progress or finished
+      return status.includes('progress') || status.includes('live') || 
+             status.includes('final') || status.includes('completed') ||
+             status.includes('game over') || liveLockGameScore.inning;
+    }
+    
+    // Fallback to time-based check with 30-minute buffer
+    // (games often start later than scheduled)
     const now = new Date();
     const game = new Date(gameTime);
-    return now > game;
+    const timeDiff = now.getTime() - game.getTime();
+    const thirtyMinutes = 30 * 60 * 1000;
+    
+    return timeDiff > thirtyMinutes;
   };
 
   // Get best odds from all available bookmakers

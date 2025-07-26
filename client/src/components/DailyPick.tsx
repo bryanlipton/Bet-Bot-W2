@@ -479,11 +479,25 @@ export default function DailyPick() {
     }
   }, [dailyPick?.id]);
 
-  // Check if game has started to hide the tile
+  // Check if game has actually started based on live data and timing
   const isGameStarted = (gameTime: string) => {
+    // If we have live game score data, use that to determine status
+    if (liveGameScore) {
+      const status = liveGameScore.status?.toLowerCase() || '';
+      // Only show live displays if game is actually in progress or finished
+      return status.includes('progress') || status.includes('live') || 
+             status.includes('final') || status.includes('completed') ||
+             status.includes('game over') || liveGameScore.inning;
+    }
+    
+    // Fallback to time-based check with 30-minute buffer
+    // (games often start later than scheduled)
     const now = new Date();
     const game = new Date(gameTime);
-    return now > game;
+    const timeDiff = now.getTime() - game.getTime();
+    const thirtyMinutes = 30 * 60 * 1000;
+    
+    return timeDiff > thirtyMinutes;
   };
 
   // Get current pitcher information from the latest game data
