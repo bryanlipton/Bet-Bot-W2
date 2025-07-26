@@ -973,20 +973,19 @@ export class DailyPickService {
     console.log(`   All factors: [${analysis.offensiveProduction}, ${analysis.pitchingMatchup}, ${analysis.situationalEdge}, ${analysis.teamMomentum}, ${analysis.marketInefficiency}, ${analysis.systemConfidence}]`);
     console.log(`   Weighted average: ${weightedSum.toFixed(1)}`);
     
-    // REALISTIC THRESHOLDS: Based on actual weighted score range (60-80)
-    if (weightedSum >= 78) return 'A+';  // Top 5% - exceptional
-    if (weightedSum >= 75) return 'A';   // Top 10% - elite  
-    if (weightedSum >= 72) return 'A-';  // Top 15% - very strong
-    if (weightedSum >= 69) return 'B+';  // Top 25% - strong
-    if (weightedSum >= 66) return 'B';   // Top 40% - good
-    if (weightedSum >= 63) return 'B-';  // Top 55% - decent
-    if (weightedSum >= 60) return 'C+';  // Top 70% - above average
-    if (weightedSum >= 57) return 'C';   // Average games
-    if (weightedSum >= 54) return 'C-';  // Below average
-    if (weightedSum >= 51) return 'D+';  // Poor games
-    if (weightedSum >= 48) return 'D';   // Very poor
-    if (weightedSum >= 45) return 'D-';  // Terrible
-    return 'F';                          // Avoid completely
+    // OPTIMIZED THRESHOLDS: Target 3+ A- or better games per day from ~30 game slate
+    if (weightedSum >= 78.5) return 'A+';  // Top 3-5% - exceptional (1-2 games)
+    if (weightedSum >= 76.0) return 'A';   // Top 8-10% - elite (2-3 games)  
+    if (weightedSum >= 73.5) return 'A-';  // Top 13-15% - very strong (2-3 games)
+    if (weightedSum >= 70.0) return 'B+';  // Top 20-25% - strong (4-5 games)
+    if (weightedSum >= 66.0) return 'B';   // Top 35-40% - good (6-7 games)
+    if (weightedSum >= 62.0) return 'B-';  // Top 50-55% - decent (4-5 games)
+    if (weightedSum >= 58.0) return 'C+';  // Top 65-70% - above average (3-4 games)
+    if (weightedSum >= 54.0) return 'C';   // Average games (3-4 games)
+    if (weightedSum >= 50.0) return 'C-';  // Below average (2-3 games)
+    if (weightedSum >= 47.0) return 'D+';  // Poor games (1-2 games)
+    if (weightedSum >= 44.0) return 'D';   // Very poor (0-1 games)
+    return 'F';                            // Avoid completely
   }
 
   private async generateReasoning(pick: string, analysis: DailyPickAnalysis, homeTeam: string, awayTeam: string, venue: string, odds: number, probablePitchers: any): Promise<string> {
