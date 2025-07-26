@@ -122,15 +122,18 @@ export class DailyPickService {
         const advancedMetrics = (xwOBAScore + barrelScore + exitVeloScore) / 3;
         const rawScore = (advancedMetrics * 0.7) + (productionScore * 0.3);
         
-        console.log(`2025 ${team} offensive production: xwOBA ${real2025Stats.xwOBA}, Barrel% ${real2025Stats.barrelPct}, EV ${real2025Stats.exitVelo}, Win% ${winPct.toFixed(3)}, Score: ${rawScore.toFixed(1)}`);
-        return this.normalizeToGradingScale(rawScore);
+        // Use banded scoring system
+        const bandedScore = this.calculateBandedScore(rawScore, 'offensive');
+        
+        console.log(`2025 ${team} offensive production: xwOBA ${real2025Stats.xwOBA}, Barrel% ${real2025Stats.barrelPct}, EV ${real2025Stats.exitVelo}, Win% ${winPct.toFixed(3)}, Raw: ${rawScore.toFixed(1)}, Banded: ${bandedScore}`);
+        return bandedScore;
       }
     } catch (error) {
       console.warn(`Could not fetch 2025 offensive stats for ${team}, using league average`);
     }
     
     // Fallback to league average if API fails
-    return this.normalizeToGradingScale(50); // Neutral 50/100
+    return this.calculateBandedScore(50, 'offensive'); // Neutral fallback
   }
 
   private async fetchReal2025TeamOffenseStats(teamName: string): Promise<any> {
@@ -295,10 +298,11 @@ export class DailyPickService {
     }
     console.log(`   Differential: ${pitchingDifferential.toFixed(1)} → Raw Score: ${rawScore.toFixed(1)}`);
     
-    const finalScore = this.normalizeToGradingScale(Math.max(30, Math.min(100, rawScore)));
-    console.log(`   Final Normalized Score: ${finalScore}`);
+    // Use banded scoring system
+    const bandedScore = this.calculateBandedScore(rawScore, 'pitching');
+    console.log(`   Final Banded Score: ${bandedScore}`);
     
-    return finalScore;
+    return bandedScore;
   }
 
   async fetchReal2025PitcherStats(pitcherName: string): Promise<any> {
@@ -419,7 +423,8 @@ export class DailyPickService {
       situationalScore += Math.random() > 0.5 ? 1 : -1;
     }
     
-    return this.normalizeToGradingScale(Math.max(0, Math.min(100, situationalScore)));
+    // Use banded scoring system
+    return this.calculateBandedScore(Math.max(0, Math.min(100, situationalScore)), 'situational');
   }
 
   private calculateSystemConfidence(dataQuality: { [key: string]: number }): number {
@@ -493,18 +498,97 @@ export class DailyPickService {
       scaledScore = Math.min(100, scaledScore + 3); // Bonus for perfect consensus + excellent data
     }
     
-    // Clamp to valid range
-    const result = Math.max(60, Math.min(100, Math.round(scaledScore)));
+    // Use banded scoring system
+    const bandedScore = this.calculateBandedScore(Math.max(60, Math.min(100, Math.round(scaledScore))), 'confidence');
     
-    console.log(`🎯 System confidence analysis: Avg Quality ${averageDataQuality.toFixed(1)}, Consensus ${consensusStrength.toFixed(1)}, Completeness ${dataCompleteness.toFixed(0)}%, Final Score: ${result}`);
+    console.log(`🎯 System confidence analysis: Avg Quality ${averageDataQuality.toFixed(1)}, Consensus ${consensusStrength.toFixed(1)}, Completeness ${dataCompleteness.toFixed(0)}%, Raw: ${Math.round(scaledScore)}, Banded: ${bandedScore}`);
     
-    return result;
+    return bandedScore;
   }
   
   private calculateVariance(values: number[]): number {
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
     return squaredDiffs.reduce((sum, diff) => sum + diff, 0) / values.length;
+  }
+
+  /**
+   * Calculate realistic banded scores based on real data with proper randomization
+   * Each factor gets scored in bands of 5 points with randomization within bands
+   */
+  private calculateBandedScore(rawValue: number, factorType: string): number {
+    let percentileScore: number;
+    
+    // Convert raw values to percentile-based scores using realistic data distributions
+    switch (factorType) {
+      case 'offensive':
+        // Based on team xwOBA, barrel%, exit velocity distributions
+        // Elite: >85th percentile, Good: 60-85th, Average: 40-60th, Poor: <40th
+        if (rawValue >= 85) percentileScore = 90;        // Elite band: 88-92
+        else if (rawValue >= 70) percentileScore = 80;   // Strong band: 78-82
+        else if (rawValue >= 55) percentileScore = 70;   // Good band: 68-72
+        else if (rawValue >= 40) percentileScore = 60;   // Average band: 58-62
+        else if (rawValue >= 25) percentileScore = 50;   // Below average: 48-52
+        else percentileScore = 40;                       // Poor band: 38-42
+        break;
+        
+      case 'pitching':
+        // Based on ERA, WHIP, K/9 differentials and matchup quality
+        if (rawValue >= 80) percentileScore = 85;        // Elite matchup: 83-87
+        else if (rawValue >= 65) percentileScore = 75;   // Good matchup: 73-77
+        else if (rawValue >= 50) percentileScore = 65;   // Average matchup: 63-67
+        else if (rawValue >= 35) percentileScore = 55;   // Poor matchup: 53-57
+        else percentileScore = 45;                       // Very poor: 43-47
+        break;
+        
+      case 'situational':
+        // Based on ballpark factors, travel, rest, conditions
+        if (rawValue >= 75) percentileScore = 80;        // Major advantage: 78-82
+        else if (rawValue >= 60) percentileScore = 70;   // Good advantage: 68-72
+        else if (rawValue >= 45) percentileScore = 60;   // Slight advantage: 58-62
+        else if (rawValue >= 30) percentileScore = 50;   // Neutral/slight disadvantage: 48-52
+        else percentileScore = 40;                       // Major disadvantage: 38-42
+        break;
+        
+      case 'momentum':
+        // Based on L10 record, recent trends, vs season performance
+        if (rawValue >= 80) percentileScore = 85;        // Hot streak: 83-87
+        else if (rawValue >= 65) percentileScore = 75;   // Good form: 73-77
+        else if (rawValue >= 50) percentileScore = 65;   // Average form: 63-67
+        else if (rawValue >= 35) percentileScore = 55;   // Poor form: 53-57
+        else percentileScore = 45;                       // Cold streak: 43-47
+        break;
+        
+      case 'market':
+        // Based on edge percentage and market efficiency
+        if (rawValue >= 6.0) percentileScore = 95;       // Exceptional edge: 93-97
+        else if (rawValue >= 4.0) percentileScore = 88;  // Strong edge: 86-90
+        else if (rawValue >= 2.5) percentileScore = 80;  // Good edge: 78-82
+        else if (rawValue >= 1.5) percentileScore = 70;  // Decent edge: 68-72
+        else if (rawValue >= 0.8) percentileScore = 60;  // Small edge: 58-62
+        else percentileScore = 50;                       // Minimal edge: 48-52
+        break;
+        
+      case 'confidence':
+        // Based on data quality, consensus, completeness
+        if (rawValue >= 95) percentileScore = 95;        // Perfect confidence: 93-97
+        else if (rawValue >= 85) percentileScore = 88;   // High confidence: 86-90
+        else if (rawValue >= 75) percentileScore = 80;   // Good confidence: 78-82
+        else if (rawValue >= 65) percentileScore = 70;   // Moderate confidence: 68-72
+        else if (rawValue >= 55) percentileScore = 60;   // Low confidence: 58-62
+        else percentileScore = 50;                       // Poor confidence: 48-52
+        break;
+        
+      default:
+        percentileScore = 60; // Neutral fallback
+    }
+    
+    // Add randomization within the band (±2 points)
+    const randomVariation = (Math.random() - 0.5) * 4; // -2 to +2
+    const finalScore = Math.round(percentileScore + randomVariation);
+    
+    // Clamp to realistic range
+    return Math.max(35, Math.min(100, finalScore));
   }
 
   private getTeamPitchingDefault(teamName: string): number {
@@ -585,15 +669,17 @@ export class DailyPickService {
         
         const rawScore = (momentumComponents.recentRecord + momentumComponents.trendDirection + momentumComponents.contextualPerf) * 100;
         
-        console.log(`Team momentum for ${pickTeam}: L10 ${last10Record.wins}-${last10Record.losses}, Trend: ${momentumTrend.toFixed(2)}, vs Season: ${performanceVsExpected.toFixed(2)}, Score: ${rawScore.toFixed(1)}`);
-        return this.normalizeToGradingScale(Math.max(0, Math.min(100, rawScore)));
+        // Use banded scoring system
+        const bandedScore = this.calculateBandedScore(Math.max(0, Math.min(100, rawScore)), 'momentum');
+        console.log(`Team momentum for ${pickTeam}: L10 ${last10Record.wins}-${last10Record.losses}, Trend: ${momentumTrend.toFixed(2)}, vs Season: ${performanceVsExpected.toFixed(2)}, Raw: ${rawScore.toFixed(1)}, Banded: ${bandedScore}`);
+        return bandedScore;
       }
     } catch (error) {
       console.warn(`Could not fetch real stats for ${pickTeam}, using fallback`);
     }
     
     // Fallback to neutral if API fails
-    return this.normalizeToGradingScale(60);
+    return this.calculateBandedScore(60, 'momentum');
   }
 
   // Make this method public so it can be used throughout the application
@@ -813,51 +899,17 @@ export class DailyPickService {
   }
 
   private calculateMarketInefficiency(odds: number, modelProb: number): number {
-    // Calculate market inefficiency using Kelly Criterion concepts
     const bookmakerProb = odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100);
-    let edge = modelProb - bookmakerProb;
+    const edge = Math.abs(modelProb - bookmakerProb);
+    const cappedEdge = Math.min(edge, 0.08);
+    const edgePercentage = cappedEdge * 100;
     
-    // EXPANDED EDGE CAP: Allow up to 8% edges for wider grade distribution
-    // This captures real market inefficiencies while preventing unrealistic edges
-    edge = Math.max(-0.08, Math.min(0.08, edge));
+    // Use banded scoring system
+    const bandedScore = this.calculateBandedScore(edgePercentage, 'market');
     
-    // Enhanced value calculation with multiple market efficiency indicators
-    const kellyValue = edge / bookmakerProb; // Kelly criterion foundation
-    
-    const edgePercentage = Math.abs(edge * 100); // Convert to percentage
-    
-    // EXPANDED GRADING SCALE: Create wider distribution from 40-95 range
-    let finalScore;
-    if (edgePercentage <= 0.5) {
-      // Very small or no edge: 40-60 range (D+ to C- grades) - Poor picks
-      finalScore = 40 + (edgePercentage / 0.5 * 20); // 0% = 40, 0.5% = 60
-    } else if (edgePercentage <= 1.5) {
-      // Small edge: 60-72 range (C- to C+ grades) - Average picks
-      finalScore = 60 + ((edgePercentage - 0.5) / 1.0 * 12); // 0.5% = 60, 1.5% = 72
-    } else if (edgePercentage <= 3.0) {
-      // Good edge: 72-80 range (C+ to B grades) - Good picks
-      finalScore = 72 + ((edgePercentage - 1.5) / 1.5 * 8); // 1.5% = 72, 3.0% = 80
-    } else if (edgePercentage <= 5.0) {
-      // Strong edge: 80-88 range (B to A- grades) - Strong picks
-      finalScore = 80 + ((edgePercentage - 3.0) / 2.0 * 8); // 3.0% = 80, 5.0% = 88
-    } else if (edgePercentage <= 7.0) {
-      // Excellent edge: 88-94 range (A- to A grades) - Excellent picks
-      finalScore = 88 + ((edgePercentage - 5.0) / 2.0 * 6); // 5.0% = 88, 7.0% = 94
-    } else {
-      // Maximum edge (8%): 94-95 range (A to A+ grades) - Elite picks
-      finalScore = Math.min(95, 94 + ((edgePercentage - 7.0) / 1.0 * 1)); // 7.0% = 94, 8.0% = 95
-    }
-    
-    // Add Kelly criterion bonus/penalty for additional variation
-    const kellyBonus = Math.min(Math.max(kellyValue * 3, -3), 3);
-    finalScore += kellyBonus;
-    
-    // Clamp to 40-100 range
-    finalScore = Math.max(40, Math.min(100, finalScore));
-    
-    console.log(`🎯 Market analysis: Edge ${edge.toFixed(3)} (${edgePercentage.toFixed(1)}%), Kelly ${kellyValue.toFixed(3)}, Final Score: ${finalScore.toFixed(1)}`);
-    console.log(`🎯 DEBUG: Raw modelProb: ${modelProb.toFixed(3)}, Bookmaker Prob: ${((odds > 0 ? 100 / (odds + 100) : Math.abs(odds) / (Math.abs(odds) + 100))).toFixed(3)}, Odds: ${odds}`);
-    return Math.round(finalScore);
+    console.log(`🎯 Market analysis: Edge ${cappedEdge.toFixed(3)} (${edgePercentage.toFixed(1)}%), Banded Score: ${bandedScore}`);
+    console.log(`🎯 DEBUG: Raw modelProb: ${modelProb.toFixed(3)}, Bookmaker Prob: ${bookmakerProb.toFixed(3)}, Odds: ${odds}`);
+    return bandedScore;
   }
 
   /**
