@@ -1181,7 +1181,7 @@ export class DailyPickService {
 
         // Generate new grade if needed
         if (!gradeStabilityService.shouldGenerateGrade(gameInfo)) {
-          console.log(`⏸️ Skipping grade generation for ${game.home_team} vs ${game.away_team}: waiting for more info`);
+          console.log(`⏸️ Skipping grade generation for ${game.home_team} vs ${game.away_team}: insufficient info`);
           continue;
         }
 

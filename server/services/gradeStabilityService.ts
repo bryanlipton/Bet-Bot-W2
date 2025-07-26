@@ -167,13 +167,29 @@ class GradeStabilityService {
   }
   
   /**
-   * Check if game has both pitchers confirmed
+   * Check if game has both pitchers confirmed or sufficient info for initial grades
    */
   private hasBothPitchers(gameInfo: GameInfo): boolean {
-    return !!(gameInfo.homePitcher && 
-              gameInfo.awayPitcher && 
-              gameInfo.homePitcher !== 'TBD' && 
-              gameInfo.awayPitcher !== 'TBD');
+    // Accept confirmed pitchers or allow initial generation with odds available
+    const hasConfirmedPitchers = !!(gameInfo.homePitcher && 
+                                   gameInfo.awayPitcher && 
+                                   gameInfo.homePitcher !== 'TBD' && 
+                                   gameInfo.awayPitcher !== 'TBD');
+    
+    // Allow initial grade generation if we have game info and odds
+    const hasBasicGameInfo = !!(gameInfo.homeTeam && gameInfo.awayTeam && gameInfo.gameTime);
+    
+    if (hasConfirmedPitchers) {
+      console.log(`✅ Confirmed pitchers for ${gameInfo.gameId}: ${gameInfo.homePitcher} vs ${gameInfo.awayPitcher}`);
+      return true;
+    }
+    
+    if (hasBasicGameInfo) {
+      console.log(`📋 Basic game info available for ${gameInfo.gameId}: generating preliminary grade`);
+      return true;
+    }
+    
+    return false;
   }
   
   /**
