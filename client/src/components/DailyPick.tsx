@@ -283,6 +283,58 @@ const formatGameTime = (gameTime: string) => {
   return new Date(gameTime).toLocaleString();
 };
 
+// Format inning display for live games
+const formatInning = (inningData: any) => {
+  if (!inningData) return 'Live';
+  
+  if (typeof inningData === 'string') {
+    // Handle simple string format like "Top 3rd", "Bot 9th"
+    return inningData;
+  }
+  
+  if (typeof inningData === 'object' && inningData.current) {
+    // Handle detailed inning object
+    const { current, state } = inningData;
+    const getOrdinal = (num: number) => {
+      const j = num % 10;
+      const k = num % 100;
+      if (j === 1 && k !== 11) return `${num}st`;
+      if (j === 2 && k !== 12) return `${num}nd`;
+      if (j === 3 && k !== 13) return `${num}rd`;
+      return `${num}th`;
+    };
+    
+    const statePrefix = state === 'Top' ? 'T' : state === 'Bottom' ? 'B' : state?.substring(0, 1) || 'T';
+    return `${statePrefix}${current}`;
+  }
+  
+  return inningData.toString();
+};
+
+// Enhanced game status formatter
+const formatGameStatus = (score: any) => {
+  if (!score) return 'Live';
+  
+  const status = score.status?.toLowerCase() || '';
+  
+  // Check for finished states
+  if (status.includes('final') || status.includes('completed') || status.includes('game over')) {
+    return 'Finished';
+  }
+  
+  // Check for live states with inning info
+  if (score.inning) {
+    return formatInning(score.inning);
+  }
+  
+  // Check for in-progress states
+  if (status.includes('progress') || status.includes('live')) {
+    return 'Live';
+  }
+  
+  return 'Live';
+};
+
 // Helper function to determine game status
 function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
   const now = new Date();
@@ -723,8 +775,7 @@ export default function DailyPick() {
               {liveGameScore && (
                 <div className="text-right">
                   <div className="text-xs text-gray-500 mb-1">
-                    {liveGameScore.status === 'Final' ? 'Final' : 
-                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || ''}` : 'Live'}
+                    {formatGameStatus(liveGameScore)}
                   </div>
                   <div className="font-mono text-sm">
                     <div className="flex items-center space-x-2">
@@ -804,8 +855,7 @@ export default function DailyPick() {
                 </div>
                 <div className="ml-4 text-right">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {liveGameScore.status === 'Final' ? 'Final' : 
-                     liveGameScore.status === 'In Progress' ? `${liveGameScore.inning || 'Live'}` : 'Live'}
+                    {formatGameStatus(liveGameScore)}
                   </div>
                 </div>
               </div>
