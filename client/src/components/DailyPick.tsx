@@ -773,37 +773,42 @@ export default function DailyPick() {
         )}
         
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0">
-                <BetBotIcon className="w-12 h-12 rounded-lg shadow-md" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
+          <div className="space-y-4">
+            {/* Header Row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <BetBotIcon className="w-10 h-10" />
+                <div className="flex items-center space-x-2">
                   <h3 className="text-lg font-bold text-blue-700 dark:text-blue-400">
                     Pick of the Day
                   </h3>
                   <GradeBadge grade={dailyPick.grade} />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-lg text-gray-900 dark:text-white font-medium">
-                    The pick was <span className="font-bold text-blue-700 dark:text-blue-400">{dailyPick.pickTeam} ML {formattedOdds}</span>
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {dailyPick.awayTeam} @ {dailyPick.homeTeam} • {formatGameTime(dailyPick.gameTime)}
-                  </p>
-                </div>
-                <div className="mt-3">
-                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-300 dark:border-blue-600"
-                      >
-                        View Analysis
-                      </Button>
-                    </DialogTrigger>
+              </div>
+            </div>
+            
+            {/* Pick Information */}
+            <div className="space-y-2">
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                The pick was <span className="text-blue-700 dark:text-blue-400">{dailyPick.pickTeam} ML {formattedOdds}</span>
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {dailyPick.awayTeam} @ {dailyPick.homeTeam} • {formatGameTime(dailyPick.gameTime)}
+              </p>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3 pt-2">
+              <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-300 dark:border-blue-600"
+                  >
+                    View Analysis
+                  </Button>
+                </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="flex items-center space-x-2">
@@ -854,14 +859,9 @@ export default function DailyPick() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex-shrink-0">
               <Link href="/scores">
-                <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold">
-                  <ExternalLink className="w-5 h-5" />
+                <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md font-semibold">
+                  <ExternalLink className="w-4 h-4" />
                   <span>Check Live Scores</span>
                 </Button>
               </Link>
