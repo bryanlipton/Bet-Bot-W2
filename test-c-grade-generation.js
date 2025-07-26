@@ -156,20 +156,20 @@ function simulateRealisticGameAnalysis() {
         return edge;
     }
 
-    // Grade assignment function with optimized thresholds
+    // Grade assignment function with enhanced thresholds for more A-/A/A+ grades
     function scoreToGrade(score) {
-        if (score >= 78.5) return 'A+';  
-        if (score >= 76.0) return 'A';     
-        if (score >= 73.5) return 'A-';  
-        if (score >= 70.0) return 'B+';  
-        if (score >= 66.0) return 'B';   
-        if (score >= 62.0) return 'B-';  
-        if (score >= 58.0) return 'C+';  
-        if (score >= 54.0) return 'C';   
-        if (score >= 50.0) return 'C-';  
-        if (score >= 47.0) return 'D+';  
-        if (score >= 44.0) return 'D';   
-        return 'F';                      
+        if (score >= 75.0) return 'A+';  // Elite opportunities (2-3 games)
+        if (score >= 72.0) return 'A';   // Strong opportunities (3-4 games)  
+        if (score >= 69.0) return 'A-';  // Very good opportunities (4-5 games)
+        if (score >= 66.0) return 'B+';  // Good opportunities (4-5 games)
+        if (score >= 63.0) return 'B';   // Decent opportunities (5-6 games)
+        if (score >= 60.0) return 'B-';  // Average+ opportunities (4-5 games)
+        if (score >= 57.0) return 'C+';  // Above average (3-4 games)
+        if (score >= 54.0) return 'C';   // Average games (3-4 games)
+        if (score >= 51.0) return 'C-';  // Below average (2-3 games)
+        if (score >= 48.0) return 'D+';  // Poor games (1-2 games)
+        if (score >= 45.0) return 'D';   // Very poor (0-1 games)
+        return 'F';                      // Avoid completely
     }
 
     // Calculate weighted average

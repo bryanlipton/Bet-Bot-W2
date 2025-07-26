@@ -31,18 +31,18 @@ export function getFactorColor(normalizedScore: number): string {
 
 // Grade conversion function (optimized threshold system)
 export function scoreToGrade(score: number): string {
-  // OPTIMIZED THRESHOLDS: Target 3+ A- or better games per day from ~30 game slate
-  if (score >= 78.5) return 'A+';  // Top 3-5% - exceptional (1-2 games)
-  if (score >= 76.0) return 'A';   // Top 8-10% - elite (2-3 games)  
-  if (score >= 73.5) return 'A-';  // Top 13-15% - very strong (2-3 games)
-  if (score >= 70.0) return 'B+';  // Top 20-25% - strong (4-5 games)
-  if (score >= 66.0) return 'B';   // Top 35-40% - good (6-7 games)
-  if (score >= 62.0) return 'B-';  // Top 50-55% - decent (4-5 games)
-  if (score >= 58.0) return 'C+';  // Top 65-70% - above average (3-4 games)
+  // ENHANCED THRESHOLDS: More A-/A/A+ grades while maintaining C grade variety
+  if (score >= 75.0) return 'A+';  // Elite opportunities (2-3 games)
+  if (score >= 72.0) return 'A';   // Strong opportunities (3-4 games)  
+  if (score >= 69.0) return 'A-';  // Very good opportunities (4-5 games)
+  if (score >= 66.0) return 'B+';  // Good opportunities (4-5 games)
+  if (score >= 63.0) return 'B';   // Decent opportunities (5-6 games)
+  if (score >= 60.0) return 'B-';  // Average+ opportunities (4-5 games)
+  if (score >= 57.0) return 'C+';  // Above average (3-4 games)
   if (score >= 54.0) return 'C';   // Average games (3-4 games)
-  if (score >= 50.0) return 'C-';  // Below average (2-3 games)
-  if (score >= 47.0) return 'D+';  // Poor games (1-2 games)
-  if (score >= 44.0) return 'D';   // Very poor (0-1 games)
+  if (score >= 51.0) return 'C-';  // Below average (2-3 games)
+  if (score >= 48.0) return 'D+';  // Poor games (1-2 games)
+  if (score >= 45.0) return 'D';   // Very poor (0-1 games)
   return 'F';                      // Avoid completely
 }
 
