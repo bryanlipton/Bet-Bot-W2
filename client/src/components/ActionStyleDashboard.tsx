@@ -295,7 +295,7 @@ export function ActionStyleDashboard() {
               </h2>
             </div>
             <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
-              Pro Users
+              {isProUser ? 'Pro Users' : 'Free Users'}
             </Badge>
           </div>
           {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
@@ -316,8 +316,8 @@ export function ActionStyleDashboard() {
                 Bet Bot Sports Genie AI Picks
               </h2>
             </div>
-            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm`}>
-              Pro Users
+            <Badge variant="outline" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-none self-start sm:self-auto text-xs md:text-xs lg:text-sm">
+              Free Users
             </Badge>
           </div>
         {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
