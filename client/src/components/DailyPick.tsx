@@ -773,7 +773,7 @@ export default function DailyPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
                     dailyPick.grade === 'A+' ? 'bg-blue-500' :
                     dailyPick.grade === 'A' ? 'bg-blue-400' :
                     dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
@@ -932,7 +932,7 @@ export default function DailyPick() {
                 </div>
                 <div className="flex items-center space-x-2 self-start">
                   <div className="relative">
-                    <div className={`w-8 h-8 rounded text-xs font-bold text-white flex items-center justify-center ${
+                    <div className={`w-8 h-8 rounded text-xs font-bold text-black flex items-center justify-center ${
                       dailyPick.grade === 'A+' ? 'bg-blue-500' :
                       dailyPick.grade === 'A' ? 'bg-blue-400' :
                       dailyPick.grade.startsWith('B') ? 'bg-blue-300' :

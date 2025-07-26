@@ -646,7 +646,7 @@ export default function LoggedInLockPick() {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-white ${
+                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
                     lockPick.grade === 'A+' ? 'bg-amber-500' :
                     lockPick.grade === 'A' ? 'bg-amber-400' :
                     lockPick.grade.startsWith('B') ? 'bg-amber-300' :
@@ -802,10 +802,10 @@ export default function LoggedInLockPick() {
                 </p>
               </div>
               <div className="relative">
-                <div className={`px-3 py-1 rounded text-sm font-bold text-white ${
-                  lockPick.grade === 'A+' ? 'bg-blue-500' :
-                  lockPick.grade === 'A' ? 'bg-blue-400' :
-                  lockPick.grade.startsWith('B') ? 'bg-blue-300' :
+                <div className={`px-3 py-1 rounded text-sm font-bold text-black ${
+                  lockPick.grade === 'A+' ? 'bg-amber-500' :
+                  lockPick.grade === 'A' ? 'bg-amber-400' :
+                  lockPick.grade.startsWith('B') ? 'bg-amber-300' :
                   lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
                 }`}>
                   Grade {lockPick.grade}
