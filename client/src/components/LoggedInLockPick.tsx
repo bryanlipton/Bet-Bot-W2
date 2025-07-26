@@ -659,45 +659,47 @@ export default function LoggedInLockPick() {
           </div>
         )}
         
-        <CardContent className="p-8 h-full flex flex-col justify-between min-h-[200px]">
-          <div className="space-y-6">
+        <CardContent className="p-4 sm:p-6 lg:p-8 h-full flex flex-col justify-between min-h-[180px] sm:min-h-[200px]">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             {/* Header Row */}
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                 <div className="relative">
-                  <BetBotIcon className="w-12 h-12" />
-                  <Lock className="w-5 h-5 text-amber-600 dark:text-amber-400 absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-1" />
+                  <BetBotIcon className="w-8 h-8 sm:w-10 h-10 lg:w-12 h-12" />
+                  <Lock className="w-3 h-3 sm:w-4 h-4 lg:w-5 h-5 text-amber-600 dark:text-amber-400 absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-0.5 sm:p-1" />
                 </div>
-                <div className="flex items-center space-x-3">
-                  <h3 className="text-2xl font-bold text-amber-700 dark:text-amber-400">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-amber-700 dark:text-amber-400">
                     Logged In Lock
                   </h3>
-                  <GradeBadge grade={lockPick.grade} />
+                  <div className="scale-75 sm:scale-90 lg:scale-100">
+                    <GradeBadge grade={lockPick.grade} />
+                  </div>
                 </div>
               </div>
             </div>
             
             {/* Pick Information - Main Content */}
-            <div className="space-y-4 flex-1">
-              <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-                The lock was <span className="text-lg text-amber-700 dark:text-amber-400">{lockPick.pickTeam} ML {formattedOdds}</span>
+            <div className="space-y-2 sm:space-y-3 lg:space-y-4 flex-1">
+              <p className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white leading-tight">
+                The lock was <span className="text-sm sm:text-base lg:text-lg text-amber-700 dark:text-amber-400">{lockPick.pickTeam} ML {formattedOdds}</span>
               </p>
-              <p className="text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                 {lockPick.awayTeam} @ {lockPick.homeTeam}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
                 {formatGameTime(lockPick.gameTime)}
               </p>
             </div>
           </div>
           
           {/* Action Buttons - Bottom */}
-          <div className="flex items-center justify-between w-full pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row items-center justify-between w-full pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700 space-y-2 sm:space-y-0">
             <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-300 dark:border-amber-600 px-6 py-2"
+                  className="w-full sm:w-auto text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-300 dark:border-amber-600 px-4 sm:px-6 py-2 text-sm sm:text-base"
                 >
                   View Analysis
                 </Button>
@@ -746,9 +748,9 @@ export default function LoggedInLockPick() {
                       </div>
                     </DialogContent>
                   </Dialog>
-            <Link href="/scores">
-              <Button className="flex items-center space-x-3 bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-lg shadow-lg font-semibold text-base">
-                <ExternalLink className="w-5 h-5" />
+            <Link href="/scores" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto flex items-center justify-center space-x-2 sm:space-x-3 bg-amber-600 hover:bg-amber-700 text-white px-4 sm:px-6 lg:px-8 py-2 sm:py-3 rounded-lg shadow-lg font-semibold text-sm sm:text-base">
+                <ExternalLink className="w-4 h-4 sm:w-5 h-5" />
                 <span>Check Live Scores</span>
               </Button>
             </Link>
