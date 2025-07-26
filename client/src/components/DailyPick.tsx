@@ -796,7 +796,7 @@ export default function DailyPick() {
                         {isGameFinished ? 'FINAL' : 'LIVE'}
                       </div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {isGameFinished ? '' : formatGameStatus(liveGameScore)}
+                        {formatGameStatus(liveGameScore)}
                       </div>
                     </div>
                     
