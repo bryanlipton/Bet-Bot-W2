@@ -137,17 +137,19 @@ function GradeBadge({ grade }: { grade: string }) {
 
 // Factor Grade Conversion (No F grades)
 function scoreToGrade(score: number): string {
-  if (score >= 82) return 'A+';   // Elite - extremely rare
-  if (score >= 76) return 'A';    // Excellent - very rare  
-  if (score >= 70) return 'B+';   // Very good - uncommon
-  if (score >= 65) return 'B';    // Good - solid picks
-  if (score >= 61) return 'C+';   // Above average - common
-  if (score >= 57) return 'C';    // Average - most common
-  if (score >= 53) return 'C-';   // Below average
-  if (score >= 49) return 'D+';   // Poor - significant concerns
-  if (score >= 45) return 'D';    // Very poor - major red flags
-  if (score >= 35) return 'D-';   // Terrible - avoid strongly
-  return 'F';                     // Catastrophic - never bet
+  // ENHANCED THRESHOLDS: More A-/A/A+ grades while maintaining C grade variety
+  if (score >= 75.0) return 'A+';  // Elite opportunities (2-3 games)
+  if (score >= 72.0) return 'A';   // Strong opportunities (3-4 games)  
+  if (score >= 69.0) return 'A-';  // Very good opportunities (4-5 games)
+  if (score >= 66.0) return 'B+';  // Good opportunities (4-5 games)
+  if (score >= 63.0) return 'B';   // Decent opportunities (5-6 games)
+  if (score >= 60.0) return 'B-';  // Average+ opportunities (4-5 games)
+  if (score >= 57.0) return 'C+';  // Above average (3-4 games)
+  if (score >= 54.0) return 'C';   // Average games (3-4 games)
+  if (score >= 51.0) return 'C-';  // Below average (2-3 games)
+  if (score >= 48.0) return 'D+';  // Poor games (1-2 games)
+  if (score >= 45.0) return 'D';   // Very poor (0-1 games)
+  return 'F';                      // Avoid completely
 }
 
 // Unified Info Button Component with Dark Background

@@ -177,19 +177,19 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
   };
 
   const scoreToGrade = (score: number): string => {
-    if (score >= 76) return 'A+';   // Elite - exceptional picks (76+)
-    if (score >= 73) return 'A';    // Excellent - top tier picks (73-75)
-    if (score >= 70) return 'A-';   // Very good - strong picks (70-72)
-    if (score >= 67) return 'B+';   // Good plus - above good (67-69)
-    if (score >= 64) return 'B';    // Good - solid picks (64-66)
-    if (score >= 61) return 'B-';   // Good minus - decent picks (61-63)
-    if (score >= 58) return 'C+';   // Above average - okay picks (58-60)
-    if (score >= 55) return 'C';    // Average - neutral picks (55-57)
-    if (score >= 52) return 'C-';   // Below average - weak picks (52-54)
-    if (score >= 49) return 'D+';   // Poor - bad picks (49-51)
-    if (score >= 46) return 'D';    // Very poor - avoid picks (46-48)
-    if (score >= 43) return 'D-';   // Terrible - strongly avoid (43-45)
-    return 'F';                     // Catastrophic - never bet (below 43)
+    // ENHANCED THRESHOLDS: More A-/A/A+ grades while maintaining C grade variety
+    if (score >= 75.0) return 'A+';  // Elite opportunities (2-3 games)
+    if (score >= 72.0) return 'A';   // Strong opportunities (3-4 games)  
+    if (score >= 69.0) return 'A-';  // Very good opportunities (4-5 games)
+    if (score >= 66.0) return 'B+';  // Good opportunities (4-5 games)
+    if (score >= 63.0) return 'B';   // Decent opportunities (5-6 games)
+    if (score >= 60.0) return 'B-';  // Average+ opportunities (4-5 games)
+    if (score >= 57.0) return 'C+';  // Above average (3-4 games)
+    if (score >= 54.0) return 'C';   // Average games (3-4 games)
+    if (score >= 51.0) return 'C-';  // Below average (2-3 games)
+    if (score >= 48.0) return 'D+';  // Poor games (1-2 games)
+    if (score >= 45.0) return 'D';   // Very poor (0-1 games)
+    return 'F';                      // Avoid completely
   };
 
   const getGradeExplanation = (score: number, factorTitle: string): string => {
