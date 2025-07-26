@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Info, TrendingUp, Target, MapPin, Clock, Users, Lock, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Link } from "wouter";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import removed
 import { trackPickVisit, cleanupOldVisits } from "@/lib/visitTracker";
@@ -640,79 +641,105 @@ export default function LoggedInLockPick() {
     return `${type} ${sign}`;
   };
 
-  // Show collapsed view when manually collapsed or when game has started
-  if (isCollapsed || (gameStarted && gameStartedCollapsed)) {
+  // Show simplified view when game has started or when manually collapsed
+  if (gameStarted || isCollapsed) {
+    const pickOdds = getCurrentOdds()?.pickTeamOdds ?? lockPick.odds;
+    const formattedOdds = pickOdds > 0 ? `+${pickOdds}` : `${pickOdds}`;
+    
     return (
-      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+      <Card className="w-full relative">
+        {/* Win/Loss Badge */}
+        {lockPick.status && lockPick.status !== 'pending' && (
+          <div className="absolute top-2 right-2 z-10">
+            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
+              lockPick.status === 'won' ? 'bg-green-500' : 'bg-red-500'
+            }`}>
+              {lockPick.status.toUpperCase()}
+            </div>
+          </div>
+        )}
+        
         <CardContent className="p-4">
-          <div className="flex items-center justify-between cursor-pointer" onClick={() => {setIsCollapsed(false); setGameStartedCollapsed(false);}}>
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-1">
                 <BetBotIcon className="w-8 h-8" />
                 <Lock className="w-4 h-4 text-amber-500" />
               </div>
               <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400">Logged In Lock</h3>
-                  <span className="text-xs text-gray-500">
-                    {lockPick.pickTeam} {lockPick.odds > 0 ? `+${lockPick.odds}` : lockPick.odds} vs {lockPick.pickTeam === lockPick.homeTeam ? getTeamAbbreviation(lockPick.awayTeam) : getTeamAbbreviation(lockPick.homeTeam)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 mt-1">
-                  <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
-                    lockPick.grade === 'A+' ? 'bg-amber-500' :
-                    lockPick.grade === 'A' ? 'bg-amber-400' :
-                    lockPick.grade.startsWith('B') ? 'bg-amber-300' :
-                    lockPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                  }`}>
-                    Grade {lockPick.grade}
-                  </div>
-                  {isGameFinished && (
-                    <div className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      F
-                    </div>
-                  )}
-                </div>
+                <h3 className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1">
+                  Logged In Lock
+                </h3>
+                <p className="text-sm text-gray-900 dark:text-white">
+                  The Logged In Lock was <strong>{lockPick.pickTeam} ML {formattedOdds}</strong>
+                </p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <GradeBadge grade={lockPick.grade} />
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 p-0 h-auto"
+                      >
+                        View Analysis
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                          <BetBotIcon className="w-6 h-6" />
+                          <span>Lock Pick Analysis: {lockPick.grade} Grade</span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-3">Pick Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div><strong>Game:</strong> {lockPick.awayTeam} @ {lockPick.homeTeam}</div>
+                            <div><strong>Pick:</strong> {lockPick.pickTeam} {formatOdds(lockPick.odds, lockPick.pickType)}</div>
+                            <div><strong>Venue:</strong> {lockPick.venue}</div>
+                            <div><strong>Time:</strong> {formatGameTime(lockPick.gameTime)}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                          <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                          <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                            {getMobileReasoning(lockPick.reasoning)}
+                          </pre>
+                        </div>
 
+                        <div>
+                          <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                          <div className="space-y-3">
+                            {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
+                              <div key={key} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium">{title}</span>
+                                  <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                </div>
+                                <ColoredProgress value={score} className="h-2" />
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
-              {liveLockGameScore && gameStarted && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-700">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">
-                        {getTeamAbbreviation(lockPick.awayTeam)}
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
-                        {liveLockGameScore.awayScore || 0}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-center">
-                      <div className={`px-2 py-1 rounded-full text-xs font-bold text-white mb-1 ${
-                        isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
-                      }`}>
-                        {isGameFinished ? 'FINAL' : 'LIVE'}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {formatGameStatus(liveLockGameScore)}
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">
-                        {getTeamAbbreviation(lockPick.homeTeam)}
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
-                        {liveLockGameScore.homeScore || 0}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <ChevronDown className="w-5 h-5 text-gray-400" />
+            <div>
+              <Link href="/scores">
+                <Button className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white">
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Check Live Scores</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </CardContent>

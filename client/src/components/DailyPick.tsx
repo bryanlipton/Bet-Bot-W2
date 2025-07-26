@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Info, TrendingUp, Target, MapPin, Clock, Users, ChevronDown, ChevronUp, Plus, ExternalLink } from "lucide-react";
+import { Link } from "wouter";
 import { OddsComparisonModal } from "@/components/OddsComparisonModal";
 // import { savePick } from "@/services/pickStorage"; // Unused import
 import { trackPickVisit, shouldCollapsePickForUser, cleanupOldVisits, shouldHideStartedPick } from "@/lib/visitTracker";
@@ -753,155 +754,108 @@ export default function DailyPick() {
 
   const gameResult = getGameResult();
 
-  // Show collapsed view when game has started
-  if (gameStarted && gameStartedCollapsed) {
+  // Show simplified view when game has started
+  if (gameStarted) {
+    const pickOdds = getCurrentOdds()?.pickTeamOdds ?? dailyPick.odds;
+    const formattedOdds = pickOdds > 0 ? `+${pickOdds}` : `${pickOdds}`;
+    
     return (
       <Card className="w-full relative">
-        {isGameFinished && gameResult && (
+        {/* Win/Loss Badge */}
+        {dailyPick.status && dailyPick.status !== 'pending' && (
           <div className="absolute top-2 right-2 z-10">
             <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
-              gameResult === 'won' ? 'bg-green-500' : 
-              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
+              dailyPick.status === 'won' ? 'bg-green-500' : 'bg-red-500'
             }`}>
-              {gameResult.toUpperCase()}
+              {dailyPick.status.toUpperCase()}
             </div>
           </div>
         )}
+        
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <BetBotIcon className="w-8 h-8" />
               <div>
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Pick of the Day</h3>
-                  <span className="text-xs text-gray-500">
-                    {dailyPick.pickTeam} {(getCurrentOdds()?.pickTeamOdds && getCurrentOdds()?.pickTeamOdds! > 0) ? `+${getCurrentOdds()?.pickTeamOdds}` : (getCurrentOdds()?.pickTeamOdds ?? dailyPick.odds)} vs {dailyPick.pickTeam === dailyPick.homeTeam ? getTeamAbbreviation(dailyPick.awayTeam) : getTeamAbbreviation(dailyPick.homeTeam)}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2 mt-1">
-                  <div className="relative">
-                    <div className={`px-2 py-0.5 rounded text-xs font-bold text-black ${
-                      dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                      dailyPick.grade === 'A' ? 'bg-blue-400' :
-                      dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                      dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                    }`}>
-                      Grade {dailyPick.grade}
-                    </div>
-                    <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="absolute -top-1 -right-1 p-1 h-3 w-3 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="text-[8px] font-bold">i</span>
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center space-x-2">
-                            <BetBotIcon className="w-6 h-6" />
-                            <span>Pick Analysis: {dailyPick.grade} Grade</span>
-                          </DialogTitle>
-                        </DialogHeader>
-                        
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                            <h4 className="font-semibold mb-3">Pick Details</h4>
-                            <div className="space-y-2 text-sm">
-                              <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                              <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
-                              <div><strong>Venue:</strong> {dailyPick.venue}</div>
-                              <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                            <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                            <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                              {getMainGradeExplanation(
-                                dailyPick.grade,
-                                dailyPick.confidence,
-                                dailyPick.analysis,
-                                dailyPick.pickTeam,
-                                dailyPick.odds
-                              )}
-                            </pre>
-                          </div>
-
-                          <div>
-                            <h4 className="font-semibold mb-3">Analysis Factors</h4>
-                            <div className="space-y-3">
-                              {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
-                                <div key={key} className="space-y-1">
-                                  <div className="flex justify-between text-sm">
-                                    <span className="font-medium">{title}</span>
-                                    <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
-                                  </div>
-                                  <ColoredProgress value={score} className="h-2" />
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
-                                </div>
-                              ))}
-                            </div>
+                <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+                  Pick of the Day
+                </h3>
+                <p className="text-sm text-gray-900 dark:text-white">
+                  The Pick of the Day was <strong>{dailyPick.pickTeam} ML {formattedOdds}</strong>
+                </p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <GradeBadge grade={dailyPick.grade} />
+                  <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-0 h-auto"
+                      >
+                        View Analysis
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                          <BetBotIcon className="w-6 h-6" />
+                          <span>Pick Analysis: {dailyPick.grade} Grade</span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                          <h4 className="font-semibold mb-3">Pick Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
+                            <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
+                            <div><strong>Venue:</strong> {dailyPick.venue}</div>
+                            <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  {isGameFinished && (
-                    <div className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      F
-                    </div>
-                  )}
+                        
+                        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                          <h4 className="font-semibold mb-3">Grade Analysis</h4>
+                          <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
+                            {getMainGradeExplanation(
+                              dailyPick.grade,
+                              dailyPick.confidence,
+                              dailyPick.analysis,
+                              dailyPick.pickTeam,
+                              dailyPick.odds
+                            )}
+                          </pre>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold mb-3">Analysis Factors</h4>
+                          <div className="space-y-3">
+                            {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
+                              <div key={key} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="font-medium">{title}</span>
+                                  <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
+                                </div>
+                                <ColoredProgress value={score} className="h-2" />
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
-              {liveGameScore && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
-                        {getTeamAbbreviation(dailyPick.awayTeam)}
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
-                        {liveGameScore.awayScore || 0}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-center">
-                      <div className={`px-2 py-1 rounded-full text-xs font-bold text-white mb-1 ${
-                        isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
-                      }`}>
-                        {isGameFinished ? 'FINAL' : 'LIVE'}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        {formatGameStatus(liveGameScore)}
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">
-                        {getTeamAbbreviation(dailyPick.homeTeam)}
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
-                        {liveGameScore.homeScore || 0}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setGameStartedCollapsed(false)}
-                className="p-1"
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+            <div>
+              <Link href="/scores">
+                <Button className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white">
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Check Live Scores</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </CardContent>
@@ -909,190 +863,7 @@ export default function DailyPick() {
     );
   }
 
-  // Show expanded view for live games
-  if (gameStarted && !gameStartedCollapsed) {
-    return (
-      <Card className="w-full relative">
-        {isGameFinished && gameResult && (
-          <div className="absolute top-2 right-2 z-10">
-            <div className={`px-2 py-1 rounded text-xs font-bold text-white ${
-              gameResult === 'won' ? 'bg-green-500' : 
-              gameResult === 'lost' ? 'bg-red-500' : 'bg-gray-500'
-            }`}>
-              {gameResult.toUpperCase()}
-            </div>
-          </div>
-        )}
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <BetBotIcon className="w-12 h-12" />
-              <div>
-                <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400">Pick of the Day</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {formatGameTime(dailyPick.gameTime)} • {dailyPick.venue}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setGameStartedCollapsed(true)}
-              className="p-1"
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-          </div>
 
-          {/* Enhanced Game Score Display */}
-          {liveGameScore && (
-            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-              <div className="grid grid-cols-3 gap-6 items-center">
-                {/* Away Team */}
-                <div className="text-center">
-                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
-                    {getTeamAbbreviation(dailyPick.awayTeam)}
-                  </div>
-                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    {liveGameScore.awayScore || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                    {dailyPick.awayTeam}
-                  </div>
-                </div>
-                
-                {/* Game Status */}
-                <div className="text-center">
-                  <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white mb-3 ${
-                    isGameFinished ? 'bg-gray-600' : 'bg-red-500 animate-pulse'
-                  }`}>
-                    {isGameFinished ? '🏁 FINAL' : '🔴 LIVE'}
-                  </div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {formatGameStatus(liveGameScore)}
-                  </div>
-                </div>
-                
-                {/* Home Team */}
-                <div className="text-center">
-                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
-                    {getTeamAbbreviation(dailyPick.homeTeam)}
-                  </div>
-                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    {liveGameScore.homeScore || 0}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                    {dailyPick.homeTeam}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Pick details */}
-          <div className="space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div>
-                  <h3 className="text-lg font-semibold">Our Pick: {dailyPick.pickTeam}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Moneyline {(getCurrentOdds()?.pickTeamOdds && getCurrentOdds()?.pickTeamOdds! > 0) ? `+${getCurrentOdds()?.pickTeamOdds}` : (getCurrentOdds()?.pickTeamOdds ?? dailyPick.odds)}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2 self-start">
-                  <div className="relative">
-                    <div className={`w-8 h-8 rounded text-xs font-bold text-black flex items-center justify-center ${
-                      dailyPick.grade === 'A+' ? 'bg-blue-500' :
-                      dailyPick.grade === 'A' ? 'bg-blue-400' :
-                      dailyPick.grade.startsWith('B') ? 'bg-blue-300' :
-                      dailyPick.grade.startsWith('C') ? 'bg-gray-500' : 'bg-orange-500'
-                    }`}>
-                      {dailyPick.grade}
-                    </div>
-                    {!gameStarted && (
-                      <Dialog open={analysisDialogOpen} onOpenChange={setAnalysisDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute -top-2 -right-2 p-1 h-4 w-4 bg-black dark:bg-gray-800 text-white hover:bg-gray-800 dark:hover:bg-gray-700 rounded-full flex items-center justify-center"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span className="text-xs font-bold">i</span>
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center space-x-2">
-                              <BetBotIcon className="w-6 h-6" />
-                              <span>Pick Analysis: {dailyPick.grade} Grade</span>
-                            </DialogTitle>
-                          </DialogHeader>
-                          
-                          <div className="space-y-4">
-                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                              <h4 className="font-semibold mb-3">Pick Details</h4>
-                              <div className="space-y-2 text-sm">
-                                <div><strong>Game:</strong> {dailyPick.awayTeam} @ {dailyPick.homeTeam}</div>
-                                <div><strong>Pick:</strong> {dailyPick.pickTeam} {formatOdds(dailyPick.odds, dailyPick.pickType)}</div>
-                                <div><strong>Venue:</strong> {dailyPick.venue}</div>
-                                <div><strong>Time:</strong> {formatGameTime(dailyPick.gameTime)}</div>
-                              </div>
-                            </div>
-                            
-                            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                              <h4 className="font-semibold mb-3">Grade Analysis</h4>
-                              <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                                {getMainGradeExplanation(
-                                  dailyPick.grade,
-                                  dailyPick.confidence,
-                                  dailyPick.analysis,
-                                  dailyPick.pickTeam,
-                                  dailyPick.odds
-                                )}
-                              </pre>
-                            </div>
-
-                            <div>
-                              <h4 className="font-semibold mb-3">Analysis Factors</h4>
-                              <div className="space-y-3">
-                                {getFactors(dailyPick.analysis, dailyPick.probablePitchers).map(({ key, title, score, info }) => (
-                                  <div key={key} className="space-y-1">
-                                    <div className="flex justify-between text-sm">
-                                      <span className="font-medium">{title}</span>
-                                      <span className="font-bold">{score !== null && score > 0 ? `${scoreToGrade(score)} (${score}/100)` : 'N/A'}</span>
-                                    </div>
-                                    <ColoredProgress value={score} className="h-2" />
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{info}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-                  {isGameFinished && (
-                    <div className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                      F
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Only show reasoning for upcoming games */}
-            {getGameStatus(dailyPick.gameTime) === 'upcoming' && (
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                <strong>Reasoning:</strong> {dailyPick.reasoning}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   // Determine if pick team is away or home, format matchup accordingly
   const formatMatchup = (homeTeam: string, awayTeam: string, pickTeam: string) => {
