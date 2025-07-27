@@ -200,8 +200,8 @@ app.post('/api/gpt/matchup', async (req, res) => {
       'Rockies': 0.40, 'White Sox': 0.38
     };
 
-    const homeStrength = teamStrengths[homeTeam] || 0.50;
-    const awayStrength = teamStrengths[awayTeam] || 0.50;
+    const homeStrength = teamStrengths[homeTeam as keyof typeof teamStrengths] || 0.50;
+    const awayStrength = teamStrengths[awayTeam as keyof typeof teamStrengths] || 0.50;
     const homeFieldBonus = 0.035;
     
     let homeWinProb = (homeStrength / (homeStrength + awayStrength)) + homeFieldBonus;
@@ -231,13 +231,29 @@ app.post('/api/gpt/matchup', async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error('[DIRECT] Prediction error:', error);
-    res.status(500).json({ error: 'Prediction failed: ' + error.message });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Prediction failed: ' + errorMessage });
   }
 });
 
 (async () => {
   // Register download routes first, before other middleware
   console.log('Setting up download routes...');
+  
+  // Setup authentication before any routes that need it
+  // Only setup Replit auth in production - development uses mock auth
+  const { initializeAuth } = await import('./auth');
+  
+  if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
+    const { setupAuth, isAuthenticated: prodAuth } = await import('./replitAuth');
+    await setupAuth(app);
+    initializeAuth(prodAuth);
+  } else {
+    // Development mode - setup mock authentication
+    const { setupDevAuth, isAuthenticated: devAuth } = await import('./devAuth');
+    setupDevAuth(app);
+    initializeAuth(devAuth);
+  }
   
   const server = await registerRoutes(app);
   registerOddsRoutes(app);

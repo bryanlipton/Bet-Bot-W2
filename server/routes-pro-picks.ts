@@ -1,6 +1,6 @@
 import { Application } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { DailyPickService } from "./services/dailyPickService";
 
 // Cache for Pro picks to prevent constant regeneration

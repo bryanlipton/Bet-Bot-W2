@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { pickGradingService } from "./services/pickGradingService";
 import { automaticGradingService } from "./services/automaticGradingService";
 

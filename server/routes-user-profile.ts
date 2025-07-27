@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { z } from "zod";
 
 // Profile update schema

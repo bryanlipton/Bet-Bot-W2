@@ -11,7 +11,7 @@ import { registerGPTExportRoutes } from "./routes-gpt-export";
 import { registerDailyPickRoutes } from "./routes-daily-pick";
 import { registerScoresRoutes } from "./routes-scores";
 import { registerStripeRoutes } from "./stripe-routes";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { umpireService } from "./services/umpireService";
 import { continuousTrainingService } from "./services/continuousTrainingService";
 import { overUnderPredictor } from "./services/overUnderPredictor";
@@ -30,8 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket server
   websocketService.initialize(httpServer);
 
-  // Setup Replit authentication
-  await setupAuth(app);
+  // Authentication is now setup in index.ts
 
   // Chat endpoints
   app.post("/api/chat", async (req, res) => {

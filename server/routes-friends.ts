@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { db } from "./db";
 import { users, userFollows, userPicks } from "@shared/schema";
 import { eq, and, or, ilike, ne, sql, desc, inArray } from "drizzle-orm";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 
 export function registerFriendsRoutes(app: Express) {
   // Check username availability

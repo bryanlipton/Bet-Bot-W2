@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 import { insertUserBetSchema, type UserBet } from "@shared/schema";
 import { z } from "zod";
 

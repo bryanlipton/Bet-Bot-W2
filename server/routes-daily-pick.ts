@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { dailyPickService } from "./services/dailyPickService";
 import { pickRotationService } from "./services/pickRotationService";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated } from "./auth";
 
 export function registerDailyPickRoutes(app: Express) {
   // Get today's pick of the day
