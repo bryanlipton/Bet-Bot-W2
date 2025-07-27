@@ -176,7 +176,9 @@ export default function MyPicksPage() {
   const calculateWagerAmount = (units: number, betUnitAtTime?: number): number => {
     // Use stored bet unit value if available, otherwise fall back to current bet unit
     const effectiveBetUnit = betUnitAtTime !== undefined ? betUnitAtTime : betUnit;
-    return units * effectiveBetUnit;
+    const result = units * effectiveBetUnit;
+    console.log('Calculating wager amount:', { units, betUnitAtTime, betUnit, effectiveBetUnit, result });
+    return result;
   };
 
   // Calculate potential payout based on wager and odds
@@ -929,25 +931,27 @@ export default function MyPicksPage() {
                         {formatBet(pick)}
                       </p>
                       
-                      {/* Units and Dollar Amount Display */}
-                      <div className="mt-2 flex flex-col gap-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {pick.units || 1} unit{(pick.units || 1) !== 1 ? 's' : ''}
-                          </span>
-                          <span className="text-gray-400">•</span>
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit).toFixed(2)}
-                          </span>
-                        </div>
-                        {pick.odds && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            To Win: ${(pick.status === 'loss' || pick.status === 'lost') 
-                              ? '0.00' 
-                              : (calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit), pick.odds) - calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit)).toFixed(2)
-                            }
+                      {/* Units and Dollar Amount Display - PROMINENTLY VISIBLE */}
+                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-blue-800 dark:text-blue-200">
+                              {pick.units || 1} unit{(pick.units || 1) !== 1 ? 's' : ''}
+                            </span>
+                            <span className="text-blue-600 dark:text-blue-400">•</span>
+                            <span className="font-bold text-blue-900 dark:text-blue-100 text-base">
+                              ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit).toFixed(2)}
+                            </span>
                           </div>
-                        )}
+                          {pick.odds && (
+                            <div className="text-xs text-blue-700 dark:text-blue-300">
+                              To Win: ${(pick.status === 'loss' || pick.status === 'lost') 
+                                ? '0.00' 
+                                : (calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit), pick.odds) - calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit)).toFixed(2)
+                              }
+                            </div>
+                          )}
+                        </div>
                       </div>
                       
                       {/* Parlay legs display */}
