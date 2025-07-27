@@ -336,6 +336,58 @@ const formatGameStatus = (score: any) => {
   return 'Live';
 };
 
+// Get all 6 factors with their info descriptions in permanent order
+const getFactors = (analysis: any, probablePitchers: { home: string | null; away: string | null }) => {
+  const factorData = [
+    {
+      key: 'marketInefficiency',
+      title: 'Market Edge',
+      score: analysis.marketInefficiency,
+      info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
+    },
+    {
+      key: 'situationalEdge',
+      title: 'Situational Edge',
+      score: analysis.situationalEdge,
+      info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
+    }
+  ];
+
+  // Always include Pitching Matchup, show NA if either pitcher is TBD
+  const homePitcher = probablePitchers.home || 'TBD';
+  const awayPitcher = probablePitchers.away || 'TBD';
+  
+  factorData.push({
+    key: 'pitchingMatchup',
+    title: 'Pitching Matchup', 
+    score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : 0,
+    info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
+  });
+
+  factorData.push(
+    {
+      key: 'teamMomentum',
+      title: 'Team Momentum',
+      score: analysis.teamMomentum,
+      info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
+    },
+    {
+      key: 'systemConfidence',
+      title: 'System Confidence',
+      score: analysis.systemConfidence,
+      info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
+    },
+    {
+      key: 'offensiveProduction',
+      title: 'Offensive Production',
+      score: analysis.offensiveProduction,
+      info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
+    }
+  );
+
+  return factorData;
+};
+
 export default function LoggedInLockPick() {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
@@ -352,7 +404,7 @@ export default function LoggedInLockPick() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   // Fetch lock pick only for authenticated users
-  const { data: lockPick, isLoading } = useQuery({
+  const { data: lockPick, isLoading } = useQuery<any>({
     queryKey: ['/api/daily-pick/lock'],
     enabled: !authLoading && isAuthenticated, // Only fetch when authenticated
     staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
@@ -726,14 +778,14 @@ export default function LoggedInLockPick() {
                         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
                           <h4 className="font-semibold mb-3">Grade Analysis</h4>
                           <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                            {getMobileReasoning(lockPick.reasoning)}
+                            {lockPick?.reasoning || 'No reasoning available'}
                           </pre>
                         </div>
 
                         <div>
                           <h4 className="font-semibold mb-3">Analysis Factors</h4>
                           <div className="space-y-3">
-                            {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
+                            {getFactors(lockPick?.analysis || {}, lockPick?.probablePitchers || {}).map(({ key, title, score, info }) => (
                               <div key={key} className="space-y-1">
                                 <div className="flex justify-between text-sm">
                                   <span className="font-medium">{title}</span>
@@ -901,11 +953,11 @@ export default function LoggedInLockPick() {
                         <h4 className="font-semibold mb-3">Grade Analysis</h4>
                         <pre className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
                           {getMainGradeExplanation(
-                            lockPick.grade,
-                            lockPick.confidence,
-                            lockPick.analysis,
-                            lockPick.pickTeam,
-                            lockPick.odds
+                            lockPick?.grade || 'C',
+                            lockPick?.confidence || 50,
+                            lockPick?.analysis || {},
+                            lockPick?.pickTeam || '',
+                            lockPick?.odds || 100
                           )}
                         </pre>
                       </div>
@@ -913,7 +965,7 @@ export default function LoggedInLockPick() {
                       <div>
                         <h4 className="font-semibold mb-3">Analysis Factors</h4>
                         <div className="space-y-3">
-                          {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
+                          {getFactors(lockPick?.analysis || {}, lockPick?.probablePitchers || {}).map(({ key, title, score, info }) => (
                             <div key={key} className="space-y-1">
                               <div className="flex justify-between text-sm">
                                 <span className="font-medium">{title}</span>
@@ -949,57 +1001,7 @@ export default function LoggedInLockPick() {
   //   console.log('Found matching score:', liveLockGameScore);
   // }
 
-  // Get all 6 factors with their info descriptions in permanent order
-  const getFactors = (analysis: DailyPickAnalysis, probablePitchers: { home: string | null; away: string | null }) => {
-    const factorData = [
-      {
-        key: 'marketInefficiency',
-        title: 'Market Edge',
-        score: analysis.marketInefficiency,
-        info: 'Advanced betting value analysis using Kelly Criterion and market efficiency indicators to identify profitable opportunities.'
-      },
-      {
-        key: 'situationalEdge',
-        title: 'Situational Edge',
-        score: analysis.situationalEdge,
-        info: 'Comprehensive situational factors including ballpark dimensions, home field advantage, travel fatigue, and game timing effects.'
-      }
-    ];
 
-    // Always include Pitching Matchup, show NA if either pitcher is TBD
-    const homePitcher = probablePitchers.home || 'TBD';
-    const awayPitcher = probablePitchers.away || 'TBD';
-    
-    factorData.push({
-      key: 'pitchingMatchup',
-      title: 'Pitching Matchup', 
-      score: (homePitcher !== 'TBD' && awayPitcher !== 'TBD') ? (analysis.pitchingMatchup || 0) : 0,
-      info: 'Starting pitcher effectiveness analysis comparing ERA, WHIP, strikeout rates, and recent performance trends.'
-    });
-
-    factorData.push(
-      {
-        key: 'teamMomentum',
-        title: 'Team Momentum',
-        score: analysis.teamMomentum,
-        info: 'Multi-layered momentum analysis from official MLB Stats API comparing recent performance trends, L10 vs season form, and directional momentum shifts.'
-      },
-      {
-        key: 'systemConfidence',
-        title: 'System Confidence',
-        score: analysis.systemConfidence,
-        info: 'Model certainty based on data quality, factor consensus, and information completeness - higher scores indicate stronger analytical foundation.'
-      },
-      {
-        key: 'offensiveProduction',
-        title: 'Offensive Production',
-        score: analysis.offensiveProduction,
-        info: 'Advanced run-scoring analysis combining Baseball Savant metrics (xwOBA, barrel rate, exit velocity) with team production efficiency from 2025 season data.'
-      }
-    );
-
-    return factorData;
-  };
 
   // Determine if pick team is away or home, format matchup accordingly
   const formatMatchup = (homeTeam: string, awayTeam: string, pickTeam: string) => {
@@ -1091,11 +1093,11 @@ export default function LoggedInLockPick() {
                         <h4 className="font-semibold mb-3">Grade Analysis</h4>
                         <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                           {getMainGradeExplanation(
-                            lockPick.grade,
-                            lockPick.confidence,
-                            lockPick.analysis,
-                            lockPick.pickTeam,
-                            lockPick.odds
+                            lockPick?.grade || 'C',
+                            lockPick?.confidence || 50,
+                            lockPick?.analysis || {},
+                            lockPick?.pickTeam || '',
+                            lockPick?.odds || 100
                           )}
                         </div>
                       </div>
@@ -1103,7 +1105,7 @@ export default function LoggedInLockPick() {
                       <div>
                         <h4 className="font-semibold mb-3">Analysis Factors</h4>
                         <div className="space-y-3">
-                          {getFactors(lockPick.analysis, lockPick.probablePitchers).map(({ key, title, score, info }) => (
+                          {getFactors(lockPick?.analysis || {}, lockPick?.probablePitchers || {}).map(({ key, title, score, info }) => (
                             <div key={key} className="space-y-1">
                               <div className="flex justify-between text-sm">
                                 <span className="font-medium">{title}</span>
