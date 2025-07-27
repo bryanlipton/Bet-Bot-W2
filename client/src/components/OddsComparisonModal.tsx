@@ -78,8 +78,7 @@ export function OddsComparisonModal({
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
     const market = bookmaker.markets.find(m => {
-      if (selectedBet.market === 'moneyline') return m.key === 'h2h';
-      if (selectedBet.market === 'h2h') return m.key === 'h2h';
+      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') return m.key === 'h2h';
       if (selectedBet.market === 'spread') return m.key === 'spreads';
       if (selectedBet.market === 'total') return m.key === 'totals';
       return false;
@@ -187,7 +186,7 @@ export function OddsComparisonModal({
         units: units,
         bookmaker: 'confirmed',
         bookmakerDisplayName: confirmationData.bookmaker,
-        gameDate: new Date(gameInfo.gameTime || Date.now())
+        gameDate: gameInfo.gameTime ? new Date(gameInfo.gameTime) : new Date()
       };
 
       console.log('Pick data to save:', pickData);
@@ -211,9 +210,9 @@ export function OddsComparisonModal({
     } catch (error) {
       console.error('❌ Error saving pick:', error);
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       });
       // Still close the modal even if save fails
       handleClose();
@@ -332,10 +331,10 @@ export function OddsComparisonModal({
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Updated: {(() => {
                               try {
-                                return new Date(odds!.lastUpdate).toLocaleTimeString();
-                              } catch (error) {
-                                console.warn('Invalid date format:', odds!.lastUpdate);
-                                return 'Recently';
+                                const date = new Date(odds!.lastUpdate);
+                                return !isNaN(date.getTime()) ? date.toLocaleTimeString() : 'Unknown';
+                              } catch {
+                                return 'Unknown';
                               }
                             })()}
                           </p>
