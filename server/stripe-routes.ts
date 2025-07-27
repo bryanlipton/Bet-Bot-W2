@@ -82,7 +82,22 @@ export function registerStripeRoutes(app: Express) {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || !user.stripeSubscriptionId) {
+      if (!user) {
+        return res.json({ status: 'inactive', plan: 'free' });
+      }
+      
+      // Check for database-level subscription status first (for dev/testing)
+      if (user.subscriptionStatus === 'active' && user.subscriptionPlan && user.subscriptionPlan !== 'free') {
+        return res.json({
+          status: user.subscriptionStatus,
+          plan: user.subscriptionPlan,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false
+        });
+      }
+      
+      // Fall back to Stripe subscription check
+      if (!user.stripeSubscriptionId) {
         return res.json({ status: 'inactive', plan: 'free' });
       }
 

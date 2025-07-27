@@ -887,7 +887,12 @@ export default function MyPicksPage() {
           ) : (
             <div className="space-y-3 sm:space-y-4">
               {filteredPicks.map((pick) => {
-                console.log('Rendering pick:', pick);
+                console.log('=== PICK DEBUG ===');
+                console.log('Full pick object:', JSON.stringify(pick, null, 2));
+                console.log('pick.units:', pick.units);
+                console.log('pick.betUnitAtTime:', pick.betUnitAtTime);
+                console.log('betUnit from state:', betUnit);
+                console.log('==================');
                 return (
               <Card key={pick.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-3 sm:p-4">
