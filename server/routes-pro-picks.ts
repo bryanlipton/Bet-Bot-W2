@@ -1,11 +1,17 @@
 import { Application } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./auth";
+import { isAuthenticated } from "./devAuth";
 import { DailyPickService } from "./services/dailyPickService";
 
 // Cache for Pro picks to prevent constant regeneration
 const proPicksCache = new Map();
 const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
+// Clear cache function for debugging
+function clearProCache() {
+  proPicksCache.clear();
+  console.log('🗑️ Pro picks cache cleared');
+}
 
 export function setupProPicksRoutes(app: Application) {
   const dailyPickService = new DailyPickService();
@@ -76,6 +82,9 @@ export function setupProPicksRoutes(app: Application) {
 
       const { gameId } = req.params; 
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
+      
+      // Clear cache for fresh factor scores (temporary for debugging)
+      clearProCache();
       
       // Check cache first
       const cacheKey = `game-${gameId}`;
@@ -155,6 +164,16 @@ export function setupProPicksRoutes(app: Application) {
       
       console.log(`✅ Found Pro pick for game ${gameId}: ${gamePick.pickTeam} (${gamePick.grade})`);
       
+      // Debug: Log the analysis object to verify factor scores
+      console.log(`🔍 Analysis factors for ${gamePick.pickTeam}:`, {
+        offensiveProduction: gamePick.analysis?.offensiveProduction,
+        pitchingMatchup: gamePick.analysis?.pitchingMatchup,
+        situationalEdge: gamePick.analysis?.situationalEdge,
+        teamMomentum: gamePick.analysis?.teamMomentum,
+        marketInefficiency: gamePick.analysis?.marketInefficiency,
+        systemConfidence: gamePick.analysis?.systemConfidence
+      });
+      
       // Return the Pro pick data using the enhanced grading system results
       const proPickData = {
         gameId: gameId,
@@ -164,6 +183,7 @@ export function setupProPicksRoutes(app: Application) {
         grade: gamePick.grade,
         confidence: gamePick.confidence,
         reasoning: gamePick.reasoning,
+        analysis: gamePick.analysis, // Include the full analysis object with factor scores
         odds: gamePick.odds
       };
       
