@@ -258,6 +258,27 @@ export const baseballUmpires = pgTable("baseball_umpires", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Persistent grade storage for Pro picks 
+export const proPickGrades = pgTable("pro_pick_grades", {
+  id: serial("id").primaryKey(),
+  gameId: text("game_id").notNull().unique(), // Unique per game per day
+  homeTeam: text("home_team").notNull(),
+  awayTeam: text("away_team").notNull(),
+  pickTeam: text("pick_team").notNull(),
+  grade: text("grade").notNull(), // A+, A, A-, B+, B, B-, C+, C, C-, D+, D
+  confidence: integer("confidence").notNull(), // 0-100
+  reasoning: text("reasoning").notNull(),
+  analysis: json("analysis").notNull(), // Complete analysis factors
+  odds: integer("odds"),
+  gameTime: timestamp("game_time").notNull(),
+  pickDate: text("pick_date").notNull(), // YYYY-MM-DD format for daily grouping
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_pick_date").on(table.pickDate),
+  index("idx_game_id").on(table.gameId),
+]);
+
 // Daily picks for free users (Pick of the Day)
 export const dailyPicks = pgTable("daily_picks", {
   id: text("id").primaryKey(),

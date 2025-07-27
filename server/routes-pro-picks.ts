@@ -2,6 +2,7 @@ import { Application } from "express";
 import { storage } from "./storage";
 import { isAuthenticated } from "./devAuth";
 import { DailyPickService } from "./services/dailyPickService";
+import { persistentGradeService } from "./services/persistentGradeService";
 
 // Cache for Pro picks to prevent constant regeneration
 const proPicksCache = new Map();
@@ -28,13 +29,29 @@ export function setupProPicksRoutes(app: Application) {
 
       console.log("Pro user requesting all picks with grades");
       
-      // Check cache first
-      const cacheKey = 'all-picks';
-      const cached = proPicksCache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-        console.log('📋 Returning cached Pro picks data');
-        return res.json(cached.data);
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      // First check if we have persistent grades for today
+      const existingGrades = await persistentGradeService.getGradesForDate(today);
+      
+      if (existingGrades.length > 0) {
+        console.log(`📋 Returning ${existingGrades.length} persistent grades for ${today}`);
+        const proPicksData = existingGrades.map(grade => ({
+          gameId: grade.gameId,
+          homeTeam: grade.homeTeam,
+          awayTeam: grade.awayTeam,
+          pickTeam: grade.pickTeam,
+          grade: grade.grade,
+          confidence: grade.confidence,
+          reasoning: grade.reasoning,
+          analysis: grade.analysis,
+          odds: grade.odds
+        }));
+        return res.json(proPicksData);
       }
+      
+      // No persistent grades found, generate new ones
+      console.log("No persistent grades found, generating new ones...");
       
       // Get all games first
       const { oddsApiService } = await import('./services/oddsApi.js');
@@ -42,6 +59,23 @@ export function setupProPicksRoutes(app: Application) {
       
       // Generate analysis for all games with grades
       const allPicks = await dailyPickService.generateAllGamePicks(games);
+      
+      // Store each pick as a persistent grade
+      for (const pick of allPicks) {
+        await persistentGradeService.storeGrade({
+          gameId: pick.gameId,
+          homeTeam: pick.homeTeam,
+          awayTeam: pick.awayTeam,
+          pickTeam: pick.pickTeam,
+          grade: pick.grade,
+          confidence: pick.confidence,
+          reasoning: pick.reasoning,
+          analysis: pick.analysis,
+          odds: pick.odds,
+          gameTime: new Date(pick.gameTime),
+          pickDate: today
+        });
+      }
       
       // Return picks with enhanced grades and analysis
       const proPicksData = allPicks.map(pick => ({
@@ -56,13 +90,7 @@ export function setupProPicksRoutes(app: Application) {
         odds: pick.odds
       }));
 
-      // Cache the result
-      proPicksCache.set(cacheKey, {
-        data: proPicksData,
-        timestamp: Date.now()
-      });
-      console.log('💾 Cached Pro picks data for 15 minutes');
-
+      console.log(`💾 Generated and stored ${allPicks.length} new persistent grades for ${today}`);
       res.json(proPicksData);
     } catch (error: any) {
       console.error("Error fetching Pro all picks:", error);
@@ -83,15 +111,25 @@ export function setupProPicksRoutes(app: Application) {
       const { gameId } = req.params; 
       console.log(`Pro user requesting detailed analysis for game: ${gameId}`);
       
-      // Clear cache for fresh factor scores (temporary for debugging)
-      clearProCache();
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       
-      // Check cache first
-      const cacheKey = `game-${gameId}`;
-      const cached = proPicksCache.get(cacheKey);
-      if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-        console.log(`📋 Returning cached analysis for game ${gameId}`);
-        return res.json(cached.data);
+      // First check if we have a persistent grade for this game
+      const existingGrade = await persistentGradeService.getExistingGrade(gameId, today);
+      
+      if (existingGrade) {
+        console.log(`📋 Returning persistent grade for game ${gameId}: ${existingGrade.grade}`);
+        const gameAnalysis = {
+          gameId: existingGrade.gameId,
+          homeTeam: existingGrade.homeTeam,
+          awayTeam: existingGrade.awayTeam,
+          pickTeam: existingGrade.pickTeam,
+          grade: existingGrade.grade,
+          confidence: existingGrade.confidence,
+          reasoning: existingGrade.reasoning,
+          analysis: existingGrade.analysis,
+          odds: existingGrade.odds
+        };
+        return res.json(gameAnalysis);
       }
       
       // Use the same system as daily picks - get all odds data and generate picks
