@@ -68,10 +68,10 @@ export const affiliateLinks: Record<string, AffiliateLink> = {
   fanatics: {
     bookmaker: 'fanatics',
     displayName: 'Fanatics',
-    affiliateUrl: 'https://account.sportsbook.fanatics.com/registration?ref=betbot123', // Login/signup page with dummy affiliate
+    affiliateUrl: 'https://sportsbook.fanatics.com/', // Main sportsbook homepage - safer entry point
     isActive: false, // Set to true when we have approved affiliate link
     deepLinkSupport: false, // Fanatics doesn't have public bet slip API
-    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball/mlb' // Takes to MLB section only
+    deepLinkTemplate: 'https://sportsbook.fanatics.com/sports/baseball' // Simplified MLB section path
   },
   
   mybookie: {

@@ -96,8 +96,8 @@ function buildManualDeepLink(
       return `https://www.mybookie.ag/sportsbook/mlb/${team1}-${team2}${affiliate}`;
 
     case 'fanatics':
-      // Enhanced game-specific targeting
-      return `https://sportsbook.fanatics.com/sports/baseball/mlb/${team1}-vs-${team2}${affiliate}`;
+      // Simplified approach - go to MLB main page to avoid URL structure issues
+      return `https://sportsbook.fanatics.com/sports/baseball${affiliate}`;
 
     default:
       return '#';
@@ -122,6 +122,15 @@ export function buildDeepLink(
     outcomeLink?: string;
   }
 ): { url: string; hasDeepLink: boolean; linkType: string } {
+  // Special handling for Fanatics - bypass API links that cause XML errors
+  if (bookmakerKey.toLowerCase() === 'fanatics') {
+    return {
+      url: buildManualDeepLink('fanatics', gameInfo, betInfo),
+      hasDeepLink: false,
+      linkType: 'manual'
+    };
+  }
+  
   // Special handling for FanDuel - prioritize their API links since manual links are blocked
   if (bookmakerKey.toLowerCase() === 'fanduel') {
     if (oddsApiLinks?.outcomeLink) {
