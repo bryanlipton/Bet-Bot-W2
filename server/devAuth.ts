@@ -12,9 +12,17 @@ const mockUser = {
   createdAt: new Date(),
 };
 
+// Development authentication state (in-memory for dev)
+let devLoggedOut = false;
+
 // Development authentication middleware
 export const isDevAuthenticated: RequestHandler = async (req, res, next) => {
-  // Always authenticated in development
+  // Check if user manually logged out in dev mode
+  if (devLoggedOut) {
+    return res.status(401).json({ message: 'Not authenticated in dev mode' });
+  }
+  
+  // Always authenticated in development (unless manually logged out)
   (req as any).user = {
     claims: {
       sub: mockUser.id,
@@ -40,14 +48,18 @@ export function setupDevAuth(app: Express) {
   
   // Mock authentication endpoints for development
   app.get("/api/login", (req, res) => {
+    devLoggedOut = false; // Reset logout state on login
     res.redirect("/");
   });
 
   app.get("/api/callback", (req, res) => {
+    devLoggedOut = false; // Reset logout state on callback
     res.redirect("/");
   });
 
   app.get("/api/logout", (req, res) => {
+    devLoggedOut = true; // Set logout state for dev mode
+    console.log("🔓 Dev user logged out - authentication disabled");
     res.redirect("/");
   });
 

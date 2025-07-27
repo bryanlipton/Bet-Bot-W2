@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { queryClient } from "@/lib/queryClient";
 
 export function LoginButton() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -62,7 +63,12 @@ export function LoginButton() {
           <User className="w-4 h-4 mr-2" />
           Profile
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+        <DropdownMenuItem onClick={() => {
+          // Invalidate auth cache first, then redirect to logout
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+          queryClient.clear(); // Clear all cached data on logout
+          window.location.href = '/api/logout';
+        }}>
           <LogOut className="w-4 h-4 mr-2" />
           Log out
         </DropdownMenuItem>
