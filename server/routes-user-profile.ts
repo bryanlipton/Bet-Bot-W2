@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { storage } from "./storage";
-import { isAuthenticated } from "./auth";
+import { isAuthenticated } from "./devAuth";
 import { z } from "zod";
 
 // Profile update schema
@@ -21,7 +21,6 @@ export function registerUserProfileRoutes(app: Express) {
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       console.log("Profile update request received");
-      console.log("req.isAuthenticated():", req.isAuthenticated());
       console.log("req.user:", req.user);
       console.log("User:", req.user?.claims?.sub);
       console.log("Request body:", req.body);
@@ -58,8 +57,8 @@ export function registerUserProfileRoutes(app: Express) {
       }
 
       // Check if user is authenticated and is the owner (optional authentication)
-      const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
-      const isOwner = isAuthenticated && (req.user as any)?.claims?.sub === userId;
+      const userIsAuthenticated = req.user && (req.user as any).claims && (req.user as any).claims.sub;
+      const isOwner = userIsAuthenticated && (req.user as any)?.claims?.sub === userId;
       
       // For now, allow all profiles to be viewable for Instagram-style functionality
       // We can add privacy settings later if needed
