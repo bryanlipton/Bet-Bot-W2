@@ -886,7 +886,9 @@ export default function MyPicksPage() {
             </Card>
           ) : (
             <div className="space-y-3 sm:space-y-4">
-              {filteredPicks.map((pick) => (
+              {filteredPicks.map((pick) => {
+                console.log('Rendering pick:', pick);
+                return (
               <Card key={pick.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="p-3 sm:p-4">
                   {/* Mobile-optimized header */}
@@ -931,20 +933,23 @@ export default function MyPicksPage() {
                         {formatBet(pick)}
                       </p>
                       
-                      {/* Units and Dollar Amount Display - PROMINENTLY VISIBLE */}
-                      <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+                      {/* Units and Dollar Amount Display - DEBUG VERSION */}
+                      <div className="mt-2 p-3 bg-yellow-100 dark:bg-yellow-900/30 border-2 border-yellow-400 dark:border-yellow-600 rounded">
+                        <div className="text-xs text-gray-700 dark:text-gray-300 mb-2">
+                          DEBUG: units={pick.units}, betUnitAtTime={pick.betUnitAtTime}, betUnit={betUnit}
+                        </div>
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-blue-800 dark:text-blue-200">
+                            <span className="font-semibold text-yellow-800 dark:text-yellow-200 text-lg">
                               {pick.units || 1} unit{(pick.units || 1) !== 1 ? 's' : ''}
                             </span>
-                            <span className="text-blue-600 dark:text-blue-400">•</span>
-                            <span className="font-bold text-blue-900 dark:text-blue-100 text-base">
+                            <span className="text-yellow-600 dark:text-yellow-400">•</span>
+                            <span className="font-bold text-yellow-900 dark:text-yellow-100 text-xl">
                               ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit).toFixed(2)}
                             </span>
                           </div>
                           {pick.odds && (
-                            <div className="text-xs text-blue-700 dark:text-blue-300">
+                            <div className="text-sm text-yellow-700 dark:text-yellow-300">
                               To Win: ${(pick.status === 'loss' || pick.status === 'lost') 
                                 ? '0.00' 
                                 : (calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit), pick.odds) - calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit)).toFixed(2)
@@ -1203,7 +1208,8 @@ export default function MyPicksPage() {
                   </div>
                 </CardContent>
               </Card>
-              ))}
+              );
+                })}
             </div>
           );
         })()}
