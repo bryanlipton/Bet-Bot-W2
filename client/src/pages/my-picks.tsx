@@ -628,21 +628,21 @@ export default function MyPicksPage() {
     totalMoneyWonLost: picksArray.reduce((sum: number, p: any) => {
       if (p.status === 'won' || p.status === 'win') {
         // For graded picks, use the calculated win amount from database if available
-        if (p.result && typeof p.result.payout === 'string' && !isNaN(parseFloat(p.result.payout))) {
-          return sum + parseFloat(p.result.payout);
+        if (p.winAmount && !isNaN(parseFloat(p.winAmount))) {
+          return sum + parseFloat(p.winAmount);
         }
         // Fallback to calculation based on odds and units
-        const odds = p.betInfo?.odds || 0;
-        const units = p.betInfo?.units || 0;
-        const wagerAmount = units * betUnit;
+        const odds = p.odds || 0;
+        const units = p.units || 0;
+        const wagerAmount = calculateWagerAmount(units, p.betUnitAtTime || betUnit);
         if (odds > 0) {
           return sum + (odds / 100) * wagerAmount; // Profit only
         } else if (odds < 0) {
           return sum + (100 / Math.abs(odds)) * wagerAmount; // Profit only
         }
       } else if (p.status === 'lost' || p.status === 'loss') {
-        const units = p.betInfo?.units || 0;
-        const wagerAmount = calculateWagerAmount(units, p.betUnitAtTime);
+        const units = p.units || 0;
+        const wagerAmount = calculateWagerAmount(units, p.betUnitAtTime || betUnit);
         return sum - wagerAmount; // Loss of wagered amount
       }
       return sum;
@@ -928,6 +928,28 @@ export default function MyPicksPage() {
                       <p className="font-medium text-gray-900 dark:text-white">
                         {formatBet(pick)}
                       </p>
+                      
+                      {/* Units and Dollar Amount Display */}
+                      <div className="mt-2 flex flex-col gap-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {pick.units || 1} unit{(pick.units || 1) !== 1 ? 's' : ''}
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit).toFixed(2)}
+                          </span>
+                        </div>
+                        {pick.odds && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            To Win: ${(pick.status === 'loss' || pick.status === 'lost') 
+                              ? '0.00' 
+                              : (calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit), pick.odds) - calculateWagerAmount(pick.units || 1, pick.betUnitAtTime || betUnit)).toFixed(2)
+                            }
+                          </div>
+                        )}
+                      </div>
+                      
                       {/* Parlay legs display */}
                       {pick.market === 'parlay' && pick.parlayLegs && (
                         <div className="mt-2 space-y-1">
@@ -942,7 +964,7 @@ export default function MyPicksPage() {
                             </div>
                           ))}
                           {/* Parlay Wager and Payout Display */}
-                          {pick.betInfo.odds !== 0 && (
+                          {pick.odds !== 0 && (
                             <div className={`mt-2 p-2 rounded border ${
                               (pick.status === 'loss' || pick.status === 'lost') 
                                 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -987,20 +1009,20 @@ export default function MyPicksPage() {
                                       </Button>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.betInfo.units || 1)}>
+                                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.units || 1)}>
                                       <span className={`font-medium ${
                                         (pick.status === 'loss' || pick.status === 'lost')
                                           ? 'text-red-900 dark:text-red-100'
                                           : 'text-blue-900 dark:text-blue-100'
                                       }`}>
-                                        Wager: ${calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime).toFixed(2)}
+                                        Wager: ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime).toFixed(2)}
                                       </span>
                                       <span className={`text-xs ${
                                         (pick.status === 'loss' || pick.status === 'lost')
                                           ? 'text-red-700 dark:text-red-300'
                                           : 'text-blue-700 dark:text-blue-300'
                                       }`}>
-                                        ({pick.betInfo.units || 1} units)
+                                        ({pick.units || 1} units)
                                       </span>
                                       {pick.status === 'pending' && (
                                         <Edit3 className="w-3 h-3 text-blue-600 ml-1" />
@@ -1017,7 +1039,7 @@ export default function MyPicksPage() {
                                     Payout: ${
                                       (pick.status === 'loss' || pick.status === 'lost')
                                         ? '0.00'
-                                        : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime), pick.betInfo.odds).toFixed(2)
+                                        : calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime), pick.odds).toFixed(2)
                                     }
                                   </span>
                                 </div>
@@ -1027,7 +1049,7 @@ export default function MyPicksPage() {
                         </div>
                       )}
                       {/* Single bet wager and payout display */}
-                      {pick.betInfo.market !== 'parlay' && pick.betInfo.odds !== 0 && (
+                      {pick.market !== 'parlay' && pick.odds !== 0 && (
                         <div className={`mt-2 p-2 rounded border ${
                           (pick.status === 'loss' || pick.status === 'lost') 
                             ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -1072,20 +1094,20 @@ export default function MyPicksPage() {
                                   </Button>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.betInfo.units || 1)}>
+                                <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleEditUnits(pick.id, pick.units || 1)}>
                                   <span className={`font-medium ${
                                     (pick.status === 'loss' || pick.status === 'lost')
                                       ? 'text-red-900 dark:text-red-100'
                                       : 'text-green-900 dark:text-green-100'
                                   }`}>
-                                    Wager: ${calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime).toFixed(2)}
+                                    Wager: ${calculateWagerAmount(pick.units || 1, pick.betUnitAtTime).toFixed(2)}
                                   </span>
                                   <span className={`text-xs ${
                                     (pick.status === 'loss' || pick.status === 'lost')
                                       ? 'text-red-700 dark:text-red-300'
                                       : 'text-green-700 dark:text-green-300'
                                   }`}>
-                                    ({pick.betInfo.units || 1} units)
+                                    ({pick.units || 1} units)
                                   </span>
                                   {pick.status === 'pending' && (
                                     <Edit3 className="w-3 h-3 text-green-600 ml-1" />
@@ -1102,7 +1124,7 @@ export default function MyPicksPage() {
                                 Payout: ${
                                   (pick.status === 'loss' || pick.status === 'lost')
                                     ? '0.00'
-                                    : calculatePayout(calculateWagerAmount(pick.betInfo.units || 1, pick.betUnitAtTime), pick.betInfo.odds).toFixed(2)
+                                    : calculatePayout(calculateWagerAmount(pick.units || 1, pick.betUnitAtTime), pick.odds).toFixed(2)
                                 }
                               </span>
                             </div>
