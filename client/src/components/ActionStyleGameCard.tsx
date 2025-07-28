@@ -278,6 +278,7 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
       const date = new Date(startTime);
       if (isNaN(date.getTime())) return "TBD";
       
+      // Better mobile formatting with responsive time display
       return date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric' 

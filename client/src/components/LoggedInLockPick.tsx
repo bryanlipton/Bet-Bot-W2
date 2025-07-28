@@ -697,17 +697,33 @@ export default function LoggedInLockPick() {
 
   // Helper function definition
   const formatGameTime = (gameTime: string) => {
-    const date = new Date(gameTime);
-    const gameDate = date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    const time = date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
-    return `${gameDate} at ${time}`;
+    try {
+      if (!gameTime) {
+        console.log('LoggedInLockPick: gameTime is empty or null');
+        return "TBD";
+      }
+      const date = new Date(gameTime);
+      if (isNaN(date.getTime())) {
+        console.log('LoggedInLockPick: Invalid date from gameTime:', gameTime);
+        return "TBD";
+      }
+      
+      const gameDate = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      });
+      const time = date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+      const formatted = `${gameDate} at ${time}`;
+      console.log('LoggedInLockPick: Formatted time:', formatted, 'from input:', gameTime);
+      return formatted;
+    } catch (error) {
+      console.log('LoggedInLockPick: Error formatting time:', error, 'Input:', gameTime);
+      return "TBD";
+    }
   };
 
   // When game starts, show collapsed view by default
