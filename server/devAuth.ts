@@ -52,6 +52,12 @@ export function setupDevAuth(app: Express) {
     res.redirect("/");
   });
 
+  app.get("/api/auth/login", (req, res) => {
+    devLoggedOut = false; // Reset logout state on login
+    console.log("🔓 Dev user logged in - authentication enabled");
+    res.redirect("/");
+  });
+
   app.get("/api/callback", (req, res) => {
     devLoggedOut = false; // Reset logout state on callback
     res.redirect("/");

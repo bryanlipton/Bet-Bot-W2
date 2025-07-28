@@ -1505,10 +1505,16 @@ export class DailyPickService {
     const today = new Date().toISOString().split('T')[0];
     
     try {
+      // Query for picks from today using date comparison (handle both timestamp and date formats)
       const [pick] = await db
         .select()
         .from(dailyPicks)
-        .where(eq(dailyPicks.pickDate, new Date(today)))
+        .where(
+          and(
+            gte(dailyPicks.pickDate, new Date(today + ' 00:00:00')),
+            lte(dailyPicks.pickDate, new Date(today + ' 23:59:59'))
+          )
+        )
         .limit(1);
       
       if (pick) {
@@ -1630,10 +1636,16 @@ export class DailyPickService {
     const today = new Date().toISOString().split('T')[0];
     
     try {
+      // Query for lock picks from today using date comparison (handle both timestamp and date formats)
       const [pick] = await db
         .select()
         .from(loggedInLockPicks)
-        .where(eq(loggedInLockPicks.pickDate, new Date(today)))
+        .where(
+          and(
+            gte(loggedInLockPicks.pickDate, new Date(today + ' 00:00:00')),
+            lte(loggedInLockPicks.pickDate, new Date(today + ' 23:59:59'))
+          )
+        )
         .limit(1);
       
       if (pick) {
