@@ -288,10 +288,9 @@ app.post('/api/gpt/matchup', async (req, res) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Port configuration for development and deployment
+  // Development: port 5000, Deployment: port 3000 (from PORT env var)
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   server.listen({
     port,
     host: "0.0.0.0",
