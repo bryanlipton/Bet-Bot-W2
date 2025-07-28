@@ -226,7 +226,8 @@ export function setupProPicksRoutes(app: Application) {
       };
       
       // Cache the result
-      proPicksCache.set(cacheKey, {
+      const analysisCache = `game-${gameId}`;
+      proPicksCache.set(analysisCache, {
         data: proPickData,
         timestamp: Date.now()
       });
