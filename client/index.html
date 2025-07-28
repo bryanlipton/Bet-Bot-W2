@@ -12,8 +12,10 @@
           
           // Fix Vite HMR WebSocket URL for Replit
           if (fixedUrl.includes('localhost:5173') || fixedUrl.includes('localhost')) {
+            const urlObj = new URL(fixedUrl);
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            fixedUrl = `${protocol}//${window.location.host}`;
+            // Preserve query parameters (especially the token)
+            fixedUrl = `${protocol}//${window.location.host}${urlObj.pathname}${urlObj.search}`;
             console.log('🔧 WebSocket redirect:', url, '→', fixedUrl);
           }
           
