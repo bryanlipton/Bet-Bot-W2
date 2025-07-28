@@ -12,6 +12,17 @@ import { automaticGradingService } from "./services/automaticGradingService";
 import { enhancedPickGradingService } from "./services/enhancedPickGradingService";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Add crash handlers for debugging
+process.on('unhandledRejection', (err) => {
+  console.error('🚨 Unhandled Rejection:', err);
+  process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('🚨 Uncaught Exception:', err);
+  process.exit(1);
+});
+
 // API key should come from environment - no fallback
 if (!process.env.THE_ODDS_API_KEY) {
   console.warn('⚠️  THE_ODDS_API_KEY not set in environment');
@@ -237,76 +248,116 @@ app.post('/api/gpt/matchup', async (req, res) => {
 });
 
 (async () => {
-  // Register download routes first, before other middleware
-  console.log('Setting up download routes...');
-  
-  // Setup authentication before any routes that need it
-  // Only setup Replit auth in production - development uses mock auth
-  const { initializeAuth } = await import('./auth');
-  
-  if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
-    const { setupAuth, isAuthenticated: prodAuth } = await import('./replitAuth');
-    await setupAuth(app);
-    initializeAuth(prodAuth);
-  } else {
-    // Development mode - setup mock authentication
-    const { setupDevAuth, isAuthenticated: devAuth } = await import('./devAuth');
-    setupDevAuth(app);
-    initializeAuth(devAuth);
+  try {
+    console.log('🚀 Stage: Starting application initialization...');
+    
+    // Register download routes first, before other middleware
+    console.log('🚀 Stage: Setting up download routes...');
+    
+    // Setup authentication before any routes that need it
+    // Only setup Replit auth in production - development uses mock auth
+    console.log('🚀 Stage: Initializing authentication...');
+    const { initializeAuth } = await import('./auth');
+    
+    if (process.env.NODE_ENV === 'production' && process.env.REPLIT_DOMAINS) {
+      console.log('🚀 Stage: Loading production auth...');
+      const { setupAuth, isAuthenticated: prodAuth } = await import('./replitAuth');
+      await setupAuth(app);
+      initializeAuth(prodAuth);
+      console.log('✅ Production auth initialized');
+    } else {
+      console.log('🚀 Stage: Loading development auth...');
+      const { setupDevAuth, isAuthenticated: devAuth } = await import('./devAuth');
+      setupDevAuth(app);
+      initializeAuth(devAuth);
+      console.log('✅ Development auth initialized');
+    }
+    
+    console.log('🚀 Stage: Registering routes...');
+    const server = await registerRoutes(app);
+    console.log('✅ Main routes registered');
+    
+    registerOddsRoutes(app);
+    console.log('✅ Odds routes registered');
+    
+    registerMLBRoutes(app);
+    console.log('✅ MLB routes registered');
+    
+    registerArticleRoutes(app);
+    console.log('✅ Article routes registered');
+    
+    registerEnhancedGradingRoutes(app);
+    console.log('✅ Enhanced grading routes registered');
+    
+    registerUserPicksRoutes(app);
+    console.log('✅ User picks routes registered');
+    
+    setupProPicksRoutes(app);
+    console.log('✅ Pro picks routes registered');
+    
+    // Import and register daily pick routes
+    console.log('🚀 Stage: Loading daily pick routes...');
+    const { registerDailyPickRoutes } = await import('./routes-daily-pick');
+    registerDailyPickRoutes(app);
+    console.log('✅ Daily pick routes registered');
+    
+    // Import and register confirmed bets routes
+    console.log('🚀 Stage: Loading confirmed bets routes...');
+    const confirmedBetsRouter = await import('./routes-confirmed-bets');
+    app.use(confirmedBetsRouter.default);
+    console.log('✅ Confirmed bets routes registered');
+
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+
+      res.status(status).json({ message });
+      throw err;
+    });
+
+    // importantly only setup vite in development and after
+    // setting up all the other routes so the catch-all route
+    // doesn't interfere with the other routes
+    console.log('🚀 Stage: Setting up Vite/Static serving...');
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+      console.log('✅ Vite development setup complete');
+    } else {
+      serveStatic(app);
+      console.log('✅ Static file serving setup complete');
+    }
+
+    // Port configuration for development and deployment
+    // Development: port 5000, Deployment: port 3000 (from PORT env var)
+    console.log('🚀 Stage: Starting server...');
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+    console.log(`🚀 Stage: Attempting to listen on port ${port}...`);
+    
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      console.log('✅ SERVER SUCCESSFULLY STARTED!');
+      log(`serving on port ${port}`);
+      
+      // Start daily article generation scheduler (DISABLED)
+      // dailyScheduler.start();
+      
+      // Start pick rotation service for automatic daily pick updates
+      console.log('🔄 Starting pick rotation service...');
+      // Note: pickRotationService is already initialized when imported
+      
+      // Start automatic grading service
+      console.log('🎯 Starting automatic pick grading service...');
+      automaticGradingService.start();
+      
+      console.log('🎉 APPLICATION FULLY INITIALIZED AND READY!');
+    });
+    
+  } catch (error) {
+    console.error('🚨 STARTUP CRASH:', error);
+    console.error('🚨 Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+    process.exit(1);
   }
-  
-  const server = await registerRoutes(app);
-  registerOddsRoutes(app);
-  registerMLBRoutes(app);
-  registerArticleRoutes(app);
-  registerEnhancedGradingRoutes(app);
-  registerUserPicksRoutes(app);
-  setupProPicksRoutes(app);
-  
-  // Import and register daily pick routes
-  const { registerDailyPickRoutes } = await import('./routes-daily-pick');
-  registerDailyPickRoutes(app);
-  
-  // Import and register confirmed bets routes
-  const confirmedBetsRouter = await import('./routes-confirmed-bets');
-  app.use(confirmedBetsRouter.default);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // Port configuration for development and deployment
-  // Development: port 5000, Deployment: port 3000 (from PORT env var)
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    
-    // Start daily article generation scheduler (DISABLED)
-    // dailyScheduler.start();
-    
-    // Start pick rotation service for automatic daily pick updates
-    console.log('🔄 Starting pick rotation service...');
-    // Note: pickRotationService is already initialized when imported
-    
-    // Start automatic grading service
-    console.log('🎯 Starting automatic pick grading service...');
-    automaticGradingService.start();
-  });
 })();
