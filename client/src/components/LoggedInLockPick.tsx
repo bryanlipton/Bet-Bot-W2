@@ -461,9 +461,39 @@ export default function LoggedInLockPick() {
     }
   }, [lockPick?.id]);
 
-  // Early return if no authenticated user or still loading
-  if (!isAuthenticated || authLoading || isLoading) {
+  // Early return only if still loading auth status
+  if (authLoading) {
     return null;
+  }
+
+  // Show login prompt for non-authenticated users
+  if (!isAuthenticated) {
+    return (
+      <Card className="w-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200 dark:border-amber-800">
+        <CardContent className="p-6 text-center">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <BetBotIcon className="w-12 h-12 opacity-80" />
+              <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400 absolute -bottom-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-1" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-bold text-lg text-amber-700 dark:text-amber-400">
+                Log in to view another free pick
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Access your exclusive Logged In Lock pick by signing in
+              </p>
+            </div>
+            <Button 
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
+              onClick={() => window.location.href = '/api/auth/login'}
+            >
+              Log in
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   // Early return if no lock pick data is available
