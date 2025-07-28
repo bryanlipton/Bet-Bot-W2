@@ -698,15 +698,9 @@ export default function LoggedInLockPick() {
   // Helper function definition
   const formatGameTime = (gameTime: string) => {
     try {
-      if (!gameTime) {
-        console.log('LoggedInLockPick: gameTime is empty or null');
-        return "TBD";
-      }
+      if (!gameTime) return "TBD";
       const date = new Date(gameTime);
-      if (isNaN(date.getTime())) {
-        console.log('LoggedInLockPick: Invalid date from gameTime:', gameTime);
-        return "TBD";
-      }
+      if (isNaN(date.getTime())) return "TBD";
       
       const gameDate = date.toLocaleDateString('en-US', { 
         month: 'short', 
@@ -717,11 +711,8 @@ export default function LoggedInLockPick() {
         minute: '2-digit',
         timeZoneName: 'short'
       });
-      const formatted = `${gameDate} at ${time}`;
-      console.log('LoggedInLockPick: Formatted time:', formatted, 'from input:', gameTime);
-      return formatted;
-    } catch (error) {
-      console.log('LoggedInLockPick: Error formatting time:', error, 'Input:', gameTime);
+      return `${gameDate} at ${time}`;
+    } catch {
       return "TBD";
     }
   };
