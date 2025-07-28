@@ -11,7 +11,7 @@ export interface ProPickGrade {
   confidence: number;
   reasoning: string;
   analysis: any;
-  odds?: number;
+  odds?: number | null;
   gameTime: Date;
   pickDate: string;
 }
