@@ -4,25 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <script>
-      // Fix Vite WebSocket connection BEFORE any modules load
-      if (window.location.hostname.includes('replit.dev')) {
+      // Disable Vite HMR completely in deployment environment
+      if (window.location.hostname.includes('replit.dev') || window.location.hostname.includes('.replit.app')) {
+        // Completely disable HMR by overriding import.meta.hot
+        if (typeof window !== 'undefined') {
+          window.__vite_plugin_react_preamble_installed__ = true;
+        }
+        
+        // Block all HMR WebSocket connections
         const originalWebSocket = window.WebSocket;
         window.WebSocket = function(url, protocols) {
-          let fixedUrl = url.toString();
+          const urlStr = url.toString();
           
-          // Fix Vite HMR WebSocket URL for Replit
-          if (fixedUrl.includes('localhost:5173') || fixedUrl.includes('localhost')) {
-            const urlObj = new URL(fixedUrl);
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            // Preserve query parameters (especially the token)
-            fixedUrl = `${protocol}//${window.location.host}${urlObj.pathname}${urlObj.search}`;
-            console.log('🔧 WebSocket redirect:', url, '→', fixedUrl);
+          // Block any HMR-related WebSocket connections
+          if (urlStr.includes('localhost') || urlStr.includes('vite') || urlStr.includes('hmr') || urlStr.includes('token=')) {
+            console.log('🚫 HMR disabled for deployment - blocking WebSocket:', urlStr);
+            // Return mock WebSocket that appears closed
+            const mockSocket = {
+              close() {},
+              send() {},
+              addEventListener() {},
+              removeEventListener() {},
+              readyState: 3,
+              CONNECTING: 0,
+              OPEN: 1,
+              CLOSING: 2,
+              CLOSED: 3
+            };
+            // Simulate immediate close
+            setTimeout(() => {
+              if (mockSocket.onclose) mockSocket.onclose();
+            }, 0);
+            return mockSocket;
           }
           
-          return new originalWebSocket(fixedUrl, protocols);
+          return new originalWebSocket(url, protocols);
         };
         
-        // Copy static properties to maintain compatibility
         Object.setPrototypeOf(window.WebSocket, originalWebSocket);
         Object.defineProperty(window.WebSocket, 'prototype', { 
           value: originalWebSocket.prototype 
