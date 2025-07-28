@@ -221,16 +221,24 @@ export function ActionStyleDashboard() {
         total: totalOutcome?.point || null,
         startTime: (() => {
           try {
-            if (!game.commence_time) return "TBD";
+            if (!game.commence_time) {
+              console.log(`⚠️ Missing commence_time for ${game.away_team} @ ${game.home_team}`);
+              return "TBD";
+            }
             const date = new Date(game.commence_time);
-            return !isNaN(date.getTime()) ? date.toLocaleString('en-US', { 
+            if (isNaN(date.getTime())) {
+              console.log(`⚠️ Invalid commence_time "${game.commence_time}" for ${game.away_team} @ ${game.home_team}`);
+              return "TBD";
+            }
+            return date.toLocaleString('en-US', { 
               month: 'short',
               day: 'numeric',
               hour: 'numeric', 
               minute: '2-digit',
               hour12: true 
-            }) : "TBD";
-          } catch {
+            });
+          } catch (error) {
+            console.log(`⚠️ Error processing commence_time "${game.commence_time}" for ${game.away_team} @ ${game.home_team}:`, error);
             return "TBD";
           }
         })(),
