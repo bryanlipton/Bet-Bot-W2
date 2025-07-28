@@ -14,6 +14,7 @@ import AboutPage from "@/pages/about";
 import ScoresPage from "@/pages/scores";
 import GetPro from "@/pages/GetPro";
 import Subscribe from "@/pages/Subscribe";
+import BetConfirmation from "@/pages/bet-confirmation";
 import NotFound from "@/pages/not-found";
 import Feed from "@/pages/Feed";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/scores" component={ScoresPage} />
         <Route path="/get-pro" component={GetPro} />
         <Route path="/subscribe" component={Subscribe} />
+        <Route path="/bet-confirmation/:dataId" component={BetConfirmation} />
         <Route component={NotFound} />
       </Switch>
       <MobileBottomNavigation />

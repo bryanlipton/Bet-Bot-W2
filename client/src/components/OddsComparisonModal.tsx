@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle } from "lucide-react";
-import { Link } from 'wouter';
+import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle, AlertCircle } from "lucide-react";
+import { Link, useLocation } from 'wouter';
 import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
 import { buildDeepLink } from '@/utils/deepLinkBuilder';
 import { pickStorage } from '@/services/pickStorage';
@@ -64,6 +64,7 @@ export function OddsComparisonModal({
     url: string;
   } | null>(null);
   const [units, setUnits] = useState<number>(1);
+  const [, navigate] = useLocation();
 
   // Reset state when modal opens/closes
   const handleClose = () => {
@@ -137,11 +138,11 @@ export function OddsComparisonModal({
     };
   }).filter(Boolean);
 
-  // Sort odds: for negative odds, show lowest number first (-170, -172, -175)
+  // Sort odds: for negative odds, show closest to 0 first (-170, -172, -175)
   // For positive odds, show highest first (+150, +120, +100)
   const sortedOdds = oddsData.sort((a, b) => {
     if (a!.odds > 0 && b!.odds > 0) return b!.odds - a!.odds; // Higher positive is better
-    if (a!.odds < 0 && b!.odds < 0) return a!.odds - b!.odds; // Lower negative number appears first (-170 before -175)
+    if (a!.odds < 0 && b!.odds < 0) return b!.odds - a!.odds; // Higher negative number appears first (-170 before -175)
     if (a!.odds > 0 && b!.odds < 0) return -1; // Positive odds are better than negative
     if (a!.odds < 0 && b!.odds > 0) return 1;
     return 0;
@@ -152,19 +153,28 @@ export function OddsComparisonModal({
   const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     if (!bookmakerData) return;
 
-    // Store data for confirmation
-    setConfirmationData({
-      bookmaker: bookmakerData.displayName,
+    // Create bet confirmation data
+    const betConfirmationData = {
+      gameId: gameInfo.gameId || `mlb_${Date.now()}`,
+      homeTeam: gameInfo.homeTeam,
+      awayTeam: gameInfo.awayTeam,
+      selection: selectedBet.selection,
+      market: selectedBet.market,
+      line: selectedBet.line?.toString(),
       odds: bookmakerData.odds,
-      url: bookmakerData.url
-    });
+      bookmaker: bookmakerData.bookmaker,
+      bookmakerDisplayName: bookmakerData.displayName,
+      gameDate: gameInfo.gameTime || new Date().toISOString()
+    };
     
     // Open bookmaker in new tab
     window.open(bookmakerData.url, '_blank');
     
-    // Show confirmation popup after a delay to let user return
+    // Navigate to bet confirmation page after delay
     setTimeout(() => {
-      setShowConfirmation(true);
+      const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+      navigate(`/bet-confirmation/${encodedData}`);
+      onClose(); // Close the modal
     }, 3000); // 3 second delay
   };
 

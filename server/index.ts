@@ -266,6 +266,10 @@ app.post('/api/gpt/matchup', async (req, res) => {
   // Import and register daily pick routes
   const { registerDailyPickRoutes } = await import('./routes-daily-pick');
   registerDailyPickRoutes(app);
+  
+  // Import and register confirmed bets routes
+  const confirmedBetsRouter = await import('./routes-confirmed-bets');
+  app.use(confirmedBetsRouter.default);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

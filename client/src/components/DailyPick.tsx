@@ -568,13 +568,13 @@ export default function DailyPick() {
       }
     });
 
-    // Sort odds: for negative odds, show lowest number first (-170, -172, -175)
+    // Sort odds: for negative odds, show closest to 0 first (-170, -172, -175)
     // For positive odds, show highest first (+150, +120, +100)
     return bestOdds.sort((a, b) => {
       // For positive odds (underdogs), higher is better
       if (a.odds > 0 && b.odds > 0) return b.odds - a.odds;
-      // For negative odds (favorites), lower number appears first (-170 before -175)
-      if (a.odds < 0 && b.odds < 0) return a.odds - b.odds;
+      // For negative odds (favorites), higher number appears first (-170 before -175)
+      if (a.odds < 0 && b.odds < 0) return b.odds - a.odds;
       // Mixed: positive odds (underdog) is always better than negative
       if (a.odds > 0 && b.odds < 0) return -1;
       if (a.odds < 0 && b.odds > 0) return 1;

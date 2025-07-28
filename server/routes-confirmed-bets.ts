@@ -9,7 +9,7 @@ const router = express.Router();
 // Get all confirmed bets for a user
 router.get('/api/user/confirmed-bets', async (req, res) => {
   try {
-    const userId = req.session?.user?.id;
+    const userId = (req.session as any)?.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
@@ -53,7 +53,7 @@ router.get('/api/users/:userId/confirmed-bets/public', async (req, res) => {
 // Create a new confirmed bet
 router.post('/api/user/confirmed-bets', async (req, res) => {
   try {
-    const userId = req.session?.user?.id;
+    const userId = (req.session as any)?.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
@@ -85,7 +85,7 @@ router.post('/api/user/confirmed-bets', async (req, res) => {
 // Update confirmed bet visibility
 router.patch('/api/user/confirmed-bets/:id/visibility', async (req, res) => {
   try {
-    const userId = req.session?.user?.id;
+    const userId = (req.session as any)?.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
@@ -118,7 +118,7 @@ router.patch('/api/user/confirmed-bets/:id/visibility', async (req, res) => {
 // Delete confirmed bet
 router.delete('/api/user/confirmed-bets/:id', async (req, res) => {
   try {
-    const userId = req.session?.user?.id;
+    const userId = (req.session as any)?.user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
