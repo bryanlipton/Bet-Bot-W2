@@ -384,6 +384,33 @@ export const userBets = pgTable("user_bets", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Confirmed bets table - tracks when users confirm they placed a bet through a sportsbook
+export const confirmedBets = pgTable("confirmed_bets", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  gameId: text("game_id").notNull(),
+  homeTeam: text("home_team").notNull(),
+  awayTeam: text("away_team").notNull(),
+  selection: text("selection").notNull(), // Team or outcome selected
+  market: text("market").notNull(), // "moneyline", "spread", "total"
+  line: text("line"), // Point spread or total line (e.g., "-1.5", "8.5") 
+  odds: integer("odds").notNull(), // American odds format
+  units: real("units").notNull(), // Number of units bet
+  betUnitAtTime: real("bet_unit_at_time").notNull(), // Bet unit value when confirmed
+  dollarAmount: decimal("dollar_amount", { precision: 10, scale: 2 }).notNull(), // Calculated dollar amount (units * betUnitAtTime)
+  bookmaker: text("bookmaker").notNull(), // Sportsbook used
+  bookmakerDisplayName: text("bookmaker_display_name").notNull(),
+  status: text("status").notNull().default("pending"), // "pending", "won", "lost", "push"
+  result: text("result"), // Game result details when graded
+  winAmount: decimal("win_amount", { precision: 10, scale: 2 }), // Calculated win amount when graded
+  profitLoss: decimal("profit_loss", { precision: 10, scale: 2 }), // Net profit/loss when graded
+  isPublic: boolean("is_public").default(true), // Show on public profile
+  gameDate: timestamp("game_date").notNull(),
+  confirmedAt: timestamp("confirmed_at").defaultNow(),
+  gradedAt: timestamp("graded_at"), // When the bet was graded
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
 export const upsertUserSchema = createInsertSchema(users).omit({ createdAt: true, updatedAt: true });
@@ -406,6 +433,7 @@ export const insertLoggedInLockPickSchema = createInsertSchema(loggedInLockPicks
 export const insertUserPickSchema = createInsertSchema(userPicks).omit({ id: true, createdAt: true, gradedAt: true });
 export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({ updatedAt: true });
 export const insertUserBetSchema = createInsertSchema(userBets).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertConfirmedBetSchema = createInsertSchema(confirmedBets).omit({ id: true, createdAt: true, gradedAt: true });
 export const insertUserFollowSchema = createInsertSchema(userFollows).omit({ id: true, createdAt: true });
 
 // Types
@@ -458,6 +486,8 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
 export type UserBet = typeof userBets.$inferSelect;
 export type InsertUserBet = z.infer<typeof insertUserBetSchema>;
+export type ConfirmedBet = typeof confirmedBets.$inferSelect;
+export type InsertConfirmedBet = z.infer<typeof insertConfirmedBetSchema>;
 export type UserFollow = typeof userFollows.$inferSelect;
 export type InsertUserFollow = z.infer<typeof insertUserFollowSchema>;
 
