@@ -272,16 +272,23 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return odds > 0 ? `+${odds}` : odds.toString();
   };
 
-  const formatGameTime = (startTime: string) => {
-    const date = new Date(startTime);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    }) + ' at ' + date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
+  const formatGameTime = (startTime?: string) => {
+    try {
+      if (!startTime) return "TBD";
+      const date = new Date(startTime);
+      if (isNaN(date.getTime())) return "TBD";
+      
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      }) + ' at ' + date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    } catch {
+      return "TBD";
+    }
   };
 
   if (!pickId || !pickType) {
@@ -684,7 +691,15 @@ export function ActionStyleGameCard({
             )}
             <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {startTime ? new Date(startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD"}
+              {(() => {
+                try {
+                  if (!startTime) return "TBD";
+                  const date = new Date(startTime);
+                  return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
+                } catch {
+                  return "TBD";
+                }
+              })()}
             </span>
           </div>
         </div>

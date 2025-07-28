@@ -338,13 +338,21 @@ const formatGameStatus = (score: any) => {
 
 // Helper function to determine game status
 function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
-  const now = new Date();
-  const gameStart = new Date(gameTime);
-  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
-  
-  if (now < gameStart) return 'upcoming';
-  if (now >= gameStart && now < gameEnd) return 'live';
-  return 'completed';
+  try {
+    if (!gameTime) return 'upcoming';
+    const now = new Date();
+    const gameStart = new Date(gameTime);
+    
+    if (isNaN(gameStart.getTime())) return 'upcoming';
+    
+    const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
+    
+    if (now < gameStart) return 'upcoming';
+    if (now >= gameStart && now < gameEnd) return 'live';
+    return 'completed';
+  } catch {
+    return 'upcoming';
+  }
 }
 
 export default function DailyPick() {

@@ -216,7 +216,15 @@ export function ProGameCard({
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {startTime ? new Date(startTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD"}
+                {(() => {
+                  try {
+                    if (!startTime) return "TBD";
+                    const date = new Date(startTime);
+                    return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
+                  } catch {
+                    return "TBD";
+                  }
+                })()}
               </span>
             </div>
           </div>

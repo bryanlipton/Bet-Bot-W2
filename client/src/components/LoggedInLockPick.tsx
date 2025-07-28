@@ -260,13 +260,21 @@ function FactorScore({ title, score, info, gameContext }: { title: string; score
 
 // Helper function to determine game status
 function getGameStatus(gameTime: string): 'upcoming' | 'live' | 'completed' {
-  const now = new Date();
-  const gameStart = new Date(gameTime);
-  const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
-  
-  if (now < gameStart) return 'upcoming';
-  if (now >= gameStart && now < gameEnd) return 'live';
-  return 'completed';
+  try {
+    if (!gameTime) return 'upcoming';
+    const now = new Date();
+    const gameStart = new Date(gameTime);
+    
+    if (isNaN(gameStart.getTime())) return 'upcoming';
+    
+    const gameEnd = new Date(gameStart.getTime() + (4 * 60 * 60 * 1000)); // Assume 4-hour games
+    
+    if (now < gameStart) return 'upcoming';
+    if (now >= gameStart && now < gameEnd) return 'live';
+    return 'completed';
+  } catch {
+    return 'upcoming';
+  }
 }
 
 // Helper functions
@@ -282,7 +290,13 @@ const formatOdds = (odds: number, betType?: string) => {
 };
 
 const formatGameTime = (gameTime: string) => {
-  return new Date(gameTime).toLocaleString();
+  try {
+    if (!gameTime) return "TBD";
+    const date = new Date(gameTime);
+    return !isNaN(date.getTime()) ? date.toLocaleString() : "TBD";
+  } catch {
+    return "TBD";
+  }
 };
 
 // Format inning display for live games

@@ -219,13 +219,21 @@ export function ActionStyleDashboard() {
         awayOdds: awayOutcome?.price || null,
         spread: spreadOutcome?.point || null,
         total: totalOutcome?.point || null,
-        startTime: new Date(game.commence_time).toLocaleString('en-US', { 
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        }),
+        startTime: (() => {
+          try {
+            if (!game.commence_time) return "TBD";
+            const date = new Date(game.commence_time);
+            return !isNaN(date.getTime()) ? date.toLocaleString('en-US', { 
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric', 
+              minute: '2-digit',
+              hour12: true 
+            }) : "TBD";
+          } catch {
+            return "TBD";
+          }
+        })(),
         sportKey: game.sport_key,
         bookmakers,
         rawBookmakers: game.bookmakers, // Include raw bookmakers data for odds comparison
