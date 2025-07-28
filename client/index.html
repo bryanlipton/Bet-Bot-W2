@@ -3,6 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <script>
+      // Fix Vite WebSocket connection BEFORE any modules load
+      if (window.location.hostname.includes('replit.dev')) {
+        const originalWebSocket = window.WebSocket;
+        window.WebSocket = function(url, protocols) {
+          let fixedUrl = url.toString();
+          
+          // Fix Vite HMR WebSocket URL for Replit
+          if (fixedUrl.includes('localhost:5173') || fixedUrl.includes('localhost')) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            fixedUrl = `${protocol}//${window.location.host}`;
+            console.log('🔧 WebSocket redirect:', url, '→', fixedUrl);
+          }
+          
+          return new originalWebSocket(fixedUrl, protocols);
+        };
+        
+        // Copy static properties to maintain compatibility
+        Object.setPrototypeOf(window.WebSocket, originalWebSocket);
+        Object.defineProperty(window.WebSocket, 'prototype', { 
+          value: originalWebSocket.prototype 
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
