@@ -2,6 +2,25 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+// Fix Vite WebSocket connection in Replit environment
+if (import.meta.env.DEV && window.location.hostname.includes('replit.dev')) {
+  // Override WebSocket constructor to fix HMR connection
+  const originalWebSocket = window.WebSocket;
+  window.WebSocket = class extends originalWebSocket {
+    constructor(url: string | URL, protocols?: string | string[]) {
+      let fixedUrl = url.toString();
+      
+      // Fix Vite HMR WebSocket URL for Replit
+      if (fixedUrl.includes('localhost:5173') || fixedUrl.includes('ws://localhost')) {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        fixedUrl = `${protocol}//${window.location.host}`;
+      }
+      
+      super(fixedUrl, protocols);
+    }
+  };
+}
+
 // Suppress harmless Vite WebSocket warnings in development
 if (import.meta.env.DEV) {
   const originalConsoleError = console.error;
