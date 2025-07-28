@@ -137,10 +137,11 @@ export function OddsComparisonModal({
     };
   }).filter(Boolean);
 
-  // Sort by best odds (highest for positive odds, closest to 0 for negative)
+  // Sort odds: for negative odds, show lowest number first (-170, -172, -175)
+  // For positive odds, show highest first (+150, +120, +100)
   const sortedOdds = oddsData.sort((a, b) => {
     if (a!.odds > 0 && b!.odds > 0) return b!.odds - a!.odds; // Higher positive is better
-    if (a!.odds < 0 && b!.odds < 0) return a!.odds - b!.odds; // Closer to 0 is better
+    if (a!.odds < 0 && b!.odds < 0) return a!.odds - b!.odds; // Lower negative number appears first (-170 before -175)
     if (a!.odds > 0 && b!.odds < 0) return -1; // Positive odds are better than negative
     if (a!.odds < 0 && b!.odds > 0) return 1;
     return 0;
