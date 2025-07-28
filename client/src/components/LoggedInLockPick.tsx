@@ -17,6 +17,7 @@ import { generatePickAnalysisContent } from "@/lib/pickAnalysisUtils";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 import { useAuth } from "@/hooks/useAuth";
+import { queryClient } from "@/lib/queryClient";
 
 const BetBotIcon = ({ className }: { className?: string }) => (
   <img src={betbotLogo} alt="Bet Bot" className={className} />
@@ -486,7 +487,11 @@ export default function LoggedInLockPick() {
             </div>
             <Button 
               className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
-              onClick={() => window.location.href = '/api/auth/login'}
+              onClick={() => {
+                // Clear auth cache before redirect to ensure fresh data after login
+                queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+                window.location.href = '/api/auth/login';
+              }}
             >
               Log in
             </Button>

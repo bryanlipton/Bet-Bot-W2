@@ -29,7 +29,9 @@ export function LoginButton() {
         variant="outline"
         size="sm"
         onClick={() => {
-          window.location.href = '/api/login';
+          // Clear auth cache before redirect to ensure fresh data after login
+          queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+          window.location.href = '/api/auth/login';
         }}
         className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
       >

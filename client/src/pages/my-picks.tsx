@@ -692,7 +692,12 @@ export default function MyPicksPage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Sign in to track your betting picks and performance
               </p>
-              <Button onClick={() => window.location.href = '/api/login'}>
+              <Button onClick={() => {
+                // Clear auth cache before redirect
+                const { queryClient } = require('@/lib/queryClient');
+                queryClient.removeQueries({ queryKey: ["/api/auth/user"] }); 
+                window.location.href = '/api/auth/login';
+              }}>
                 Log in
               </Button>
             </CardContent>
