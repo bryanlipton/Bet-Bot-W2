@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bet Bot - AI Sports Betting Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1976D2',
+                        secondary: '#388E3C',
+                        accent: '#FF5722',
+                        success: '#4CAF50',
+                        warning: '#FF9800',
+                        error: '#F44336'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            },
+            darkMode: 'class'
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 font-sans">
+    <!-- @COMPONENT: AppHeader -->
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900 dark:text-white">Bet Bot</h1>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">AI Sports Betting Analytics</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- @STATE: apiStatus:string = 'connected' -->
+                    <div class="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full">
+                        <div class="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                        <span class="text-sm text-green-800 dark:text-green-200" data-bind="apiStatus">API Connected</span>
+                    </div>
+                    
+                    <button class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" data-event="click:toggleDarkMode">
+                        <i class="fas fa-moon text-lg"></i>
+                    </button>
+                    
+                    <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600 dark:text-gray-300 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: AppHeader -->
+
+    <div class="flex h-screen">
+        <!-- @COMPONENT: ChatSidebar -->
+        <div class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Assistant</h2>
+                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="w-2 h-2 bg-success rounded-full"></div>
+                    <span>Online • Ready to help</span>
+                </div>
+            </div>
+            
+            <!-- @FUNCTIONALITY: Chat messages container with scroll -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" data-implementation="Implement chat message history with scroll">
+                <!-- Bot Welcome Message -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+                            <p class="text-sm text-gray-900 dark:text-white" data-mock="true">
+                                Hi! I'm your AI betting assistant. I can help you analyze odds, find value bets, and answer questions about our predictions. What would you like to know?
+                            </p>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Just now</p>
+                    </div>
+                </div>
+                
+                <!-- User Message Example -->
+                <div class="flex items-start space-x-3 justify-end">
+                    <div class="flex-1">
+                        <div class="bg-primary rounded-lg px-3 py-2 ml-12">
+                            <p class="text-sm text-white" data-mock="true">
+                                What's the best value bet for tonight's NBA games?
+                            </p>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">2 mins ago</p>
+                    </div>
+                    <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-gray-600 dark:text-gray-300 text-sm"></i>
+                    </div>
+                </div>
+                
+                <!-- Bot Response with Data -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+                            <p class="text-sm text-gray-900 dark:text-white mb-2" data-mock="true">
+                                Based on our ML model analysis, here are the top value bets for tonight:
+                            </p>
+                            <div class="space-y-2">
+                                <div class="bg-white dark:bg-gray-600 rounded p-2 text-xs" data-mock="true">
+                                    <div class="font-medium text-gray-900 dark:text-white">Lakers vs Warriors</div>
+                                    <div class="text-success">+12.3% Edge • Over 215.5</div>
+                                </div>
+                                <div class="bg-white dark:bg-gray-600 rounded p-2 text-xs" data-mock="true">
+                                    <div class="font-medium text-gray-900 dark:text-white">Celtics vs Heat</div>
+                                    <div class="text-success">+8.7% Edge • Celtics -4.5</div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">1 min ago</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex space-x-2">
+                    <input 
+                        type="text" 
+                        placeholder="Ask about odds, predictions, or strategies..." 
+                        class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                        data-implementation="Connect to chat API"
+                    >
+                    <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors" data-event="click:sendMessage">
+                        <i class="fas fa-paper-plane text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ChatSidebar -->
+
+        <!-- @COMPONENT: MainDashboard -->
+        <div class="flex-1 overflow-hidden">
+            <div class="h-full overflow-y-auto p-6">
+                <!-- Sports Selection Tabs -->
+                <div class="mb-6">
+                    <div class="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+                        <button class="px-4 py-2 bg-white dark:bg-gray-700 text-primary font-medium rounded-md shadow-sm text-sm" data-bind="activeTab">
+                            <i class="fas fa-football-ball mr-2"></i>NFL
+                        </button>
+                        <button class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium rounded-md text-sm" data-event="click:switchSport">
+                            <i class="fas fa-basketball-ball mr-2"></i>NBA
+                        </button>
+                        <button class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium rounded-md text-sm" data-event="click:switchSport">
+                            <i class="fas fa-baseball-ball mr-2"></i>MLB
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Model Accuracy</h3>
+                            <i class="fas fa-chart-line text-success"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-2" data-bind="modelAccuracy">73.2%</div>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-arrow-up text-success mr-1"></i>
+                            <span class="text-success" data-bind="accuracyChange">+2.1%</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-1">this week</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Edge Found</h3>
+                            <i class="fas fa-percentage text-warning"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-2" data-bind="totalEdge">+8.4%</div>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 dark:text-gray-400">Avg across</span>
+                            <span class="text-gray-900 dark:text-white ml-1" data-bind="activeGames">24 games</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">Live Games</h3>
+                            <i class="fas fa-broadcast-tower text-error"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-2" data-bind="liveGames">12</div>
+                        <div class="flex items-center text-sm">
+                            <div class="w-2 h-2 bg-error rounded-full animate-pulse mr-2"></div>
+                            <span class="text-gray-500 dark:text-gray-400">Monitoring odds</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-medium text-gray-600 dark:text-gray-400">API Requests</h3>
+                            <i class="fas fa-server text-primary"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white mb-2" data-bind="apiRequests">1,247</div>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 dark:text-gray-400">of</span>
+                            <span class="text-gray-900 dark:text-white ml-1" data-bind="apiLimit">5,000</span>
+                            <span class="text-gray-500 dark:text-gray-400 ml-1">today</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Recommendations -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Today's AI Recommendations</h2>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500 dark:text-gray-400">Last updated:</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white" data-bind="lastUpdate">2 mins ago</span>
+                                <button class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" data-event="click:refreshRecommendations">
+                                    <i class="fas fa-sync-alt text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- @MAP: recommendations.map(rec => ( -->
+                        <div class="space-y-4" data-implementation="Map through recommendations array">
+                            <div class="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg" data-mock="true">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="px-2 py-1 bg-success text-white text-xs font-medium rounded">HIGH CONFIDENCE</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Chiefs vs Raiders</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Over 47.5 Total Points</div>
+                                    <div class="flex items-center space-x-4 text-sm">
+                                        <span class="text-success font-medium">+12.3% Edge</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Model: 52.1% | Implied: 45.5%</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Best Odds: -110 (DraftKings)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-success">85%</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Confidence</div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium" data-event="click:viewDetails">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg" data-mock="true">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="px-2 py-1 bg-warning text-white text-xs font-medium rounded">MEDIUM CONFIDENCE</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Cowboys vs Eagles</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Cowboys +3.5 Spread</div>
+                                    <div class="flex items-center space-x-4 text-sm">
+                                        <span class="text-warning font-medium">+8.7% Edge</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Model: 48.9% | Implied: 44.4%</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Best Odds: +105 (FanDuel)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-warning">72%</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Confidence</div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-warning text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium" data-event="click:viewDetails">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg" data-mock="true">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="px-2 py-1 bg-primary text-white text-xs font-medium rounded">MEDIUM CONFIDENCE</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white">Packers vs Vikings</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Under 44.5 Total Points</div>
+                                    <div class="flex items-center space-x-4 text-sm">
+                                        <span class="text-primary font-medium">+6.2% Edge</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Model: 49.2% | Implied: 46.3%</span>
+                                        <span class="text-gray-500 dark:text-gray-400">Best Odds: -108 (Caesars)</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold text-primary">68%</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400">Confidence</div>
+                                    </div>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium" data-event="click:viewDetails">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Live Odds Monitoring -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Live Odds Monitor</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-error rounded-full animate-pulse"></div>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Real-time</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <!-- @MAP: liveGames.map(game => ( -->
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">Chiefs @ Raiders</span>
+                                            <span class="px-2 py-1 bg-error text-white text-xs rounded">LIVE</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">Q2 14:32</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <div class="text-gray-600 dark:text-gray-400 mb-1">Moneyline</div>
+                                            <div class="font-medium text-gray-900 dark:text-white">KC: -165 | LV: +140</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-gray-600 dark:text-gray-400 mb-1">Total</div>
+                                            <div class="font-medium text-gray-900 dark:text-white">O/U 47.5 (-110)</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">Edge detected:</span>
+                                            <span class="text-xs font-medium text-success">+3.2% on Over</span>
+                                        </div>
+                                        <button class="text-xs text-primary hover:text-blue-700" data-event="click:viewGame">View Details</button>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                                
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4" data-mock="true">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-white">Cowboys @ Eagles</span>
+                                            <span class="px-2 py-1 bg-gray-500 text-white text-xs rounded">UPCOMING</span>
+                                        </div>
+                                        <span class="text-sm text-gray-500 dark:text-gray-400">8:20 PM ET</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <div class="text-gray-600 dark:text-gray-400 mb-1">Spread</div>
+                                            <div class="font-medium text-gray-900 dark:text-white">DAL +3.5 | PHI -3.5</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-gray-600 dark:text-gray-400 mb-1">Total</div>
+                                            <div class="font-medium text-gray-900 dark:text-white">O/U 42.5 (-105)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Performance -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Model Performance</h2>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Accuracy (Last 30 days)</span>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white" data-bind="monthlyAccuracy">73.2%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div class="bg-success h-2 rounded-full" style="width: 73.2%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Edge Detection Rate</span>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white" data-bind="edgeRate">68.5%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div class="bg-warning h-2 rounded-full" style="width: 68.5%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Profit Margin</span>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white" data-bind="profitMargin">+12.8%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 84%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Recent Training Data</h3>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Games Analyzed:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white" data-bind="gamesAnalyzed">12,847</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Last Model Update:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white" data-bind="lastModelUpdate">2 hours ago</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-400">Data Sources:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white">The Odds API</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: MainDashboard -->
+    </div>
+
+    <script>
+        (function() {
+            // TODO: Implement real-time data updates, chat functionality, and model predictions
+            // TODO: Connect to The Odds API for live data
+            // TODO: Implement machine learning model integration
+            // TODO: Add WebSocket connections for real-time updates
+            
+            // Dark mode toggle functionality
+            function toggleDarkMode() {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+            }
+            
+            // Initialize dark mode from localStorage
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.classList.add('dark');
+            }
+            
+            // Simulate real-time updates (replace with actual WebSocket implementation)
+            function simulateRealTimeUpdates() {
+                const statusElement = document.querySelector('[data-bind="apiStatus"]');
+                const timeElement = document.querySelector('[data-bind="lastUpdate"]');
+                
+                if (timeElement) {
+                    setInterval(() => {
+                        const now = new Date();
+                        const minutes = Math.floor(Math.random() * 5) + 1;
+                        timeElement.textContent = `${minutes} mins ago`;
+                    }, 30000);
+                }
+            }
+            
+            // Initialize the application
+            document.addEventListener('DOMContentLoaded', function() {
+                simulateRealTimeUpdates();
+                
+                // Add event listeners for interactive elements
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('[data-event*="toggleDarkMode"]')) {
+                        toggleDarkMode();
+                    }
+                    // TODO: Add more event handlers for chat, recommendations, etc.
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
