@@ -10,7 +10,24 @@
     },
     {
       "src": "server/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "excludeFiles": [
+          "client/**",
+          "node_modules/@radix-ui/**",
+          "node_modules/@tensorflow/**",
+          "node_modules/react/**",
+          "node_modules/react-dom/**"
+        ],
+        "includeFiles": [
+          "gpt-complete-system.json",
+          "gpt-instructions.md", 
+          "gpt-test-examples.md",
+          "COMPLETE-GPT-SETUP.md",
+          "ALL-GPT-FILES.txt"
+        ]
+      }
     }
   ],
   "routes": [
@@ -19,12 +36,21 @@
       "dest": "/server/index.ts"
     },
     {
-      "src": "/ws",
+      "src": "/download/(.*)",
       "dest": "/server/index.ts"
     },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "server/index.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
