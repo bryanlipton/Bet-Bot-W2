@@ -1,56 +1,12 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "npx vite build",
+  "outputDirectory": "dist/public",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/public"
-      }
-    },
-    {
-      "src": "server/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "excludeFiles": [
-          "client/**",
-          "node_modules/@radix-ui/**",
-          "node_modules/@tensorflow/**",
-          "node_modules/react/**",
-          "node_modules/react-dom/**"
-        ],
-        "includeFiles": [
-          "gpt-complete-system.json",
-          "gpt-instructions.md", 
-          "gpt-test-examples.md",
-          "COMPLETE-GPT-SETUP.md",
-          "ALL-GPT-FILES.txt"
-        ]
-      }
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/index.ts"
-    },
-    {
-      "src": "/download/(.*)",
-      "dest": "/server/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
