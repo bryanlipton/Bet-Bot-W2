@@ -1,0 +1,26 @@
+# Skip client-side files from server bundle
+client/src/**
+client/public/**
+
+# Skip large dependencies that shouldn't be in server
+node_modules/@tensorflow/
+node_modules/@radix-ui/
+node_modules/react/
+node_modules/react-dom/
+node_modules/framer-motion/
+node_modules/recharts/
+
+# Skip files with TypeScript errors during deployment
+server/services/overUnderPredictor.ts
+
+# Skip development files
+*.log
+.env.local
+.env.development
+.replit
+replit.nix
+
+# Skip build artifacts that might cause conflicts
+dist/client/
+.next/
+.vite/
