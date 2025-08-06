@@ -115,6 +115,45 @@ interface GameCardProps {
   }>;
 }
 
+// SAFE DATE FORMATTING FUNCTIONS
+const safeFormatTime = (dateString?: string): string => {
+  try {
+    if (!dateString) return "TBD";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "TBD";
+    
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit'
+      // Removed timeZoneName - this was causing crashes
+    });
+  } catch (error) {
+    console.warn('Error formatting time:', error);
+    return "TBD";
+  }
+};
+
+const safeFormatGameTime = (startTime?: string): string => {
+  try {
+    if (!startTime) return "TBD";
+    const date = new Date(startTime);
+    if (isNaN(date.getTime())) return "TBD";
+    
+    // SAFE mobile formatting - removed timeZoneName
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    }) + ' at ' + date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit'
+      // Removed timeZoneName: 'short' - this was causing crashes
+    });
+  } catch (error) {
+    console.warn('Error formatting game time:', error);
+    return "TBD";
+  }
+};
+
 // Color-coded Progress Component
 function ColoredProgress({ value, className }: { value: number | null; className?: string }) {
   if (value === null || value === undefined) {
@@ -133,21 +172,38 @@ function ColoredProgress({ value, className }: { value: number | null; className
   );
 }
 
-// Helper functions for analysis
-
-
-
 // Info Button Component for Bet Bot picks - opens detailed analysis dialog
 function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' | 'lock' }) {
   const [isOpen, setIsOpen] = useState(false);
   
   const { data: analysisData } = useQuery({
     queryKey: [`/api/daily-pick/${pickId}/analysis`],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/daily-pick/${pickId}/analysis`);
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching analysis data:', error);
+        return null;
+      }
+    },
     enabled: !!pickId && !!pickType,
   });
 
   const { data: pickData } = useQuery({
     queryKey: pickType === 'daily' ? ['/api/daily-pick'] : ['/api/daily-pick/lock'],
+    queryFn: async () => {
+      try {
+        const url = pickType === 'daily' ? '/api/daily-pick' : '/api/daily-pick/lock';
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching pick data:', error);
+        return null;
+      }
+    },
     enabled: !!pickId && !!pickType,
   });
 
@@ -272,26 +328,6 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
     return odds > 0 ? `+${odds}` : odds.toString();
   };
 
-  const formatGameTime = (startTime?: string) => {
-    try {
-      if (!startTime) return "TBD";
-      const date = new Date(startTime);
-      if (isNaN(date.getTime())) return "TBD";
-      
-      // Better mobile formatting with responsive time display
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      }) + ' at ' + date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        timeZoneName: 'short'
-      });
-    } catch {
-      return "TBD";
-    }
-  };
-
   if (!pickId || !pickType) {
     return (
       <Popover>
@@ -395,7 +431,7 @@ function InfoButton({ pickId, pickType }: { pickId?: string; pickType?: 'daily' 
                 <p><span className="font-medium">Game:</span> {(pickData as any)?.gameDetails?.awayTeam || (analysisData as any)?.gameDetails?.awayTeam} @ {(pickData as any)?.gameDetails?.homeTeam || (analysisData as any)?.gameDetails?.homeTeam}</p>
                 <p><span className="font-medium">Pick:</span> {(pickData as any)?.gameDetails?.pickTeam || (analysisData as any)?.gameDetails?.pickTeam} ML {formatOdds((pickData as any)?.gameDetails?.odds || (analysisData as any)?.gameDetails?.odds || 0)}</p>
                 <p><span className="font-medium">Venue:</span> {(pickData as any)?.gameDetails?.venue || (analysisData as any)?.gameDetails?.venue || 'TBD'}</p>
-                <p><span className="font-medium">Time:</span> {(pickData as any)?.gameDetails?.gameTime ? formatGameTime((pickData as any)?.gameDetails?.gameTime) : ((analysisData as any)?.gameDetails?.gameTime ? formatGameTime((analysisData as any)?.gameDetails?.gameTime) : 'TBD')}</p>
+                <p><span className="font-medium">Time:</span> {(pickData as any)?.gameDetails?.gameTime ? safeFormatGameTime((pickData as any)?.gameDetails?.gameTime) : ((analysisData as any)?.gameDetails?.gameTime ? safeFormatGameTime((analysisData as any)?.gameDetails?.gameTime) : 'TBD')}</p>
               </div>
             </div>
 
@@ -661,8 +697,6 @@ export function ActionStyleGameCard({
     return odds > 0 ? `+${odds}` : `${odds}`;
   };
 
-
-
   const getBetRecommendation = () => {
     if (!prediction) return null;
     
@@ -692,15 +726,7 @@ export function ActionStyleGameCard({
             )}
             <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {(() => {
-                try {
-                  if (!startTime) return "TBD";
-                  const date = new Date(startTime);
-                  return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
-                } catch {
-                  return "TBD";
-                }
-              })()}
+              {safeFormatTime(startTime)}
             </span>
           </div>
         </div>
