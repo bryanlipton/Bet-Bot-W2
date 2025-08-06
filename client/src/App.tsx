@@ -1,26 +1,8 @@
-// Add this simple component at the top of App.tsx
-const TestDashboard = () => {
-  return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <h1 className="text-4xl font-bold mb-4">Bet Bot Sports Genie AI Picks</h1>
-      <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">🎉 SUCCESS! Your site is working!</h2>
-        <p>All APIs are connected and React is running properly.</p>
-        <p className="mt-2">Next step: Fix the date issues in ActionStyleDashboard.</p>
-      </div>
-    </div>
-  );
-};
-
-// Then change your routes to:
-<Route path="/" component={TestDashboard} />
-<Route path="/odds" component={TestDashboard} />
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
@@ -36,14 +18,26 @@ import NotFound from "@/pages/not-found";
 import Feed from "@/pages/Feed";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
 
-
+// Test component
+const TestDashboard = () => {
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-8">
+      <h1 className="text-4xl font-bold mb-4">Bet Bot Sports Genie AI Picks</h1>
+      <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4">🎉 SUCCESS! Your site is working!</h2>
+        <p>All APIs are connected and React is running properly.</p>
+        <p className="mt-2">Next step: Fix the date issues in ActionStyleDashboard.</p>
+      </div>
+    </div>
+  );
+};
 
 function Router() {
   return (
     <div className="min-h-screen">
       <Switch>
-       <Route path="/" component={ActionStyleDashboard} />
-<Route path="/odds" component={ActionStyleDashboard} />
+        <Route path="/" component={TestDashboard} />
+        <Route path="/odds" component={TestDashboard} />
         <Route path="/articles" component={ArticlesPage} />
         <Route path="/my-picks" component={MyPicksPage} />
         <Route path="/my-picks-simple" component={SimpleMyPicks} />
@@ -59,7 +53,6 @@ function Router() {
         <Route component={NotFound} />
       </Switch>
       <MobileBottomNavigation />
-      {/* Add bottom padding for mobile to account for bottom nav */}
       <div className="md:hidden h-16"></div>
     </div>
   );
