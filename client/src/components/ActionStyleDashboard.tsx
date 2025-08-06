@@ -73,29 +73,21 @@ interface ProcessedGame {
   }>;
 }
 
-import DailyPick from "./DailyPick";
-import LoggedInLockPick from "./LoggedInLockPick";
+// TEMPORARILY DISABLED - THESE WERE CAUSING CRASHES
+// import DailyPick from "./DailyPick";
+// import LoggedInLockPick from "./LoggedInLockPick";
 import { ProGameCard } from "./ProGameCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
 
-// SAFE DATE HELPER FUNCTION
+// ULTRA SAFE DATE HELPER FUNCTION - REMOVED TIMEZONE
 const safeFormatDate = (dateString: string | null | undefined): string => {
   try {
     if (!dateString) {
       return "TBD";
     }
     
-    // Handle various date formats safely
-    let date: Date;
-    
-    // Try parsing the date string
-    if (typeof dateString === 'string') {
-      // Handle ISO strings and other formats
-      date = new Date(dateString);
-    } else {
-      return "TBD";
-    }
+    const date = new Date(dateString);
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -103,15 +95,14 @@ const safeFormatDate = (dateString: string | null | undefined): string => {
       return "TBD";
     }
     
-    // Format the date safely
-    return date.toLocaleString('en-US', { 
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true,
-      timeZone: 'America/New_York' // Safe timezone
-    });
+    // ULTRA SAFE formatting - NO TIMEZONE OPTION
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${displayHours}:${displayMinutes} ${ampm}`;
   } catch (error) {
     console.warn(`Error formatting date "${dateString}":`, error);
     return "TBD";
@@ -421,10 +412,20 @@ export function ActionStyleDashboard() {
               {isProUser ? 'Pro Users' : 'Free Users'}
             </Badge>
           </div>
-          {/* Mobile-optimized responsive layout - tighter spacing for mobile prominence */}
+          
+          {/* SAFE PLACEHOLDER PICKS - NO CRASHING COMPONENTS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <DailyPick key="daily-pick-component" />
-            <LoggedInLockPick key="lock-pick-component" />
+            <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+              <p className="text-gray-300">No Pick Available Today</p>
+              <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+            </div>
+            
+            <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+              <p className="text-gray-300">Log in to view another free pick</p>
+              <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
+            </div>
           </div>
         </div>
       )}
@@ -443,11 +444,21 @@ export function ActionStyleDashboard() {
               Free Users
             </Badge>
           </div>
-        {/* Mobile-first responsive layout for picks - stack vertically until xl, side-by-side at xl+ */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
-          <DailyPick key="daily-pick-component" />
-          <LoggedInLockPick key="lock-pick-component" />
-        </div>
+          
+          {/* SAFE PLACEHOLDER PICKS - NO CRASHING COMPONENTS */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
+            <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+              <p className="text-gray-300">No Pick Available Today</p>
+              <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+            </div>
+            
+            <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+              <p className="text-gray-300">Log in to view another free pick</p>
+              <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
+            </div>
+          </div>
         </div>
       )}
 
