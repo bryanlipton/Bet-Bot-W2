@@ -73,13 +73,66 @@ interface ProcessedGame {
   }>;
 }
 
-
-
 import DailyPick from "./DailyPick";
 import LoggedInLockPick from "./LoggedInLockPick";
 import { ProGameCard } from "./ProGameCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
+
+// SAFE DATE HELPER FUNCTION
+const safeFormatDate = (dateString: string | null | undefined): string => {
+  try {
+    if (!dateString) {
+      return "TBD";
+    }
+    
+    // Handle various date formats safely
+    let date: Date;
+    
+    // Try parsing the date string
+    if (typeof dateString === 'string') {
+      // Handle ISO strings and other formats
+      date = new Date(dateString);
+    } else {
+      return "TBD";
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid date received: ${dateString}`);
+      return "TBD";
+    }
+    
+    // Format the date safely
+    return date.toLocaleString('en-US', { 
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/New_York' // Safe timezone
+    });
+  } catch (error) {
+    console.warn(`Error formatting date "${dateString}":`, error);
+    return "TBD";
+  }
+};
+
+// SAFE DATE COMPARISON FUNCTION
+const isGameUpcoming = (dateString: string | null | undefined): boolean => {
+  try {
+    if (!dateString) return false;
+    
+    const gameDate = new Date(dateString);
+    if (isNaN(gameDate.getTime())) return false;
+    
+    const now = new Date();
+    return gameDate > now;
+  } catch (error) {
+    console.warn(`Error comparing date "${dateString}":`, error);
+    return false;
+  }
+};
 
 export function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
@@ -90,48 +143,106 @@ export function ActionStyleDashboard() {
   // Fetch complete schedule from MLB API + Odds API
   const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
     queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/complete-schedule'] : ['/api/odds/events', selectedSport],
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    queryFn: async () => {
+      try {
+        const response = await fetch(
+          selectedSport === 'baseball_mlb' 
+            ? '/api/mlb/complete-schedule' 
+            : `/api/odds/events?sport=${selectedSport}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching odds data:', error);
+        return []; // Return empty array on error
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: false,
   });
 
   // Fetch recommendations
   const { data: recommendations = [] } = useQuery({
     queryKey: ['/api/recommendations', selectedSport],
-    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
-    gcTime: 20 * 60 * 1000, // Keep in cache for 20 minutes
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/recommendations?sport=${selectedSport}`);
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+        return [];
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: false,
   });
-
-
 
   // Fetch daily pick data
   const { data: dailyPick } = useQuery({
     queryKey: ['/api/daily-pick'],
-    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/daily-pick');
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching daily pick:', error);
+        return null;
+      }
+    },
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: false,
   });
 
   // Fetch lock pick data
   const { data: lockPick } = useQuery({
     queryKey: ['/api/daily-pick/lock'],
-    staleTime: 15 * 60 * 1000, // Consider data fresh for 15 minutes
-    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/daily-pick/lock');
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching lock pick:', error);
+        return null;
+      }
+    },
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: false,
   });
 
   // Fetch user auth status
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
-    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
-    gcTime: 20 * 60 * 1000, // Keep in cache for 20 minutes
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/auth/user');
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        return null;
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: false, // Disable automatic refetching
+    refetchInterval: false,
   });
 
   // Helper function to check if a game matches the daily pick
@@ -148,33 +259,49 @@ export function ActionStyleDashboard() {
 
   // Process live odds data into game format  
   const processLiveGames = (oddsData: LiveOddsGame[]): ProcessedGame[] => {
-    if (!oddsData) return [];
+    if (!Array.isArray(oddsData)) {
+      console.warn('Invalid odds data received:', oddsData);
+      return [];
+    }
     
-    // Only log every 5th processing to reduce console noise
-    const shouldLog = Math.floor(Date.now() / 30000) % 5 === 0; // Log every 2.5 minutes
+    const shouldLog = Math.floor(Date.now() / 30000) % 5 === 0;
     if (shouldLog) {
       console.log(`Processing ${oddsData.length} games from API`);
     }
     
-    // Filter out games that have already started
-    const now = new Date();
+    // Filter out games that have already started - SAFE VERSION
     const upcomingGames = oddsData.filter(game => {
-      const gameTime = new Date(game.commence_time);
-      return gameTime > now; // Only show games that haven't started yet
+      if (!game || !game.commence_time) return false;
+      return isGameUpcoming(game.commence_time);
     });
     
-    // Sort games by commence time (chronological order)
-    const sortedGames = [...upcomingGames].sort((a, b) => 
-      new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime()
-    );
+    // Sort games by commence time (chronological order) - SAFE VERSION
+    const sortedGames = [...upcomingGames].sort((a, b) => {
+      try {
+        const dateA = new Date(a.commence_time || 0);
+        const dateB = new Date(b.commence_time || 0);
+        
+        if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+          return 0; // Keep original order if dates are invalid
+        }
+        
+        return dateA.getTime() - dateB.getTime();
+      } catch (error) {
+        console.warn('Error sorting games by date:', error);
+        return 0;
+      }
+    });
     
     const processedGames = sortedGames.map((game, index) => {
       if (shouldLog) {
         console.log(`Processing game ${index + 1}: ${game.away_team} @ ${game.home_team} - Bookmakers: ${game.bookmakers?.length || 0}`);
       }
-      const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
-      const spreadsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads');
-      const totalsMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals');
+      
+      // Safe bookmaker data extraction
+      const firstBookmaker = Array.isArray(game.bookmakers) && game.bookmakers.length > 0 ? game.bookmakers[0] : null;
+      const h2hMarket = firstBookmaker?.markets?.find(m => m.key === 'h2h');
+      const spreadsMarket = firstBookmaker?.markets?.find(m => m.key === 'spreads');
+      const totalsMarket = firstBookmaker?.markets?.find(m => m.key === 'totals');
       
       const homeOutcome = h2hMarket?.outcomes?.find(o => o.name === game.home_team);
       const awayOutcome = h2hMarket?.outcomes?.find(o => o.name === game.away_team);
@@ -183,16 +310,18 @@ export function ActionStyleDashboard() {
 
       // Extract bookmaker lines (first 3 books) - prioritize major sportsbooks
       const priorityBooks = ['FanDuel', 'DraftKings', 'BetMGM', 'Caesars', 'PointsBet'];
-      const sortedBookmakers = game.bookmakers?.sort((a, b) => {
-        const aIndex = priorityBooks.indexOf(a.title);
-        const bIndex = priorityBooks.indexOf(b.title);
-        if (aIndex === -1 && bIndex === -1) return 0;
-        if (aIndex === -1) return 1;
-        if (bIndex === -1) return -1;
-        return aIndex - bIndex;
-      });
+      const sortedBookmakers = Array.isArray(game.bookmakers) 
+        ? game.bookmakers.sort((a, b) => {
+            const aIndex = priorityBooks.indexOf(a.title);
+            const bIndex = priorityBooks.indexOf(b.title);
+            if (aIndex === -1 && bIndex === -1) return 0;
+            if (aIndex === -1) return 1;
+            if (bIndex === -1) return -1;
+            return aIndex - bIndex;
+          })
+        : [];
       
-      const bookmakers = sortedBookmakers?.slice(0, 3).map(book => {
+      const bookmakers = sortedBookmakers.slice(0, 3).map(book => {
         const bookH2h = book.markets?.find(m => m.key === 'h2h');
         const bookSpreads = book.markets?.find(m => m.key === 'spreads');
         const bookTotals = book.markets?.find(m => m.key === 'totals');
@@ -212,40 +341,18 @@ export function ActionStyleDashboard() {
       });
 
       return {
-        id: game.id,
-        homeTeam: game.home_team,
-        awayTeam: game.away_team,
+        id: game.id || `game_${index}`,
+        homeTeam: game.home_team || 'Home Team',
+        awayTeam: game.away_team || 'Away Team',
         homeOdds: homeOutcome?.price || null,
         awayOdds: awayOutcome?.price || null,
         spread: spreadOutcome?.point || null,
         total: totalOutcome?.point || null,
-        startTime: (() => {
-          try {
-            if (!game.commence_time) {
-              console.log(`⚠️ Missing commence_time for ${game.away_team} @ ${game.home_team}`);
-              return "TBD";
-            }
-            const date = new Date(game.commence_time);
-            if (isNaN(date.getTime())) {
-              console.log(`⚠️ Invalid commence_time "${game.commence_time}" for ${game.away_team} @ ${game.home_team}`);
-              return "TBD";
-            }
-            return date.toLocaleString('en-US', { 
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric', 
-              minute: '2-digit',
-              hour12: true 
-            });
-          } catch (error) {
-            console.log(`⚠️ Error processing commence_time "${game.commence_time}" for ${game.away_team} @ ${game.home_team}:`, error);
-            return "TBD";
-          }
-        })(),
-        sportKey: game.sport_key,
+        startTime: safeFormatDate(game.commence_time), // SAFE DATE FORMATTING
+        sportKey: game.sport_key || selectedSport,
         bookmakers,
-        rawBookmakers: game.bookmakers, // Include raw bookmakers data for odds comparison
-        gameId: game.gameId || game.id,
+        rawBookmakers: Array.isArray(game.bookmakers) ? game.bookmakers : [],
+        gameId: game.gameId || game.id || `game_${index}`,
         probablePitchers: game.probablePitchers,
         venue: game.venue
       };
@@ -475,11 +582,6 @@ export function ActionStyleDashboard() {
           </Card>
         )}
       </div>
-
-
-
-
-
 
       </div>
     </>
