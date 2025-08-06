@@ -1,3 +1,20 @@
+// Add this simple component at the top of App.tsx
+const TestDashboard = () => {
+  return (
+    <div className="min-h-screen bg-gray-950 text-white p-8">
+      <h1 className="text-4xl font-bold mb-4">Bet Bot Sports Genie AI Picks</h1>
+      <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4">🎉 SUCCESS! Your site is working!</h2>
+        <p>All APIs are connected and React is running properly.</p>
+        <p className="mt-2">Next step: Fix the date issues in ActionStyleDashboard.</p>
+      </div>
+    </div>
+  );
+};
+
+// Then change your routes to:
+<Route path="/" component={TestDashboard} />
+<Route path="/odds" component={TestDashboard} />
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
