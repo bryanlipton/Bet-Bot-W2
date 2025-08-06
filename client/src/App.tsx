@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ActionStyleHeader } from "@/components/ActionStyleHeader";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
@@ -18,7 +19,6 @@ import NotFound from "@/pages/not-found";
 import Feed from "@/pages/Feed";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
 
-// Test component
 const TestDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
@@ -35,6 +35,7 @@ const TestDashboard = () => {
 function Router() {
   return (
     <div className="min-h-screen">
+      <ActionStyleHeader />
       <Switch>
         <Route path="/" component={TestDashboard} />
         <Route path="/odds" component={TestDashboard} />
