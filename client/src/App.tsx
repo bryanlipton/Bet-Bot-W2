@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ActionStyleHeader } from "@/components/ActionStyleHeader";
+import ActionStyleHeader from "@/components/ActionStyleHeader";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
@@ -26,16 +27,21 @@ const TestDashboard = () => {
       <div className="bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">🎉 SUCCESS! Your site is working!</h2>
         <p>All APIs are connected and React is running properly.</p>
-        <p className="mt-2">Next step: Fix the date issues in ActionStyleDashboard.</p>
+        <p className="mt-2">Next step: Add navigation header.</p>
       </div>
     </div>
   );
 };
 
 function Router() {
+  const [darkMode, setDarkMode] = useState(true);
+  
   return (
     <div className="min-h-screen">
-      <ActionStyleHeader />
+      <ActionStyleHeader 
+        darkMode={darkMode} 
+        onToggleDarkMode={() => setDarkMode(!darkMode)} 
+      />
       <Switch>
         <Route path="/" component={TestDashboard} />
         <Route path="/odds" component={TestDashboard} />
