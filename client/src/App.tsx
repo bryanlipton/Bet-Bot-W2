@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Dashboard from "@/pages/dashboard";
+import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
@@ -25,8 +25,8 @@ function Router() {
   return (
     <div className="min-h-screen">
       <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/odds" component={Dashboard} />
+       <Route path="/" component={ActionStyleDashboard} />
+<Route path="/odds" component={ActionStyleDashboard} />
         <Route path="/articles" component={ArticlesPage} />
         <Route path="/my-picks" component={MyPicksPage} />
         <Route path="/my-picks-simple" component={SimpleMyPicks} />
