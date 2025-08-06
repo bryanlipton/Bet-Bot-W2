@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
+import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
@@ -43,8 +44,8 @@ function Router() {
         onToggleDarkMode={() => setDarkMode(!darkMode)} 
       />
       <Switch>
-        <Route path="/" component={TestDashboard} />
-        <Route path="/odds" component={TestDashboard} />
+        <Route path="/" component={ActionStyleDashboard} />
+        <Route path="/odds" component={ActionStyleDashboard} />
         <Route path="/articles" component={ArticlesPage} />
         <Route path="/my-picks" component={MyPicksPage} />
         <Route path="/my-picks-simple" component={SimpleMyPicks} />
