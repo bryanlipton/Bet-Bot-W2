@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import ActionStyleHeader from '@/components/ActionStyleHeader';
 import MobileBottomNavigation from '@/components/MobileBottomNavigation';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,36 +7,17 @@ import { Users, Clock, Sparkles } from 'lucide-react';
 
 export default function MyFeed() {
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('darkMode');
-      return saved ? JSON.parse(saved) : true;
-    }
-    return true;
-  });
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', JSON.stringify(newMode));
-    document.documentElement.classList.toggle('dark', newMode);
-  };
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
             <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
-        <MobileBottomNavigation darkMode={darkMode} />
+        <MobileBottomNavigation />
       </div>
     );
   }
@@ -45,7 +25,6 @@ export default function MyFeed() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
           <div className="text-center py-12">
             <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -61,7 +40,7 @@ export default function MyFeed() {
             </Button>
           </div>
         </div>
-        <MobileBottomNavigation darkMode={darkMode} />
+        <MobileBottomNavigation />
         <Footer />
       </div>
     );
@@ -69,8 +48,6 @@ export default function MyFeed() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
-      
       <div className="max-w-4xl mx-auto p-6">
         {/* Coming Soon Content */}
         <div className="text-center py-16">
@@ -131,7 +108,7 @@ export default function MyFeed() {
         </div>
       </div>
 
-      <MobileBottomNavigation darkMode={darkMode} />
+      <MobileBottomNavigation />
       <Footer />
     </div>
   );
