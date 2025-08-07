@@ -152,10 +152,16 @@ export default function ScoresPage() {
   // Fetch real scores data based on selected sport with live updates
   const { data: scoresData, isLoading, refetch } = useQuery({
   queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', formatDateForAPI(selectedDate)] : ['/api/scores', selectedSport],
-    refetchInterval: 15000, // Refresh every 15 seconds for live updates
-    enabled: !!selectedDate, // Only fetch when we have a selected date
-  });
-
+  queryFn: async ({ queryKey }) => {
+    const [url, dateParam] = queryKey;
+    const finalUrl = dateParam ? `${url}?date=${dateParam}` : url;
+    const response = await fetch(finalUrl);
+    if (!response.ok) throw new Error('Failed to fetch');
+    return response.json();
+  },
+  refetchInterval: 15000,
+  enabled: !!selectedDate,
+});
   const getStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
     
