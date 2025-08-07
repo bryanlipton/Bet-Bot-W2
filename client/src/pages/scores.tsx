@@ -151,7 +151,7 @@ export default function ScoresPage() {
 
   // Fetch real scores data based on selected sport with live updates
   const { data: scoresData, isLoading, refetch } = useQuery({
-   queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores'] : ['/api/scores', selectedSport],
+  queryKey: selectedSport === 'baseball_mlb' ? ['/api/mlb/scores', formatDateForAPI(selectedDate)] : ['/api/scores', selectedSport],
     refetchInterval: 15000, // Refresh every 15 seconds for live updates
     enabled: !!selectedDate, // Only fetch when we have a selected date
   });
