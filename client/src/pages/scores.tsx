@@ -188,15 +188,14 @@ export default function ScoresPage() {
   };
 
   // Sort and filter games by selected date and status
-  const sortedGames = useMemo(() => {
-    if (!scoresData || !Array.isArray(scoresData)) return [];
+ const sortedGames = useMemo(() => {
+  if (!scoresData) return [];
 
-    // Since the API already filters by date, we should get all games for the selected date
-    // Just ensure we're working with the games returned by the API
-    const dayGames = scoresData || [];
+  // Use the games array from your API response
+  const dayGames = scoresData.games || [];
 
-    // Convert to ScoreGame format
-    const processedGames: ScoreGame[] = dayGames.map((game: any) => {
+  // Convert to ScoreGame format
+  const processedGames: ScoreGame[] = dayGames.map((game: any) => {
       // Handle different score field names from different APIs
       const homeScore = game.home_score ?? game.homeScore ?? game.scores?.home ?? 
                        (game.linescore && game.linescore.teams?.home?.runs) ?? undefined;
