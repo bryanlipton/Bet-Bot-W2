@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import ActionStyleHeader from '@/components/ActionStyleHeader';
+// Remove this import - header comes from App.tsx
+// import ActionStyleHeader from '@/components/ActionStyleHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +32,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { queryClient } from '@/lib/queryClient';
 
 export default function MyPicksPageFixed() {
-  const [darkMode, setDarkMode] = useState(true);
+  // Remove dark mode state - handled globally
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
@@ -48,25 +49,7 @@ export default function MyPicksPageFixed() {
   
   const { toast } = useToast();
 
-  // Initialize dark mode from localStorage (default to dark mode)
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-    if (savedDarkMode === null) {
-      localStorage.setItem('darkMode', 'true');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    document.documentElement.classList.toggle('dark', newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
+  // Remove dark mode useEffect - handled globally
 
   // Use database-only approach with TanStack Query
   const { data: userPicks = [], isLoading, refetch } = useQuery({
@@ -92,7 +75,6 @@ export default function MyPicksPageFixed() {
   if (!isAuthenticated && !authLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-6 text-center">
@@ -117,7 +99,6 @@ export default function MyPicksPageFixed() {
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -314,7 +295,7 @@ export default function MyPicksPageFixed() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+      {/* Remove ActionStyleHeader - it's rendered globally in App.tsx */}
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
         {/* Page Header with Friend Search */}
