@@ -9,87 +9,124 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Game ID is required' });
     }
     
-    console.log(`Fetching live data for game ${gameId}`);
+    console.log(`🔍 Fetching live data for game ${gameId}`);
     
-    // Try the MLB live feed API
-    const response = await fetch(
-      `https://statsapi.mlb.com/api/v1/game/${gameId}/feed/live`
-    );
+    // Try multiple MLB API endpoints
+    const urls = [
+      `https://statsapi.mlb.com/api/v1/game/${gameId}/feed/live`,
+      `https://statsapi.mlb.com/api/v1/game/${gameId}/linescore`,
+      `https://statsapi.mlb.com/api/v1/schedule?sportId=1&gamePk=${gameId}&hydrate=linescore,game(content(summary,media(epg))),team`
+    ];
     
-    if (response.ok) {
-      const data = await response.json();
-      const gameData = data.gameData;
-      const liveData = data.liveData;
-      const linescore = liveData?.linescore;
-      
-      // Format response for your modal
-      const result = {
-        gameId: gameId,
-        status: {
-          detailed: gameData?.status?.detailedState || 'Unknown',
-          abstract: gameData?.status?.abstractGameState || 'Unknown',
-          inProgress: gameData?.status?.abstractGameState === 'Live'
-        },
-        score: {
-          home: linescore?.teams?.home?.runs || 0,
-          away: linescore?.teams?.away?.runs || 0
-        },
-        inning: {
-          current: linescore?.currentInning || 1,
-          state: linescore?.inningState || 'Top',
-          half: linescore?.inningState?.toLowerCase() || 'top'
-        },
-        count: {
-          balls: linescore?.balls || 0,
-          strikes: linescore?.strikes || 0,
-          outs: linescore?.outs || 0
-        },
-        currentBatter: {
-          id: linescore?.offense?.batter?.id || null,
-          name: linescore?.offense?.batter?.fullName || 'No batter',
-          team: linescore?.inningState === 'Top' ? 
-            gameData?.teams?.away?.abbreviation : 
-            gameData?.teams?.home?.abbreviation
-        },
-        currentPitcher: {
-          id: linescore?.defense?.pitcher?.id || null,
-          name: linescore?.defense?.pitcher?.fullName || 'No pitcher',
-          pitchCount: linescore?.defense?.pitcher?.pitchCount || 0
-        },
-        baseRunners: {
-          first: linescore?.offense?.first ? {
-            id: linescore.offense.first.id,
-            fullName: linescore.offense.first.fullName,
-            name: linescore.offense.first.fullName
-          } : null,
-          second: linescore?.offense?.second ? {
-            id: linescore.offense.second.id,
-            fullName: linescore.offense.second.fullName,
-            name: linescore.offense.second.fullName
-          } : null,
-          third: linescore?.offense?.third ? {
-            id: linescore.offense.third.id,
-            fullName: linescore.offense.third.fullName,
-            name: linescore.offense.third.fullName
-          } : null
-        },
-        teams: {
-          home: {
-            name: gameData?.teams?.home?.name || homeTeam,
-            abbreviation: gameData?.teams?.home?.abbreviation || 'HOME'
-          },
-          away: {
-            name: gameData?.teams?.away?.name || awayTeam,
-            abbreviation: gameData?.teams?.away?.abbreviation || 'AWAY'
+    for (const url of urls) {
+      try {
+        console.log(`🔍 Trying URL: ${url}`);
+        const response = await fetch(url);
+        console.log(`🔍 Response status: ${response.status}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`🔍 Got data from ${url}`);
+          
+          // Try to extract live data from different API formats
+          let gameData, liveData, linescore;
+          
+          if (data.gameData && data.liveData) {
+            // Live feed format
+            gameData = data.gameData;
+            liveData = data.liveData;
+            linescore = liveData.linescore;
+          } else if (data.dates && data.dates[0] && data.dates[0].games[0]) {
+            // Schedule API format
+            const game = data.dates[0].games[0];
+            gameData = game;
+            linescore = game.linescore;
+          } else if (data.teams) {
+            // Direct linescore format
+            linescore = data;
+            gameData = data;
           }
-        },
-        lastUpdate: new Date().toISOString()
-      };
-      
-      return res.status(200).json(result);
+          
+          if (linescore && gameData) {
+            console.log(`🔍 Processing live data...`);
+            
+            const result = {
+              gameId: gameId,
+              status: {
+                detailed: gameData.status?.detailedState || 'Unknown',
+                abstract: gameData.status?.abstractGameState || 'Unknown',
+                inProgress: gameData.status?.abstractGameState === 'Live' || 
+                           gameData.status?.detailedState?.includes('In Progress')
+              },
+              score: {
+                home: linescore.teams?.home?.runs || gameData.teams?.home?.score || 0,
+                away: linescore.teams?.away?.runs || gameData.teams?.away?.score || 0
+              },
+              inning: {
+                current: linescore.currentInning || 1,
+                state: linescore.inningState || 'Top',
+                half: linescore.inningState?.toLowerCase() || 'top'
+              },
+              count: {
+                balls: linescore.balls || 0,
+                strikes: linescore.strikes || 0,
+                outs: linescore.outs || 0
+              },
+              currentBatter: {
+                id: linescore.offense?.batter?.id || null,
+                name: linescore.offense?.batter?.fullName || linescore.offense?.batter?.nameFirstLast || 'Unknown batter',
+                team: linescore.inningState === 'Top' ? 
+                  gameData.teams?.away?.abbreviation || 'AWAY' : 
+                  gameData.teams?.home?.abbreviation || 'HOME'
+              },
+              currentPitcher: {
+                id: linescore.defense?.pitcher?.id || null,
+                name: linescore.defense?.pitcher?.fullName || linescore.defense?.pitcher?.nameFirstLast || 'Unknown pitcher',
+                pitchCount: linescore.defense?.pitcher?.pitchCount || 0
+              },
+              baseRunners: {
+                first: linescore.offense?.first ? {
+                  id: linescore.offense.first.id,
+                  fullName: linescore.offense.first.fullName || linescore.offense.first.nameFirstLast,
+                  name: linescore.offense.first.fullName || linescore.offense.first.nameFirstLast
+                } : null,
+                second: linescore.offense?.second ? {
+                  id: linescore.offense.second.id,
+                  fullName: linescore.offense.second.fullName || linescore.offense.second.nameFirstLast,
+                  name: linescore.offense.second.fullName || linescore.offense.second.nameFirstLast
+                } : null,
+                third: linescore.offense?.third ? {
+                  id: linescore.offense.third.id,
+                  fullName: linescore.offense.third.fullName || linescore.offense.third.nameFirstLast,
+                  name: linescore.offense.third.fullName || linescore.offense.third.nameFirstLast
+                } : null
+              },
+              teams: {
+                home: {
+                  name: gameData.teams?.home?.team?.name || gameData.teams?.home?.name || homeTeam,
+                  abbreviation: gameData.teams?.home?.team?.abbreviation || gameData.teams?.home?.abbreviation || 'HOME'
+                },
+                away: {
+                  name: gameData.teams?.away?.team?.name || gameData.teams?.away?.name || awayTeam,
+                  abbreviation: gameData.teams?.away?.team?.abbreviation || gameData.teams?.away?.abbreviation || 'AWAY'
+                }
+              },
+              lastUpdate: new Date().toISOString(),
+              apiSource: url
+            };
+            
+            console.log(`✅ Returning live data:`, JSON.stringify(result, null, 2));
+            return res.status(200).json(result);
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Error with ${url}:`, error.message);
+        continue;
+      }
     }
     
-    // Fallback for non-live games
+    // Final fallback
+    console.log(`❌ All MLB API calls failed, returning fallback`);
     res.status(200).json({
       gameId: gameId,
       status: { detailed: 'Scheduled', abstract: 'Preview', inProgress: false },
@@ -104,7 +141,7 @@ export default async function handler(req, res) {
         away: { name: awayTeam || 'Away Team', abbreviation: 'AWAY' }
       },
       lastUpdate: new Date().toISOString(),
-      note: 'Game not live yet'
+      note: 'Could not fetch live data from any MLB API'
     });
     
   } catch (error) {
