@@ -3,10 +3,18 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   
   try {
-    // Get today's date in EST/EDT (where MLB operates)
-    const today = new Date();
-    const easternDate = new Date(today.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    const dateStr = easternDate.toISOString().split('T')[0];
+    // Get date from query parameter: /api/mlb/scores?date=2025-08-05
+    const { date } = req.query;
+    
+    // Use provided date or default to today in EST/EDT
+    let dateStr;
+    if (date) {
+      dateStr = date;
+    } else {
+      const today = new Date();
+      const easternDate = new Date(today.toLocaleString("en-US", {timeZone: "America/New_York"}));
+      dateStr = easternDate.toISOString().split('T')[0];
+    }
     
     console.log(`Fetching MLB scores for date: ${dateStr}`);
     
@@ -126,7 +134,7 @@ export default async function handler(req, res) {
     res.status(500).json({ 
       error: "Failed to fetch scores",
       message: error.message,
-      date: new Date().toISOString().split('T')[0],
+      date: dateStr || new Date().toISOString().split('T')[0],
       success: false
     });
   }
