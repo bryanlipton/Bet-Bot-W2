@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import ActionStyleHeader from "@/components/ActionStyleHeader";
+// Remove this import - header should come from App.tsx
+// import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { LiveGameModal } from "@/components/LiveGameModal";
 import { GameDetailsModal } from "@/components/GameDetailsModal";
@@ -70,7 +71,7 @@ const formatDateDisplay = (date: Date) => {
 
 export default function ScoresPage() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
-  const [darkMode, setDarkMode] = useState(true);
+  // Remove dark mode state since it's handled globally
   const [selectedDate, setSelectedDate] = useState(() => {
     // Initialize to current date in Eastern Time - use local date object for UI consistency
     const now = new Date();
@@ -96,27 +97,7 @@ export default function ScoresPage() {
     };
   } | null>(null);
 
-  // Initialize dark mode from localStorage (default to dark mode)
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    // Default to dark mode if no preference is saved
-    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-    // Save the default preference if none exists
-    if (savedDarkMode === null) {
-      localStorage.setItem('darkMode', 'true');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    document.documentElement.classList.toggle('dark', newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
+  // Remove dark mode initialization since it's handled globally
 
   // Navigation functions
   const goToPreviousDay = () => {
@@ -305,7 +286,7 @@ export default function ScoresPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+      {/* Remove ActionStyleHeader since it's rendered globally in App.tsx */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         
         {/* Header with Title */}
