@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import ActionStyleHeader from "@/components/ActionStyleHeader";
+// Remove this import - header comes from App.tsx
+// import ActionStyleHeader from "@/components/ActionStyleHeader";
 import Footer from "@/components/Footer";
 import { 
   TrendingUp, 
@@ -18,37 +19,11 @@ import {
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 export default function AboutPage() {
-  const [darkMode, setDarkMode] = useState(true);
-
-  // Initialize dark mode from localStorage
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    if (savedDarkMode !== null) {
-      setDarkMode(savedDarkMode === 'true');
-    }
-    
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
+  // Remove dark mode state - handled globally
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <ActionStyleHeader darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      {/* Remove ActionStyleHeader - it's rendered globally in App.tsx */}
       
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* Hero Section */}
