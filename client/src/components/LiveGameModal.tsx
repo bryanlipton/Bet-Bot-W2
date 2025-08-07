@@ -87,9 +87,8 @@ export function LiveGameModal({ gameId, homeTeam, awayTeam, isOpen, onClose }: L
   const numericGameId = gameId.replace(/[^0-9]/g, '');
 
   const { data: liveData, isLoading, error, refetch } = useQuery({
-    queryKey: [`/api/mlb/game/${numericGameId}/live`, homeTeam, awayTeam],
-    queryFn: async () => {
-      const response = await fetch(`/api/mlb/game/${numericGameId}/live?homeTeam=${encodeURIComponent(homeTeam)}&awayTeam=${encodeURIComponent(awayTeam)}`);
+    queryKey: [`/api/mlb/live-game`, numericGameId, homeTeam, awayTeam],    queryFn: async () => {
+    const response = await fetch(`/api/mlb/live-game?gameId=${numericGameId}&homeTeam=${encodeURIComponent(homeTeam)}&awayTeam=${encodeURIComponent(awayTeam)}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
