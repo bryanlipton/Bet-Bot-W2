@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { apiRequest } from '@/lib/queryClient';
 import { 
   Target, 
@@ -26,7 +25,6 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 export default function MyPicksPage() {
-  const [darkMode, setDarkMode] = useState(true);
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'record'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
@@ -59,27 +57,7 @@ export default function MyPicksPage() {
   const [editingBetUnit, setEditingBetUnit] = useState(false);
   const [tempBetUnit, setTempBetUnit] = useState('');
 
-  // Initialize dark mode from localStorage (default to dark mode)
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    // Default to dark mode if no preference is saved
-    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === 'true';
-    setDarkMode(isDarkMode);
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-    // Save the default preference if none exists
-    if (savedDarkMode === null) {
-      localStorage.setItem('darkMode', 'true');
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    document.documentElement.classList.toggle('dark', newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
+ 
 
   // Use database-only approach with TanStack Query
   const { data: userPicks = [], isLoading, refetch } = useQuery({
@@ -681,7 +659,6 @@ export default function MyPicksPage() {
   if (!isAuthenticated && !authLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-4xl mx-auto p-6">
           <Card className="bg-white dark:bg-gray-800">
             <CardContent className="p-6 text-center">
@@ -711,7 +688,6 @@ export default function MyPicksPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -737,7 +713,6 @@ export default function MyPicksPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ActionStyleHeader darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
       {/* Mobile-first responsive container with proper padding for mobile nav */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
         
