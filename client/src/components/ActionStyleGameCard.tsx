@@ -186,22 +186,60 @@ export function ActionStyleGameCard({
   const [betAmount, setBetAmount] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Safe team color helpers
-  const getHomeColor = () => {
-    try {
-      return getTeamColor(homeTeam);
-    } catch {
-      return 'bg-blue-500';
-    }
-  };
+// Safe team color helpers with fallbacks
+const getHomeColor = () => {
+  try {
+    const color = getTeamColor(homeTeam);
+    return color || 'bg-blue-500';
+  } catch {
+    // Default team colors by team name
+    const teamColors: Record<string, string> = {
+      'Boston Red Sox': 'bg-red-600',
+      'San Diego Padres': 'bg-yellow-600',
+      'Toronto Blue Jays': 'bg-blue-600',
+      'Los Angeles Dodgers': 'bg-blue-800',
+      'Washington Nationals': 'bg-red-500',
+      'San Francisco Giants': 'bg-orange-500',
+      'Colorado Rockies': 'bg-purple-600',
+      'Arizona Diamondbacks': 'bg-red-700',
+      'New York Yankees': 'bg-gray-700',
+      'Houston Astros': 'bg-orange-600',
+      'Atlanta Braves': 'bg-red-600',
+      'Philadelphia Phillies': 'bg-red-500',
+      'New York Mets': 'bg-blue-600',
+      'Chicago Cubs': 'bg-blue-500',
+      'St. Louis Cardinals': 'bg-red-600'
+    };
+    return teamColors[homeTeam] || 'bg-blue-500';
+  }
+};
 
-  const getAwayColor = () => {
-    try {
-      return getTeamColor(awayTeam);
-    } catch {
-      return 'bg-red-500';
-    }
-  };
+const getAwayColor = () => {
+  try {
+    const color = getTeamColor(awayTeam);
+    return color || 'bg-red-500';
+  } catch {
+    // Default team colors by team name
+    const teamColors: Record<string, string> = {
+      'Boston Red Sox': 'bg-red-600',
+      'San Diego Padres': 'bg-yellow-600',
+      'Toronto Blue Jays': 'bg-blue-600',
+      'Los Angeles Dodgers': 'bg-blue-800',
+      'Washington Nationals': 'bg-red-500',
+      'San Francisco Giants': 'bg-orange-500',
+      'Colorado Rockies': 'bg-purple-600',
+      'Arizona Diamondbacks': 'bg-red-700',
+      'New York Yankees': 'bg-gray-700',
+      'Houston Astros': 'bg-orange-600',
+      'Atlanta Braves': 'bg-red-600',
+      'Philadelphia Phillies': 'bg-red-500',
+      'New York Mets': 'bg-blue-600',
+      'Chicago Cubs': 'bg-blue-500',
+      'St. Louis Cardinals': 'bg-red-600'
+    };
+    return teamColors[awayTeam] || 'bg-red-500';
+  }
+};
 
   // Safe prediction values with fallbacks
   const safeHomeProb = prediction?.homeWinProbability ?? 0.5;
