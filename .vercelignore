@@ -1,13 +1,42 @@
-# Skip large dependencies that shouldn't be in server
-node_modules/@tensorflow/
+# Frontend files shouldn't be in backend bundle
+client/
+dist/client/
+public/
 
-# Skip development files
+# Development files
 *.log
 .env.local
 .env.development
 .replit
 replit.nix
+.git/
 
-# Skip build artifacts that might cause conflicts
+# Test files
+**/*.test.*
+**/*.spec.*
+**/tests/
+**/__tests__/
+
+# Documentation
+**/README.md
+**/docs/
+**/examples/
+
+# Source maps and type definitions
+**/*.map
+**/*.d.ts
+
+# Heavy frontend dependencies (NOT TensorFlow!)
+node_modules/react/
+node_modules/react-dom/
+node_modules/@radix-ui/
+node_modules/framer-motion/
+node_modules/recharts/
+node_modules/vite/
+node_modules/@vitejs/
+node_modules/rollup/
+node_modules/@rollup/
+
+# Build artifacts
 .next/
 .vite/
