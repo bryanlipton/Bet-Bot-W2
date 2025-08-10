@@ -9,9 +9,9 @@ export default async function handler(req, res) {
       return res.status(200).json([]);
     }
 
-    console.log('Fetching MLB odds...');
+    console.log('Fetching MLB odds from The Odds API...');
     const response = await fetch(
-      `https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals`,
+      `https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?apiKey=${apiKey}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`,
       { headers: { 'Accept': 'application/json' } }
     );
     
@@ -21,7 +21,12 @@ export default async function handler(req, res) {
     }
     
     const data = await response.json();
-    console.log(`Successfully fetched ${data.length} MLB games`);
+    console.log(`Successfully fetched ${data.length} MLB games with American odds`);
+    
+    // Log a sample game to verify odds format
+    if (data.length > 0) {
+      console.log('Sample game odds:', JSON.stringify(data[0], null, 2));
+    }
     
     res.status(200).json(data);
     
