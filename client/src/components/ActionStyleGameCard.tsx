@@ -1,11 +1,13 @@
-// ActionStyleGameCard.tsx - Fixed version with proper odds formatting
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -25,8 +27,15 @@ import {
   Lock
 } from "lucide-react";
 import { getTeamColor } from "@/utils/teamLogos";
+import { Clock, TrendingUp, TrendingDown, Users, Lock, Target, Info, Plus } from "lucide-react";
+import { OddsComparisonModal } from "./OddsComparisonModal";
+import { GameDetailsModal } from "./GameDetailsModal";
+import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainGradeExplanation } from "@/lib/factorUtils";
+import { pickStorage } from '@/services/pickStorage';
+import { databasePickStorage } from '@/services/databasePickStorage';
+import { Pick } from '@/types/picks';
 
-interface ActionStyleGameCardProps {
+interface GameCardProps {
   homeTeam: string;
   awayTeam: string;
   homeOdds?: number;
@@ -38,8 +47,9 @@ interface ActionStyleGameCardProps {
     homeWinProbability: number;
     awayWinProbability: number;
     confidence: number;
-    edge: string;
+    edge?: string;
   };
+  isLive?: boolean;
   bookmakers?: Array<{
     name: string;
     homeOdds?: number;
@@ -47,8 +57,11 @@ interface ActionStyleGameCardProps {
     spread?: number;
     total?: number;
   }>;
-  gameId?: string;
-  probablePitchers?: any;
+  gameId?: string | number;
+  probablePitchers?: {
+    home: string | null;
+    away: string | null;
+  };
   isDailyPick?: boolean;
   dailyPickTeam?: string;
   dailyPickGrade?: string;
@@ -57,105 +70,39 @@ interface ActionStyleGameCardProps {
   lockPickGrade?: string;
   lockPickId?: string;
   isAuthenticated?: boolean;
-  rawBookmakers?: any[];
+  onClick?: () => void;
+  rawBookmakers?: Array<{
+    key: string;
+    title: string;
+    markets: Array<{
+      key: string;
+      outcomes: Array<{
+        name: string;
+        price: number;
+        point?: number;
+      }>;
+    }>;
+    last_update: string;
+  }>;
 }
 
-// SAFE ODDS FORMATTING FUNCTION
-const formatOdds = (odds: number | undefined | null): string => {
-  try {
-    if (odds === undefined || odds === null || isNaN(odds)) {
-      return "TBD";
-    }
-    
-    // Convert to integer and format as American odds
-    const oddsNum = Math.round(odds);
-    
-    if (oddsNum > 0) {
-      return `+${oddsNum}`;
-    } else if (oddsNum < 0) {
-      return `${oddsNum}`;
-    } else {
-      return "TBD";
-    }
-  } catch (error) {
-    console.warn('Error formatting odds:', error);
-    return "TBD";
-  }
-};
-
-// SAFE SPREAD FORMATTING
-const formatSpread = (spread: number | undefined | null): string => {
-  try {
-    if (spread === undefined || spread === null || isNaN(spread)) {
-      return "TBD";
-    }
-    
-    const spreadNum = Number(spread);
-    if (spreadNum > 0) {
-      return `+${spreadNum}`;
-    } else if (spreadNum < 0) {
-      return `${spreadNum}`;
-    } else {
-      return "PK"; // Pick'em
-    }
-  } catch (error) {
-    console.warn('Error formatting spread:', error);
-    return "TBD";
-  }
-};
-
-// SAFE TOTAL FORMATTING
-const formatTotal = (total: number | undefined | null): string => {
-  try {
-    if (total === undefined || total === null || isNaN(total)) {
-      return "TBD";
-    }
-    
-    return `O/U ${Number(total)}`;
-  } catch (error) {
-    console.warn('Error formatting total:', error);
-    return "TBD";
-  }
-};
-
-// ULTRA SAFE TIME FORMATTING
-const safeFormatTime = (startTime: string | undefined | null): string => {
+// SAFE DATE FORMATTING FUNCTIONS
+const formatGameTime = (startTime?: string): string => {
   try {
     if (!startTime) return "TBD";
-    
     const date = new Date(startTime);
     if (isNaN(date.getTime())) return "TBD";
     
-    // Manual time formatting to avoid locale issues
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    
-    return `${displayHours}:${displayMinutes} ${ampm}`;
-  } catch (error) {
-    console.warn('Error formatting time:', error);
-    return "TBD";
-  }
-};
-
-// SAFE GAME TIME FORMATTING FOR DISPLAY
-const safeFormatGameTime = (startTime: string | undefined | null): string => {
-  try {
-    if (!startTime) return "TBD";
-    
-    const date = new Date(startTime);
-    if (isNaN(date.getTime())) return "TBD";
-    
-    // Safe date formatting without timezone complications
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const day = date.getDate();
-    const time = safeFormatTime(startTime);
-    
-    return `${month} ${day} at ${time}`;
-  } catch (error) {
-    console.warn('Error formatting game time:', error);
+    // Better mobile formatting with responsive time display
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    }) + ' at ' + date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit'
+      // Removed timeZoneName: 'short' - this was causing crashes
+    });
+  } catch {
     return "TBD";
   }
 };
@@ -169,7 +116,8 @@ export function ActionStyleGameCard({
   total,
   startTime,
   prediction,
-  bookmakers = [],
+  isLive = false,
+  bookmakers,
   gameId,
   probablePitchers,
   isDailyPick = false,
@@ -180,253 +128,534 @@ export function ActionStyleGameCard({
   lockPickGrade,
   lockPickId,
   isAuthenticated = false,
-  rawBookmakers = []
-}: ActionStyleGameCardProps) {
-  const [selectedBet, setSelectedBet] = useState<string | null>(null);
-  const [betAmount, setBetAmount] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  onClick,
+  rawBookmakers
+}: GameCardProps) {
+  const [oddsModalOpen, setOddsModalOpen] = useState(false);
+  const [gameDetailsOpen, setGameDetailsOpen] = useState(false);
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
+  const [selectedBet, setSelectedBet] = useState<{
+    market: 'moneyline' | 'spread' | 'total';
+    selection: string;
+    line?: number;
+  } | null>(null);
+  const [manualEntry, setManualEntry] = useState({
+    market: 'moneyline' as 'moneyline' | 'spread' | 'total',
+    selection: '',
+    line: '',
+    odds: '',
+    units: 1
+  });
+  const [betUnit, setBetUnit] = useState(50);
 
-// Safe team color helpers with fallbacks
-const getHomeColor = () => {
-  try {
-    const color = getTeamColor(homeTeam);
-    return color || 'bg-blue-500';
-  } catch {
-    // Default team colors by team name
-    const teamColors: Record<string, string> = {
-      'Boston Red Sox': 'bg-red-600',
-      'San Diego Padres': 'bg-yellow-600',
-      'Toronto Blue Jays': 'bg-blue-600',
-      'Los Angeles Dodgers': 'bg-blue-800',
-      'Washington Nationals': 'bg-red-500',
-      'San Francisco Giants': 'bg-orange-500',
-      'Colorado Rockies': 'bg-purple-600',
-      'Arizona Diamondbacks': 'bg-red-700',
-      'New York Yankees': 'bg-gray-700',
-      'Houston Astros': 'bg-orange-600',
-      'Atlanta Braves': 'bg-red-600',
-      'Philadelphia Phillies': 'bg-red-500',
-      'New York Mets': 'bg-blue-600',
-      'Chicago Cubs': 'bg-blue-500',
-      'St. Louis Cardinals': 'bg-red-600'
-    };
-    return teamColors[homeTeam] || 'bg-blue-500';
-  }
-};
+  const handleMakePick = (event: React.MouseEvent, market: 'moneyline' | 'spread' | 'total', selection: string, line?: number) => {
+    try {
+      // Prevent the card click event from firing
+      event.stopPropagation();
+      event.preventDefault();
+      
+      if (!rawBookmakers || rawBookmakers.length === 0) {
+        console.warn('No bookmakers data available for odds comparison');
+        alert('No betting odds available for this game yet. Please try again later.');
+        return;
+      }
 
-const getAwayColor = () => {
-  try {
-    const color = getTeamColor(awayTeam);
-    return color || 'bg-red-500';
-  } catch {
-    // Default team colors by team name
-    const teamColors: Record<string, string> = {
-      'Boston Red Sox': 'bg-red-600',
-      'San Diego Padres': 'bg-yellow-600',
-      'Toronto Blue Jays': 'bg-blue-600',
-      'Los Angeles Dodgers': 'bg-blue-800',
-      'Washington Nationals': 'bg-red-500',
-      'San Francisco Giants': 'bg-orange-500',
-      'Colorado Rockies': 'bg-purple-600',
-      'Arizona Diamondbacks': 'bg-red-700',
-      'New York Yankees': 'bg-gray-700',
-      'Houston Astros': 'bg-orange-600',
-      'Atlanta Braves': 'bg-red-600',
-      'Philadelphia Phillies': 'bg-red-500',
-      'New York Mets': 'bg-blue-600',
-      'Chicago Cubs': 'bg-blue-500',
-      'St. Louis Cardinals': 'bg-red-600'
-    };
-    return teamColors[awayTeam] || 'bg-red-500';
-  }
-};
+      // Reset modal state
+      setOddsModalOpen(false);
+      setSelectedBet(null);
+      
+      // Small delay to ensure old modal is closed before opening new one
+      setTimeout(() => {
+        try {
+          setSelectedBet({ market, selection, line });
+          setOddsModalOpen(true);
+        } catch (timeoutError) {
+          console.error('Error in timeout function:', timeoutError);
+          alert('Error in delayed modal opening. Please try again.');
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error in handleMakePick:', error);
+      alert(`Critical error opening betting options: ${error.message}. Please try again or refresh the page.`);
+    }
+  };
 
-  // Safe prediction values with fallbacks
-  const safeHomeProb = prediction?.homeWinProbability ?? 0.5;
-  const safeAwayProb = prediction?.awayWinProbability ?? 0.5;
-  const safeConfidence = prediction?.confidence ?? 0.5;
-  const safeEdge = prediction?.edge ?? 'No edge';
+  const formatOdds = (odds: number) => {
+    // Format as American odds
+    if (odds > 0) {
+      return `+${Math.round(odds)}`;
+    } else {
+      return `${Math.round(odds)}`;
+    }
+  };
+
+  const getBetRecommendation = () => {
+    if (!prediction) return null;
+    
+    const homeProb = prediction.homeWinProbability;
+    const awayProb = prediction.awayWinProbability;
+    
+    if (homeProb > 0.55) return { team: homeTeam, type: "home", prob: homeProb };
+    if (awayProb > 0.55) return { team: awayTeam, type: "away", prob: awayProb };
+    return null;
+  };
+
+  const recommendation = getBetRecommendation();
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <Card 
+      className="hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
+    >
       <CardContent className="p-3 sm:p-4">
-        {/* Header with time and special badges */}
-        <div className="flex items-center justify-between mb-3">
+        {/* Mobile-first header layout */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 gap-1 sm:gap-2">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-gray-500" />
-            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium">
-              {safeFormatTime(startTime)}
+            {isLive && (
+              <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                LIVE
+              </Badge>
+            )}
+            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {(() => {
+                try {
+                  if (!startTime) return "TBD";
+                  const date = new Date(startTime);
+                  return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
+                } catch {
+                  return "TBD";
+                }
+              })()}
             </span>
-          </div>
-          
-          <div className="flex items-center gap-1">
-            {isDailyPick && (
-              <Badge variant="outline" className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-none text-xs px-2 py-0.5">
-                <Star className="w-3 h-3 mr-1" />
-                Pick of Day
-              </Badge>
-            )}
-            
-            {lockPickTeam && (
-              <Badge variant="outline" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none text-xs px-2 py-0.5">
-                <Lock className="w-3 h-3 mr-1" />
-                Lock Pick
-              </Badge>
-            )}
           </div>
         </div>
 
-        {/* Teams and Odds */}
-        <div className="space-y-2 mb-4">
+        {/* Mobile-optimized Header with Pick Column */}
+        <div className="grid grid-cols-5 gap-1 sm:gap-2 mb-2 sm:mb-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="col-span-2 text-xs">Teams</div>
+          <div className="text-center text-xs sm:text-sm">Odds</div>
+          <div className="text-center text-xs sm:text-sm">Pick</div>
+          <div className="text-center text-xs">AI Pick</div>
+        </div>
+
+        <div className="space-y-2 sm:space-y-3">
           {/* Away Team */}
-          <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getAwayColor()}`}></div>
-              <span className="font-medium text-sm">{awayTeam}</span>
+          <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-2 sm:gap-3">
+              <div 
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex-shrink-0" 
+                style={{ borderColor: getTeamColor(awayTeam) }}
+              />
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{awayTeam}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-mono font-bold">
-                {formatOdds(awayOdds)}
+            
+            <div className="flex items-center justify-center">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                {awayOdds ? formatOdds(awayOdds) : (
+                  <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
+                    TBD
+                  </span>
+                )}
               </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="h-6 px-2 text-xs"
-                onClick={() => setSelectedBet(`${awayTeam} ML`)}
-              >
-                Pick
-              </Button>
+            </div>
+
+            <div className="flex items-center justify-center">
+              {awayOdds && (
+                <Button
+                  size="sm"
+                  onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90 touch-manipulation"
+                  style={{ backgroundColor: getTeamColor(awayTeam), WebkitTapHighlightColor: 'transparent' }}
+                >
+                  Pick
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center">
+              {isDailyPick && dailyPickTeam === awayTeam ? (
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center cursor-pointer border text-white">
+                    <span className="text-xs font-bold">{dailyPickGrade || "A+"}</span>
+                  </div>
+                </div>
+              ) : isAuthenticated && lockPickTeam === awayTeam ? (
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center cursor-pointer border text-white">
+                    <span className="text-xs font-bold">{lockPickGrade || "A+"}</span>
+                  </div>
+                </div>
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : (
+                <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              )}
             </div>
           </div>
 
           {/* Home Team */}
-          <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getHomeColor()}`}></div>
-              <span className="font-medium text-sm">{homeTeam}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-mono font-bold">
-                {formatOdds(homeOdds)}
-              </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="h-6 px-2 text-xs"
-                onClick={() => setSelectedBet(`${homeTeam} ML`)}
-              >
-                Pick
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Spread and Total */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
-            <div className="text-xs text-gray-500 mb-1">Spread</div>
-            <div className="font-mono text-sm font-bold">
-              {formatSpread(spread)}
-            </div>
-            <div className="flex gap-1 mt-1">
-              <Button size="sm" variant="outline" className="h-5 px-1 text-xs flex-1">
-                Pick
-              </Button>
-              <Button size="sm" variant="outline" className="h-5 px-1 text-xs flex-1">
-                Fade
-              </Button>
-            </div>
-          </div>
-          
-          <div className="text-center p-2 bg-gray-50 dark:bg-gray-800 rounded">
-            <div className="text-xs text-gray-500 mb-1">Total</div>
-            <div className="font-mono text-sm font-bold">
-              {formatTotal(total)}
-            </div>
-            <div className="flex gap-1 mt-1">
-              <Button size="sm" variant="outline" className="h-5 px-1 text-xs flex-1">
-                O
-              </Button>
-              <Button size="sm" variant="outline" className="h-5 px-1 text-xs flex-1">
-                U
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Prediction Section */}
-        {prediction && (
-          <div className="border-t pt-3 mt-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                AI Prediction
-              </span>
-              <Badge variant="outline" className="text-xs">
-                {Math.round(safeConfidence * 100)}% confident
-              </Badge>
+          <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
+            <div className="col-span-2 flex items-center gap-2 sm:gap-3">
+              <div 
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex-shrink-0" 
+                style={{ borderColor: getTeamColor(homeTeam) }}
+              />
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{homeTeam}</p>
             </div>
             
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>{awayTeam}</span>
-                <span className="font-mono">{Math.round(safeAwayProb * 100)}%</span>
+            <div className="flex items-center justify-center">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
+                {homeOdds ? formatOdds(homeOdds) : (
+                  <span className="text-gray-400 dark:text-gray-500 text-xs sm:text-sm">
+                    TBD
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-center">
+              {homeOdds && (
+                <Button
+                  size="sm"
+                  onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
+                  className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90 touch-manipulation"
+                  style={{ backgroundColor: getTeamColor(homeTeam), WebkitTapHighlightColor: 'transparent' }}
+                >
+                  Pick
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center">
+              {isDailyPick && dailyPickTeam === homeTeam ? (
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center cursor-pointer border text-white">
+                    <span className="text-xs font-bold">{dailyPickGrade || "A+"}</span>
+                  </div>
+                </div>
+              ) : isAuthenticated && lockPickTeam === homeTeam ? (
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center cursor-pointer border text-white">
+                    <span className="text-xs font-bold">{lockPickGrade || "A+"}</span>
+                  </div>
+                </div>
+              ) : isDailyPick || (isAuthenticated && lockPickTeam) ? (
+                <span className="text-xs text-gray-400 dark:text-gray-500">-</span>
+              ) : (
+                <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Betting Lines */}
+        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          {/* Mobile: Side-by-side Spread and Total, Desktop: Separated */}
+          
+          {/* Mobile Layout: Spread and Total side by side */}
+          <div className="flex sm:hidden gap-1">
+            {/* Spread Section - Left Half */}
+            <div className="flex-1 text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+              {spread !== undefined && spread !== null ? (
+                <>
+                  {(() => {
+                    // Determine which team is favored (negative spread = favored)
+                    const isFavoredHome = spread < 0;
+                    const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                    const favoredSpread = Math.abs(spread);
+                    
+                    return (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-gray-900 dark:text-white">
+                          {favoredTeam} -{favoredSpread}
+                        </p>
+                        <div className="flex gap-1 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                            className="text-xs px-1.5 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
+                          >
+                            Pick
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                            className="text-xs px-1.5 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm touch-manipulation"
+                            style={{ WebkitTapHighlightColor: 'transparent' }}
+                          >
+                            Fade
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                    Spread TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-1.5 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-1.5 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Fade
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Total Section - Right Half */}
+            <div className="flex-1 text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              {total !== undefined && total !== null ? (
+                <>
+                  <p className="text-xs font-medium text-gray-900 dark:text-white">
+                    O/U {total}
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
+                      className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
+                      className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                    O/U TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Layout: Spread and Total separated */}
+          <div className="hidden sm:flex sm:justify-between sm:items-center gap-3">
+            {/* Spread Section */}
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Spread</p>
+              {spread !== undefined && spread !== null ? (
+                <>
+                  {(() => {
+                    // Determine which team is favored (negative spread = favored)
+                    const isFavoredHome = spread < 0;
+                    const favoredTeam = isFavoredHome ? homeTeam : awayTeam;
+                    const favoredSpread = Math.abs(spread);
+                    
+                    return (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {favoredTeam} -{favoredSpread}
+                        </p>
+                        <div className="flex gap-1 justify-center">
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', favoredTeam, -favoredSpread)}
+                            className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Pick
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleMakePick(e, 'spread', isFavoredHome ? awayTeam : homeTeam, favoredSpread)}
+                            className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                          >
+                            Fade
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                    Spread TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Pick
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled
+                      className="text-xs px-2 py-1 h-6 opacity-50 cursor-not-allowed bg-gray-300 dark:bg-gray-600 text-gray-500"
+                    >
+                      Fade
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Total Section */}
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              {total !== undefined && total !== null ? (
+                <>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    O/U {total}
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Over', total)}
+                      className="text-xs px-2 py-1 h-6 bg-green-600 hover:bg-green-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleMakePick(e, 'total', 'Under', total)}
+                      className="text-xs px-2 py-1 h-6 bg-red-600 hover:bg-red-700 text-white border-0 font-semibold shadow-sm"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-gray-400 dark:text-gray-500">
+                    O/U TBD
+                  </p>
+                  <div className="flex gap-1 justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      O
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                      className="text-xs px-1 py-1 h-6 opacity-50 cursor-not-allowed"
+                    >
+                      U
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Recommendation */}
+        {recommendation && (
+          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  Bet: {recommendation.team}
+                </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span>{homeTeam}</span>
-                <span className="font-mono">{Math.round(safeHomeProb * 100)}%</span>
-              </div>
-              <div className="text-xs text-center text-gray-600 dark:text-gray-400 mt-1">
-                Edge: {safeEdge}
+              <div className="text-right">
+                <p className="text-xs text-gray-500 dark:text-gray-400">Edge</p>
+                <p className="text-sm font-bold text-green-600 dark:text-green-400">
+                  {prediction?.edge || "No edge"}
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Game Info Button */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full mt-3 h-7 text-xs"
-            >
-              <Info className="w-3 h-3 mr-1" />
-              Game Info
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-base">
-                {awayTeam} @ {homeTeam}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <h4 className="text-sm font-medium mb-1">Game Time</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {safeFormatGameTime(startTime)}
-                </p>
-              </div>
-              
-              {bookmakers.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Best Odds</h4>
-                  <div className="space-y-1">
-                    {bookmakers.slice(0, 3).map((book, index) => (
-                      <div key={index} className="flex justify-between text-xs p-2 bg-gray-50 dark:bg-gray-800 rounded">
-                        <span>{book.name}</span>
-                        <span className="font-mono">
-                          {formatOdds(book.awayOdds)} / {formatOdds(book.homeOdds)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Game Info Button - Bottom Center */}
+        <div className="mt-3 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setGameDetailsOpen(true);
+            }}
+            className="text-xs px-2 py-1 h-6 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <Info className="w-3 h-3 mr-1" />
+            Game Info
+          </Button>
+        </div>
+
       </CardContent>
+      
+      {/* Odds Comparison Modal */}
+      {selectedBet && rawBookmakers && (
+        <OddsComparisonModal
+          open={oddsModalOpen}
+          onClose={() => {
+            setOddsModalOpen(false);
+            setSelectedBet(null);
+          }}
+          gameInfo={{
+            homeTeam,
+            awayTeam,
+            gameId,
+            sport: 'baseball_mlb',
+            gameTime: startTime
+          }}
+          bookmakers={rawBookmakers}
+          selectedBet={selectedBet}
+        />
+      )}
+
+      {/* Game Details Modal */}
+      <GameDetailsModal
+        isOpen={gameDetailsOpen}
+        onClose={() => setGameDetailsOpen(false)}
+        gameId={gameId || ''}
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
+        startTime={startTime}
+        probablePitchers={probablePitchers}
+      />
     </Card>
   );
 }
