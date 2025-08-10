@@ -243,10 +243,10 @@ export function ActionStyleGameCard({
           {/* Away Team */}
           <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
             <div className="col-span-2 flex items-center gap-2 sm:gap-3">
-              <div 
-                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex-shrink-0" 
-                style={{ borderColor: getTeamColor(awayTeam) }}
-              />
+             <div 
+                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0" 
+                style={{ backgroundColor: getTeamColor(awayTeam) }}
+             />
               <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{awayTeam}</p>
             </div>
             
@@ -298,8 +298,8 @@ export function ActionStyleGameCard({
           <div className="grid grid-cols-5 gap-1 sm:gap-2 items-center">
             <div className="col-span-2 flex items-center gap-2 sm:gap-3">
               <div 
-                className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border-2 flex-shrink-0" 
-                style={{ borderColor: getTeamColor(homeTeam) }}
+        className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0" 
+        style={{ backgroundColor: getTeamColor(homeTeam) }}
               />
               <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{homeTeam}</p>
             </div>
