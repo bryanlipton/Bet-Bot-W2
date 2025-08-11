@@ -21,8 +21,7 @@
   "functions": {
     "server/**": {
       "memory": 3008,
-      "maxDuration": 30,
-      "excludeFiles": "**/{client,dist/client,node_modules/{@types,typescript,vite,@rollup,esbuild,react*,@radix-ui,framer-motion,recharts,lucide-react,@tanstack}}/**"
+      "maxDuration": 30
     }
   },
   "routes": [
