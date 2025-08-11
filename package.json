@@ -8,7 +8,7 @@
   "build": "npm run build:client && npm run build:server",
   "build:client": "vite build --outDir dist/client",
   "build:server": "npx esbuild server/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/server.js --external:@tensorflow/tfjs-node --external:express --external:socket.io --minify --tree-shaking"
-}
+},
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
     "@replit/vite-plugin-cartographer": "^0.2.7",
