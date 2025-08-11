@@ -1,10 +1,21 @@
-# Skip development files only
-*.log
-.env.local
-.env.development
+# Development files
 .replit
-replit.nix
+*.log
 
-# Skip build artifacts that might cause conflicts
-.next/
-.vite/
+# Heavy frontend dependencies  
+node_modules/react/
+node_modules/react-dom/
+node_modules/@radix-ui/
+node_modules/framer-motion/
+node_modules/recharts/
+node_modules/vite/
+node_modules/@vitejs/
+node_modules/rollup/
+node_modules/@rollup/
+node_modules/esbuild/
+node_modules/@types/
+node_modules/typescript/
+
+# Build artifacts not needed in functions
+dist/public/
+client/
