@@ -22,7 +22,7 @@
     "server/**": {
       "memory": 3008,
       "maxDuration": 30,
-      "excludeFiles": "{client,dist/client,node_modules/@types,node_modules/typescript,node_modules/vite,node_modules/rollup,node_modules/@rollup,node_modules/esbuild,node_modules/@esbuild,node_modules/react,node_modules/react-dom,node_modules/@radix-ui,node_modules/framer-motion,node_modules/recharts,node_modules/lucide-react,node_modules/@tanstack}/**"
+      "excludeFiles": "**/{client,dist/client,node_modules/@types,node_modules/typescript,node_modules/vite,node_modules/rollup,node_modules/@rollup,node_modules/esbuild,node_modules/@esbuild,node_modules/react,node_modules/react-dom,node_modules/@radix-ui,node_modules/framer-motion,node_modules/recharts,node_modules/lucide-react,node_modules/@tanstack}/**"
     }
   },
   "routes": [
