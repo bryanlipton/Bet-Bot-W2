@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
-  "scripts": {
+ "scripts": {
   "dev": "NODE_ENV=development tsx server/index.ts",
-  "build": "npm run build:client && npm run build:server",
-  "build:client": "vite build --outDir dist/client",
-  "build:server": "npx esbuild server/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/server.js --external:@tensorflow/tfjs-node --external:express --external:socket.io --minify --tree-shaking"
+  "build": "vite build --outDir dist/client",
+  "build:client": "vite build --outDir dist/client"
 },
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
