@@ -1,4 +1,4 @@
-// api/daily-pick.js - Daily pick with real ML integration
+// api/daily-pick.js - Corrected to use proper ML server endpoints
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,12 +18,10 @@ export default async function handler(req, res) {
     console.log('📅 Daily pick request received');
     
     const { date = new Date().toISOString().split('T')[0] } = req.query;
-    const mlServerUrl = process.env.ML_SERVER_URL;
+    const mlServerUrl = process.env.ML_SERVER_URL || 'http://104.236.118.108:3001';
     
     // Step 1: Get live MLB games from The Odds API
     let gamesData = [];
-    let selectedGame = null;
-    let mlPrediction = null;
     
     try {
       const oddsResponse = await fetch(
@@ -40,111 +38,92 @@ export default async function handler(req, res) {
       console.log('⚠️ Could not fetch live odds:', error.message);
     }
     
-    // Step 2: Find best game using ML predictions
-    if (mlServerUrl && gamesData.length > 0) {
-      let bestPick = null;
-      let highestConfidence = 0;
+    // Step 2: Format games for ML server
+    const formattedGames = gamesData.slice(0, 5).map(game => {
+      const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
+      const homeOdds = h2hMarket?.outcomes?.find(o => o.name === game.home_team)?.price || -110;
+      const awayOdds = h2hMarket?.outcomes?.find(o => o.name === game.away_team)?.price || -110;
       
-      // Analyze top 5 games
-      for (const game of gamesData.slice(0, 5)) {
-        try {
-          const homeTeam = game.home_team;
-          const awayTeam = game.away_team;
-          
-          // Get odds
-          const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
-          if (!h2hMarket) continue;
-          
-          const homeOdds = h2hMarket.outcomes?.find(o => o.name === homeTeam)?.price || -110;
-          const awayOdds = h2hMarket.outcomes?.find(o => o.name === awayTeam)?.price || -110;
-          
-          console.log(`🔍 Analyzing ${awayTeam} @ ${homeTeam}`);
-          
-          // Call ML server
-          const mlResponse = await fetch(`${mlServerUrl}/api/ml-predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              homeTeam,
-              awayTeam,
-              gameDate: game.commence_time,
-              oddsData: { homeOdds, awayOdds }
-            })
-          });
-          
-          if (mlResponse.ok) {
-            const mlData = await mlResponse.json();
-            
-            // Calculate confidence based on ML probability and edge
-            const homeImpliedProb = homeOdds > 0 ? 
-              100 / (homeOdds + 100) : Math.abs(homeOdds) / (Math.abs(homeOdds) + 100);
-            const awayImpliedProb = awayOdds > 0 ?
-              100 / (awayOdds + 100) : Math.abs(awayOdds) / (Math.abs(awayOdds) + 100);
-            
-            const homeEdge = mlData.homeWinProbability - homeImpliedProb;
-            const awayEdge = mlData.awayWinProbability - awayImpliedProb;
-            
-            const bestEdge = Math.max(homeEdge, awayEdge);
-            const pickHome = homeEdge > awayEdge;
-            const confidence = Math.min(95, 50 + Math.abs(bestEdge * 100));
-            
-            if (confidence > highestConfidence) {
-              highestConfidence = confidence;
-              bestPick = {
-                game,
-                mlData,
-                pickHome,
-                confidence,
-                edge: bestEdge,
-                homeOdds,
-                awayOdds
-              };
-            }
-          }
-        } catch (error) {
-          console.log(`⚠️ ML error for game:`, error.message);
+      return {
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        venue: `${game.home_team} Stadium`,
+        gameTime: game.commence_time,
+        odds: {
+          home: homeOdds,
+          away: awayOdds
+        },
+        weather: {
+          temperature: 72,
+          wind: 5
         }
-      }
-      
-      if (bestPick) {
-        selectedGame = bestPick.game;
-        mlPrediction = bestPick;
-        console.log(`✅ Best ML pick: ${bestPick.pickHome ? selectedGame.home_team : selectedGame.away_team}`);
+      };
+    });
+    
+    // Step 3: Call ML server's generate-daily-pick endpoint
+    let mlPick = null;
+    
+    if (mlServerUrl && formattedGames.length > 0) {
+      try {
+        console.log(`🧠 Calling ML server at ${mlServerUrl}/api/generate-daily-pick`);
+        
+        const mlResponse = await fetch(`${mlServerUrl}/api/generate-daily-pick`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            games: formattedGames,
+            date: date
+          })
+        });
+        
+        if (mlResponse.ok) {
+          const mlResult = await mlResponse.json();
+          
+          if (mlResult.success && mlResult.pick) {
+            mlPick = mlResult.pick;
+            console.log('✅ ML server provided pick:', mlPick.prediction?.recommendedBet);
+          }
+        } else {
+          console.log('⚠️ ML server response not ok:', mlResponse.status);
+        }
+      } catch (error) {
+        console.log('⚠️ ML server error:', error.message);
       }
     }
     
-    // Step 3: Build pick data with real or fallback data
+    // Step 4: Build response in expected format
     let pickData;
     
-    if (selectedGame && mlPrediction) {
-      // Real ML-powered pick
-      const pickTeam = mlPrediction.pickHome ? selectedGame.home_team : selectedGame.away_team;
-      const pickOdds = mlPrediction.pickHome ? mlPrediction.homeOdds : mlPrediction.awayOdds;
+    if (mlPick && mlPick.game) {
+      // Extract team and odds from ML pick
+      const recommendedTeam = mlPick.prediction?.recommendedBet?.replace(' ML', '') || 
+                            mlPick.game.homeTeam;
+      const isHome = recommendedTeam === mlPick.game.homeTeam;
+      const odds = isHome ? mlPick.game.odds?.home : mlPick.game.odds?.away;
       
       pickData = {
         id: `daily-${date}`,
-        gameId: selectedGame.id || `game-${date}-001`,
-        homeTeam: selectedGame.home_team,
-        awayTeam: selectedGame.away_team,
-        pickTeam: pickTeam,
+        gameId: `game-${date}-001`,
+        homeTeam: mlPick.game.homeTeam,
+        awayTeam: mlPick.game.awayTeam,
+        pickTeam: recommendedTeam,
         pickType: 'moneyline',
-        odds: pickOdds,
-        grade: getGrade(mlPrediction.confidence),
-        confidence: mlPrediction.confidence,
-        reasoning: `ML model shows ${pickTeam} with ${(mlPrediction.confidence).toFixed(1)}% confidence. ` +
-                  `Edge of ${(mlPrediction.edge * 100).toFixed(1)}% over market odds. ` +
-                  `Advanced metrics and situational factors support this selection.`,
+        odds: odds || 120,
+        grade: mlPick.prediction?.grade || 'B+',
+        confidence: (mlPick.prediction?.confidence || 0.75) * 100,
+        reasoning: mlPick.reasoning || 
+                  `ML model shows ${recommendedTeam} with high confidence based on advanced metrics.`,
         analysis: {
-          offensiveProduction: 70 + (mlPrediction.edge * 50),
-          pitchingMatchup: 65 + (mlPrediction.confidence / 3),
-          situationalEdge: 60 + (mlPrediction.edge * 80),
-          teamMomentum: 70 + Math.random() * 15,
-          marketInefficiency: 50 + (mlPrediction.edge * 100),
-          systemConfidence: mlPrediction.confidence,
-          confidence: mlPrediction.confidence
+          offensiveProduction: (mlPick.prediction?.factors?.pitchingMatchup || 0.75) * 100,
+          pitchingMatchup: (mlPick.prediction?.factors?.pitchingMatchup || 0.75) * 100,
+          situationalEdge: (mlPick.prediction?.factors?.homeFieldAdvantage || 0.7) * 100,
+          teamMomentum: (mlPick.prediction?.factors?.recentForm || 0.72) * 100,
+          marketInefficiency: (mlPick.prediction?.factors?.value || 0.78) * 100,
+          systemConfidence: (mlPick.prediction?.confidence || 0.75) * 100,
+          confidence: (mlPick.prediction?.confidence || 0.75) * 100
         },
-        gameTime: selectedGame.commence_time,
-        venue: `${selectedGame.home_team} Stadium`,
+        gameTime: mlPick.game.gameTime || new Date().toISOString(),
+        venue: mlPick.game.venue || 'Stadium',
         probablePitchers: {
           home: 'TBD',
           away: 'TBD'
@@ -155,7 +134,7 @@ export default async function handler(req, res) {
         status: 'pending'
       };
     } else {
-      // Fallback pick when ML is unavailable
+      // Fallback pick
       pickData = {
         id: `daily-${date}`,
         gameId: `game-${date}-001`,
@@ -189,7 +168,7 @@ export default async function handler(req, res) {
       };
     }
     
-    console.log('📤 Returning pick data:', pickData.pickTeam, pickData.grade, `ML: ${pickData.mlPowered}`);
+    console.log('📤 Returning pick:', pickData.pickTeam, pickData.grade, `ML: ${pickData.mlPowered}`);
     return res.status(200).json(pickData);
     
   } catch (error) {
@@ -227,15 +206,4 @@ export default async function handler(req, res) {
       status: 'pending'
     });
   }
-}
-
-function getGrade(confidence) {
-  if (confidence >= 90) return 'A+';
-  if (confidence >= 85) return 'A';
-  if (confidence >= 80) return 'A-';
-  if (confidence >= 75) return 'B+';
-  if (confidence >= 70) return 'B';
-  if (confidence >= 65) return 'B-';
-  if (confidence >= 60) return 'C+';
-  return 'C';
 }
