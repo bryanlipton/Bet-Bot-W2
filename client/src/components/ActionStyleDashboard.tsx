@@ -73,9 +73,136 @@ interface ProcessedGame {
   }>;
 }
 
-// TEMPORARILY DISABLED - THESE WERE CAUSING CRASHES
-// import DailyPick from "./DailyPick";
-// import LoggedInLockPick from "./LoggedInLockPick";
+// Simple inline DailyPick component
+function DailyPick() {
+  const [pick, setPick] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/daily-pick')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching daily pick:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+        <p className="text-gray-300">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!pick || !pick.pickTeam) {
+    return (
+      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+        <p className="text-gray-300">No Pick Available Today</p>
+        <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6 relative">
+      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold">
+        {pick.grade}
+      </div>
+      <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+      <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
+      <div className="text-lg font-semibold text-white">
+        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
+      </div>
+      <div className="text-sm text-gray-300 mt-2">
+        {pick.awayTeam} @ {pick.homeTeam}
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Confidence: {pick.confidence?.toFixed(1)}%
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
+          Pick
+        </button>
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
+          Fade
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Simple inline LoggedInLockPick component
+function LoggedInLockPick() {
+  const [pick, setPick] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/daily-pick/lock')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching lock pick:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+        <p className="text-gray-300">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!pick || !pick.pickTeam) {
+    return (
+      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
+        <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+        <p className="text-gray-300">Log in to view another free pick</p>
+        <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6 relative">
+      <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold">
+        {pick.grade}
+      </div>
+      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+      <p className="text-sm text-gray-400 mb-3">Exclusive pick for authenticated users</p>
+      <div className="text-lg font-semibold text-white">
+        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
+      </div>
+      <div className="text-sm text-gray-300 mt-2">
+        {pick.awayTeam} @ {pick.homeTeam}
+      </div>
+      <div className="text-xs text-gray-400 mt-1">
+        Confidence: {pick.confidence?.toFixed(1)}%
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
+          Pick
+        </button>
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
+          Fade
+        </button>
+      </div>
+    </div>
+  );
+}
+
 import { ProGameCard } from "./ProGameCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
@@ -413,19 +540,10 @@ export function ActionStyleDashboard() {
             </Badge>
           </div>
           
-          {/* SAFE PLACEHOLDER PICKS - NO CRASHING COMPONENTS */}
+          {/* WORKING PICK COMPONENTS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
-              <p className="text-gray-300">No Pick Available Today</p>
-              <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
-            </div>
-            
-            <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-              <p className="text-gray-300">Log in to view another free pick</p>
-              <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
-            </div>
+            <DailyPick />
+            <LoggedInLockPick />
           </div>
         </div>
       )}
@@ -445,19 +563,10 @@ export function ActionStyleDashboard() {
             </Badge>
           </div>
           
-          {/* SAFE PLACEHOLDER PICKS - NO CRASHING COMPONENTS */}
+          {/* WORKING PICK COMPONENTS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
-            <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
-              <p className="text-gray-300">No Pick Available Today</p>
-              <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
-            </div>
-            
-            <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-              <p className="text-gray-300">Log in to view another free pick</p>
-              <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
-            </div>
+            <DailyPick />
+            <LoggedInLockPick />
           </div>
         </div>
       )}
