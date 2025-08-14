@@ -96,10 +96,13 @@ export default async function handler(req, res) {
     
     if (mlPick && mlPick.game) {
       // Extract team and odds from ML pick
-      const recommendedTeam = mlPick.prediction?.recommendedBet?.replace(' ML', '') || 
-                            mlPick.game.homeTeam;
-      const isHome = recommendedTeam === mlPick.game.homeTeam;
-      const odds = isHome ? mlPick.game.odds?.home : mlPick.game.odds?.away;
+      const recommendedBet = mlPick.prediction?.recommendedBet || 'STRONG BET';
+      const confidence = mlPick.prediction?.confidence || 0.75;
+      
+      // Determine which team to pick based on ML confidence
+      const pickHome = mlPick.prediction?.homeTeamWinProbability > 0.5;
+      const recommendedTeam = pickHome ? mlPick.game.homeTeam : mlPick.game.awayTeam;
+      const odds = pickHome ? mlPick.game.odds?.home : mlPick.game.odds?.away;
       
       pickData = {
         id: `daily-${date}`,
@@ -110,17 +113,17 @@ export default async function handler(req, res) {
         pickType: 'moneyline',
         odds: odds || 120,
         grade: mlPick.prediction?.grade || 'B+',
-        confidence: (mlPick.prediction?.confidence || 0.75) * 100,
+        confidence: confidence * 100,
         reasoning: mlPick.reasoning || 
-                  `ML model shows ${recommendedTeam} with high confidence based on advanced metrics.`,
+                  `ML model shows ${recommendedTeam} with ${(confidence * 100).toFixed(1)}% confidence based on advanced metrics.`,
         analysis: {
           offensiveProduction: (mlPick.prediction?.factors?.pitchingMatchup || 0.75) * 100,
           pitchingMatchup: (mlPick.prediction?.factors?.pitchingMatchup || 0.75) * 100,
           situationalEdge: (mlPick.prediction?.factors?.homeFieldAdvantage || 0.7) * 100,
           teamMomentum: (mlPick.prediction?.factors?.recentForm || 0.72) * 100,
           marketInefficiency: (mlPick.prediction?.factors?.value || 0.78) * 100,
-          systemConfidence: (mlPick.prediction?.confidence || 0.75) * 100,
-          confidence: (mlPick.prediction?.confidence || 0.75) * 100
+          systemConfidence: confidence * 100,
+          confidence: confidence * 100
         },
         gameTime: mlPick.game.gameTime || new Date().toISOString(),
         venue: mlPick.game.venue || 'Stadium',
