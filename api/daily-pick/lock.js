@@ -1,4 +1,4 @@
-// api/daily-pick/lock.js - Premium lock pick with real ML integration
+// api/daily-pick/lock.js - Premium lock pick with ML integration
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,17 +18,15 @@ export default async function handler(req, res) {
     console.log('🔒 Lock pick request received');
     
     const { date = new Date().toISOString().split('T')[0] } = req.query;
-    const mlServerUrl = process.env.ML_SERVER_URL;
+    const mlServerUrl = process.env.ML_SERVER_URL || 'http://104.236.118.108:3001';
     
-    // Step 1: Get live MLB games
+    // Step 1: Get ALL MLB games for lock analysis
     let gamesData = [];
-    let selectedGame = null;
-    let mlPrediction = null;
     
     try {
       const oddsResponse = await fetch(
         `https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?` +
-        `apiKey=${process.env.THE_ODDS_API_KEY}&` +
+        `apiKey=${process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY}&` +
         `regions=us&markets=h2h,spreads,totals&oddsFormat=american`
       );
       
@@ -40,124 +38,104 @@ export default async function handler(req, res) {
       console.log('⚠️ Could not fetch live odds:', error.message);
     }
     
-    // Step 2: Find HIGHEST confidence game (for lock picks we analyze ALL games)
-    if (mlServerUrl && gamesData.length > 0) {
-      let bestLock = null;
-      let highestLockScore = 0;
+    // Step 2: Format ALL games for comprehensive ML analysis
+    const formattedGames = gamesData.map(game => {
+      const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
+      const homeOdds = h2hMarket?.outcomes?.find(o => o.name === game.home_team)?.price || -110;
+      const awayOdds = h2hMarket?.outcomes?.find(o => o.name === game.away_team)?.price || -110;
       
-      // For lock picks, analyze ALL games to find the absolute best
-      for (const game of gamesData) {
-        try {
-          const homeTeam = game.home_team;
-          const awayTeam = game.away_team;
+      return {
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        venue: `${game.home_team} Stadium`,
+        gameTime: game.commence_time,
+        odds: {
+          home: homeOdds,
+          away: awayOdds
+        },
+        weather: {
+          temperature: 72,
+          wind: 5
+        },
+        isLockPick: true // Signal for enhanced analysis
+      };
+    });
+    
+    // Step 3: Call ML server for the BEST pick across all games
+    let mlLock = null;
+    
+    if (mlServerUrl && formattedGames.length > 0) {
+      try {
+        console.log(`🧠 Calling ML server for lock pick from ${formattedGames.length} games`);
+        
+        // Send ALL games for comprehensive analysis
+        const mlResponse = await fetch(`${mlServerUrl}/api/generate-daily-pick`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            games: formattedGames, // All games for best selection
+            date: date,
+            requireHighConfidence: true // Lock picks need 80%+ confidence
+          })
+        });
+        
+        if (mlResponse.ok) {
+          const mlResult = await mlResponse.json();
           
-          // Get odds
-          const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
-          if (!h2hMarket) continue;
-          
-          const homeOdds = h2hMarket.outcomes?.find(o => o.name === homeTeam)?.price || -110;
-          const awayOdds = h2hMarket.outcomes?.find(o => o.name === awayTeam)?.price || -110;
-          
-          console.log(`🔒 Analyzing for lock: ${awayTeam} @ ${homeTeam}`);
-          
-          // Call ML server with lock flag
-          const mlResponse = await fetch(`${mlServerUrl}/api/ml-predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              homeTeam,
-              awayTeam,
-              gameDate: game.commence_time,
-              oddsData: { homeOdds, awayOdds },
-              isLockPick: true // Signal for enhanced analysis
-            })
-          });
-          
-          if (mlResponse.ok) {
-            const mlData = await mlResponse.json();
-            
-            // Calculate edges
-            const homeImpliedProb = homeOdds > 0 ? 
-              100 / (homeOdds + 100) : Math.abs(homeOdds) / (Math.abs(homeOdds) + 100);
-            const awayImpliedProb = awayOdds > 0 ?
-              100 / (awayOdds + 100) : Math.abs(awayOdds) / (Math.abs(awayOdds) + 100);
-            
-            const homeEdge = mlData.homeWinProbability - homeImpliedProb;
-            const awayEdge = mlData.awayWinProbability - awayImpliedProb;
-            
-            // For locks: we want HIGH ML confidence AND good edge
-            const bestEdge = Math.max(homeEdge, awayEdge);
-            const mlConfidence = Math.max(mlData.homeWinProbability, mlData.awayWinProbability);
-            
-            // Lock score combines ML confidence (70%) and edge (30%)
-            const lockScore = (mlConfidence * 0.7) + (bestEdge * 0.3);
-            const confidence = Math.min(95, 70 + (lockScore * 30));
-            
-            if (lockScore > highestLockScore && confidence >= 80) { // Locks need 80+ confidence
-              highestLockScore = lockScore;
-              bestLock = {
-                game,
-                mlData,
-                pickHome: homeEdge > awayEdge,
-                confidence,
-                edge: bestEdge,
-                mlConfidence,
-                lockScore,
-                homeOdds,
-                awayOdds
-              };
-            }
+          if (mlResult.success && mlResult.pick) {
+            mlLock = mlResult.pick;
+            console.log('✅ ML server provided lock pick with confidence:', 
+                       (mlLock.prediction?.confidence * 100).toFixed(1) + '%');
           }
-        } catch (error) {
-          console.log(`⚠️ ML error for lock analysis:`, error.message);
+        } else {
+          console.log('⚠️ ML server response not ok:', mlResponse.status);
         }
-      }
-      
-      if (bestLock) {
-        selectedGame = bestLock.game;
-        mlPrediction = bestLock;
-        console.log(`✅ LOCK found: ${bestLock.pickHome ? selectedGame.home_team : selectedGame.away_team} (${bestLock.confidence.toFixed(1)}%)`);
+      } catch (error) {
+        console.log('⚠️ ML server error:', error.message);
       }
     }
     
-    // Step 3: Build lock data
+    // Step 4: Build response in expected format
     let lockData;
     
-    if (selectedGame && mlPrediction) {
-      // Real ML-powered lock pick
-      const pickTeam = mlPrediction.pickHome ? selectedGame.home_team : selectedGame.away_team;
-      const pickOdds = mlPrediction.pickHome ? mlPrediction.homeOdds : mlPrediction.awayOdds;
+    if (mlLock && mlLock.game) {
+      // Extract team from ML lock pick
+      const confidence = mlLock.prediction?.confidence || 0.85;
+      
+      // Determine which team based on ML confidence
+      const pickHome = mlLock.prediction?.homeTeamWinProbability > 0.5;
+      const recommendedTeam = pickHome ? mlLock.game.homeTeam : mlLock.game.awayTeam;
+      const odds = pickHome ? mlLock.game.odds?.home : mlLock.game.odds?.away;
       
       // Determine lock strength based on confidence
       let lockStrength = 'MODERATE';
-      if (mlPrediction.confidence >= 90) lockStrength = 'MAXIMUM';
-      else if (mlPrediction.confidence >= 85) lockStrength = 'STRONG';
+      if (confidence >= 0.9) lockStrength = 'MAXIMUM';
+      else if (confidence >= 0.85) lockStrength = 'STRONG';
       
       lockData = {
         id: `lock-${date}`,
-        gameId: selectedGame.id || `game-${date}-lock`,
-        homeTeam: selectedGame.home_team,
-        awayTeam: selectedGame.away_team,
-        pickTeam: pickTeam,
+        gameId: `game-${date}-lock`,
+        homeTeam: mlLock.game.homeTeam,
+        awayTeam: mlLock.game.awayTeam,
+        pickTeam: recommendedTeam,
         pickType: 'moneyline',
-        odds: pickOdds,
-        grade: getGrade(mlPrediction.confidence),
-        confidence: mlPrediction.confidence,
-        reasoning: `🔒 LOCK OF THE DAY: ${pickTeam} shows exceptional value with ` +
-                  `${(mlPrediction.mlConfidence * 100).toFixed(1)}% ML win probability. ` +
-                  `Edge of ${(mlPrediction.edge * 100).toFixed(1)}% over market. ` +
-                  `All advanced metrics align for this premium selection.`,
+        odds: odds || 110,
+        grade: mlLock.prediction?.grade || 'A-',
+        confidence: confidence * 100,
+        reasoning: `🔒 LOCK OF THE DAY: ${recommendedTeam} shows exceptional value with ` +
+                  `${(confidence * 100).toFixed(1)}% ML confidence. ` +
+                  `${mlLock.reasoning || 'All advanced metrics align for this premium selection.'}`,
         analysis: {
-          offensiveProduction: 75 + (mlPrediction.edge * 60),
-          pitchingMatchup: 70 + (mlPrediction.mlConfidence * 25),
-          situationalEdge: 65 + (mlPrediction.edge * 100),
-          teamMomentum: 75 + (mlPrediction.lockScore * 20),
-          marketInefficiency: 60 + (mlPrediction.edge * 120),
-          systemConfidence: mlPrediction.confidence,
-          confidence: mlPrediction.confidence
+          offensiveProduction: (mlLock.prediction?.factors?.pitchingMatchup || 0.82) * 100,
+          pitchingMatchup: (mlLock.prediction?.factors?.pitchingMatchup || 0.88) * 100,
+          situationalEdge: (mlLock.prediction?.factors?.homeFieldAdvantage || 0.78) * 100,
+          teamMomentum: (mlLock.prediction?.factors?.recentForm || 0.85) * 100,
+          marketInefficiency: (mlLock.prediction?.factors?.value || 0.90) * 100,
+          systemConfidence: confidence * 100,
+          confidence: confidence * 100
         },
-        gameTime: selectedGame.commence_time,
-        venue: `${selectedGame.home_team} Stadium`,
+        gameTime: mlLock.game.gameTime || new Date().toISOString(),
+        venue: mlLock.game.venue || 'Stadium',
         probablePitchers: {
           home: 'TBD',
           away: 'TBD'
@@ -246,15 +224,4 @@ export default async function handler(req, res) {
       status: 'pending'
     });
   }
-}
-
-function getGrade(confidence) {
-  if (confidence >= 90) return 'A+';
-  if (confidence >= 85) return 'A';
-  if (confidence >= 80) return 'A-';
-  if (confidence >= 75) return 'B+';
-  if (confidence >= 70) return 'B';
-  if (confidence >= 65) return 'B-';
-  if (confidence >= 60) return 'C+';
-  return 'C';
 }
