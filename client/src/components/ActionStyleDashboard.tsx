@@ -458,22 +458,22 @@ export function ActionStyleDashboard() {
         };
       });
 
-      return {
-        id: game.id || `game_${index}`,
-        homeTeam: game.home_team || 'Home Team',
-        awayTeam: game.away_team || 'Away Team',
-        homeOdds: homeOutcome?.price || null,
-        awayOdds: awayOutcome?.price || null,
-        spread: spreadOutcome?.point || null,
-        total: totalOutcome?.point || null,
-        startTime: safeFormatDate(game.commence_time), // SAFE DATE FORMATTING
-        sportKey: game.sport_key || selectedSport,
-        bookmakers,
-        rawBookmakers: Array.isArray(game.bookmakers) ? game.bookmakers : [],
-        gameId: game.gameId || game.id || `game_${index}`,
-        probablePitchers: game.probablePitchers,
-        venue: game.venue
-      };
+ return {
+  id: game.id || `game_${index}`,
+  homeTeam: game.home_team || 'Home Team',
+  awayTeam: game.away_team || 'Away Team',
+  homeOdds: homeOutcome?.price || null,
+  awayOdds: awayOutcome?.price || null,
+  spread: spreadOutcome?.point || null,
+  total: totalOutcome?.point || null,
+  startTime: game.commence_time,  // ← CHANGE THIS LINE - pass raw ISO string
+  sportKey: game.sport_key || selectedSport,
+  bookmakers,
+  rawBookmakers: Array.isArray(game.bookmakers) ? game.bookmakers : [],
+  gameId: game.gameId || game.id || `game_${index}`,
+  probablePitchers: game.probablePitchers,
+  venue: game.venue
+};
     });
     
     if (shouldLog) {
