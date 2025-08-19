@@ -216,18 +216,39 @@ export function ActionStyleGameCard({
                 LIVE
               </Badge>
             )}
-            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {(() => {
-                try {
-                  if (!startTime) return "TBD";
-                  const date = new Date(startTime);
-                  return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
-                } catch {
-                  return "TBD";
-                }
-              })()}
-            </span>
+           <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+  <Clock className="w-3 h-3" />
+  {(() => {
+    try {
+      if (!startTime) return "TBD";
+      const date = new Date(startTime);
+      if (isNaN(date.getTime())) return "TBD";
+      
+      const now = new Date();
+      const isToday = date.toDateString() === now.toDateString();
+      
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const isTomorrow = date.toDateString() === tomorrow.toDateString();
+      
+      const time = date.toLocaleTimeString([], { 
+        hour: 'numeric', 
+        minute: '2-digit' 
+      });
+      
+      if (isToday) {
+        return `Today ${time}`;
+      } else if (isTomorrow) {
+        return `Tmrw ${time}`;
+      } else {
+        // Show date for future games
+        return `${date.getMonth()+1}/${date.getDate()} ${time}`;
+      }
+    } catch {
+      return "TBD";
+    }
+  })()}
+</span>
           </div>
         </div>
 
