@@ -466,7 +466,7 @@ export function ActionStyleDashboard() {
   awayOdds: awayOutcome?.price || null,
   spread: spreadOutcome?.point || null,
   total: totalOutcome?.point || null,
-  startTime: game.commence_time,  // ← CHANGE THIS LINE - pass raw ISO string
+ startTime: game.commence_time,
   sportKey: game.sport_key || selectedSport,
   bookmakers,
   rawBookmakers: Array.isArray(game.bookmakers) ? game.bookmakers : [],
