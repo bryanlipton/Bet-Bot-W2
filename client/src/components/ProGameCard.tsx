@@ -57,6 +57,40 @@ interface ProGameCardProps {
   }>;
 }
 
+// SAFE DATE FORMATTING FUNCTION - Shows date for non-today games
+const formatGameTime = (startTime?: string): string => {
+  try {
+    if (!startTime) return "TBD";
+    
+    const date = new Date(startTime);
+    if (isNaN(date.getTime())) return "TBD";
+    
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = date.toDateString() === tomorrow.toDateString();
+    
+    const time = date.toLocaleTimeString([], { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    });
+    
+    if (isToday) {
+      return `Today ${time}`;
+    } else if (isTomorrow) {
+      return `Tomorrow ${time}`;
+    } else {
+      // Show date for future games
+      return `${date.getMonth()+1}/${date.getDate()} ${time}`;
+    }
+  } catch (error) {
+    console.warn('Error formatting time:', error);
+    return "TBD";
+  }
+};
+
 // Pro Grade Bubble with factor analysis modal
 function ProGradeBubble({ grade, proPick }: { grade: string; proPick?: ProPickData }) {
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
@@ -216,15 +250,7 @@ export function ProGameCard({
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {(() => {
-                  try {
-                    if (!startTime) return "TBD";
-                    const date = new Date(startTime);
-                    return !isNaN(date.getTime()) ? date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "TBD";
-                  } catch {
-                    return "TBD";
-                  }
-                })()}
+                {formatGameTime(startTime)}
               </span>
             </div>
           </div>
