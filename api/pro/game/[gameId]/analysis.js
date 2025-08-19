@@ -27,16 +27,16 @@ export default async function handler(req, res) {
       return res.status(200).json(null);
     }
     
-    // Step 2: Call your Digital Ocean ML API
-    const digitalOceanUrl = process.env.DIGITAL_OCEAN_URL || process.env.DO_API_URL;
-    const digitalOceanApiKey = process.env.DIGITAL_OCEAN_API_KEY || process.env.DO_API_KEY;
+    // Step 2: Call your ML Server API
+    const mlServerUrl = process.env.ML_SERVER_URL || process.env.DIGITAL_OCEAN_URL;
+    const mlApiKey = process.env.ML_API_KEY || process.env.DIGITAL_OCEAN_API_KEY;
     
-    if (!digitalOceanUrl) {
-      console.error('❌ DIGITAL_OCEAN_URL not configured');
+    if (!mlServerUrl) {
+      console.error('❌ ML_SERVER_URL not configured');
       return res.status(200).json(generateFallbackPick(game));
     }
     
-    console.log(`🚀 Calling Digital Ocean ML API for ${game.away_team} @ ${game.home_team}`);
+    console.log(`🚀 Calling ML Server API for ${game.away_team} @ ${game.home_team}`);
     
     // Prepare the request to Digital Ocean
     const mlRequest = {
@@ -53,24 +53,24 @@ export default async function handler(req, res) {
       bookmakers: game.bookmakers
     };
     
-    // Call Digital Ocean ML Service
-    const mlResponse = await fetch(`${digitalOceanUrl}/api/ml/predict`, {
+    // Call ML Server
+    const mlResponse = await fetch(`${mlServerUrl}/api/ml/predict`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(digitalOceanApiKey && { 'Authorization': `Bearer ${digitalOceanApiKey}` })
+        ...(mlApiKey && { 'Authorization': `Bearer ${mlApiKey}` })
       },
       body: JSON.stringify(mlRequest),
       timeout: 10000 // 10 second timeout
     });
     
     if (!mlResponse.ok) {
-      console.error(`❌ Digital Ocean API returned ${mlResponse.status}`);
+      console.error(`❌ ML Server API returned ${mlResponse.status}`);
       throw new Error(`ML API returned ${mlResponse.status}`);
     }
     
     const mlPrediction = await mlResponse.json();
-    console.log('✅ Received ML prediction from Digital Ocean');
+    console.log('✅ Received ML prediction from ML Server');
     
     // Step 3: Process the ML prediction into Pro Pick format
     const pickHomeTeam = mlPrediction.homeWinProbability > mlPrediction.awayWinProbability;
@@ -301,7 +301,7 @@ function generateMLReasoning(game, pickTeam, winProb, analysis, grade) {
   const isHome = pickTeam === game.home_team;
   const location = isHome ? "at home" : "on the road";
   
-  let reasoning = `Digital Ocean ML indicates ${(winProb * 100).toFixed(1)}% win probability for ${pickTeam} ${location}. `;
+  let reasoning = `ML Server indicates ${(winProb * 100).toFixed(1)}% win probability for ${pickTeam} ${location}. `;
   
   if (factors.length > 0) {
     reasoning += `Key factors: ${factors.join(", ")}. `;
