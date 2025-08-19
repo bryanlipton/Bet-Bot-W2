@@ -78,7 +78,7 @@ const formatGameTime = (startTime?: string): string => {
     });
     
     if (isToday) {
-      return `Today ${time}`;
+      return time;  // Just show time for today's games
     } else if (isTomorrow) {
       return `Tomorrow ${time}`;
     } else {
