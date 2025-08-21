@@ -1,3 +1,35 @@
+// Shared game time formatter
+const formatGameTime = (startTime?: string): string => {
+  try {
+    if (!startTime) return "TBD";
+    
+    const date = new Date(startTime);
+    if (isNaN(date.getTime())) return "TBD";
+    
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = date.toDateString() === tomorrow.toDateString();
+    
+    const time = date.toLocaleTimeString([], { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    });
+    
+    if (isToday) {
+      return time;
+    } else if (isTomorrow) {
+      return `Tomorrow ${time}`;
+    } else {
+      return `${date.getMonth()+1}/${date.getDate()} ${time}`;
+    }
+  } catch (error) {
+    console.warn('Error formatting time:', error);
+    return "TBD";
+  }
+};
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -126,8 +158,9 @@ function DailyPick() {
         {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
       <div className="text-sm text-gray-300 mt-2">
-        {pick.awayTeam} @ {pick.homeTeam}
-      </div>
+  {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+  </div>
+
 
       {/* Pick/Fade Buttons */}
       <div className="grid grid-cols-2 gap-3 mt-6">
@@ -191,9 +224,10 @@ function LoggedInLockPick() {
       <div className="text-2xl font-extrabold text-yellow-300">
         {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
-      <div className="text-sm text-gray-100 mt-2">
-        {pick.awayTeam} @ {pick.homeTeam}
-      </div>
+      <div className="text-sm text-gray-300 mt-2">
+  {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+</div>
+
       <div className="grid grid-cols-2 gap-2 mt-5">
         <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
           Pick
