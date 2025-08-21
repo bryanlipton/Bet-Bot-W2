@@ -30,6 +30,9 @@ const formatGameTime = (startTime?: string): string => {
     return "TBD";
   }
 };
+import { useAuth } from "@/hooks/useAuth";
+import { useProStatus } from "@/hooks/useProStatus";
+import { ProGameCard } from "./ProGameCard";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -199,14 +202,6 @@ function LoggedInLockPick({ pick, loading }: { pick: any; loading: boolean }) {
   );
 }
 
-if (loading) {
-  return (
-    <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
-      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-      <p className="text-orange-100">Loading...</p>
-    </div>
-  );
-}
 
 if (!pick || !pick.pickTeam) {
   return (
