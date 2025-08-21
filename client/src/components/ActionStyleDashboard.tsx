@@ -1,38 +1,3 @@
-// Shared game time formatter
-const formatGameTime = (startTime?: string): string => {
-  try {
-    if (!startTime) return "TBD";
-    
-    const date = new Date(startTime);
-    if (isNaN(date.getTime())) return "TBD";
-    
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isTomorrow = date.toDateString() === tomorrow.toDateString();
-    
-    const time = date.toLocaleTimeString([], { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
-    
-    if (isToday) {
-      return time;
-    } else if (isTomorrow) {
-      return `Tomorrow ${time}`;
-    } else {
-      return `${date.getMonth()+1}/${date.getDate()} ${time}`;
-    }
-  } catch (error) {
-    console.warn('Error formatting time:', error);
-    return "TBD";
-  }
-};
-import { useAuth } from "@/hooks/useAuth";
-import { useProStatus } from "@/hooks/useProStatus";
-import { ProGameCard } from "./ProGameCard";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -108,11 +73,27 @@ interface ProcessedGame {
   }>;
 }
 
-// --- DailyPick Component ---
-function DailyPick({ pick, loading }: { pick: any; loading: boolean }) {
+// Simple inline DailyPick component
+function DailyPick() {
+  const [pick, setPick] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/daily-pick')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching daily pick:', err);
+        setLoading(false);
+      });
+  }, []);
+
   if (loading) {
     return (
-      <div className="rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
+      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
         <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
         <p className="text-gray-300">Loading...</p>
       </div>
@@ -121,7 +102,7 @@ function DailyPick({ pick, loading }: { pick: any; loading: boolean }) {
 
   if (!pick || !pick.pickTeam) {
     return (
-      <div className="rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
+      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
         <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
         <p className="text-gray-300">No Pick Available Today</p>
         <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
@@ -130,24 +111,26 @@ function DailyPick({ pick, loading }: { pick: any; loading: boolean }) {
   }
 
   return (
-    <div className="relative rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
-      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold text-xs">
+    <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6 relative">
+      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold">
         {pick.grade}
       </div>
       <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
       <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
-      <div className="text-xl font-bold text-yellow-300">
-        {pick.pickTeam} ML {pick.odds > 0 ? "+" : ""}
-        {pick.odds}
+      <div className="text-lg font-semibold text-white">
+        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
       <div className="text-sm text-gray-300 mt-2">
-        {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+        {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      <div className="grid grid-cols-2 gap-3 mt-6">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
+      <div className="text-xs text-gray-400 mt-1">
+        Confidence: {pick.confidence?.toFixed(1)}%
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
           Pick
         </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
           Fade
         </button>
       </div>
@@ -155,46 +138,64 @@ function DailyPick({ pick, loading }: { pick: any; loading: boolean }) {
   );
 }
 
-// --- LoggedInLockPick Component ---
-function LoggedInLockPick({ pick, loading }: { pick: any; loading: boolean }) {
+// Simple inline LoggedInLockPick component
+function LoggedInLockPick() {
+  const [pick, setPick] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/daily-pick/lock')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching lock pick:', err);
+        setLoading(false);
+      });
+  }, []);
+
   if (loading) {
     return (
-      <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
+      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
         <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-orange-100">Loading...</p>
+        <p className="text-gray-300">Loading...</p>
       </div>
     );
   }
 
   if (!pick || !pick.pickTeam) {
     return (
-      <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
+      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
         <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-orange-100">Log in to view another free pick</p>
-        <p className="text-sm text-orange-200 mt-2">Premium picks available for authenticated users</p>
+        <p className="text-gray-300">Log in to view another free pick</p>
+        <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
       </div>
     );
   }
 
   return (
-    <div className="relative rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
-      <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold text-xs">
+    <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6 relative">
+      <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold">
         {pick.grade}
       </div>
       <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-      <p className="text-sm text-orange-200 mb-3">Exclusive pick for authenticated users</p>
-      <div className="text-2xl font-extrabold text-yellow-300">
-        {pick.pickTeam} ML {pick.odds > 0 ? "+" : ""}
-        {pick.odds}
+      <p className="text-sm text-gray-400 mb-3">Exclusive pick for authenticated users</p>
+      <div className="text-lg font-semibold text-white">
+        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
       <div className="text-sm text-gray-300 mt-2">
-        {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+        {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      <div className="grid grid-cols-2 gap-2 mt-5">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
+      <div className="text-xs text-gray-400 mt-1">
+        Confidence: {pick.confidence?.toFixed(1)}%
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
           Pick
         </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
           Fade
         </button>
       </div>
@@ -202,41 +203,38 @@ function LoggedInLockPick({ pick, loading }: { pick: any; loading: boolean }) {
   );
 }
 
+import { ProGameCard } from "./ProGameCard";
+import { useAuth } from "@/hooks/useAuth";
+import { useProStatus } from "@/hooks/useProStatus";
 
-if (!pick || !pick.pickTeam) {
-  return (
-    <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
-      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-      <p className="text-orange-100">Log in to view another free pick</p>
-      <p className="text-sm text-orange-200 mt-2">Premium picks available for authenticated users</p>
-    </div>
-  );
-}
-
-return (
-  <div className="relative rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
-    <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold text-xs">
-      {pick.grade}
-    </div>
-    <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-    <p className="text-sm text-orange-200 mb-3">Exclusive pick for authenticated users</p>
-    <div className="text-2xl font-extrabold text-yellow-300">
-      {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
-    </div>
-    <div className="text-sm text-gray-300 mt-2">
-      {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
-    </div>
-    <div className="grid grid-cols-2 gap-2 mt-5">
-      <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
-        Pick
-      </button>
-      <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
-        Fade
-      </button>
-    </div>
-  </div>
-);
-
+// ULTRA SAFE DATE HELPER FUNCTION - REMOVED TIMEZONE
+const safeFormatDate = (dateString: string | null | undefined): string => {
+  try {
+    if (!dateString) {
+      return "TBD";
+    }
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid date received: ${dateString}`);
+      return "TBD";
+    }
+    
+    // ULTRA SAFE formatting - NO TIMEZONE OPTION
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+  } catch (error) {
+    console.warn(`Error formatting date "${dateString}":`, error);
+    return "TBD";
+  }
+};
 
 // SAFE DATE COMPARISON FUNCTION
 const isGameUpcoming = (dateString: string | null | undefined): boolean => {
@@ -544,9 +542,8 @@ export function ActionStyleDashboard() {
           
           {/* WORKING PICK COMPONENTS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-           <DailyPick pick={dailyPick} loading={oddsLoading} />
-<LoggedInLockPick pick={lockPick} loading={oddsLoading || authLoading} />
-
+            <DailyPick />
+            <LoggedInLockPick />
           </div>
         </div>
       )}
@@ -710,3 +707,4 @@ export function ActionStyleDashboard() {
     </>
   );
 }
+
