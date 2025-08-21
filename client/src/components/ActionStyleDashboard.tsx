@@ -146,10 +146,11 @@ function DailyPick({ liveGameData }) {
                       pick?.scheduledTime ||
                       pick?.game_time;
     
-    const venue = pick?.venue || 
-                  pick?.stadium || 
-                  pick?.ballpark ||
-                  getStadiumFromTeam(pick?.homeTeam);
+   const venue = getStadiumFromTeam(pick?.homeTeam) || 
+              pick?.venue || 
+              pick?.stadium || 
+              pick?.ballpark ||
+              'Stadium TBD';
     
     if (!dateString) {
       if (venue) return `Time TBD • ${venue}`;
@@ -334,10 +335,11 @@ function LoggedInLockPick({ liveGameData }) {
                       pick?.scheduledTime ||
                       pick?.game_time;
     
-    const venue = pick?.venue || 
-                  pick?.stadium || 
-                  pick?.ballpark ||
-                  getStadiumFromTeam(pick?.homeTeam);
+    const venue = getStadiumFromTeam(pick?.homeTeam) || 
+              pick?.venue || 
+              pick?.stadium || 
+              pick?.ballpark ||
+              'Stadium TBD';
     
     if (!dateString) {
       if (venue) return `Time TBD • ${venue}`;
