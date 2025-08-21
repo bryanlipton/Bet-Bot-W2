@@ -106,172 +106,92 @@ interface ProcessedGame {
 }
 
 // --- DailyPick (cleaned up) ---
-function DailyPick() {
-  const [pick, setPick] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/daily-pick')
-      .then(res => res.json())
-      .then(data => {
-        setPick(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching daily pick:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-gray-600/40 rounded-lg p-6 shadow">
-        <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-        <p className="text-gray-300">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!pick || !pick.pickTeam) {
-    return (
-      <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-gray-600/40 rounded-lg p-6 shadow">
-        <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-        <p className="text-gray-300">No Pick Available Today</p>
-        <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
-      </div>
-    );
-  }
-
+if (loading) {
   return (
-    <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-600/40 rounded-lg p-6 shadow relative">
-      {/* Grade badge */}
-      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold text-xs">
-        {pick.grade}
-      </div>
+    <div className="rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
+      <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+      <p className="text-gray-300">Loading...</p>
+    </div>
+  );
+}
 
-      {/* Title */}
-      <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-      <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
+if (!pick || !pick.pickTeam) {
+  return (
+    <div className="rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
+      <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+      <p className="text-gray-300">No Pick Available Today</p>
+      <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+    </div>
+  );
+}
 
-      {/* Highlighted Pick */}
-      <div className="text-xl font-bold text-yellow-300">
-        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
-      </div>
-      <div className="text-sm text-gray-300 mt-2">
-  {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+return (
+  <div className="relative rounded-lg p-6 border-2 border-blue-500/50 shadow-lg shadow-blue-500/20 bg-blue-950/40">
+    <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold text-xs">
+      {pick.grade}
+    </div>
+    <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
+    <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
+    <div className="text-xl font-bold text-yellow-300">
+      {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
+    </div>
+    <div className="text-sm text-gray-300 mt-2">
+      {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+    </div>
+    <div className="grid grid-cols-2 gap-3 mt-6">
+      <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
+        Pick
+      </button>
+      <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
+        Fade
+      </button>
+    </div>
   </div>
+);
 
-
-      {/* Pick/Fade Buttons */}
-      <div className="grid grid-cols-2 gap-3 mt-6">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
-          Pick
-        </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
-          Fade
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-
-// --- LoggedInLockPick (cleaned up) ---
-function LoggedInLockPick() {
-  const [pick, setPick] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/daily-pick/lock')
-      .then(res => res.json())
-      .then(data => {
-        setPick(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching lock pick:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md">
-        <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
-        <p className="text-orange-100">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!pick || !pick.pickTeam) {
-    return (
-      <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md">
-        <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
-        <p className="text-orange-100">Log in to view another free pick</p>
-        <p className="text-sm text-orange-200 mt-2">Premium picks available for authenticated users</p>
-      </div>
-    );
-  }
-
+if (loading) {
   return (
-    <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md relative">
-      <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold">
-        {pick.grade}
-      </div>
-      <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
-      <p className="text-sm text-orange-200 mb-3">Exclusive pick for authenticated users</p>
-      <div className="text-2xl font-extrabold text-yellow-300">
-        {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
-      </div>
-      <div className="text-sm text-gray-300 mt-2">
-  {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
-</div>
-
-      <div className="grid grid-cols-2 gap-2 mt-5">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
-          Pick
-        </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
-          Fade
-        </button>
-      </div>
+    <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
+      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+      <p className="text-orange-100">Loading...</p>
     </div>
   );
 }
 
-import { ProGameCard } from "./ProGameCard";
-import { useAuth } from "@/hooks/useAuth";
-import { useProStatus } from "@/hooks/useProStatus";
+if (!pick || !pick.pickTeam) {
+  return (
+    <div className="rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
+      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+      <p className="text-orange-100">Log in to view another free pick</p>
+      <p className="text-sm text-orange-200 mt-2">Premium picks available for authenticated users</p>
+    </div>
+  );
+}
 
-// ULTRA SAFE DATE HELPER FUNCTION - REMOVED TIMEZONE
-const safeFormatDate = (dateString: string | null | undefined): string => {
-  try {
-    if (!dateString) {
-      return "TBD";
-    }
-    
-    const date = new Date(dateString);
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      console.warn(`Invalid date received: ${dateString}`);
-      return "TBD";
-    }
-    
-    // ULTRA SAFE formatting - NO TIMEZONE OPTION
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    
-    return `${displayHours}:${displayMinutes} ${ampm}`;
-  } catch (error) {
-    console.warn(`Error formatting date "${dateString}":`, error);
-    return "TBD";
-  }
-};
+return (
+  <div className="relative rounded-lg p-6 border-2 border-orange-500/50 shadow-lg shadow-orange-500/20 bg-orange-950/40">
+    <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold text-xs">
+      {pick.grade}
+    </div>
+    <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
+    <p className="text-sm text-orange-200 mb-3">Exclusive pick for authenticated users</p>
+    <div className="text-2xl font-extrabold text-yellow-300">
+      {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
+    </div>
+    <div className="text-sm text-gray-300 mt-2">
+      {pick.awayTeam} @ {pick.homeTeam} | {formatGameTime(pick.startTime)}
+    </div>
+    <div className="grid grid-cols-2 gap-2 mt-5">
+      <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
+        Pick
+      </button>
+      <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow-lg">
+        Fade
+      </button>
+    </div>
+  </div>
+);
+
 
 // SAFE DATE COMPARISON FUNCTION
 const isGameUpcoming = (dateString: string | null | undefined): boolean => {
