@@ -73,7 +73,7 @@ interface ProcessedGame {
   }>;
 }
 
-// Simple inline DailyPick component
+// --- DailyPick (cleaned up) ---
 function DailyPick() {
   const [pick, setPick] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -93,44 +93,41 @@ function DailyPick() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
-        <p className="text-gray-300">Loading...</p>
+      <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md">
+        <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
+        <p className="text-blue-100">Loading...</p>
       </div>
     );
   }
 
   if (!pick || !pick.pickTeam) {
     return (
-      <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
-        <p className="text-gray-300">No Pick Available Today</p>
-        <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+      <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md">
+        <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
+        <p className="text-blue-100">No Pick Available Today</p>
+        <p className="text-sm text-blue-200 mt-2">Check back when games are available</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border border-blue-500/30 rounded-lg p-6 relative">
+    <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md relative">
       <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold">
         {pick.grade}
       </div>
-      <h3 className="text-xl font-bold mb-2 text-blue-400">Pick of the Day</h3>
-      <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
-      <div className="text-lg font-semibold text-white">
+      <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
+      <p className="text-sm text-blue-200 mb-3">AI-backed Data Analysis</p>
+      <div className="text-2xl font-extrabold text-yellow-300">
         {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
-      <div className="text-sm text-gray-300 mt-2">
+      <div className="text-sm text-gray-100 mt-2">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Confidence: {pick.confidence?.toFixed(1)}%
-      </div>
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
+      <div className="grid grid-cols-2 gap-2 mt-5">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
           Pick
         </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
           Fade
         </button>
       </div>
@@ -138,7 +135,8 @@ function DailyPick() {
   );
 }
 
-// Simple inline LoggedInLockPick component
+
+// --- LoggedInLockPick (cleaned up) ---
 function LoggedInLockPick() {
   const [pick, setPick] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -158,44 +156,41 @@ function LoggedInLockPick() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-gray-300">Loading...</p>
+      <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md">
+        <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
+        <p className="text-orange-100">Loading...</p>
       </div>
     );
   }
 
   if (!pick || !pick.pickTeam) {
     return (
-      <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-gray-300">Log in to view another free pick</p>
-        <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
+      <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md">
+        <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
+        <p className="text-orange-100">Log in to view another free pick</p>
+        <p className="text-sm text-orange-200 mt-2">Premium picks available for authenticated users</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border border-orange-500/30 rounded-lg p-6 relative">
+    <div className="bg-gradient-to-r from-orange-900 to-orange-700 border border-orange-500/40 rounded-lg p-6 shadow-md relative">
       <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-bold">
         {pick.grade}
       </div>
-      <h3 className="text-xl font-bold mb-2 text-orange-400">Logged in Lock Pick</h3>
-      <p className="text-sm text-gray-400 mb-3">Exclusive pick for authenticated users</p>
-      <div className="text-lg font-semibold text-white">
+      <h3 className="text-xl font-bold mb-2 text-white">Logged in Lock Pick</h3>
+      <p className="text-sm text-orange-200 mb-3">Exclusive pick for authenticated users</p>
+      <div className="text-2xl font-extrabold text-yellow-300">
         {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
-      <div className="text-sm text-gray-300 mt-2">
+      <div className="text-sm text-gray-100 mt-2">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      <div className="text-xs text-gray-400 mt-1">
-        Confidence: {pick.confidence?.toFixed(1)}%
-      </div>
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm">
+      <div className="grid grid-cols-2 gap-2 mt-5">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
           Pick
         </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm">
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
           Fade
         </button>
       </div>
