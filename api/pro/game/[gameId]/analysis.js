@@ -151,12 +151,18 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('❌ Error generating pro pick:', error.message);
     
-    // Return fallback pick if Digital Ocean is down
-    return res.status(200).json(generateFallbackPick(game || { 
-      id: gameId,
-      home_team: 'Home Team',
-      away_team: 'Away Team'
-    }));
+    // Return fallback pick if ML Server is down
+    // Check if game exists before using it
+    if (game) {
+      return res.status(200).json(generateFallbackPick(game));
+    } else {
+      // If no game data, return basic fallback
+      return res.status(200).json(generateFallbackPick({
+        id: gameId,
+        home_team: 'Home Team',
+        away_team: 'Away Team'
+      }));
+    }
   }
 }
 
