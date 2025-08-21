@@ -81,42 +81,46 @@ function DailyPick() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call with mock data
-    setTimeout(() => {
-      setPick({
-        pickTeam: "Colorado Rockies",
-        odds: +205,
-        awayTeam: "Diamondbacks",
-        homeTeam: "Rockies",
-        confidence: 88.3,
-        grade: "A",
-        startTime: "2025-08-21T19:35:00Z",
-        venue: "George M. Steinbrenner Field",
-        timezone: "EDT"
+    fetch('/api/daily-pick')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching daily pick:', err);
+        setLoading(false);
       });
-      setLoading(false);
-    }, 1000);
   }, []);
 
-  const formatGameTime = (dateString, venue, timezone) => {
+  const formatGameTime = (dateString, venue) => {
     if (!dateString) return "TBD";
     
     const date = new Date(dateString);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[date.getMonth()];
-    const day = date.getDate();
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
     
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+    // Convert to Eastern Time
+    const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const hours = easternTime.getHours();
+    const minutes = easternTime.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
     
-    const time = `${displayHours}:${displayMinutes} ${ampm}`;
-    const tz = timezone || 'EDT';
+    const time = `${displayHours}:${displayMinutes} ${ampm} ET`;
     const location = venue || 'TBD';
     
-    return `${month} ${day} at ${time} ${tz} • ${location}`;
+    if (isToday) {
+      // Today - just show time and venue
+      return `${time} • ${location}`;
+    } else {
+      // Future date - show date, time, and venue
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      return `${month} ${day} at ${time} • ${location}`;
+    }
   };
 
   if (loading) {
@@ -162,7 +166,7 @@ function DailyPick() {
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {formatGameTime(pick.startTime, pick.venue, pick.timezone)}
+        {formatGameTime(pick.startTime || pick.commence_time, pick.venue)}
       </div>
       
       {/* Action Buttons */}
@@ -182,50 +186,48 @@ function DailyPick() {
 function LoggedInLockPick() {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Simulate API call with mock data
-    setTimeout(() => {
-      // Simulate checking auth status
-      setIsAuthenticated(false); // Change to true to see the pick
-      
-      if (isAuthenticated) {
-        setPick({
-          pickTeam: "Dodgers",
-          odds: +125,
-          awayTeam: "Giants",
-          homeTeam: "Dodgers",
-          confidence: 75.2,
-          grade: "B+",
-          startTime: "2025-08-21T22:10:00Z",
-          venue: "Dodger Stadium",
-          timezone: "PDT"
-        });
-      }
-      setLoading(false);
-    }, 1200);
-  }, [isAuthenticated]);
+    fetch('/api/daily-pick/lock')
+      .then(res => res.json())
+      .then(data => {
+        setPick(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching lock pick:', err);
+        setLoading(false);
+      });
+  }, []);
 
-  const formatGameTime = (dateString, venue, timezone) => {
+  const formatGameTime = (dateString, venue) => {
     if (!dateString) return "TBD";
     
     const date = new Date(dateString);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[date.getMonth()];
-    const day = date.getDate();
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
     
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+    // Convert to Eastern Time
+    const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const hours = easternTime.getHours();
+    const minutes = easternTime.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
     
-    const time = `${displayHours}:${displayMinutes} ${ampm}`;
-    const tz = timezone || 'EDT';
+    const time = `${displayHours}:${displayMinutes} ${ampm} ET`;
     const location = venue || 'TBD';
     
-    return `${month} ${day} at ${time} ${tz} • ${location}`;
+    if (isToday) {
+      // Today - just show time and venue
+      return `${time} • ${location}`;
+    } else {
+      // Future date - show date, time, and venue
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      return `${month} ${day} at ${time} • ${location}`;
+    }
   };
 
   if (loading) {
@@ -275,7 +277,7 @@ function LoggedInLockPick() {
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {formatGameTime(pick.startTime, pick.venue, pick.timezone)}
+        {formatGameTime(pick.startTime || pick.commence_time, pick.venue)}
       </div>
       
       {/* Action Buttons */}
