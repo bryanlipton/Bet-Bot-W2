@@ -41,99 +41,66 @@ export default async function handler(req, res) {
       return res.status(200).json(generateFallbackPick(game));
     }
     
-    console.log(`🚀 Calling ML Server API at: ${mlServerUrl}/predict`);
-    console.log('📦 Sending data:', JSON.stringify({
-      homeTeam: game.home_team,
-      awayTeam: game.away_team,
-      gameId: gameId
-    }));
+    console.log(`🚀 Calling ML Server API at: ${mlServerUrl}/api/ml-prediction`);
     
-    // Simple test with minimal data
-    const testEndpoints = [
-      { path: '/predict', method: 'POST' },
-      { path: '/api/predict', method: 'POST' },
-      { path: '/prediction', method: 'POST' },
-      { path: '/api/prediction', method: 'POST' },
-      { path: '/', method: 'POST' },
-      { path: '/analyze', method: 'POST' },
-      { path: '/api/analyze', method: 'POST' }
-    ];
-    
-    let mlPrediction = null;
-    
-    for (const endpoint of testEndpoints) {
-      try {
-        console.log(`🔄 Trying ${endpoint.method} ${mlServerUrl}${endpoint.path}`);
-        
-        // Try with minimal data first
-        const simpleRequest = {
-          homeTeam: game.home_team,
-          awayTeam: game.away_team
-        };
-        
-        const response = await fetch(`${mlServerUrl}${endpoint.path}`, {
-          method: endpoint.method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(simpleRequest)
-        });
-        
-        console.log(`📊 Response: ${response.status} ${response.statusText}`);
-        
-        if (response.ok) {
-          const text = await response.text();
-          console.log(`✅ Success! Response preview: ${text.substring(0, 100)}`);
-          try {
-            mlPrediction = JSON.parse(text);
-            console.log('✅ Valid JSON received');
-            break;
-          } catch (e) {
-            console.log('⚠️ Response is not JSON:', text.substring(0, 200));
-          }
+    // Call the CORRECT ML endpoint
+    const mlRequest = {
+      gameData: {
+        homeTeam: game.home_team,
+        awayTeam: game.away_team,
+        teams: `${game.away_team} @ ${game.home_team}`,
+        pitcher1: {},
+        pitcher2: {},
+        weather: {},
+        venue: 'Stadium',
+        odds: {
+          homeOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price,
+          awayOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price,
+          spread: game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads')?.outcomes?.[0]?.point,
+          total: game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals')?.outcomes?.[0]?.point
         }
-      } catch (error) {
-        console.log(`❌ Error for ${endpoint.path}: ${error.message}`);
       }
+    };
+    
+    const mlResponse = await fetch(`${mlServerUrl}/api/ml-prediction`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(mlRequest)
+    });
+    
+    if (!mlResponse.ok) {
+      console.error(`❌ ML Server API returned ${mlResponse.status}`);
+      throw new Error(`ML API returned ${mlResponse.status}`);
     }
     
-    if (!mlPrediction) {
-      console.error('❌ All ML endpoints failed, using fallback');
-      throw new Error('All ML endpoints failed');
-    }
+    const mlData = await mlResponse.json();
+    console.log('✅ Received ML response:', mlData);
     
-    console.log('✅ Received ML prediction from ML Server');
+    // Extract the prediction from the response
+    const mlPrediction = mlData.prediction || mlData;
     
     // Step 3: Process the ML prediction into Pro Pick format
-    const pickHomeTeam = mlPrediction.homeWinProbability > mlPrediction.awayWinProbability;
+    const homeWinProb = mlPrediction.homeTeamWinProbability || mlPrediction.homeWinProbability || 0.5;
+    const awayWinProb = 1 - homeWinProb;
+    const pickHomeTeam = homeWinProb > awayWinProb;
     const pickTeam = pickHomeTeam ? game.home_team : game.away_team;
-    const winProb = pickHomeTeam ? mlPrediction.homeWinProbability : mlPrediction.awayWinProbability;
+    const winProb = pickHomeTeam ? homeWinProb : awayWinProb;
     
     // Step 4: Calculate 6-factor analysis from ML data
     const analysis = {
-      offensiveProduction: mlPrediction.analysis?.offensiveProduction || 
-                           mlPrediction.factors?.offensiveProduction || 
-                           calculateOffensiveScore(mlPrediction.predictedTotal || 8.5, winProb),
+      offensiveProduction: mlPrediction.factors?.value ? mlPrediction.factors.value * 100 : calculateOffensiveScore(mlPrediction.predictedTotal || 8.5, winProb),
       
-      pitchingMatchup: mlPrediction.analysis?.pitchingMatchup || 
-                       mlPrediction.factors?.pitchingMatchup || 
-                       calculatePitchingScore(winProb, mlPrediction.confidence || 0.7),
+      pitchingMatchup: mlPrediction.factors?.pitchingMatchup ? mlPrediction.factors.pitchingMatchup * 100 : calculatePitchingScore(winProb, mlPrediction.confidence || 0.7),
       
-      situationalEdge: mlPrediction.analysis?.situationalEdge || 
-                       mlPrediction.factors?.situationalEdge || 
-                       calculateSituationalScore(pickHomeTeam, winProb),
+      situationalEdge: mlPrediction.factors?.homeFieldAdvantage ? mlPrediction.factors.homeFieldAdvantage * 100 : calculateSituationalScore(pickHomeTeam, winProb),
       
-      teamMomentum: mlPrediction.analysis?.teamMomentum || 
-                    mlPrediction.factors?.teamMomentum || 
-                    calculateMomentumScore(winProb, mlPrediction.confidence || 0.7),
+      teamMomentum: mlPrediction.factors?.recentForm ? mlPrediction.factors.recentForm * 100 : calculateMomentumScore(winProb, mlPrediction.confidence || 0.7),
       
-      marketInefficiency: mlPrediction.analysis?.marketInefficiency || 
-                          mlPrediction.factors?.marketInefficiency || 
-                          calculateMarketScore(game, pickTeam, winProb),
+      marketInefficiency: mlPrediction.factors?.value ? mlPrediction.factors.value * 100 : calculateMarketScore(game, pickTeam, winProb),
       
-      systemConfidence: mlPrediction.analysis?.systemConfidence || 
-                        mlPrediction.factors?.systemConfidence || 
-                        (mlPrediction.confidence || 0.7) * 100
+      systemConfidence: mlPrediction.confidence ? mlPrediction.confidence * 100 : 75
     };
     
     // Step 5: Calculate overall confidence and grade
