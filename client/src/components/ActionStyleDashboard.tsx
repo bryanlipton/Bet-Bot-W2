@@ -549,8 +549,9 @@ export function ActionStyleDashboard() {
           
           {/* WORKING PICK COMPONENTS */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <DailyPick />
-            <LoggedInLockPick />
+           <DailyPick pick={dailyPick} loading={oddsLoading} />
+<LoggedInLockPick pick={lockPick} loading={oddsLoading || authLoading} />
+
           </div>
         </div>
       )}
