@@ -48,20 +48,53 @@ export default async function handler(req, res) {
       gameId: gameId
     }));
     
-    // Try different endpoint paths
-    const endpoints = ['/predict', '/api/predict', '', '/api/ml/predict', '/api'];
-    let mlResponse = null;
+    // Simple test with minimal data
+    const testEndpoints = [
+      { path: '/predict', method: 'POST' },
+      { path: '/api/predict', method: 'POST' },
+      { path: '/prediction', method: 'POST' },
+      { path: '/api/prediction', method: 'POST' },
+      { path: '/', method: 'POST' },
+      { path: '/analyze', method: 'POST' },
+      { path: '/api/analyze', method: 'POST' }
+    ];
+    
     let mlPrediction = null;
     
-    // First try a simple GET to see if server is responding
-    try {
-      console.log(`🏓 Pinging ML server: ${mlServerUrl}`);
-      const pingResponse = await fetch(mlServerUrl);
-      console.log(`📡 Ping response status: ${pingResponse.status}`);
-      const pingText = await pingResponse.text();
-      console.log(`📡 Ping response (first 100 chars): ${pingText.substring(0, 100)}`);
-    } catch (error) {
-      console.error('❌ Cannot reach ML server:', error.message);
+    for (const endpoint of testEndpoints) {
+      try {
+        console.log(`🔄 Trying ${endpoint.method} ${mlServerUrl}${endpoint.path}`);
+        
+        // Try with minimal data first
+        const simpleRequest = {
+          homeTeam: game.home_team,
+          awayTeam: game.away_team
+        };
+        
+        const response = await fetch(`${mlServerUrl}${endpoint.path}`, {
+          method: endpoint.method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(simpleRequest)
+        });
+        
+        console.log(`📊 Response: ${response.status} ${response.statusText}`);
+        
+        if (response.ok) {
+          const text = await response.text();
+          console.log(`✅ Success! Response preview: ${text.substring(0, 100)}`);
+          try {
+            mlPrediction = JSON.parse(text);
+            console.log('✅ Valid JSON received');
+            break;
+          } catch (e) {
+            console.log('⚠️ Response is not JSON:', text.substring(0, 200));
+          }
+        }
+      } catch (error) {
+        console.log(`❌ Error for ${endpoint.path}: ${error.message}`);
+      }
     }
     
     for (const endpoint of endpoints) {
