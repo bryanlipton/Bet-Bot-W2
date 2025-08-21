@@ -93,47 +93,55 @@ function DailyPick() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-gray-600/40 rounded-lg p-6 shadow">
         <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-        <p className="text-blue-100">Loading...</p>
+        <p className="text-gray-300">Loading...</p>
       </div>
     );
   }
 
   if (!pick || !pick.pickTeam) {
     return (
-      <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-700 border border-gray-600/40 rounded-lg p-6 shadow">
         <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-        <p className="text-blue-100">No Pick Available Today</p>
-        <p className="text-sm text-blue-200 mt-2">Check back when games are available</p>
+        <p className="text-gray-300">No Pick Available Today</p>
+        <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-900 to-blue-700 border border-blue-500/40 rounded-lg p-6 shadow-md relative">
-      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold">
+    <div className="bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-600/40 rounded-lg p-6 shadow relative">
+      {/* Grade badge */}
+      <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full font-bold text-xs">
         {pick.grade}
       </div>
+
+      {/* Title */}
       <h3 className="text-xl font-bold mb-2 text-white">Pick of the Day</h3>
-      <p className="text-sm text-blue-200 mb-3">AI-backed Data Analysis</p>
-      <div className="text-2xl font-extrabold text-yellow-300">
+      <p className="text-sm text-gray-400 mb-3">AI-backed Data Analysis</p>
+
+      {/* Highlighted Pick */}
+      <div className="text-xl font-bold text-yellow-300">
         {pick.pickTeam} ML {pick.odds > 0 ? '+' : ''}{pick.odds}
       </div>
-      <div className="text-sm text-gray-100 mt-2">
+      <div className="text-sm text-gray-300 mt-2">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      <div className="grid grid-cols-2 gap-2 mt-5">
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
+
+      {/* Pick/Fade Buttons */}
+      <div className="grid grid-cols-2 gap-3 mt-6">
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
           Pick
         </button>
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded font-semibold text-sm shadow">
+        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold text-sm shadow-lg">
           Fade
         </button>
       </div>
     </div>
   );
 }
+
 
 
 // --- LoggedInLockPick (cleaned up) ---
