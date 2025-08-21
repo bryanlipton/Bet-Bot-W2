@@ -74,8 +74,7 @@ interface ProcessedGame {
 }
 
 import React, { useState, useEffect } from 'react';
-
-// Styled DailyPick component with glowing blue theme on grey background
+// Fixed DailyPick component that properly maps API fields
 function DailyPick() {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +83,7 @@ function DailyPick() {
     fetch('/api/daily-pick')
       .then(res => res.json())
       .then(data => {
+        console.log('Daily Pick API Response:', data);
         setPick(data);
         setLoading(false);
       })
@@ -93,33 +93,108 @@ function DailyPick() {
       });
   }, []);
 
-  const formatGameTime = (dateString, venue) => {
-    if (!dateString) return "TBD";
+  // Helper to get stadium name from home team
+  const getStadiumFromTeam = (homeTeam) => {
+    const stadiums = {
+      'Yankees': 'Yankee Stadium',
+      'Mets': 'Citi Field',
+      'Red Sox': 'Fenway Park',
+      'Phillies': 'Citizens Bank Park',
+      'Nationals': 'Nationals Park',
+      'Orioles': 'Oriole Park at Camden Yards',
+      'Pirates': 'PNC Park',
+      'Guardians': 'Progressive Field',
+      'Blue Jays': 'Rogers Centre',
+      'Braves': 'Truist Park',
+      'Marlins': 'loanDepot Park',
+      'Rays': 'George M. Steinbrenner Field',
+      'Cubs': 'Wrigley Field',
+      'White Sox': 'Rate Field',
+      'Tigers': 'Comerica Park',
+      'Royals': 'Kauffman Stadium',
+      'Cardinals': 'Busch Stadium',
+      'Twins': 'Target Field',
+      'Brewers': 'American Family Field',
+      'Astros': 'Daikin Park',
+      'Rangers': 'Globe Life Field',
+      'Athletics': 'Sutter Health Park',
+      'Rockies': 'Coors Field',
+      'Diamondbacks': 'Chase Field',
+      'Dodgers': 'Dodger Stadium',
+      'Angels': 'Angel Stadium',
+      'Padres': 'Petco Park',
+      'Giants': 'Oracle Park',
+      'Mariners': 'T-Mobile Park',
+      'Reds': 'Great American Ball Park'
+    };
     
-    const date = new Date(dateString);
-    const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
+    // Try exact match first
+    if (stadiums[homeTeam]) return stadiums[homeTeam];
     
-    // Convert to Eastern Time
-    const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    const hours = easternTime.getHours();
-    const minutes = easternTime.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
+    // Try partial match
+    for (const [team, stadium] of Object.entries(stadiums)) {
+      if (homeTeam?.includes(team) || team.includes(homeTeam)) {
+        return stadium;
+      }
+    }
     
-    const time = `${displayHours}:${displayMinutes} ${ampm} ET`;
-    const location = venue || 'TBD';
+    return null;
+  };
+
+  const formatGameTime = (pick) => {
+    // Try multiple possible field names for the game time
+    const dateString = pick?.startTime || 
+                      pick?.commence_time || 
+                      pick?.gameTime || 
+                      pick?.scheduledTime ||
+                      pick?.game_time;
     
-    if (isToday) {
-      // Today - just show time and venue
-      return `${time} • ${location}`;
-    } else {
-      // Future date - show date, time, and venue
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const month = months[date.getMonth()];
-      const day = date.getDate();
-      return `${month} ${day} at ${time} • ${location}`;
+    // Try to get venue from multiple possible fields
+    const venue = pick?.venue || 
+                  pick?.stadium || 
+                  pick?.ballpark ||
+                  getStadiumFromTeam(pick?.homeTeam);
+    
+    if (!dateString) {
+      // If no date but we have a venue, at least show that
+      if (venue) return `Time TBD • ${venue}`;
+      return "TBD";
+    }
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return venue ? `Time TBD • ${venue}` : "TBD";
+      }
+      
+      const today = new Date();
+      const isToday = date.toDateString() === today.toDateString();
+      
+      // Convert to Eastern Time
+      const options = {
+        timeZone: "America/New_York",
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      };
+      
+      const timeStr = date.toLocaleString("en-US", options);
+      const formattedTime = `${timeStr} ET`;
+      const location = venue || 'Stadium TBD';
+      
+      if (isToday) {
+        // Today - just show time and venue
+        return `${formattedTime} • ${location}`;
+      } else {
+        // Future date - show date, time, and venue
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        return `${month} ${day} at ${formattedTime} • ${location}`;
+      }
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return venue ? `Time TBD • ${venue}` : "TBD";
     }
   };
 
@@ -166,7 +241,7 @@ function DailyPick() {
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {formatGameTime(pick.startTime || pick.commence_time, pick.venue)}
+        {formatGameTime(pick)}
       </div>
       
       {/* Action Buttons */}
@@ -191,6 +266,7 @@ function LoggedInLockPick() {
     fetch('/api/daily-pick/lock')
       .then(res => res.json())
       .then(data => {
+        console.log('Lock Pick API Response:', data);
         setPick(data);
         setLoading(false);
       })
@@ -200,33 +276,108 @@ function LoggedInLockPick() {
       });
   }, []);
 
-  const formatGameTime = (dateString, venue) => {
-    if (!dateString) return "TBD";
+  // Helper to get stadium name from home team
+  const getStadiumFromTeam = (homeTeam) => {
+    const stadiums = {
+      'Yankees': 'Yankee Stadium',
+      'Mets': 'Citi Field',
+      'Red Sox': 'Fenway Park',
+      'Phillies': 'Citizens Bank Park',
+      'Nationals': 'Nationals Park',
+      'Orioles': 'Oriole Park at Camden Yards',
+      'Pirates': 'PNC Park',
+      'Guardians': 'Progressive Field',
+      'Blue Jays': 'Rogers Centre',
+      'Braves': 'Truist Park',
+      'Marlins': 'loanDepot Park',
+      'Rays': 'George M. Steinbrenner Field',
+      'Cubs': 'Wrigley Field',
+      'White Sox': 'Rate Field',
+      'Tigers': 'Comerica Park',
+      'Royals': 'Kauffman Stadium',
+      'Cardinals': 'Busch Stadium',
+      'Twins': 'Target Field',
+      'Brewers': 'American Family Field',
+      'Astros': 'Daikin Park',
+      'Rangers': 'Globe Life Field',
+      'Athletics': 'Sutter Health Park',
+      'Rockies': 'Coors Field',
+      'Diamondbacks': 'Chase Field',
+      'Dodgers': 'Dodger Stadium',
+      'Angels': 'Angel Stadium',
+      'Padres': 'Petco Park',
+      'Giants': 'Oracle Park',
+      'Mariners': 'T-Mobile Park',
+      'Reds': 'Great American Ball Park'
+    };
     
-    const date = new Date(dateString);
-    const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
+    // Try exact match first
+    if (stadiums[homeTeam]) return stadiums[homeTeam];
     
-    // Convert to Eastern Time
-    const easternTime = new Date(date.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    const hours = easternTime.getHours();
-    const minutes = easternTime.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
+    // Try partial match
+    for (const [team, stadium] of Object.entries(stadiums)) {
+      if (homeTeam?.includes(team) || team.includes(homeTeam)) {
+        return stadium;
+      }
+    }
     
-    const time = `${displayHours}:${displayMinutes} ${ampm} ET`;
-    const location = venue || 'TBD';
+    return null;
+  };
+
+  const formatGameTime = (pick) => {
+    // Try multiple possible field names for the game time
+    const dateString = pick?.startTime || 
+                      pick?.commence_time || 
+                      pick?.gameTime || 
+                      pick?.scheduledTime ||
+                      pick?.game_time;
     
-    if (isToday) {
-      // Today - just show time and venue
-      return `${time} • ${location}`;
-    } else {
-      // Future date - show date, time, and venue
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const month = months[date.getMonth()];
-      const day = date.getDate();
-      return `${month} ${day} at ${time} • ${location}`;
+    // Try to get venue from multiple possible fields
+    const venue = pick?.venue || 
+                  pick?.stadium || 
+                  pick?.ballpark ||
+                  getStadiumFromTeam(pick?.homeTeam);
+    
+    if (!dateString) {
+      // If no date but we have a venue, at least show that
+      if (venue) return `Time TBD • ${venue}`;
+      return "TBD";
+    }
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return venue ? `Time TBD • ${venue}` : "TBD";
+      }
+      
+      const today = new Date();
+      const isToday = date.toDateString() === today.toDateString();
+      
+      // Convert to Eastern Time
+      const options = {
+        timeZone: "America/New_York",
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      };
+      
+      const timeStr = date.toLocaleString("en-US", options);
+      const formattedTime = `${timeStr} ET`;
+      const location = venue || 'Stadium TBD';
+      
+      if (isToday) {
+        // Today - just show time and venue
+        return `${formattedTime} • ${location}`;
+      } else {
+        // Future date - show date, time, and venue
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        return `${month} ${day} at ${formattedTime} • ${location}`;
+      }
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return venue ? `Time TBD • ${venue}` : "TBD";
     }
   };
 
@@ -277,7 +428,7 @@ function LoggedInLockPick() {
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {formatGameTime(pick.startTime || pick.commence_time, pick.venue)}
+        {formatGameTime(pick)}
       </div>
       
       {/* Action Buttons */}
