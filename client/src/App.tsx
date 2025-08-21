@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";  // Add useEffect here
+import { useState, useEffect } from "react";  // Add useEffect
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ const TestDashboard = () => {
 };
 
 function Router() {
-  // Remove darkMode state and just force dark mode
+  // Force dark mode - no more toggle
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('darkMode', 'true');
@@ -43,10 +43,7 @@ function Router() {
   
   return (
     <div className="min-h-screen">
-      <ActionStyleHeader 
-        darkMode={true}  // Always pass true
-        onToggleDarkMode={() => {}}  // Empty function since we're not toggling
-      />
+      <ActionStyleHeader />  {/* No props needed anymore */}
       <Switch>
         <Route path="/" component={ActionStyleDashboard} />
         <Route path="/odds" component={ActionStyleDashboard} />
@@ -71,7 +68,7 @@ function Router() {
 }
 
 function App() {
-  // Force dark mode as soon as app loads
+  // Also force dark mode at app level for safety
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('darkMode', 'true');
