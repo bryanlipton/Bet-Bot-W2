@@ -9,6 +9,9 @@ export default async function handler(req, res) {
     return res.status(200).json(null);
   }
   
+  // Define game variable outside try block
+  let game = null;
+  
   try {
     // Step 1: Get the specific game data from Odds API
     const apiKey = process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY;
@@ -21,7 +24,7 @@ export default async function handler(req, res) {
     }
     
     const games = await gamesResponse.json();
-    const game = games.find(g => g.id === gameId);
+    game = games.find(g => g.id === gameId);
     
     if (!game) {
       return res.status(200).json(null);
