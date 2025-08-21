@@ -34,46 +34,74 @@ export default async function handler(req, res) {
     const mlServerUrl = process.env.ML_SERVER_URL || process.env.DIGITAL_OCEAN_URL;
     const mlApiKey = process.env.ML_API_KEY || process.env.DIGITAL_OCEAN_API_KEY;
     
+    console.log('🔍 ML_SERVER_URL:', mlServerUrl);
+    
     if (!mlServerUrl) {
       console.error('❌ ML_SERVER_URL not configured');
       return res.status(200).json(generateFallbackPick(game));
     }
     
-    console.log(`🚀 Calling ML Server API for ${game.away_team} @ ${game.home_team}`);
-    
-    // Prepare the request to Digital Ocean
-    const mlRequest = {
+    console.log(`🚀 Calling ML Server API at: ${mlServerUrl}/predict`);
+    console.log('📦 Sending data:', JSON.stringify({
       homeTeam: game.home_team,
       awayTeam: game.away_team,
-      gameDate: game.commence_time,
-      gameId: gameId,
-      odds: {
-        homeOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price,
-        awayOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price,
-        spread: game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads')?.outcomes?.[0]?.point,
-        total: game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals')?.outcomes?.[0]?.point
-      },
-      bookmakers: game.bookmakers
-    };
+      gameId: gameId
+    }));
     
-    // Call ML Server
-    const mlResponse = await fetch(`${mlServerUrl}/api/ml/predict`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(mlApiKey && { 'Authorization': `Bearer ${mlApiKey}` })
-      },
-      body: JSON.stringify(mlRequest),
-      timeout: 10000 // 10 second timeout
-    });
+    // Try different endpoint paths
+    const endpoints = ['/predict', '/api/predict', '', '/api/ml/predict'];
+    let mlResponse = null;
+    let mlPrediction = null;
     
-    if (!mlResponse.ok) {
-      console.error(`❌ ML Server API returned ${mlResponse.status}`);
-      throw new Error(`ML API returned ${mlResponse.status}`);
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying endpoint: ${mlServerUrl}${endpoint}`);
+        
+        // Prepare the request
+        const mlRequest = {
+          homeTeam: game.home_team,
+          awayTeam: game.away_team,
+          gameDate: game.commence_time,
+          gameId: gameId,
+          odds: {
+            homeOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price,
+            awayOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price,
+            spread: game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads')?.outcomes?.[0]?.point,
+            total: game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals')?.outcomes?.[0]?.point
+          },
+          bookmakers: game.bookmakers
+        };
+        
+        mlResponse = await fetch(`${mlServerUrl}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(mlApiKey && { 'Authorization': `Bearer ${mlApiKey}` })
+          },
+          body: JSON.stringify(mlRequest),
+          timeout: 10000
+        });
+        
+        console.log(`📊 Response status for ${endpoint}: ${mlResponse.status}`);
+        
+        if (mlResponse.ok) {
+          mlPrediction = await mlResponse.json();
+          console.log('✅ Successfully received ML prediction from endpoint:', endpoint);
+          console.log('📈 ML Prediction sample:', {
+            homeWinProb: mlPrediction.homeWinProbability,
+            awayWinProb: mlPrediction.awayWinProbability
+          });
+          break; // Success, exit loop
+        }
+      } catch (error) {
+        console.log(`❌ Failed for endpoint ${endpoint}:`, error.message);
+      }
     }
     
-    const mlPrediction = await mlResponse.json();
-    console.log('✅ Received ML prediction from ML Server');
+    if (!mlPrediction) {
+      console.error('❌ All ML endpoints failed, using fallback');
+      throw new Error('All ML endpoints failed');
+    }
     
     // Step 3: Process the ML prediction into Pro Pick format
     const pickHomeTeam = mlPrediction.homeWinProbability > mlPrediction.awayWinProbability;
