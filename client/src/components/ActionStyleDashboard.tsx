@@ -90,21 +90,33 @@ function DailyPick() {
         homeTeam: "Rockies",
         confidence: 88.3,
         grade: "A",
-        startTime: "2025-08-21T19:10:00Z"
+        startTime: "2025-08-21T19:35:00Z",
+        venue: "George M. Steinbrenner Field",
+        timezone: "EDT"
       });
       setLoading(false);
     }, 1000);
   }, []);
 
-  const formatTime = (dateString) => {
+  const formatGameTime = (dateString, venue, timezone) => {
     if (!dateString) return "TBD";
+    
     const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${ampm}`;
+    
+    const time = `${displayHours}:${displayMinutes} ${ampm}`;
+    const tz = timezone || 'EDT';
+    const location = venue || 'TBD';
+    
+    return `${month} ${day} at ${time} ${tz} • ${location}`;
   };
 
   if (loading) {
@@ -149,10 +161,8 @@ function DailyPick() {
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      
-      {/* Confidence */}
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Confidence: {pick.confidence?.toFixed(1)}%
+        {formatGameTime(pick.startTime, pick.venue, pick.timezone)}
       </div>
       
       {/* Action Buttons */}
@@ -188,22 +198,34 @@ function LoggedInLockPick() {
           homeTeam: "Dodgers",
           confidence: 75.2,
           grade: "B+",
-          startTime: "2025-08-21T22:10:00Z"
+          startTime: "2025-08-21T22:10:00Z",
+          venue: "Dodger Stadium",
+          timezone: "PDT"
         });
       }
       setLoading(false);
     }, 1200);
   }, [isAuthenticated]);
 
-  const formatTime = (dateString) => {
+  const formatGameTime = (dateString, venue, timezone) => {
     if (!dateString) return "TBD";
+    
     const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${ampm}`;
+    
+    const time = `${displayHours}:${displayMinutes} ${ampm}`;
+    const tz = timezone || 'EDT';
+    const location = venue || 'TBD';
+    
+    return `${month} ${day} at ${time} ${tz} • ${location}`;
   };
 
   if (loading) {
@@ -252,10 +274,8 @@ function LoggedInLockPick() {
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
-      
-      {/* Confidence */}
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Confidence: {pick.confidence?.toFixed(1)}%
+        {formatGameTime(pick.startTime, pick.venue, pick.timezone)}
       </div>
       
       {/* Action Buttons */}
@@ -321,6 +341,7 @@ export default function PickCardsDemo() {
     </div>
   );
 }
+
 
 import { ProGameCard } from "./ProGameCard";
 import { useAuth } from "@/hooks/useAuth";
