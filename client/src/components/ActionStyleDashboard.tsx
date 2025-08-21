@@ -75,7 +75,7 @@ interface ProcessedGame {
 
 import React, { useState, useEffect } from 'react';
 // Fixed DailyPick component that properly maps API fields
-function DailyPick() {
+function DailyPick({ liveGameData }) {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -128,10 +128,8 @@ function DailyPick() {
       'Reds': 'Great American Ball Park'
     };
     
-    // Try exact match first
     if (stadiums[homeTeam]) return stadiums[homeTeam];
     
-    // Try partial match
     for (const [team, stadium] of Object.entries(stadiums)) {
       if (homeTeam?.includes(team) || team.includes(homeTeam)) {
         return stadium;
@@ -142,21 +140,18 @@ function DailyPick() {
   };
 
   const formatGameTime = (pick) => {
-    // Try multiple possible field names for the game time
     const dateString = pick?.startTime || 
                       pick?.commence_time || 
                       pick?.gameTime || 
                       pick?.scheduledTime ||
                       pick?.game_time;
     
-    // Try to get venue from multiple possible fields
     const venue = pick?.venue || 
                   pick?.stadium || 
                   pick?.ballpark ||
                   getStadiumFromTeam(pick?.homeTeam);
     
     if (!dateString) {
-      // If no date but we have a venue, at least show that
       if (venue) return `Time TBD • ${venue}`;
       return "TBD";
     }
@@ -170,7 +165,6 @@ function DailyPick() {
       const today = new Date();
       const isToday = date.toDateString() === today.toDateString();
       
-      // Convert to Eastern Time
       const options = {
         timeZone: "America/New_York",
         hour: 'numeric',
@@ -183,10 +177,8 @@ function DailyPick() {
       const location = venue || 'Stadium TBD';
       
       if (isToday) {
-        // Today - just show time and venue
         return `${formattedTime} • ${location}`;
       } else {
-        // Future date - show date, time, and venue
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const month = months[date.getMonth()];
         const day = date.getDate();
@@ -196,6 +188,20 @@ function DailyPick() {
       console.error('Error formatting time:', error);
       return venue ? `Time TBD • ${venue}` : "TBD";
     }
+  };
+
+  // LIVE ODDS FUNCTION - PROPERLY PLACED
+  const getLiveOdds = () => {
+    if (!pick) return null;
+    if (!liveGameData) return pick.odds;
+    
+    if (pick.pickTeam === liveGameData.homeTeam) {
+      return liveGameData.homeOdds || pick.odds;
+    } else if (pick.pickTeam === liveGameData.awayTeam) {
+      return liveGameData.awayOdds || pick.odds;
+    }
+    
+    return pick.odds;
   };
 
   if (loading) {
@@ -222,21 +228,24 @@ function DailyPick() {
 
   return (
     <div className="relative bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 rounded-xl p-6 shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:border-blue-500/70 transition-all duration-300">
-      {/* Grade Badge */}
       <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
         {pick.grade}
       </div>
       
-      {/* Title and Subtitle */}
       <h3 className="text-xl font-bold mb-1 text-blue-600 dark:text-blue-400">Pick of the Day</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">AI-backed Data Analysis</p>
       
-      {/* Main Pick Line */}
       <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-        {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">{pick.odds > 0 ? '+' : ''}{pick.odds}</span>
+        {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
+          {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
+        </span>
+        {liveGameData && getLiveOdds() !== pick.odds && (
+          <span className="text-xs text-gray-500 ml-2">
+            (opened {pick.odds > 0 ? '+' : ''}{pick.odds})
+          </span>
+        )}
       </div>
       
-      {/* Game Info */}
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
@@ -244,7 +253,6 @@ function DailyPick() {
         {formatGameTime(pick)}
       </div>
       
-      {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
         <button className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200">
           Pick
@@ -256,9 +264,7 @@ function DailyPick() {
     </div>
   );
 }
-
-// Styled LoggedInLockPick component with glowing orange theme on grey background
-function LoggedInLockPick() {
+function LoggedInLockPick({ liveGameData }) {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -276,7 +282,6 @@ function LoggedInLockPick() {
       });
   }, []);
 
-  // Helper to get stadium name from home team
   const getStadiumFromTeam = (homeTeam) => {
     const stadiums = {
       'Yankees': 'Yankee Stadium',
@@ -311,10 +316,8 @@ function LoggedInLockPick() {
       'Reds': 'Great American Ball Park'
     };
     
-    // Try exact match first
     if (stadiums[homeTeam]) return stadiums[homeTeam];
     
-    // Try partial match
     for (const [team, stadium] of Object.entries(stadiums)) {
       if (homeTeam?.includes(team) || team.includes(homeTeam)) {
         return stadium;
@@ -325,21 +328,18 @@ function LoggedInLockPick() {
   };
 
   const formatGameTime = (pick) => {
-    // Try multiple possible field names for the game time
     const dateString = pick?.startTime || 
                       pick?.commence_time || 
                       pick?.gameTime || 
                       pick?.scheduledTime ||
                       pick?.game_time;
     
-    // Try to get venue from multiple possible fields
     const venue = pick?.venue || 
                   pick?.stadium || 
                   pick?.ballpark ||
                   getStadiumFromTeam(pick?.homeTeam);
     
     if (!dateString) {
-      // If no date but we have a venue, at least show that
       if (venue) return `Time TBD • ${venue}`;
       return "TBD";
     }
@@ -353,7 +353,6 @@ function LoggedInLockPick() {
       const today = new Date();
       const isToday = date.toDateString() === today.toDateString();
       
-      // Convert to Eastern Time
       const options = {
         timeZone: "America/New_York",
         hour: 'numeric',
@@ -366,10 +365,8 @@ function LoggedInLockPick() {
       const location = venue || 'Stadium TBD';
       
       if (isToday) {
-        // Today - just show time and venue
         return `${formattedTime} • ${location}`;
       } else {
-        // Future date - show date, time, and venue
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const month = months[date.getMonth()];
         const day = date.getDate();
@@ -379,6 +376,20 @@ function LoggedInLockPick() {
       console.error('Error formatting time:', error);
       return venue ? `Time TBD • ${venue}` : "TBD";
     }
+  };
+
+  // LIVE ODDS FUNCTION - PROPERLY PLACED
+  const getLiveOdds = () => {
+    if (!pick) return null;
+    if (!liveGameData) return pick.odds;
+    
+    if (pick.pickTeam === liveGameData.homeTeam) {
+      return liveGameData.homeOdds || pick.odds;
+    } else if (pick.pickTeam === liveGameData.awayTeam) {
+      return liveGameData.awayOdds || pick.odds;
+    }
+    
+    return pick.odds;
   };
 
   if (loading) {
@@ -409,21 +420,24 @@ function LoggedInLockPick() {
 
   return (
     <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 rounded-xl p-6 shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70 transition-all duration-300">
-      {/* Grade Badge */}
       <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
         {pick.grade}
       </div>
       
-      {/* Title and Subtitle */}
       <h3 className="text-xl font-bold mb-1 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Exclusive pick for authenticated users</p>
       
-      {/* Main Pick Line */}
       <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-        {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">{pick.odds > 0 ? '+' : ''}{pick.odds}</span>
+        {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
+          {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
+        </span>
+        {liveGameData && getLiveOdds() !== pick.odds && (
+          <span className="text-xs text-gray-500 ml-2">
+            (opened {pick.odds > 0 ? '+' : ''}{pick.odds})
+          </span>
+        )}
       </div>
       
-      {/* Game Info */}
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
         {pick.awayTeam} @ {pick.homeTeam}
       </div>
@@ -431,7 +445,6 @@ function LoggedInLockPick() {
         {formatGameTime(pick)}
       </div>
       
-      {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-3">
         <button className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200">
           Pick
@@ -443,7 +456,6 @@ function LoggedInLockPick() {
     </div>
   );
 }
-
 // Demo container matching your app's grey background
 export default function PickCardsDemo() {
   return (
@@ -776,7 +788,28 @@ export function ActionStyleDashboard() {
   };
 
   const featuredGames = processLiveGames(liveOddsData || []);
+// ADD THESE HELPER FUNCTIONS
+const getDailyPickLiveGame = () => {
+  if (!dailyPick || !featuredGames.length) return null;
+  
+  const matchingGame = featuredGames.find(game => 
+    game.homeTeam === dailyPick.homeTeam && 
+    game.awayTeam === dailyPick.awayTeam
+  );
+  
+  return matchingGame;
+};
 
+const getLockPickLiveGame = () => {
+  if (!lockPick || !featuredGames.length) return null;
+  
+  const matchingGame = featuredGames.find(game => 
+    game.homeTeam === lockPick.homeTeam && 
+    game.awayTeam === lockPick.awayTeam
+  );
+  
+  return matchingGame;
+};
   // Mock prediction function (replace with actual API call)
   const getPrediction = (homeTeam: string, awayTeam: string) => {
     // Simplified team strengths for demo
@@ -834,10 +867,10 @@ export function ActionStyleDashboard() {
           </div>
           
           {/* WORKING PICK COMPONENTS */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <DailyPick />
-            <LoggedInLockPick />
-          </div>
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
+  <DailyPick liveGameData={getDailyPickLiveGame()} />
+  <LoggedInLockPick liveGameData={getLockPickLiveGame()} />
+</div>
         </div>
       )}
 
@@ -857,10 +890,10 @@ export function ActionStyleDashboard() {
           </div>
           
           {/* WORKING PICK COMPONENTS */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 md:gap-4 xl:gap-6">
-            <DailyPick />
-            <LoggedInLockPick />
-          </div>
+<div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
+  <DailyPick liveGameData={getDailyPickLiveGame()} />
+  <LoggedInLockPick liveGameData={getLockPickLiveGame()} />
+</div>
         </div>
       )}
 
