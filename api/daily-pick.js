@@ -77,7 +77,11 @@ export default async function handler(req, res) {
       try {
         const oddsResponse = await fetch(
           `https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?` +
-          `apiKey=${process.env.ODDS_API_KEY || process.env.THE_ODDS_API_KEY}&` +
+          `apiKey=${process.env.ODDS_API_KEY}&` +
+          `regions=us&markets=h2h,spreads,totals&oddsFormat=american`
+        );     const oddsResponse = await fetch(
+          `https://api.the-odds-api.com/v4/sports/baseball_mlb/odds?` +
+          `apiKey=${process.env.ODDS_API_KEY}` +
           `regions=us&markets=h2h,spreads,totals&oddsFormat=american`
         );
         
