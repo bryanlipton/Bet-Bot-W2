@@ -49,9 +49,20 @@ export default async function handler(req, res) {
     }));
     
     // Try different endpoint paths
-    const endpoints = ['/predict', '/api/predict', '', '/api/ml/predict'];
+    const endpoints = ['/predict', '/api/predict', '', '/api/ml/predict', '/api'];
     let mlResponse = null;
     let mlPrediction = null;
+    
+    // First try a simple GET to see if server is responding
+    try {
+      console.log(`🏓 Pinging ML server: ${mlServerUrl}`);
+      const pingResponse = await fetch(mlServerUrl);
+      console.log(`📡 Ping response status: ${pingResponse.status}`);
+      const pingText = await pingResponse.text();
+      console.log(`📡 Ping response (first 100 chars): ${pingText.substring(0, 100)}`);
+    } catch (error) {
+      console.error('❌ Cannot reach ML server:', error.message);
+    }
     
     for (const endpoint of endpoints) {
       try {
