@@ -10,17 +10,17 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 interface BookmakerOdds {
   key: string;
   title: string;
-  link?: string;  // Event-level deep link
+  link?: string;  // Event-level deep link from API
   sid?: string;   // Source ID
   markets: Array<{
     key: string;
-    link?: string;   // Market-level deep link
+    link?: string;   // Market-level deep link from API
     sid?: string;    // Market source ID
     outcomes: Array<{
       name: string;
       price: number;
       point?: number;
-      link?: string;   // Outcome-level deep link (bet slip)
+      link?: string;   // Outcome-level deep link (bet slip) from API
       sid?: string;    // Outcome source ID
     }>;
   }>;
@@ -45,7 +45,7 @@ interface OddsComparisonModalProps {
   };
 }
 
-// BOOKMAKER URLS - UPDATE THESE WITH YOUR AFFILIATE LINKS
+// BOOKMAKER BASE URLS - UPDATE THESE WITH YOUR AFFILIATE LINKS
 const BOOKMAKER_URLS: Record<string, string> = {
   // Primary US Sportsbooks
   'draftkings': 'https://sportsbook.draftkings.com',
@@ -96,10 +96,81 @@ const BOOKMAKER_DISPLAY_NAMES: Record<string, string> = {
   'barstool': 'Barstool',
 };
 
-// Helper function to get bookmaker URL
-function getBookmakerUrl(bookmakerKey: string): string {
-  const key = bookmakerKey.toLowerCase();
-  return BOOKMAKER_URLS[key] || `https://www.${key}.com`;
+// Simple deep link builder
+function buildBookmakerUrl(
+  bookmakerKey: string,
+  apiLinks?: { bookmakerLink?: string; marketLink?: string; outcomeLink?: string },
+  gameInfo?: { sport?: string; homeTeam?: string; awayTeam?: string }
+): { url: string; linkType: 'bet-slip' | 'market' | 'game' | 'homepage'; hasDeepLink: boolean } {
+  
+  const baseUrl = BOOKMAKER_URLS[bookmakerKey.toLowerCase()] || `https://www.${bookmakerKey}.com`;
+  
+  // 1. First priority: Use API-provided deep links if available
+  if (apiLinks?.outcomeLink) {
+    // Bet slip level - best deep link
+    return { 
+      url: apiLinks.outcomeLink, 
+      linkType: 'bet-slip',
+      hasDeepLink: true 
+    };
+  }
+  
+  if (apiLinks?.marketLink) {
+    // Market level - good deep link
+    return { 
+      url: apiLinks.marketLink, 
+      linkType: 'market',
+      hasDeepLink: true 
+    };
+  }
+  
+  if (apiLinks?.bookmakerLink) {
+    // Game level - basic deep link
+    return { 
+      url: apiLinks.bookmakerLink, 
+      linkType: 'game',
+      hasDeepLink: true 
+    };
+  }
+  
+  // 2. Fallback: Try manual deep link patterns for major bookmakers
+  if (gameInfo?.sport === 'baseball_mlb') {
+    const key = bookmakerKey.toLowerCase();
+    
+    // DraftKings MLB deep link pattern
+    if (key === 'draftkings') {
+      return {
+        url: `${baseUrl}/leagues/baseball/mlb`,
+        linkType: 'game',
+        hasDeepLink: true
+      };
+    }
+    
+    // FanDuel MLB deep link pattern
+    if (key === 'fanduel') {
+      return {
+        url: `${baseUrl}/navigation/mlb`,
+        linkType: 'game',
+        hasDeepLink: true
+      };
+    }
+    
+    // BetMGM MLB deep link pattern
+    if (key === 'betmgm') {
+      return {
+        url: `${baseUrl}/en/sports/baseball-23/betting/usa-9/mlb-75`,
+        linkType: 'game',
+        hasDeepLink: true
+      };
+    }
+  }
+  
+  // 3. Default: Just return the homepage
+  return { 
+    url: baseUrl, 
+    linkType: 'homepage',
+    hasDeepLink: false 
+  };
 }
 
 // Helper function to get display name
@@ -161,17 +232,25 @@ export function OddsComparisonModal({
 
     if (!outcome) return null;
 
-    // Get the bookmaker URL
-    const bookmakerUrl = getBookmakerUrl(bookmaker.key);
+    // Build URL with deep linking support
+    const urlResult = buildBookmakerUrl(
+      bookmaker.key,
+      {
+        bookmakerLink: bookmaker.link,
+        marketLink: market.link,
+        outcomeLink: outcome.link
+      },
+      gameInfo
+    );
 
     return {
       bookmaker: bookmaker.key,
       displayName: getBookmakerDisplayName(bookmaker.key),
       odds: outcome.price,
       line: outcome.point,
-      url: bookmakerUrl,
-      hasDeepLink: false,
-      linkType: 'homepage',
+      url: urlResult.url,
+      hasDeepLink: urlResult.hasDeepLink,
+      linkType: urlResult.linkType,
       lastUpdate: bookmaker.last_update
     };
   }).filter(Boolean);
@@ -194,6 +273,8 @@ export function OddsComparisonModal({
     console.log('=== Bet Now Clicked ===');
     console.log('Bookmaker:', bookmakerData.displayName);
     console.log('URL:', bookmakerData.url);
+    console.log('Has Deep Link:', bookmakerData.hasDeepLink);
+    console.log('Link Type:', bookmakerData.linkType);
 
     // Create bet confirmation data
     const betConfirmationData = {
@@ -375,6 +456,16 @@ export function OddsComparisonModal({
                               <h4 className="font-medium text-gray-900 dark:text-white">
                                 {odds!.displayName}
                               </h4>
+                              {odds!.hasDeepLink && (
+                                <Zap 
+                                  className={`w-3 h-3 ${
+                                    odds!.linkType === 'bet-slip' ? 'text-green-600' :
+                                    odds!.linkType === 'market' ? 'text-blue-500' :
+                                    odds!.linkType === 'game' ? 'text-amber-500' :
+                                    'text-gray-400'
+                                  }`}
+                                />
+                              )}
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               Updated: {(() => {
@@ -420,11 +511,26 @@ export function OddsComparisonModal({
               )}
             </div>
 
-            {/* Footer */}
+            {/* Footer with deep link indicators */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 Click "Bet Now" to open the sportsbook and place your bet.
               </p>
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-green-600" />
+                  <span>Bet slip</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-blue-500" />
+                  <span>Market</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  <span>Game</span>
+                </div>
+                <span>| Gray = Homepage</span>
+              </div>
             </div>
           </div>
         </DialogContent>
