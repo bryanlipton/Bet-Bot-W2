@@ -1,624 +1,423 @@
-import { useState } from 'react';
+// Fixed OddsComparisonModal.tsx with 3-Second Delayed Bet Tracking
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle, AlertCircle } from "lucide-react";
-import { Link, useLocation } from 'wouter';
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ExternalLink, TrendingUp, AlertCircle, Zap, CheckCircle, DollarSign } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "wouter";
 
-interface BookmakerOdds {
+interface Bookmaker {
   key: string;
   title: string;
-  link?: string;  // Event-level deep link from API
-  sid?: string;   // Source ID
+  last_update: string;
   markets: Array<{
     key: string;
-    link?: string;   // Market-level deep link from API
-    sid?: string;    // Market source ID
+    last_update: string;
     outcomes: Array<{
       name: string;
       price: number;
       point?: number;
-      link?: string;   // Outcome-level deep link (bet slip) from API
-      sid?: string;    // Outcome source ID
+      link?: string;
     }>;
+    link?: string;
   }>;
-  last_update: string;
+  link?: string;
 }
 
 interface OddsComparisonModalProps {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
-  gameInfo: {
+  game: {
+    id: string;
     homeTeam: string;
     awayTeam: string;
-    gameId?: string | number;
-    sport?: string;
     gameTime?: string;
+    sport?: string;
   };
-  bookmakers: BookmakerOdds[];
   selectedBet: {
-    market: 'moneyline' | 'spread' | 'total';
-    selection: string;
-    line?: number;
+    type: 'moneyline' | 'spread' | 'totals';
+    team?: string;
+    line?: string;
+    overUnder?: 'over' | 'under';
   };
+  odds: Bookmaker[];
 }
 
-// BOOKMAKER BASE URLS - UPDATE THESE WITH YOUR AFFILIATE LINKS
+// Bookmaker URLs - UPDATE THESE WITH YOUR AFFILIATE LINKS
 const BOOKMAKER_URLS: Record<string, string> = {
-  // Primary US Sportsbooks
   'draftkings': 'https://sportsbook.draftkings.com',
   'fanduel': 'https://sportsbook.fanduel.com',
   'betmgm': 'https://sports.betmgm.com',
-  'caesars': 'https://sportsbook.caesars.com',
-  'pointsbetus': 'https://sportsbook.pointsbet.com',
-  
-  // Offshore Sportsbooks
-  'lowvig': 'https://www.lowvig.ag',
+  'pointsbetus': 'https://pointsbet.com',
   'betonlineag': 'https://www.betonline.ag',
-  'betus': 'https://www.betus.com.pa',
-  'mybookieag': 'https://www.mybookie.ag',
   'bovada': 'https://www.bovada.lv',
-  
-  // Additional US Books
   'williamhill_us': 'https://www.williamhill.com',
-  'wynnbet': 'https://www.wynnbet.com',
-  'betrivers': 'https://www.betrivers.com',
-  'superbook': 'https://www.superbook.com',
+  'mybookieag': 'https://www.mybookie.ag',
   'unibet_us': 'https://www.unibet.com',
-  'betfred': 'https://www.betfred.com',
-  'sugarhouse': 'https://www.playsugarhouse.com',
+  'betrivers': 'https://www.betrivers.com',
+  'betus': 'https://www.betus.com.pa',
+  'superbook': 'https://www.superbook.com',
   'foxbet': 'https://www.foxbet.com',
   'barstool': 'https://www.barstoolsportsbook.com',
+  'twinspires': 'https://www.twinspires.com',
+  'wynnbet': 'https://www.wynnbet.com',
+  'betfred': 'https://www.betfred.com',
+  'sugarhouse': 'https://www.sugarhouse.com',
+  'caesars': 'https://www.caesars.com/sportsbook',
+  'betparx': 'https://www.betparx.com',
+  'bet365': 'https://www.bet365.com',
+  'lowvig': 'https://www.lowvig.ag',
+  'betway': 'https://sports.betway.com',
+  'tipico': 'https://www.tipico.com',
+  'betanysports': 'https://www.betanysports.eu'
 };
 
-// Display names for bookmakers
-const BOOKMAKER_DISPLAY_NAMES: Record<string, string> = {
-  'lowvig': 'LowVig',
-  'betonlineag': 'BetOnline',
-  'betus': 'BetUS',
-  'mybookieag': 'MyBookie',
-  'bovada': 'Bovada',
-  'draftkings': 'DraftKings',
-  'fanduel': 'FanDuel',
-  'betmgm': 'BetMGM',
-  'caesars': 'Caesars',
-  'pointsbetus': 'PointsBet',
-  'williamhill_us': 'William Hill',
-  'wynnbet': 'WynnBet',
-  'betrivers': 'BetRivers',
-  'superbook': 'SuperBook',
-  'unibet_us': 'Unibet',
-  'betfred': 'Betfred',
-  'sugarhouse': 'SugarHouse',
-  'foxbet': 'FOX Bet',
-  'barstool': 'Barstool',
-};
-
-// Simple deep link builder
-function buildBookmakerUrl(
-  bookmakerKey: string,
-  apiLinks?: { bookmakerLink?: string; marketLink?: string; outcomeLink?: string },
-  gameInfo?: { sport?: string; homeTeam?: string; awayTeam?: string }
-): { url: string; linkType: 'bet-slip' | 'market' | 'game' | 'homepage'; hasDeepLink: boolean } {
-  
-  const baseUrl = BOOKMAKER_URLS[bookmakerKey.toLowerCase()] || `https://www.${bookmakerKey}.com`;
-  
-  // 1. First priority: Use API-provided deep links if available
-  if (apiLinks?.outcomeLink) {
-    // Bet slip level - best deep link
-    return { 
-      url: apiLinks.outcomeLink, 
-      linkType: 'bet-slip',
-      hasDeepLink: true 
-    };
-  }
-  
-  if (apiLinks?.marketLink) {
-    // Market level - good deep link
-    return { 
-      url: apiLinks.marketLink, 
-      linkType: 'market',
-      hasDeepLink: true 
-    };
-  }
-  
-  if (apiLinks?.bookmakerLink) {
-    // Game level - basic deep link
-    return { 
-      url: apiLinks.bookmakerLink, 
-      linkType: 'game',
-      hasDeepLink: true 
-    };
-  }
-  
-  // 2. Fallback: Try manual deep link patterns for major bookmakers
-  if (gameInfo?.sport === 'baseball_mlb') {
-    const key = bookmakerKey.toLowerCase();
-    
-    // DraftKings MLB deep link pattern
-    if (key === 'draftkings') {
-      return {
-        url: `${baseUrl}/leagues/baseball/mlb`,
-        linkType: 'game',
-        hasDeepLink: true
-      };
-    }
-    
-    // FanDuel MLB deep link pattern
-    if (key === 'fanduel') {
-      return {
-        url: `${baseUrl}/navigation/mlb`,
-        linkType: 'game',
-        hasDeepLink: true
-      };
-    }
-    
-    // BetMGM MLB deep link pattern
-    if (key === 'betmgm') {
-      return {
-        url: `${baseUrl}/en/sports/baseball-23/betting/usa-9/mlb-75`,
-        linkType: 'game',
-        hasDeepLink: true
-      };
-    }
-  }
-  
-  // 3. Default: Just return the homepage
-  return { 
-    url: baseUrl, 
-    linkType: 'homepage',
-    hasDeepLink: false 
-  };
-}
-
-// Helper function to get display name
-function getBookmakerDisplayName(bookmakerKey: string): string {
-  const key = bookmakerKey.toLowerCase();
-  return BOOKMAKER_DISPLAY_NAMES[key] || bookmakerKey;
-}
-
-export function OddsComparisonModal({
-  open,
-  onClose,
-  gameInfo,
-  bookmakers,
-  selectedBet
+export default function OddsComparisonModal({ 
+  isOpen, 
+  onClose, 
+  game, 
+  selectedBet, 
+  odds 
 }: OddsComparisonModalProps) {
+  const { toast } = useToast();
+  const [, setLocation] = useRouter();
+  const [pendingBet, setPendingBet] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [confirmationData, setConfirmationData] = useState<{
-    bookmaker: string;
-    odds: number;
-    url: string;
-  } | null>(null);
-  const [units, setUnits] = useState<number>(1);
-  const [, navigate] = useLocation();
 
-  // Reset state when modal opens/closes
-  const handleClose = () => {
-    setShowConfirmation(false);
-    setConfirmationData(null);
-    setUnits(1);
-    onClose();
-  };
+  // Handle the 3-second delayed confirmation popup
+  useEffect(() => {
+    if (pendingBet) {
+      const timer = setTimeout(() => {
+        setShowConfirmation(true);
+      }, 3000); // 3 seconds delay
 
-  // Find odds for the selected bet across all bookmakers
-  const oddsData = bookmakers.map(bookmaker => {
-    const market = bookmaker.markets.find(m => {
-      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') return m.key === 'h2h';
-      if (selectedBet.market === 'spread') return m.key === 'spreads';
-      if (selectedBet.market === 'total') return m.key === 'totals';
-      return false;
-    });
+      return () => clearTimeout(timer);
+    }
+  }, [pendingBet]);
 
-    if (!market) return null;
-
-    let outcome = market.outcomes.find(o => {
-      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') {
-        return o.name === selectedBet.selection;
-      }
-      if (selectedBet.market === 'spread') {
-        return o.name === selectedBet.selection && 
-               selectedBet.line !== undefined && 
-               Math.abs((o.point || 0) - selectedBet.line) < 0.1;
-      }
-      if (selectedBet.market === 'total') {
-        return (selectedBet.selection === 'Over' && o.name === 'Over') ||
-               (selectedBet.selection === 'Under' && o.name === 'Under');
-      }
-      return false;
-    });
-
-    if (!outcome) return null;
-
-    // Build URL with deep linking support
-    const urlResult = buildBookmakerUrl(
-      bookmaker.key,
-      {
-        bookmakerLink: bookmaker.link,
-        marketLink: market.link,
-        outcomeLink: outcome.link
-      },
-      gameInfo
-    );
-
-    return {
-      bookmaker: bookmaker.key,
-      displayName: getBookmakerDisplayName(bookmaker.key),
-      odds: outcome.price,
-      line: outcome.point,
-      url: urlResult.url,
-      hasDeepLink: urlResult.hasDeepLink,
-      linkType: urlResult.linkType,
-      lastUpdate: bookmaker.last_update
-    };
-  }).filter(Boolean);
-
-  // Sort odds: for negative odds, show closest to 0 first (-170, -172, -175)
-  // For positive odds, show highest first (+150, +120, +100)
-  const sortedOdds = oddsData.sort((a, b) => {
-    if (a!.odds > 0 && b!.odds > 0) return b!.odds - a!.odds; // Higher positive is better
-    if (a!.odds < 0 && b!.odds < 0) return b!.odds - a!.odds; // Higher negative number appears first (-170 before -175)
-    if (a!.odds > 0 && b!.odds < 0) return -1; // Positive odds are better than negative
-    if (a!.odds < 0 && b!.odds > 0) return 1;
-    return 0;
-  });
-
-  const bestOdds = sortedOdds[0];
-
-  const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
-    if (!bookmakerData) return;
-
+  const handleBet = (bookmakerKey: string, bookmakerTitle: string, odds: number) => {
     console.log('=== Bet Now Clicked ===');
-    console.log('Bookmaker:', bookmakerData.displayName);
-    console.log('URL:', bookmakerData.url);
-    console.log('Has Deep Link:', bookmakerData.hasDeepLink);
-    console.log('Link Type:', bookmakerData.linkType);
-
-    // Create bet confirmation data
-    const betConfirmationData = {
-      gameId: gameInfo.gameId || `mlb_${Date.now()}`,
-      homeTeam: gameInfo.homeTeam,
-      awayTeam: gameInfo.awayTeam,
-      selection: selectedBet.selection,
-      market: selectedBet.market,
-      line: selectedBet.line?.toString(),
-      odds: bookmakerData.odds,
-      bookmaker: bookmakerData.bookmaker,
-      bookmakerDisplayName: bookmakerData.displayName,
-      gameDate: gameInfo.gameTime || new Date().toISOString()
-    };
+    console.log('Bookmaker:', bookmakerTitle);
+    console.log('Odds:', odds);
     
-    // Open bookmaker in new tab
-    const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
+    // Prepare bet confirmation data
+    const betConfirmationData = {
+      gameId: game.id,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      selection: selectedBet.type === 'moneyline' 
+        ? selectedBet.team 
+        : selectedBet.type === 'totals' 
+          ? `${selectedBet.overUnder} ${selectedBet.line}`
+          : `${selectedBet.team} ${selectedBet.line}`,
+      market: selectedBet.type,
+      line: selectedBet.line,
+      odds: odds,
+      bookmaker: bookmakerKey,
+      bookmakerDisplayName: bookmakerTitle,
+      gameDate: game.gameTime || new Date().toISOString()
+    };
+
+    // Store the pending bet
+    setPendingBet(betConfirmationData);
+
+    // Get the bookmaker URL
+    const baseUrl = BOOKMAKER_URLS[bookmakerKey] || BOOKMAKER_URLS[bookmakerKey.toLowerCase()] || '#';
+    
+    // Open bookmaker site in new tab
+    const newWindow = window.open(baseUrl, '_blank');
     
     if (!newWindow) {
-      console.error('Popup blocked! Please allow popups for this site.');
-      alert('Please allow popups in your browser to visit the sportsbook.');
-      return;
-    }
-    
-    // Navigate to bet confirmation page after delay
-    setTimeout(() => {
-      const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
-      navigate(`/bet-confirmation/${encodedData}`);
-      onClose(); // Close the modal
-    }, 3000); // 3 second delay
-  };
-
-  const handleSaveBet = async () => {
-    if (!confirmationData) return;
-
-    try {
-      console.log('=== SAVING PICK ===');
-      const pickData = {
-        gameId: gameInfo.gameId || `mlb_${Date.now()}`,
-        game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
-        homeTeam: gameInfo.homeTeam,
-        awayTeam: gameInfo.awayTeam,
-        selection: selectedBet.selection,
-        market: selectedBet.market === 'total' ? 
-          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
-          selectedBet.market,
-        line: selectedBet.line?.toString() || null,
-        odds: confirmationData.odds,
-        units: units,
-        bookmaker: 'confirmed',
-        bookmakerDisplayName: confirmationData.bookmaker,
-        gameDate: gameInfo.gameTime ? new Date(gameInfo.gameTime) : new Date()
-      };
-
-      console.log('Pick data to save:', pickData);
-      console.log('About to make API request to /api/user/picks...');
-      
-      const response = await apiRequest('POST', '/api/user/picks', pickData);
-      console.log('Raw API response received:', response);
-      
-      if (response.ok) {
-        console.log('✅ Pick saved successfully!');
-        // Invalidate cache to refresh My Picks page
-        queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
-        console.log('Cache invalidated.');
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Server returned error:', response.status, errorText);
-      }
-      
-      handleClose();
-    } catch (error) {
-      console.error('❌ Error saving pick:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : 'Unknown'
+      // If popup was blocked, show a message
+      toast({
+        title: "Popup Blocked",
+        description: "Please allow popups to visit the sportsbook",
+        variant: "destructive",
       });
-      // Still close the modal even if save fails
-      handleClose();
     }
   };
 
-  const handleSkip = () => {
-    handleClose();
+  const handleConfirmBet = () => {
+    if (pendingBet) {
+      // Encode the bet data and navigate to confirmation page
+      const encodedData = encodeURIComponent(JSON.stringify(pendingBet));
+      
+      // Close the modals
+      setShowConfirmation(false);
+      onClose();
+      
+      // Navigate to bet confirmation page
+      setLocation(`/bet-confirmation/${encodedData}`);
+    }
   };
 
-  const formatOdds = (odds: number) => {
-    return odds > 0 ? `+${odds}` : odds.toString();
+  const handleSkipBet = () => {
+    setShowConfirmation(false);
+    setPendingBet(null);
+    toast({
+      title: "Bet Skipped",
+      description: "No bet was recorded",
+    });
   };
 
   const getBetDescription = () => {
-    if (selectedBet.market === 'moneyline') {
-      return `${selectedBet.selection} to win`;
+    if (selectedBet.type === 'moneyline') {
+      return `${selectedBet.team} to win`;
     }
-    if (selectedBet.market === 'spread') {
-      const line = selectedBet.line || 0;
-      return `${selectedBet.selection} ${line > 0 ? '+' : ''}${line}`;
+    if (selectedBet.type === 'spread') {
+      return `${selectedBet.team} ${selectedBet.line}`;
     }
-    if (selectedBet.market === 'total') {
-      return `${selectedBet.selection} ${selectedBet.line || ''}`;
+    if (selectedBet.type === 'totals') {
+      return `${selectedBet.overUnder} ${selectedBet.line}`;
     }
-    return selectedBet.selection;
+    return '';
   };
+
+  const sortedBookmakers = [...odds].sort((a, b) => {
+    const getOdds = (bookmaker: Bookmaker) => {
+      const market = bookmaker.markets?.find(m => {
+        if (selectedBet.type === 'moneyline') return m.key === 'h2h';
+        if (selectedBet.type === 'spread') return m.key === 'spreads';
+        if (selectedBet.type === 'totals') return m.key === 'totals';
+        return false;
+      });
+
+      if (!market) return -999999;
+
+      const outcome = market.outcomes?.find(o => {
+        if (selectedBet.type === 'moneyline') {
+          return o.name === selectedBet.team;
+        }
+        if (selectedBet.type === 'spread') {
+          return o.name === selectedBet.team;
+        }
+        if (selectedBet.type === 'totals') {
+          const isOver = selectedBet.overUnder === 'over';
+          return o.name === (isOver ? 'Over' : 'Under');
+        }
+        return false;
+      });
+
+      return outcome?.price || -999999;
+    };
+
+    return getOdds(b) - getOdds(a);
+  });
 
   return (
     <>
-      <Dialog open={open && !showConfirmation} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Compare Odds & Make Pick
+      {/* Main Odds Comparison Modal */}
+      <Dialog open={isOpen && !showConfirmation} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col bg-gray-900 text-white border-gray-800">
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-blue-400" />
+              Compare Odds & Make Your Bet
             </DialogTitle>
-            <DialogDescription>
-              {gameInfo.awayTeam} @ {gameInfo.homeTeam} - {getBetDescription()}
+            <DialogDescription className="text-gray-400 mt-2">
+              {game.awayTeam} @ {game.homeTeam} - {getBetDescription()}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Selected Bet Summary */}
-            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
+          <div className="flex-1 overflow-hidden flex flex-col px-6 pb-6">
+            {/* Your Selection */}
+            <Card className="mb-4 bg-blue-900/20 border-blue-800 shrink-0">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-blue-900 dark:text-blue-100">
-                      Your Selection
-                    </h3>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <p className="text-sm text-blue-400 mb-1">Your Selection</p>
+                    <p className="text-lg font-semibold text-white">
                       {getBetDescription()}
                     </p>
                   </div>
-                  {bestOdds && (
-                    <div className="text-right">
-                      <Badge className="bg-blue-600 text-white">
-                        Best: {formatOdds(bestOdds.odds)}
-                      </Badge>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                        @ {bestOdds.displayName}
-                      </p>
-                    </div>
-                  )}
+                  <Badge className="bg-blue-600 text-white text-lg px-3 py-1">
+                    Best: {sortedBookmakers[0] && 
+                      (() => {
+                        const market = sortedBookmakers[0].markets?.find(m => {
+                          if (selectedBet.type === 'moneyline') return m.key === 'h2h';
+                          if (selectedBet.type === 'spread') return m.key === 'spreads';
+                          if (selectedBet.type === 'totals') return m.key === 'totals';
+                          return false;
+                        });
+                        const outcome = market?.outcomes?.find(o => {
+                          if (selectedBet.type === 'moneyline') return o.name === selectedBet.team;
+                          if (selectedBet.type === 'spread') return o.name === selectedBet.team;
+                          if (selectedBet.type === 'totals') {
+                            const isOver = selectedBet.overUnder === 'over';
+                            return o.name === (isOver ? 'Over' : 'Under');
+                          }
+                          return false;
+                        });
+                        const odds = outcome?.price || 0;
+                        return odds > 0 ? `+${odds}` : odds;
+                      })()
+                    }
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Odds Comparison */}
-            <div className="space-y-2">
-              <h3 className="font-medium text-gray-900 dark:text-white">
-                Available Odds ({sortedOdds.length} books)
-              </h3>
-              
-              {sortedOdds.length === 0 ? (
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 dark:text-gray-400">
-                      No odds available for this selection
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                sortedOdds.map((odds, index) => (
-                  <Card 
-                    key={odds!.bookmaker}
-                    className={`transition-all hover:shadow-md ${
-                      index === 0 ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {index === 0 && (
-                            <Crown className="w-4 h-4 text-green-600" />
-                          )}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-gray-900 dark:text-white">
-                                {odds!.displayName}
-                              </h4>
-                              {odds!.hasDeepLink && (
-                                <Zap 
-                                  className={`w-3 h-3 ${
-                                    odds!.linkType === 'bet-slip' ? 'text-green-600' :
-                                    odds!.linkType === 'market' ? 'text-blue-500' :
-                                    odds!.linkType === 'game' ? 'text-amber-500' :
-                                    'text-gray-400'
-                                  }`}
-                                />
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Updated: {(() => {
-                                try {
-                                  const date = new Date(odds!.lastUpdate);
-                                  return !isNaN(date.getTime()) ? date.toLocaleTimeString() : 'Unknown';
-                                } catch {
-                                  return 'Unknown';
-                                }
-                              })()}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="font-bold text-lg text-gray-900 dark:text-white">
-                              {formatOdds(odds!.odds)}
-                            </div>
-                            {odds!.line && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Line: {odds!.line > 0 ? '+' : ''}{odds!.line}
-                              </div>
+            {/* Available Odds Header */}
+            <h3 className="text-lg font-semibold mb-3 text-gray-200 shrink-0">
+              Available Odds ({sortedBookmakers.length} books)
+            </h3>
+
+            {/* Scrollable Bookmakers List */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="space-y-2 pr-2">
+                {sortedBookmakers.map((bookmaker, index) => {
+                  const market = bookmaker.markets?.find(m => {
+                    if (selectedBet.type === 'moneyline') return m.key === 'h2h';
+                    if (selectedBet.type === 'spread') return m.key === 'spreads';
+                    if (selectedBet.type === 'totals') return m.key === 'totals';
+                    return false;
+                  });
+
+                  const outcome = market?.outcomes?.find(o => {
+                    if (selectedBet.type === 'moneyline') {
+                      return o.name === selectedBet.team;
+                    }
+                    if (selectedBet.type === 'spread') {
+                      return o.name === selectedBet.team;
+                    }
+                    if (selectedBet.type === 'totals') {
+                      const isOver = selectedBet.overUnder === 'over';
+                      return o.name === (isOver ? 'Over' : 'Under');
+                    }
+                    return false;
+                  });
+
+                  if (!market || !outcome) return null;
+
+                  const odds = outcome.price;
+                  const isPositive = odds > 0;
+                  const isBestOdds = index === 0;
+                  const line = outcome.point || selectedBet.line;
+
+                  return (
+                    <Card 
+                      key={bookmaker.key} 
+                      className={`
+                        bg-gray-800/50 border transition-all duration-200
+                        ${isBestOdds 
+                          ? 'border-green-600 bg-green-900/20 shadow-lg shadow-green-600/20' 
+                          : 'border-gray-700 hover:border-gray-600'
+                        }
+                      `}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {isBestOdds && (
+                              <Badge className="bg-green-600 text-white">
+                                <Zap className="w-3 h-3 mr-1" />
+                                BEST
+                              </Badge>
                             )}
+                            <div>
+                              <p className="font-semibold text-white">
+                                {bookmaker.title}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                Updated: {new Date(bookmaker.last_update).toLocaleTimeString()}
+                              </p>
+                            </div>
                           </div>
                           
-                          <Button
-                            onClick={() => handleMakePick(odds)}
-                            className={`${
-                              index === 0 
-                                ? 'bg-green-600 hover:bg-green-700' 
-                                : 'bg-blue-600 hover:bg-blue-700'
-                            } text-white`}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Bet Now
-                          </Button>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className={`text-2xl font-bold ${isPositive ? 'text-green-400' : 'text-white'}`}>
+                                {isPositive ? '+' : ''}{odds}
+                              </p>
+                              {line && selectedBet.type !== 'moneyline' && (
+                                <p className="text-sm text-gray-400">
+                                  Line: {line}
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              onClick={() => handleBet(bookmaker.key, bookmaker.title, odds)}
+                              className={`
+                                ${isBestOdds 
+                                  ? 'bg-green-600 hover:bg-green-700' 
+                                  : 'bg-blue-600 hover:bg-blue-700'
+                                }
+                              `}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Bet Now
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Footer with deep link indicators */}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                Click "Bet Now" to open the sportsbook and place your bet.
+            {/* Info Message */}
+            <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-700 rounded-lg shrink-0">
+              <p className="text-sm text-yellow-400 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                After placing your bet, confirm it here to track your picks
               </p>
-              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-green-600" />
-                  <span>Bet slip</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-blue-500" />
-                  <span>Market</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-amber-500" />
-                  <span>Game</span>
-                </div>
-                <span>| Gray = Homepage</span>
-              </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Modal */}
-      <Dialog open={showConfirmation} onOpenChange={() => setShowConfirmation(false)}>
-        <DialogContent className="max-w-md">
+      {/* Bet Confirmation Popup (appears after 3 seconds) */}
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <DialogContent className="max-w-md bg-gray-900 text-white border-gray-800">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Did you place this bet?
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-green-400" />
+              Did You Place This Bet?
             </DialogTitle>
-            <DialogDescription>
-              Save your bet to track its performance in My Picks
-            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Bet Details */}
-            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="font-medium text-green-900 dark:text-green-100">
-                    {gameInfo.awayTeam} @ {gameInfo.homeTeam}
-                  </div>
-                  <div className="text-sm text-green-700 dark:text-green-300">
-                    {getBetDescription()}
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-green-600 dark:text-green-400">Odds:</span> {confirmationData ? formatOdds(confirmationData.odds) : ''}
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-green-600 dark:text-green-400">Bookmaker:</span> {confirmationData?.bookmaker}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {pendingBet && (
+              <Card className="bg-blue-900/20 border-blue-800">
+                <CardContent className="p-4">
+                  <p className="text-sm text-blue-400 mb-1">Your Bet</p>
+                  <p className="font-semibold text-white">
+                    {pendingBet.selection}
+                  </p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {pendingBet.awayTeam} @ {pendingBet.homeTeam}
+                  </p>
+                  <Badge className="mt-2 bg-green-600 text-white">
+                    {pendingBet.odds > 0 ? '+' : ''}{pendingBet.odds} @ {pendingBet.bookmakerDisplayName}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Units Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Unit Size
-              </label>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnits(Math.max(0.5, units - 0.5))}
-                  disabled={units <= 0.5}
-                >
-                  -
-                </Button>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  value={units}
-                  onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                  className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnits(units + 0.5)}
-                >
-                  +
-                </Button>
-                <span className="text-sm text-gray-500">units</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSaveBet}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleConfirmBet}
+                className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                Save
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Yes, Track This Bet
               </Button>
-              <Button
-                onClick={handleSkip}
+              <Button 
+                onClick={handleSkipBet}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
               >
-                Skip
+                No, Skip
               </Button>
             </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              Confirming will add this bet to your picks for tracking
+            </p>
           </div>
         </DialogContent>
       </Dialog>
