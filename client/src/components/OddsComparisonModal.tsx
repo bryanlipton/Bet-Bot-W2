@@ -5,11 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle, AlertCircle } from "lucide-react";
 import { Link, useLocation } from 'wouter';
-import { getBookmakerUrl, getBookmakerDisplayName, affiliateLinks } from '@/config/affiliateLinks';
-import { buildDeepLink } from '@/utils/deepLinkBuilder';
-import { pickStorage } from '@/services/pickStorage';
-import { databasePickStorage } from '@/services/databasePickStorage';
-import { Pick } from '@/types/picks';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface BookmakerOdds {
@@ -50,6 +45,69 @@ interface OddsComparisonModalProps {
   };
 }
 
+// BOOKMAKER URLS - UPDATE THESE WITH YOUR AFFILIATE LINKS
+const BOOKMAKER_URLS: Record<string, string> = {
+  // Primary US Sportsbooks
+  'draftkings': 'https://sportsbook.draftkings.com',
+  'fanduel': 'https://sportsbook.fanduel.com',
+  'betmgm': 'https://sports.betmgm.com',
+  'caesars': 'https://sportsbook.caesars.com',
+  'pointsbetus': 'https://sportsbook.pointsbet.com',
+  
+  // Offshore Sportsbooks
+  'lowvig': 'https://www.lowvig.ag',
+  'betonlineag': 'https://www.betonline.ag',
+  'betus': 'https://www.betus.com.pa',
+  'mybookieag': 'https://www.mybookie.ag',
+  'bovada': 'https://www.bovada.lv',
+  
+  // Additional US Books
+  'williamhill_us': 'https://www.williamhill.com',
+  'wynnbet': 'https://www.wynnbet.com',
+  'betrivers': 'https://www.betrivers.com',
+  'superbook': 'https://www.superbook.com',
+  'unibet_us': 'https://www.unibet.com',
+  'betfred': 'https://www.betfred.com',
+  'sugarhouse': 'https://www.playsugarhouse.com',
+  'foxbet': 'https://www.foxbet.com',
+  'barstool': 'https://www.barstoolsportsbook.com',
+};
+
+// Display names for bookmakers
+const BOOKMAKER_DISPLAY_NAMES: Record<string, string> = {
+  'lowvig': 'LowVig',
+  'betonlineag': 'BetOnline',
+  'betus': 'BetUS',
+  'mybookieag': 'MyBookie',
+  'bovada': 'Bovada',
+  'draftkings': 'DraftKings',
+  'fanduel': 'FanDuel',
+  'betmgm': 'BetMGM',
+  'caesars': 'Caesars',
+  'pointsbetus': 'PointsBet',
+  'williamhill_us': 'William Hill',
+  'wynnbet': 'WynnBet',
+  'betrivers': 'BetRivers',
+  'superbook': 'SuperBook',
+  'unibet_us': 'Unibet',
+  'betfred': 'Betfred',
+  'sugarhouse': 'SugarHouse',
+  'foxbet': 'FOX Bet',
+  'barstool': 'Barstool',
+};
+
+// Helper function to get bookmaker URL
+function getBookmakerUrl(bookmakerKey: string): string {
+  const key = bookmakerKey.toLowerCase();
+  return BOOKMAKER_URLS[key] || `https://www.${key}.com`;
+}
+
+// Helper function to get display name
+function getBookmakerDisplayName(bookmakerKey: string): string {
+  const key = bookmakerKey.toLowerCase();
+  return BOOKMAKER_DISPLAY_NAMES[key] || bookmakerKey;
+}
+
 export function OddsComparisonModal({
   open,
   onClose,
@@ -74,8 +132,6 @@ export function OddsComparisonModal({
     onClose();
   };
 
-
-
   // Find odds for the selected bet across all bookmakers
   const oddsData = bookmakers.map(bookmaker => {
     const market = bookmaker.markets.find(m => {
@@ -88,10 +144,7 @@ export function OddsComparisonModal({
     if (!market) return null;
 
     let outcome = market.outcomes.find(o => {
-      if (selectedBet.market === 'moneyline') {
-        return o.name === selectedBet.selection;
-      }
-      if (selectedBet.market === 'h2h' || selectedBet.market === 'moneyline') {
+      if (selectedBet.market === 'moneyline' || selectedBet.market === 'h2h') {
         return o.name === selectedBet.selection;
       }
       if (selectedBet.market === 'spread') {
@@ -108,32 +161,17 @@ export function OddsComparisonModal({
 
     if (!outcome) return null;
 
-    // Build the best possible deep link using Odds API data + manual patterns
-    const deepLinkResult = buildDeepLink(
-      bookmaker.key,
-      gameInfo,
-      {
-        market: selectedBet.market === 'total' ? 
-          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
-          selectedBet.market,
-        selection: selectedBet.selection,
-        line: selectedBet.line || outcome.point
-      },
-      {
-        bookmakerLink: bookmaker.link,
-        marketLink: market.link,
-        outcomeLink: outcome.link
-      }
-    );
+    // Get the bookmaker URL
+    const bookmakerUrl = getBookmakerUrl(bookmaker.key);
 
     return {
       bookmaker: bookmaker.key,
       displayName: getBookmakerDisplayName(bookmaker.key),
       odds: outcome.price,
       line: outcome.point,
-      url: deepLinkResult.url,
-      hasDeepLink: deepLinkResult.hasDeepLink,
-      linkType: deepLinkResult.linkType, // 'bet-slip', 'market', 'game', or 'manual'
+      url: bookmakerUrl,
+      hasDeepLink: false,
+      linkType: 'homepage',
       lastUpdate: bookmaker.last_update
     };
   }).filter(Boolean);
@@ -153,6 +191,10 @@ export function OddsComparisonModal({
   const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     if (!bookmakerData) return;
 
+    console.log('=== Bet Now Clicked ===');
+    console.log('Bookmaker:', bookmakerData.displayName);
+    console.log('URL:', bookmakerData.url);
+
     // Create bet confirmation data
     const betConfirmationData = {
       gameId: gameInfo.gameId || `mlb_${Date.now()}`,
@@ -168,7 +210,13 @@ export function OddsComparisonModal({
     };
     
     // Open bookmaker in new tab
-    window.open(bookmakerData.url, '_blank');
+    const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
+    
+    if (!newWindow) {
+      console.error('Popup blocked! Please allow popups for this site.');
+      alert('Please allow popups in your browser to visit the sportsbook.');
+      return;
+    }
     
     // Navigate to bet confirmation page after delay
     setTimeout(() => {
@@ -234,8 +282,6 @@ export function OddsComparisonModal({
     handleClose();
   };
 
-
-
   const formatOdds = (odds: number) => {
     return odds > 0 ? `+${odds}` : odds.toString();
   };
@@ -257,245 +303,219 @@ export function OddsComparisonModal({
   return (
     <>
       <Dialog open={open && !showConfirmation} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Compare Odds & Make Pick
-          </DialogTitle>
-          <DialogDescription>
-            {gameInfo.awayTeam} @ {gameInfo.homeTeam} - {getBetDescription()}
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Compare Odds & Make Pick
+            </DialogTitle>
+            <DialogDescription>
+              {gameInfo.awayTeam} @ {gameInfo.homeTeam} - {getBetDescription()}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Selected Bet Summary */}
-          <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium text-blue-900 dark:text-blue-100">
-                    Your Selection
-                  </h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    {getBetDescription()}
-                  </p>
-                </div>
-                {bestOdds && (
-                  <div className="text-right">
-                    <Badge className="bg-blue-600 text-white">
-                      Best: {formatOdds(bestOdds.odds)}
-                    </Badge>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                      @ {bestOdds.displayName}
+          <div className="space-y-4">
+            {/* Selected Bet Summary */}
+            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-blue-900 dark:text-blue-100">
+                      Your Selection
+                    </h3>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      {getBetDescription()}
                     </p>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Odds Comparison */}
-          <div className="space-y-2">
-            <h3 className="font-medium text-gray-900 dark:text-white">
-              Available Odds ({sortedOdds.length} books)
-            </h3>
-            
-            {sortedOdds.length === 0 ? (
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 dark:text-gray-400">
-                    No odds available for this selection
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              sortedOdds.map((odds, index) => (
-                <Card 
-                  key={odds!.bookmaker}
-                  className={`transition-all hover:shadow-md ${
-                    index === 0 ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
-                  }`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {index === 0 && (
-                          <Crown className="w-4 h-4 text-green-600" />
-                        )}
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-gray-900 dark:text-white">
-                              {odds!.displayName}
-                            </h4>
-                            {odds!.hasDeepLink && (
-                              <Zap 
-                                className={`w-3 h-3 ${
-                                  odds!.linkType === 'bet-slip' ? 'text-green-600' :
-                                  odds!.linkType === 'market' ? 'text-blue-500' :
-                                  'text-amber-500'
-                                }`}
-                              />
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Updated: {(() => {
-                              try {
-                                const date = new Date(odds!.lastUpdate);
-                                return !isNaN(date.getTime()) ? date.toLocaleTimeString() : 'Unknown';
-                              } catch {
-                                return 'Unknown';
-                              }
-                            })()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <div className="font-bold text-lg text-gray-900 dark:text-white">
-                            {formatOdds(odds!.odds)}
-                          </div>
-                          {odds!.line && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              Line: {odds!.line > 0 ? '+' : ''}{odds!.line}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Button
-                          onClick={() => handleMakePick(odds)}
-                          className={`${
-                            index === 0 
-                              ? 'bg-green-600 hover:bg-green-700' 
-                              : 'bg-blue-600 hover:bg-blue-700'
-                          } text-white`}
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Bet Now
-                        </Button>
-                      </div>
+                  {bestOdds && (
+                    <div className="text-right">
+                      <Badge className="bg-blue-600 text-white">
+                        Best: {formatOdds(bestOdds.odds)}
+                      </Badge>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        @ {bestOdds.displayName}
+                      </p>
                     </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Odds Comparison */}
+            <div className="space-y-2">
+              <h3 className="font-medium text-gray-900 dark:text-white">
+                Available Odds ({sortedOdds.length} books)
+              </h3>
+              
+              {sortedOdds.length === 0 ? (
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      No odds available for this selection
+                    </p>
                   </CardContent>
                 </Card>
-              ))
-            )}
-          </div>
+              ) : (
+                sortedOdds.map((odds, index) => (
+                  <Card 
+                    key={odds!.bookmaker}
+                    className={`transition-all hover:shadow-md ${
+                      index === 0 ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {index === 0 && (
+                            <Crown className="w-4 h-4 text-green-600" />
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {odds!.displayName}
+                              </h4>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Updated: {(() => {
+                                try {
+                                  const date = new Date(odds!.lastUpdate);
+                                  return !isNaN(date.getTime()) ? date.toLocaleTimeString() : 'Unknown';
+                                } catch {
+                                  return 'Unknown';
+                                }
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="font-bold text-lg text-gray-900 dark:text-white">
+                              {formatOdds(odds!.odds)}
+                            </div>
+                            {odds!.line && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Line: {odds!.line > 0 ? '+' : ''}{odds!.line}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <Button
+                            onClick={() => handleMakePick(odds)}
+                            className={`${
+                              index === 0 
+                                ? 'bg-green-600 hover:bg-green-700' 
+                                : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white`}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Bet Now
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
 
-
-
-          {/* Footer */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Click "Bet Now" to open the sportsbook and place your bet.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-green-600" />
-                <span>Bet slip</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-blue-500" />
-                <span>Market</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-amber-500" />
-                <span>Game</span>
-              </div>
-              <span>| Others = Login page</span>
+            {/* Footer */}
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Click "Bet Now" to open the sportsbook and place your bet.
+              </p>
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
 
-    {/* Confirmation Modal */}
-    <Dialog open={showConfirmation} onOpenChange={() => setShowConfirmation(false)}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            Did you place this bet?
-          </DialogTitle>
-          <DialogDescription>
-            Save your bet to track its performance in My Picks
-          </DialogDescription>
-        </DialogHeader>
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmation} onOpenChange={() => setShowConfirmation(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              Did you place this bet?
+            </DialogTitle>
+            <DialogDescription>
+              Save your bet to track its performance in My Picks
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Bet Details */}
-          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="font-medium text-green-900 dark:text-green-100">
-                  {gameInfo.awayTeam} @ {gameInfo.homeTeam}
+          <div className="space-y-4">
+            {/* Bet Details */}
+            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <div className="font-medium text-green-900 dark:text-green-100">
+                    {gameInfo.awayTeam} @ {gameInfo.homeTeam}
+                  </div>
+                  <div className="text-sm text-green-700 dark:text-green-300">
+                    {getBetDescription()}
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-green-600 dark:text-green-400">Odds:</span> {confirmationData ? formatOdds(confirmationData.odds) : ''}
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-green-600 dark:text-green-400">Bookmaker:</span> {confirmationData?.bookmaker}
+                  </div>
                 </div>
-                <div className="text-sm text-green-700 dark:text-green-300">
-                  {getBetDescription()}
-                </div>
-                <div className="text-sm">
-                  <span className="text-green-600 dark:text-green-400">Odds:</span> {confirmationData ? formatOdds(confirmationData.odds) : ''}
-                </div>
-                <div className="text-sm">
-                  <span className="text-green-600 dark:text-green-400">Bookmaker:</span> {confirmationData?.bookmaker}
-                </div>
+              </CardContent>
+            </Card>
+
+            {/* Units Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Unit Size
+              </label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnits(Math.max(0.5, units - 0.5))}
+                  disabled={units <= 0.5}
+                >
+                  -
+                </Button>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  value={units}
+                  onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
+                  className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnits(units + 0.5)}
+                >
+                  +
+                </Button>
+                <span className="text-sm text-gray-500">units</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Units Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Unit Size
-            </label>
-            <div className="flex items-center gap-2">
+            {/* Action Buttons */}
+            <div className="flex gap-2">
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setUnits(Math.max(0.5, units - 0.5))}
-                disabled={units <= 0.5}
+                onClick={handleSaveBet}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
-                -
+                Save
               </Button>
-              <input
-                type="number"
-                step="0.5"
-                min="0.5"
-                value={units}
-                onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
               <Button
+                onClick={handleSkip}
                 variant="outline"
-                size="sm"
-                onClick={() => setUnits(units + 0.5)}
+                className="flex-1"
               >
-                +
+                Skip
               </Button>
-              <span className="text-sm text-gray-500">units</span>
             </div>
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              onClick={handleSaveBet}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-            >
-              Save
-            </Button>
-            <Button
-              onClick={handleSkip}
-              variant="outline"
-              className="flex-1"
-            >
-              Skip
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  </>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
