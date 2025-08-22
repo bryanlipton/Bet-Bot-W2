@@ -22,7 +22,7 @@ import {
   X
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "wouter";
+import { useLocation } from "wouter";  // Changed from useRouter to useLocation
 import { cn } from "@/lib/utils";
 
 // Import these if they exist in your project, otherwise comment out
@@ -240,7 +240,7 @@ export default function OddsComparisonModal({
   odds 
 }: OddsComparisonModalProps) {
   const { toast } = useToast();
-  const [, setLocation] = useRouter();
+  const [, setLocation] = useLocation(); // Changed to useLocation
   const [selectedTab, setSelectedTab] = useState<'best' | 'all'>('best');
   const [pendingBet, setPendingBet] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
