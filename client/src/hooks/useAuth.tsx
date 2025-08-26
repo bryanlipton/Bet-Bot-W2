@@ -1,77 +1,116 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, createContext, useContext } from 'react'
+import { supabase } from '@/lib/supabase'
+import type { User, Session } from '@supabase/supabase-js'
+import type { Profile } from '@/lib/supabase'
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  isAuthenticated: boolean;
-  subscription?: {
-    status: 'active' | 'inactive' | 'cancelled';
-    plan: 'free' | 'pro';
-  };
+interface AuthContextType {
+  user: User | null
+  profile: Profile | null
+  session: Session | null
+  loading: boolean
+  signInWithGoogle: () => Promise<void>
+  signOut: () => Promise<void>
+  isAuthenticated: boolean
 }
 
-export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  session: null,
+  loading: true,
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+  isAuthenticated: false
+})
 
-  // Query user data from API
-  const { data: userData, isLoading, error } = useQuery({
-    queryKey: ['/api/auth/user'],
-    queryFn: async () => {
-      const response = await fetch('/api/auth/user');
-      if (!response.ok) {
-        if (response.status === 401) {
-          return null; // User not authenticated
-        }
-        throw new Error('Failed to fetch user data');
-      }
-      return response.json();
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false, // Don't retry on auth failures
-  });
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Fetch user profile from database
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    
+    if (data) setProfile(data)
+    return data
+  }
 
   useEffect(() => {
-    if (userData) {
-      setUser(userData);
-      setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  }, [userData]);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      }
+      setLoading(false)
+    })
 
-  const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    
-    if (response.ok) {
-      const userData = await response.json();
-      setUser(userData);
-      setIsAuthenticated(true);
-      return userData;
-    } else {
-      throw new Error('Login failed');
-    }
-  };
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+      }
+    )
 
-  const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    setUser(null);
-    setIsAuthenticated(false);
-  };
+    return () => subscription.unsubscribe()
+  }, [])
 
-  return {
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      }
+    })
+    if (error) throw error
+  }
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+    setUser(null)
+    setProfile(null)
+    setSession(null)
+  }
+
+  const value = {
     user,
-    isAuthenticated,
-    isLoading,
-    login,
-    logout,
-    error
-  };
+    profile,
+    session,
+    loading,
+    signInWithGoogle,
+    signOut,
+    isAuthenticated: !!user
+  }
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider')
+  }
+  return context
 }
