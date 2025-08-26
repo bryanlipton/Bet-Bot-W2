@@ -68,19 +68,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
- const signInWithGoogle = async () => {
+const signInWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,  // <-- Redirect to home page
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        }
+      redirectTo: window.location.origin,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
       }
-    })
-    if (error) throw error
-  }
+    }
+  })
+  if (error) throw error
+}
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
