@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";  // Add useEffect
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";  // Add this import
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
@@ -73,13 +74,15 @@ function App() {
     document.documentElement.classList.add('dark');
     localStorage.setItem('darkMode', 'true');
   }, []);
-
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Router />
-        <Toaster />
-      </TooltipProvider>
+      <AuthProvider>  {/* Add AuthProvider wrapper here */}
+        <TooltipProvider>
+          <Router />
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
