@@ -39,8 +39,8 @@ export default function MyPicksPageFixed() {
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
   const [showUnitDialog, setShowUnitDialog] = useState(false);
-  const [betUnit, setBetUnit] = useState(50);
-  const [tempBetUnit, setTempBetUnit] = useState('50');
+  const [betUnit, setBetUnit] = useState(25);
+  const [tempBetUnit, setTempBetUnit] = useState('25');
   
   // Friend search states
   const [isFriendSearchOpen, setIsFriendSearchOpen] = useState(false);
