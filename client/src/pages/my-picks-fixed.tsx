@@ -34,7 +34,7 @@ import { queryClient } from '@/lib/queryClient';
 
 export default function MyPicksPageFixed() {
   // Remove dark mode state - handled globally
-  const { user, isAuthenticated, loading: authLoading, signInWithGoogle } = useAuth();
+  const { user, profile, isAuthenticated, loading: authLoading, signInWithGoogle } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
@@ -64,13 +64,26 @@ export default function MyPicksPageFixed() {
     enabled: isAuthenticated
   });
 
-  // Set bet unit from user preferences
-  useEffect(() => {
-    if (userPreferences && (userPreferences as any).betUnit) {
-      setBetUnit((userPreferences as any).betUnit);
-      setTempBetUnit((userPreferences as any).betUnit.toString());
+  // Load unit size on component mount
+useEffect(() => {
+  const loadUnitSize = async () => {
+    // First check localStorage
+    const savedSize = localStorage.getItem('betUnitSize');
+    if (savedSize) {
+      setBetUnit(Number(savedSize));
+      setTempBetUnit(savedSize);
     }
-  }, [userPreferences]);
+    
+    // If authenticated and profile loaded, use profile unit size
+    if (profile?.unit_size) {
+      setBetUnit(Number(profile.unit_size));
+      setTempBetUnit(profile.unit_size.toString());
+      localStorage.setItem('betUnitSize', profile.unit_size.toString());
+    }
+  };
+  
+  loadUnitSize();
+}, [profile]); // Re-run when profile loads
 
   // Authentication guard
 if (!isAuthenticated && !authLoading) {
@@ -222,7 +235,7 @@ if (!isAuthenticated && !authLoading) {
     setTempOdds('');
   };
 
-  const handleSaveBetUnit = async () => {
+const handleSaveBetUnit = async () => {
   const newBetUnit = parseFloat(tempBetUnit);
   if (isNaN(newBetUnit) || newBetUnit <= 0) {
     alert('Please enter a valid unit size (e.g., 50, 100)');
@@ -234,8 +247,9 @@ if (!isAuthenticated && !authLoading) {
     
     // Save to localStorage immediately
     localStorage.setItem('betUnitSize', newBetUnit.toString());
+    setBetUnit(newBetUnit);
     
-    // If user is authenticated, save to Supabase
+    // Save to database if authenticated
     if (user) {
       const { error } = await supabase
         .from('profiles')
@@ -243,22 +257,15 @@ if (!isAuthenticated && !authLoading) {
         .eq('id', user.id);
       
       if (error) {
-        console.error('Supabase error:', error);
-        // Still update local state since localStorage worked
+        console.error('Error saving to database:', error);
+      } else {
+        console.log('Unit size saved to database');
       }
     }
     
-    setBetUnit(newBetUnit);
     setShowUnitDialog(false);
-    
-    // Refresh preferences
-    await queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
   } catch (error) {
     console.error('Error updating bet unit:', error);
-    // Still save locally even if Supabase fails
-    localStorage.setItem('betUnitSize', newBetUnit.toString());
-    setBetUnit(newBetUnit);
-    setShowUnitDialog(false);
   }
 };
 
