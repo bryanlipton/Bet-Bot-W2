@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-// Remove this import - header comes from App.tsx
-// import ActionStyleHeader from '@/components/ActionStyleHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Target, 
   ExternalLink, 
@@ -22,16 +20,13 @@ import {
   Save,
   X,
   Plus,
-  Settings,
-  UserPlus,
-  User
+  Settings
 } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 
 export default function MyPicksPageFixed() {
-  // Remove dark mode state - handled globally
   const { user, profile, isAuthenticated, loading: authLoading, signInWithGoogle } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
@@ -40,11 +35,7 @@ export default function MyPicksPageFixed() {
   const [betUnit, setBetUnit] = useState(25);
   const [tempBetUnit, setTempBetUnit] = useState('25');
   
-
-  
   const { toast } = useToast();
-
-  // Remove dark mode useEffect - handled globally
 
   // Use database-only approach with TanStack Query
   const { data: userPicks = [], isLoading, refetch } = useQuery({
@@ -59,49 +50,49 @@ export default function MyPicksPageFixed() {
   });
 
   // Load unit size on component mount
-useEffect(() => {
-  const loadUnitSize = async () => {
-    // First check localStorage
-    const savedSize = localStorage.getItem('betUnitSize');
-    if (savedSize) {
-      setBetUnit(Number(savedSize));
-      setTempBetUnit(savedSize);
-    }
+  useEffect(() => {
+    const loadUnitSize = async () => {
+      // First check localStorage
+      const savedSize = localStorage.getItem('betUnitSize');
+      if (savedSize) {
+        setBetUnit(Number(savedSize));
+        setTempBetUnit(savedSize);
+      }
+      
+      // If authenticated and profile loaded, use profile unit size
+      if (profile?.unit_size) {
+        setBetUnit(Number(profile.unit_size));
+        setTempBetUnit(profile.unit_size.toString());
+        localStorage.setItem('betUnitSize', profile.unit_size.toString());
+      }
+    };
     
-    // If authenticated and profile loaded, use profile unit size
-    if (profile?.unit_size) {
-      setBetUnit(Number(profile.unit_size));
-      setTempBetUnit(profile.unit_size.toString());
-      localStorage.setItem('betUnitSize', profile.unit_size.toString());
-    }
-  };
-  
-  loadUnitSize();
-}, [profile]); // Re-run when profile loads
+    loadUnitSize();
+  }, [profile]); // Re-run when profile loads
 
   // Authentication guard
-if (!isAuthenticated && !authLoading) {
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-6">
-        <Card className="bg-white dark:bg-gray-800">
-          <CardContent className="p-6 text-center">
-            <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Log in to View Data
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Sign in to track your betting picks and performance
-            </p>
-            <Button onClick={signInWithGoogle}>
-              Log in with Google
-            </Button>
-          </CardContent>
-        </Card>
+  if (!isAuthenticated && !authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-4xl mx-auto p-6">
+          <Card className="bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Log in to View Data
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Sign in to track your betting picks and performance
+              </p>
+              <Button onClick={signInWithGoogle}>
+                Log in with Google
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   // Show loading state
   if (authLoading || isLoading) {
@@ -229,57 +220,48 @@ if (!isAuthenticated && !authLoading) {
     setTempOdds('');
   };
 
-const handleSaveBetUnit = async () => {
-  const newBetUnit = parseFloat(tempBetUnit);
-  if (isNaN(newBetUnit) || newBetUnit <= 0) {
-    alert('Please enter a valid unit size (e.g., 50, 100)');
-    return;
-  }
-
-  try {
-    console.log('Saving unit size:', newBetUnit);
-    
-    // Save to localStorage immediately
-    localStorage.setItem('betUnitSize', newBetUnit.toString());
-    setBetUnit(newBetUnit);
-    
-    // Save to database if authenticated
-    if (user) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ unit_size: newBetUnit })
-        .eq('id', user.id);
-      
-      if (error) {
-        console.error('Error saving to database:', error);
-      } else {
-        console.log('Unit size saved to database');
-      }
+  const handleSaveBetUnit = async () => {
+    const newBetUnit = parseFloat(tempBetUnit);
+    if (isNaN(newBetUnit) || newBetUnit <= 0) {
+      alert('Please enter a valid unit size (e.g., 50, 100)');
+      return;
     }
-    
-    setShowUnitDialog(false);
-  } catch (error) {
-    console.error('Error updating bet unit:', error);
-  }
-};
 
- 
-
-
+    try {
+      console.log('Saving unit size:', newBetUnit);
+      
+      // Save to localStorage immediately
+      localStorage.setItem('betUnitSize', newBetUnit.toString());
+      setBetUnit(newBetUnit);
+      
+      // Save to database if authenticated
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ unit_size: newBetUnit })
+          .eq('id', user.id);
+        
+        if (error) {
+          console.error('Error saving to database:', error);
+        } else {
+          console.log('Unit size saved to database');
+        }
+      }
+      
+      setShowUnitDialog(false);
+    } catch (error) {
+      console.error('Error updating bet unit:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Remove ActionStyleHeader - it's rendered globally in App.tsx */}
-      
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
-        {/* Page Header with Friend Search */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
-          </div>
-          
-         
+        {/* Page Header - Simplified without friend search */}
+        <div className="flex items-center gap-2 mb-6">
+          <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+        </div>
         
         {/* Stats Cards - 4 separate cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
