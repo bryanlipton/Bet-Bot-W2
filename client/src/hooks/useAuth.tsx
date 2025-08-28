@@ -88,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         console.log('Starting auth initialization...');
-        console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
         
         // Add timeout to session check
         const sessionPromise = supabase.auth.getSession();
@@ -165,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (mounted) {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false); // Ensure loading is false after sign in
+            setLoading(false);
             if (session?.user) {
               fetchProfile(session.user.id);
             }
@@ -204,10 +203,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       console.log('Initiating Google sign in...');
+      
+      // Always use production URL for OAuth redirect
+      const redirectUrl = 'https://bet-bot-w2.vercel.app';
+      
+      console.log('Using redirect URL:', redirectUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin, // Use current origin for flexibility
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -233,7 +238,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
     setProfile(null)
     setSession(null)
-    // Keep unit size in localStorage even after logout
   }
 
   const value = {
