@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [unitSize, setUnitSize] = useState(50)
+  const [unitSize, setUnitSize] = useState(25)
 
   // Fetch user profile from database
   const fetchProfile = async (userId: string) => {
@@ -67,56 +67,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
 useEffect(() => {
-    console.log('Auth init - checking session...');
-    
-    // Load unit size from localStorage initially
-    UnitSizeService.getUnitSize().then(size => {
-      console.log('Initial unit size:', size);
-      setUnitSize(size);
-    }).catch(err => {
+  const initAuth = async () => {
+    try {
+      console.log('Auth init - getting session...');
+      
+      // Get session first
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('Session result:', { hasSession: !!session, error });
+      
+      if (error) {
+        console.error('Session error:', error);
+        setLoading(false);
+        return;
+      }
+      
+      if (session) {
+        setSession(session);
+        setUser(session.user);
+        
+        // Fetch profile
+        try {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          console.log('Profile data:', profileData);
+          
+          if (profileData) {
+            setProfile(profileData);
+            if (profileData.unit_size) {
+              setUnitSize(Number(profileData.unit_size));
+            }
+          }
+        } catch (profileError) {
+          console.error('Profile fetch error:', profileError);
+        }
+      }
+      
+      console.log('Setting loading to false');
+      setLoading(false);
+      
+    } catch (error) {
+      console.error('Auth init error:', error);
+      setLoading(false);
+    }
+  };
+  
+  // Run auth initialization
+  initAuth();
+  
+  // Load unit size separately (non-blocking)
+  const loadUnitSize = async () => {
+    try {
+      const savedSize = localStorage.getItem('betUnitSize');
+      if (savedSize) {
+        setUnitSize(Number(savedSize));
+      }
+    } catch (err) {
       console.error('Error loading unit size:', err);
-      setUnitSize(50); // Fallback
-    });
-
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('Session check:', { session, error });
+    }
+  };
+  
+  loadUnitSize();
+  
+  // Listen for auth changes
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    async (_event, session) => {
+      console.log('Auth state changed:', _event);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).then(() => {
-          console.log('Profile fetched');
-          // Sync unit size after profile is loaded
-          UnitSizeService.syncToSupabase().catch(err => {
-            console.error('Error syncing to Supabase:', err);
-          });
-        });
+        await fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
       }
-      setLoading(false);
-    });
+    }
+  );
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-          // Sync unit size when user logs in
-          await UnitSizeService.syncToSupabase()
-          const size = await UnitSizeService.getUnitSize()
-          setUnitSize(size)
-        } else {
-          setProfile(null)
-          // Load from localStorage when logged out
-          const size = await UnitSizeService.getUnitSize()
-          setUnitSize(size)
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [])
+  return () => subscription.unsubscribe();
+}, []);
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
