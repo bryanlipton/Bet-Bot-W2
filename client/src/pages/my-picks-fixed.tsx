@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 // Remove this import - header comes from App.tsx
@@ -222,27 +223,44 @@ export default function MyPicksPageFixed() {
   };
 
   const handleSaveBetUnit = async () => {
-    const newBetUnit = parseFloat(tempBetUnit);
-    if (isNaN(newBetUnit) || newBetUnit <= 0) {
-      alert('Please enter a valid unit size (e.g., 50, 100)');
-      return;
-    }
+  const newBetUnit = parseFloat(tempBetUnit);
+  if (isNaN(newBetUnit) || newBetUnit <= 0) {
+    alert('Please enter a valid unit size (e.g., 50, 100)');
+    return;
+  }
 
-    try {
-      console.log('Saving unit size:', newBetUnit);
-      const response = await apiRequest('PUT', '/api/user/preferences', { betUnit: newBetUnit });
-      console.log('Unit size saved successfully:', response);
-      setBetUnit(newBetUnit);
-      setShowUnitDialog(false);
+  try {
+    console.log('Saving unit size:', newBetUnit);
+    
+    // Save to localStorage immediately
+    localStorage.setItem('betUnitSize', newBetUnit.toString());
+    
+    // If user is authenticated, save to Supabase
+    if (user) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ unit_size: newBetUnit })
+        .eq('id', user.id);
       
-      // Invalidate cache to ensure data persists across sessions
-      await queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
-    } catch (error) {
-      console.error('Error updating bet unit:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      alert('Failed to update unit size. Please try again. Error: ' + (error.response?.data?.message || error.message));
+      if (error) {
+        console.error('Supabase error:', error);
+        // Still update local state since localStorage worked
+      }
     }
-  };
+    
+    setBetUnit(newBetUnit);
+    setShowUnitDialog(false);
+    
+    // Refresh preferences
+    await queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+  } catch (error) {
+    console.error('Error updating bet unit:', error);
+    // Still save locally even if Supabase fails
+    localStorage.setItem('betUnitSize', newBetUnit.toString());
+    setBetUnit(newBetUnit);
+    setShowUnitDialog(false);
+  }
+};
 
   // Friend search functions
   const handleSearch = async (searchQuery: string) => {
