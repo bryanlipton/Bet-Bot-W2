@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export class UnitSizeService {
   private static LOCALSTORAGE_KEY = 'betUnitSize';
-  private static DEFAULT_UNIT_SIZE = 50;
+  private static DEFAULT_UNIT_SIZE = 25;
 
   /**
    * Get the current unit size for the user
