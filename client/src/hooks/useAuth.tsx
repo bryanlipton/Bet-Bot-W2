@@ -139,21 +139,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        console.log('Auth state changed:', _event);
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
+ const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  (_event, session) => {
+    console.log('Auth state changed:', _event, 'Session:', !!session);
+    
+    if (_event === 'SIGNED_IN') {
+      console.log('User signed in successfully');
+    } else if (_event === 'SIGNED_OUT') {
+      console.log('User signed out');
+    } else if (_event === 'TOKEN_REFRESHED') {
+      console.log('Token refreshed');
+    }
+    
+    if (!mounted) return;
+    
+    setSession(session);
+    setUser(session?.user ?? null);
+    
+    if (session?.user) {
+      fetchProfile(session.user.id);
+    } else {
+      setProfile(null);
+    }
+  }
+);
 
     // Timeout fallback - ensure loading is set to false
     const timeout = setTimeout(() => {
