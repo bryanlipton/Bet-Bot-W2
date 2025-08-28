@@ -63,25 +63,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile({ ...profile, unit_size: size })
       }
     }
-    return result
+    //return result
   }
 
-  useEffect(() => {
+useEffect(() => {
+    console.log('Auth init - checking session...');
+    
     // Load unit size from localStorage initially
-    UnitSizeService.getUnitSize().then(size => setUnitSize(size))
+    UnitSizeService.getUnitSize().then(size => {
+      console.log('Initial unit size:', size);
+      setUnitSize(size);
+    }).catch(err => {
+      console.error('Error loading unit size:', err);
+      setUnitSize(50); // Fallback
+    });
 
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Session check:', { session, error });
+      setSession(session);
+      setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id).then(() => {
+          console.log('Profile fetched');
           // Sync unit size after profile is loaded
-          UnitSizeService.syncToSupabase()
-        })
+          UnitSizeService.syncToSupabase().catch(err => {
+            console.error('Error syncing to Supabase:', err);
+          });
+        });
       }
-      setLoading(false)
-    })
+      setLoading(false);
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
