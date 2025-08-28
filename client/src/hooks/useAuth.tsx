@@ -2,7 +2,6 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase'
-import { UnitSizeService } from '@/services/unitSizeService'
 
 interface AuthContextType {
   user: User | null
@@ -53,101 +52,123 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data
   }
 
-  // Update unit size function
   const updateUnitSize = async (size: number) => {
-    const result = await UnitSizeService.updateUnitSize(size)
-    if (result.success) {
-      setUnitSize(size)
-      // Update profile state if user is logged in
-      if (profile) {
-        setProfile({ ...profile, unit_size: size })
+    setUnitSize(size);
+    localStorage.setItem('betUnitSize', size.toString());
+    
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ unit_size: size })
+          .eq('id', user.id);
+        
+        if (profile) {
+          setProfile({ ...profile, unit_size: size });
+        }
+      } catch (error) {
+        console.error('Error updating unit size:', error);
       }
     }
-    //return result
   }
 
-useEffect(() => {
-  const initAuth = async () => {
-    try {
-      console.log('Auth init - getting session...');
-      
-      // Get session first
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log('Session result:', { hasSession: !!session, error });
-      
-      if (error) {
-        console.error('Session error:', error);
-        setLoading(false);
-        return;
-      }
-      
-      if (session) {
-        setSession(session);
-        setUser(session.user);
+  useEffect(() => {
+    let mounted = true;
+    
+    const initAuth = async () => {
+      try {
+        console.log('Starting auth initialization...');
         
-        // Fetch profile
-        try {
-          const { data: profileData } = await supabase
+        // Get session without any blocking operations
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        console.log('Session check complete:', { 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          error 
+        });
+        
+        if (session?.user) {
+          setSession(session);
+          setUser(session.user);
+          
+          // Try to fetch profile but don't block on it
+          supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
-          
-          console.log('Profile data:', profileData);
-          
-          if (profileData) {
-            setProfile(profileData);
-            if (profileData.unit_size) {
-              setUnitSize(Number(profileData.unit_size));
-            }
-          }
-        } catch (profileError) {
-          console.error('Profile fetch error:', profileError);
+            .single()
+            .then(({ data }) => {
+              if (mounted && data) {
+                console.log('Profile loaded:', data.email);
+                setProfile(data);
+                if (data.unit_size) {
+                  setUnitSize(Number(data.unit_size));
+                }
+              }
+            })
+            .catch(err => console.error('Profile fetch error:', err));
+        } else {
+          setSession(null);
+          setUser(null);
+        }
+        
+        // Always set loading to false
+        if (mounted) {
+          console.log('Auth init complete, setting loading to false');
+          setLoading(false);
+        }
+        
+      } catch (error) {
+        console.error('Fatal auth error:', error);
+        if (mounted) {
+          setLoading(false);
         }
       }
-      
-      console.log('Setting loading to false');
-      setLoading(false);
-      
-    } catch (error) {
-      console.error('Auth init error:', error);
-      setLoading(false);
+    };
+    
+    // Start initialization
+    initAuth();
+    
+    // Load unit size from localStorage separately
+    const savedSize = localStorage.getItem('betUnitSize');
+    if (savedSize) {
+      setUnitSize(Number(savedSize));
     }
-  };
-  
-  // Run auth initialization
-  initAuth();
-  
-  // Load unit size separately (non-blocking)
-  const loadUnitSize = async () => {
-    try {
-      const savedSize = localStorage.getItem('betUnitSize');
-      if (savedSize) {
-        setUnitSize(Number(savedSize));
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        console.log('Auth state changed:', _event);
+        if (!mounted) return;
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
       }
-    } catch (err) {
-      console.error('Error loading unit size:', err);
-    }
-  };
-  
-  loadUnitSize();
-  
-  // Listen for auth changes
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (_event, session) => {
-      console.log('Auth state changed:', _event);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-    }
-  );
+    );
 
-  return () => subscription.unsubscribe();
-}, []);
+    // Timeout fallback - ensure loading is set to false
+    const timeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 3000); // 3 seconds
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
