@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase'
+import { UnitSizeService } from '@/services/unitSizeService'
 
 interface AuthContextType {
   user: User | null
@@ -11,6 +12,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   isAuthenticated: boolean
+  unitSize: number
+  updateUnitSize: (size: number) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,7 +23,9 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signInWithGoogle: async () => {},
   signOut: async () => {},
-  isAuthenticated: false
+  isAuthenticated: false,
+  unitSize: 50,
+  updateUnitSize: async () => {}
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [unitSize, setUnitSize] = useState(50)
 
   // Fetch user profile from database
   const fetchProfile = async (userId: string) => {
@@ -37,17 +43,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('id', userId)
       .single()
     
-    if (data) setProfile(data)
+    if (data) {
+      setProfile(data)
+      // Set unit size from profile
+      if (data.unit_size) {
+        setUnitSize(Number(data.unit_size))
+      }
+    }
     return data
   }
 
+  // Update unit size function
+  const updateUnitSize = async (size: number) => {
+    const result = await UnitSizeService.updateUnitSize(size)
+    if (result.success) {
+      setUnitSize(size)
+      // Update profile state if user is logged in
+      if (profile) {
+        setProfile({ ...profile, unit_size: size })
+      }
+    }
+    return result
+  }
+
   useEffect(() => {
+    // Load unit size from localStorage initially
+    UnitSizeService.getUnitSize().then(size => setUnitSize(size))
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile(session.user.id).then(() => {
+          // Sync unit size after profile is loaded
+          UnitSizeService.syncToSupabase()
+        })
       }
       setLoading(false)
     })
@@ -58,9 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
-          fetchProfile(session.user.id)
+          await fetchProfile(session.user.id)
+          // Sync unit size when user logs in
+          await UnitSizeService.syncToSupabase()
+          const size = await UnitSizeService.getUnitSize()
+          setUnitSize(size)
         } else {
           setProfile(null)
+          // Load from localStorage when logged out
+          const size = await UnitSizeService.getUnitSize()
+          setUnitSize(size)
         }
       }
     )
@@ -68,19 +106,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-const signInWithGoogle = async () => {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://bet-bot-w2.vercel.app',
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://bet-bot-w2.vercel.app',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
       }
-    }
-  })
-  if (error) throw error
-}
+    })
+    if (error) throw error
+  }
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
@@ -88,6 +126,7 @@ const signInWithGoogle = async () => {
     setUser(null)
     setProfile(null)
     setSession(null)
+    // Keep unit size in localStorage even after logout
   }
 
   const value = {
@@ -97,7 +136,9 @@ const signInWithGoogle = async () => {
     loading,
     signInWithGoogle,
     signOut,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    unitSize,
+    updateUnitSize
   }
 
   return (
