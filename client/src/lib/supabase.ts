@@ -43,3 +43,9 @@ export interface Pick {
   created_at: string
   updated_at: string
 }
+
+// At the bottom of the file, add:
+// Expose for debugging only
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase;
+}
