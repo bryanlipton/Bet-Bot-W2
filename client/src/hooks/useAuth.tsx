@@ -36,20 +36,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch user profile from database
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    
-    if (data) {
-      setProfile(data)
-      // Set unit size from profile
-      if (data.unit_size) {
-        setUnitSize(Number(data.unit_size))
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      
+      if (error) {
+        console.error('Profile fetch error:', error)
+        return null
       }
+      
+      if (data) {
+        setProfile(data)
+        // Set unit size from profile
+        if (data.unit_size) {
+          setUnitSize(Number(data.unit_size))
+        }
+      }
+      return data
+    } catch (err) {
+      console.error('Profile fetch exception:', err)
+      return null
     }
-    return data
   }
 
   const updateUnitSize = async (size: number) => {
@@ -78,39 +88,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         console.log('Starting auth initialization...');
+        console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
         
-        // Get session without any blocking operations
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Add timeout to session check
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 2500)
+        );
         
-        if (!mounted) return;
-        
-        console.log('Session check complete:', { 
-          hasSession: !!session, 
-          userId: session?.user?.id,
-          error 
-        });
-        
-        if (session?.user) {
-          setSession(session);
-          setUser(session.user);
+        try {
+          const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
           
-          // Try to fetch profile but don't block on it
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-            .then(({ data }) => {
-              if (mounted && data) {
-                console.log('Profile loaded:', data.email);
-                setProfile(data);
-                if (data.unit_size) {
-                  setUnitSize(Number(data.unit_size));
-                }
+          if (!mounted) return;
+          
+          const session = result?.data?.session || null;
+          const error = result?.error || null;
+          
+          console.log('Session check complete:', { 
+            hasSession: !!session, 
+            userId: session?.user?.id,
+            error: error?.message 
+          });
+          
+          if (session?.user) {
+            setSession(session);
+            setUser(session.user);
+            
+            // Fetch profile non-blocking
+            fetchProfile(session.user.id).then(profileData => {
+              if (profileData) {
+                console.log('Profile loaded for user:', profileData.email);
               }
-            })
-            .catch(err => console.error('Profile fetch error:', err));
-        } else {
+            });
+          } else {
+            console.log('No session found - user not logged in');
+            setSession(null);
+            setUser(null);
+          }
+        } catch (timeoutError) {
+          console.error('Session check timed out:', timeoutError);
+          // Continue anyway - user is not logged in
           setSession(null);
           setUser(null);
         }
@@ -132,65 +149,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Start initialization
     initAuth();
     
-    // Load unit size from localStorage separately
+    // Load unit size from localStorage
     const savedSize = localStorage.getItem('betUnitSize');
     if (savedSize) {
       setUnitSize(Number(savedSize));
     }
     
     // Set up auth state listener
- const { data: { subscription } } = supabase.auth.onAuthStateChange(
-  (_event, session) => {
-    console.log('Auth state changed:', _event, 'Session:', !!session);
-    
-    if (_event === 'SIGNED_IN') {
-      console.log('User signed in successfully');
-    } else if (_event === 'SIGNED_OUT') {
-      console.log('User signed out');
-    } else if (_event === 'TOKEN_REFRESHED') {
-      console.log('Token refreshed');
-    }
-    
-    if (!mounted) return;
-    
-    setSession(session);
-    setUser(session?.user ?? null);
-    
-    if (session?.user) {
-      fetchProfile(session.user.id);
-    } else {
-      setProfile(null);
-    }
-  }
-);
-
-    // Timeout fallback - ensure loading is set to false
-    const timeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth timeout - forcing loading to false');
-        setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        console.log('Auth state changed:', _event, 'Session:', !!session);
+        
+        if (_event === 'SIGNED_IN') {
+          console.log('User signed in successfully');
+          if (mounted) {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setLoading(false); // Ensure loading is false after sign in
+            if (session?.user) {
+              fetchProfile(session.user.id);
+            }
+          }
+        } else if (_event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          if (mounted) {
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+          }
+        } else if (_event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed');
+          if (mounted && session) {
+            setSession(session);
+            setUser(session.user);
+          }
+        } else if (_event === 'INITIAL_SESSION') {
+          console.log('Initial session detected');
+          if (mounted && session) {
+            setSession(session);
+            setUser(session.user);
+            fetchProfile(session.user.id);
+          }
+        }
       }
-    }, 3000); // 3 seconds
+    );
 
+    // Cleanup
     return () => {
       mounted = false;
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'https://bet-bot-w2.vercel.app',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+    try {
+      console.log('Initiating Google sign in...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin, // Use current origin for flexibility
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
+      })
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
       }
-    })
-    if (error) throw error
+      
+      console.log('Google sign in initiated:', data);
+    } catch (err) {
+      console.error('Sign in failed:', err);
+      throw err;
+    }
   }
 
   const signOut = async () => {
