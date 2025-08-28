@@ -34,7 +34,7 @@ import { queryClient } from '@/lib/queryClient';
 
 export default function MyPicksPageFixed() {
   // Remove dark mode state - handled globally
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, signInWithGoogle } = useAuth();
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'past'>('all');
   const [editingOdds, setEditingOdds] = useState<string | null>(null);
   const [tempOdds, setTempOdds] = useState<string>('');
@@ -73,28 +73,28 @@ export default function MyPicksPageFixed() {
   }, [userPreferences]);
 
   // Authentication guard
-  if (!isAuthenticated && !authLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto p-6">
-          <Card className="bg-white dark:bg-gray-800">
-            <CardContent className="p-6 text-center">
-              <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Log in to View Data
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Sign in to track your betting picks and performance
-              </p>
-              <Button onClick={() => window.location.href = '/api/login'}>
-                Log in
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+if (!isAuthenticated && !authLoading) {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="bg-white dark:bg-gray-800">
+          <CardContent className="p-6 text-center">
+            <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Log in to View Data
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Sign in to track your betting picks and performance
+            </p>
+            <Button onClick={signInWithGoogle}>
+              Log in with Google
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   // Show loading state
   if (authLoading || isLoading) {
