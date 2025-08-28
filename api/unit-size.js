@@ -10,8 +10,8 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Return default unit size of 10
-    return res.status(200).json({ unitSize: 10 });
+    // Return default unit size of 25
+    return res.status(200).json({ unitSize: 25 });
   }
 
   if (req.method === 'PUT' || req.method === 'POST') {
