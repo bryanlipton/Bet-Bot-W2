@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   signInWithGoogle: async () => {},
   signOut: async () => {},
   isAuthenticated: false,
-  unitSize: 50,
+  unitSize: 25,
   updateUnitSize: async () => {}
 })
 
