@@ -10,9 +10,8 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Get unit size from localStorage (client-side storage)
-    // For now, return default
-    return res.status(200).json({ unitSize: 50 });
+    // Return default unit size of 10
+    return res.status(200).json({ unitSize: 10 });
   }
 
   if (req.method === 'PUT' || req.method === 'POST') {
@@ -22,7 +21,7 @@ export default function handler(req, res) {
     // This is just to prevent the 404 error
     return res.status(200).json({ 
       success: true, 
-      unitSize: unitSize,
+      unitSize: unitSize || 10,
       message: 'Unit size updated (client-side only)' 
     });
   }
