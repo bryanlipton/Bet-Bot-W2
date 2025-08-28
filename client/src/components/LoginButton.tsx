@@ -13,7 +13,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function LoginButton() {
   const { user, isAuthenticated, signInWithGoogle, signOut, loading } = useAuth();
   const [location, navigate] = useLocation();
-
+  
+  // Add these debug logs
+  console.log('LoginButton - loading:', loading);
+  console.log('LoginButton - isAuthenticated:', isAuthenticated);
+  console.log('LoginButton - user:', user);
+  
+  // rest of your component...
   if (loading) {
     return (
       <Button variant="outline" size="sm" disabled>
