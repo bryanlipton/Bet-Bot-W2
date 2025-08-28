@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/useAuth";  // Add this import
+import { AuthProvider } from "@/hooks/useAuth";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
 import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
@@ -36,15 +36,50 @@ const TestDashboard = () => {
 };
 
 function Router() {
-  // Force dark mode - no more toggle
+  // Force dark mode
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('darkMode', 'true');
   }, []);
+
+  // Debug OAuth redirect
+  useEffect(() => {
+    // Check if we have auth params in URL (after OAuth redirect)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    if (hashParams.get('access_token') || hashParams.get('error') || 
+        searchParams.get('code') || searchParams.get('error')) {
+      console.log('=== OAuth Redirect Detected ===');
+      console.log('Current URL:', window.location.href);
+      console.log('Hash params:', Object.fromEntries(hashParams));
+      console.log('Search params:', Object.fromEntries(searchParams));
+      
+      // Check for errors
+      const error = hashParams.get('error') || searchParams.get('error');
+      const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+      
+      if (error) {
+        console.error('OAuth Error:', error);
+        console.error('Error Description:', errorDescription);
+      } else {
+        console.log('OAuth tokens present - auth should process');
+      }
+    }
+    
+    // Log current auth state after a short delay
+    setTimeout(() => {
+      console.log('=== Auth State Check (2s after load) ===');
+      const authElement = document.querySelector('[data-auth-state]');
+      if (authElement) {
+        console.log('Auth UI state:', authElement.getAttribute('data-auth-state'));
+      }
+    }, 2000);
+  }, []);
   
   return (
     <div className="min-h-screen">
-      <ActionStyleHeader />  {/* No props needed anymore */}
+      <ActionStyleHeader />
       <Switch>
         <Route path="/" component={ActionStyleDashboard} />
         <Route path="/odds" component={ActionStyleDashboard} />
@@ -69,15 +104,22 @@ function Router() {
 }
 
 function App() {
-  // Also force dark mode at app level for safety
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('darkMode', 'true');
+    
+    // Expose supabase globally for debugging
+    import('./lib/supabase').then(({ supabase }) => {
+      if (typeof window !== 'undefined') {
+        (window as any).supabase = supabase;
+        console.log('Supabase exposed as window.supabase for debugging');
+      }
+    });
   }, []);
   
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>  {/* Add AuthProvider wrapper here */}
+      <AuthProvider>
         <TooltipProvider>
           <Router />
           <Toaster />
