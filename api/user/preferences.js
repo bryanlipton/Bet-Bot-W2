@@ -9,9 +9,9 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Mock response with default unit size of 10
+  // Mock response with default unit size of 25
   return res.status(200).json({
-    unitSize: 10,
+    unitSize: 25,
     message: 'Preferences handled client-side'
   });
 }
