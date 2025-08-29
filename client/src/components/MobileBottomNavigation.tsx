@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
     id: "feed",
     label: "My Feed",
     icon: Rss,
-    path: "/feed",
+    path: "/my-feed",
   },
   {
     id: "profile",
