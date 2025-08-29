@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Clock, Sparkles } from 'lucide-react';
 
 export default function MyFeed() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, signInWithGoogle } = useAuth();
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ export default function MyFeed() {
               See picks and activity from people you follow
             </p>
             <Button 
-              onClick={() => window.location.href = '/api/login'}
+              onClick={signInWithGoogle}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               Log in to view your feed
