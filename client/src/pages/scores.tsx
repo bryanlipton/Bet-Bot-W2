@@ -636,7 +636,8 @@ onScheduledGameClick({
     away: game.awayPitcher || null   // Add this
   }
 });
-
+    }
+  }:
   // For live games, we need to fetch live data to show proper inning/outs info
   const { data: liveData } = useQuery({
     queryKey: [`/api/mlb/game/${game.id}/live`, game.homeTeam, game.awayTeam],
