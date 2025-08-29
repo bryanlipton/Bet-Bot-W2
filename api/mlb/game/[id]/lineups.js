@@ -1,9 +1,12 @@
 export default async function handler(req, res) {
   const { id } = req.query;
   
+  // Extract numeric ID from formats like "mlb_776551"
+  const gameId = id.toString().replace(/[^0-9]/g, '');
+  
   try {
     const response = await fetch(
-      `https://statsapi.mlb.com/api/v1/game/${id}/boxscore`
+      `https://statsapi.mlb.com/api/v1/game/${gameId}/boxscore`
     );
     
     if (!response.ok) {
