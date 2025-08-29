@@ -624,18 +624,18 @@ function ScoreGameCard({
         awayTeam: game.awayTeam
       });
     } else if (!isFinished) {
-      // Open scheduled game modal for upcoming games
-      onScheduledGameClick({
-        gameId: game.id,
-        homeTeam: game.homeTeam,
-        awayTeam: game.awayTeam,
-        startTime: game.startTime,
-        venue: undefined, // We'll fetch this from the API
-        probablePitchers: undefined // We'll fetch this from the API
-      });
-    }
-    // Finished games don't open modals
-  };
+      // Around line 660 in scores.tsx, update this:
+onScheduledGameClick({
+  gameId: game.id,
+  homeTeam: game.homeTeam,
+  awayTeam: game.awayTeam,
+  startTime: game.startTime,
+  venue: undefined,
+  probablePitchers: {
+    home: game.homePitcher || null,  // Add this
+    away: game.awayPitcher || null   // Add this
+  }
+});
 
   // For live games, we need to fetch live data to show proper inning/outs info
   const { data: liveData } = useQuery({
