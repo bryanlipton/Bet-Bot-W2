@@ -44,7 +44,7 @@ interface ProfileStats {
   most_active_user: Profile;
 }
 
-export default function ProfilesPage() {
+export default function ProfilePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'username' | 'winrate' | 'profit' | 'picks'>('winrate');
   const [filterType, setFilterType] = useState<'all' | 'verified' | 'premium'>('all');
