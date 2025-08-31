@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, TrendingUp, Crown, Clock, Zap, CheckCircle, AlertCircle } from "lucide-react";
 import { Link, useLocation } from 'wouter';
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { BetConfirmationModal } from './BetConfirmationModal';
 
 interface BookmakerOdds {
   key: string;
@@ -193,6 +194,8 @@ export function OddsComparisonModal({
     url: string;
   } | null>(null);
   const [units, setUnits] = useState<number>(1);
+  const [showBetConfirmation, setShowBetConfirmation] = useState(false);
+  const [confirmationBetData, setConfirmationBetData] = useState(null);
   const [, navigate] = useLocation();
 
   // Reset state when modal opens/closes
@@ -267,16 +270,9 @@ export function OddsComparisonModal({
 
   const bestOdds = sortedOdds[0];
 
- const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
+const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
   if (!bookmakerData) return;
 
-  console.log('=== Bet Now Clicked ===');
-  console.log('Bookmaker:', bookmakerData.displayName);
-  console.log('URL:', bookmakerData.url);
-  console.log('Has Deep Link:', bookmakerData.hasDeepLink);
-  console.log('Link Type:', bookmakerData.linkType);
-
-  // Create bet confirmation data
   const betConfirmationData = {
     gameId: gameInfo.gameId || `mlb_${Date.now()}`,
     homeTeam: gameInfo.homeTeam,
@@ -290,78 +286,18 @@ export function OddsComparisonModal({
     gameDate: gameInfo.gameTime || new Date().toISOString()
   };
   
-  // Open bookmaker in new tab
+  // Try to open bookmaker
   const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
   
-  if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-    // Popup was blocked - show alert and still navigate to confirmation
-    alert('Please allow popups in your browser to visit the sportsbook. Click OK to continue to bet confirmation.');
-    
-    // Navigate immediately to bet confirmation since popup was blocked
-    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
-    navigate(`/bet-confirmation/${encodedData}`);
-    onClose();
-  } else {
-    // Popup opened successfully - wait 3 seconds then navigate
-    setTimeout(() => {
-      const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
-      navigate(`/bet-confirmation/${encodedData}`);
-      onClose();
-    }, 3000);
-  }
+  // Show confirmation modal after delay
+  setTimeout(() => {
+    setConfirmationBetData(betConfirmationData);
+    setShowBetConfirmation(true);
+    onClose(); // Close the odds comparison modal
+  }, newWindow ? 3000 : 100); // Wait 3s if popup opened, instant if blocked
 };
 
-  const handleSaveBet = async () => {
-    if (!confirmationData) return;
 
-    try {
-      console.log('=== SAVING PICK ===');
-      const pickData = {
-        gameId: gameInfo.gameId || `mlb_${Date.now()}`,
-        game: `${gameInfo.awayTeam} @ ${gameInfo.homeTeam}`,
-        homeTeam: gameInfo.homeTeam,
-        awayTeam: gameInfo.awayTeam,
-        selection: selectedBet.selection,
-        market: selectedBet.market === 'total' ? 
-          (selectedBet.selection === 'Over' ? 'over' : 'under') : 
-          selectedBet.market,
-        line: selectedBet.line?.toString() || null,
-        odds: confirmationData.odds,
-        units: units,
-        bookmaker: 'confirmed',
-        bookmakerDisplayName: confirmationData.bookmaker,
-        gameDate: gameInfo.gameTime ? new Date(gameInfo.gameTime) : new Date()
-      };
-
-      console.log('Pick data to save:', pickData);
-      console.log('About to make API request to /api/user/picks...');
-      
-      const response = await apiRequest('POST', '/api/user/picks', pickData);
-      console.log('Raw API response received:', response);
-      
-      if (response.ok) {
-        console.log('✅ Pick saved successfully!');
-        // Invalidate cache to refresh My Picks page
-        queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/user/picks/stats'] });
-        console.log('Cache invalidated.');
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Server returned error:', response.status, errorText);
-      }
-      
-      handleClose();
-    } catch (error) {
-      console.error('❌ Error saving pick:', error);
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : 'Unknown'
-      });
-      // Still close the modal even if save fails
-      handleClose();
-    }
-  };
 
   const handleSkip = () => {
     handleClose();
@@ -540,92 +476,16 @@ export function OddsComparisonModal({
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Modal */}
-      <Dialog open={showConfirmation} onOpenChange={() => setShowConfirmation(false)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              Did you place this bet?
-            </DialogTitle>
-            <DialogDescription>
-              Save your bet to track its performance in My Picks
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {/* Bet Details */}
-            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950">
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="font-medium text-green-900 dark:text-green-100">
-                    {gameInfo.awayTeam} @ {gameInfo.homeTeam}
-                  </div>
-                  <div className="text-sm text-green-700 dark:text-green-300">
-                    {getBetDescription()}
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-green-600 dark:text-green-400">Odds:</span> {confirmationData ? formatOdds(confirmationData.odds) : ''}
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-green-600 dark:text-green-400">Bookmaker:</span> {confirmationData?.bookmaker}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Units Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Unit Size
-              </label>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnits(Math.max(0.5, units - 0.5))}
-                  disabled={units <= 0.5}
-                >
-                  -
-                </Button>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0.5"
-                  value={units}
-                  onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                  className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnits(units + 0.5)}
-                >
-                  +
-                </Button>
-                <span className="text-sm text-gray-500">units</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSaveBet}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={handleSkip}
-                variant="outline"
-                className="flex-1"
-              >
-                Skip
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {showBetConfirmation && confirmationBetData && (
+        <BetConfirmationModal
+          open={showBetConfirmation}
+          onClose={() => {
+            setShowBetConfirmation(false);
+            setConfirmationBetData(null);
+          }}
+          betData={confirmationBetData}
+        />
+      )}
     </>
   );
 }
