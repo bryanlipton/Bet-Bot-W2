@@ -394,16 +394,39 @@ function ActionStyleDashboard() {
       return gameTime > now; // Only show games that haven't started yet
     });
     
-    return upcomingGames.map(game => ({
-      id: game.id || `game_${Date.now()}`,
-      homeTeam: game.home_team || 'Home',
-      awayTeam: game.away_team || 'Away',
-      homeOdds: game.bookmakers?.[0]?.markets?.[0]?.outcomes?.find(o => o.name === game.home_team)?.price,
-      awayOdds: game.bookmakers?.[0]?.markets?.[0]?.outcomes?.find(o => o.name === game.away_team)?.price,
-      startTime: game.commence_time,
-      sportKey: game.sport_key,
-      rawBookmakers: game.bookmakers || [] // Keep the full bookmakers data
-    }));
+    return upcomingGames.map(game => {
+      // Get first bookmaker with markets
+      const firstBookmaker = game.bookmakers?.[0];
+      
+      // Extract markets
+      const h2hMarket = firstBookmaker?.markets?.find(m => m.key === 'h2h');
+      const spreadsMarket = firstBookmaker?.markets?.find(m => m.key === 'spreads');
+      const totalsMarket = firstBookmaker?.markets?.find(m => m.key === 'totals');
+      
+      // Get moneyline odds
+      const homeMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.home_team)?.price;
+      const awayMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.away_team)?.price;
+      
+      // Get spread
+      const homeSpread = spreadsMarket?.outcomes?.find(o => o.name === game.home_team)?.point;
+      const awaySpread = spreadsMarket?.outcomes?.find(o => o.name === game.away_team)?.point;
+      
+      // Get total
+      const totalLine = totalsMarket?.outcomes?.find(o => o.name === 'Over')?.point;
+      
+      return {
+        id: game.id || `game_${Date.now()}`,
+        homeTeam: game.home_team || 'Home',
+        awayTeam: game.away_team || 'Away',
+        homeOdds: homeMoneyline,
+        awayOdds: awayMoneyline,
+        spread: homeSpread, // Home team spread
+        total: totalLine,   // Over/Under line
+        startTime: game.commence_time,
+        sportKey: game.sport_key,
+        rawBookmakers: game.bookmakers || [] // Keep the full bookmakers data
+      };
+    });
   };
 
   const games = processGames(liveOddsData);
@@ -510,6 +533,8 @@ function ActionStyleDashboard() {
                   awayTeam={game.awayTeam}
                   homeOdds={game.homeOdds}
                   awayOdds={game.awayOdds}
+                  spread={game.spread}
+                  total={game.total}
                   startTime={game.startTime}
                   gameId={game.id}
                   isAuthenticated={isAuthenticated}
