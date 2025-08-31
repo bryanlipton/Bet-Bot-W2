@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import ActionStyleHeader from "@/components/ActionStyleHeader";
-import { ActionStyleDashboard } from "@/components/ActionStyleDashboard";
+import ActionStyleDashboard from "@/components/ActionStyleDashboard";
 import ArticlesPage from "@/pages/articles";
 import MyPicksPage from "@/pages/my-picks-fixed";
 import SimpleMyPicks from "@/components/SimpleMyPicks";
