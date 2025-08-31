@@ -58,21 +58,20 @@ export default function BetConfirmation() {
 
     setIsSubmitting(true);
     try {
-      await apiRequest('POST', '/api/user/confirmed-bets', {
-        gameId: betData.gameId,
-        homeTeam: betData.homeTeam,
-        awayTeam: betData.awayTeam,
-        selection: betData.selection,
-        market: betData.market,
-        line: betData.line,
-        odds: betData.odds,
-        units,
-        betUnitAtTime: betUnit,
-        bookmaker: betData.bookmaker,
-        bookmakerDisplayName: betData.bookmakerDisplayName,
-        gameDate: betData.gameDate,
-        isPublic
-      });
+      await apiRequest('POST', '/api/user/picks', {
+  gameId: betData.gameId,
+  game: `${betData.awayTeam} @ ${betData.homeTeam}`, // Add this field
+  homeTeam: betData.homeTeam,
+  awayTeam: betData.awayTeam,
+  selection: betData.selection,
+  market: betData.market,
+  line: betData.line || null,
+  odds: betData.odds,
+  units: units,
+  bookmaker: betData.bookmaker,
+  bookmakerDisplayName: betData.bookmakerDisplayName,
+  gameDate: new Date(betData.gameDate) // Convert string to Date
+});
 
       setIsComplete(true);
     } catch (error) {
