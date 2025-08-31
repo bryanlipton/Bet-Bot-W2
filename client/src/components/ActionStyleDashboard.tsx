@@ -359,7 +359,8 @@ function ActionStyleDashboard() {
       homeOdds: game.bookmakers?.[0]?.markets?.[0]?.outcomes?.find(o => o.name === game.home_team)?.price,
       awayOdds: game.bookmakers?.[0]?.markets?.[0]?.outcomes?.find(o => o.name === game.away_team)?.price,
       startTime: game.commence_time,
-      sportKey: game.sport_key
+      sportKey: game.sport_key,
+      rawBookmakers: game.bookmakers || [] // Keep the full bookmakers data
     }));
   };
 
@@ -390,8 +391,12 @@ function ActionStyleDashboard() {
           
           {/* Pick Cards */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <DailyPick liveGameData={games.find(g => g.homeTeam === 'Yankees')} />
-            <LoggedInLockPick liveGameData={games.find(g => g.homeTeam === 'Astros')} />
+            <DailyPick liveGameData={games.find(g => 
+              g.homeTeam === 'Cincinnati Reds' && g.awayTeam === 'St. Louis Cardinals'
+            )} />
+            <LoggedInLockPick liveGameData={games.find(g => 
+              g.homeTeam === 'Houston Astros' || g.awayTeam === 'Houston Astros'
+            )} />
           </div>
         </div>
 
@@ -466,6 +471,7 @@ function ActionStyleDashboard() {
                   startTime={game.startTime}
                   gameId={game.id}
                   isAuthenticated={isAuthenticated}
+                  rawBookmakers={game.rawBookmakers} // Pass bookmakers to game cards
                 />
               ))}
             </div>
