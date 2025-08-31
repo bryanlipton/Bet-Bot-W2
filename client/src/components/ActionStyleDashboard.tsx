@@ -441,8 +441,7 @@ function ActionStyleDashboard() {
   return (
     <>
       <MobileHeader />
-<div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-2 sm:pt-4 pb-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">        
-        {/* Header */}
+<div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-1 sm:pt-4 pb-20 sm:pb-6 space-y-4 md:space-y-6">        {/* Header */}
         <div className="space-y-3 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white underline">
