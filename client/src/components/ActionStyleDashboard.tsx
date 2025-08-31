@@ -16,6 +16,7 @@ function DailyPick({ liveGameData }) {
   const [loading, setLoading] = useState(true);
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
+  const [gameOdds, setGameOdds] = useState(null);
   
   useEffect(() => {
     fetch('/api/daily-pick')
@@ -24,6 +25,22 @@ function DailyPick({ liveGameData }) {
         console.log('Daily Pick API Response:', data);
         setPick(data);
         setLoading(false);
+        // Fetch odds for this specific game
+        if (data && data.homeTeam && data.awayTeam) {
+          fetch('/api/mlb/complete-schedule')
+            .then(res => res.json())
+            .then(games => {
+              const matchingGame = games.find(g => 
+                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
+                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
+              );
+              if (matchingGame) {
+                setGameOdds(matchingGame);
+                console.log('Found matching game with odds:', matchingGame);
+              }
+            })
+            .catch(err => console.error('Error fetching game odds:', err));
+        }
       })
       .catch(err => {
         console.error('Error fetching daily pick:', err);
@@ -152,7 +169,7 @@ function DailyPick({ liveGameData }) {
             sport: 'baseball_mlb',
             gameTime: pick.startTime || pick.gameTime || pick.commence_time
           }}
-          bookmakers={liveGameData?.rawBookmakers || []}
+          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
           selectedBet={{
             market: 'moneyline',
             selection: selectedBetType === 'fade' ? 
@@ -171,6 +188,7 @@ function LoggedInLockPick({ liveGameData }) {
   const [loading, setLoading] = useState(true);
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
+  const [gameOdds, setGameOdds] = useState(null);
 
   useEffect(() => {
     fetch('/api/daily-pick/lock')
@@ -179,6 +197,22 @@ function LoggedInLockPick({ liveGameData }) {
         console.log('Lock Pick API Response:', data);
         setPick(data);
         setLoading(false);
+        // Fetch odds for this specific game
+        if (data && data.homeTeam && data.awayTeam) {
+          fetch('/api/mlb/complete-schedule')
+            .then(res => res.json())
+            .then(games => {
+              const matchingGame = games.find(g => 
+                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
+                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
+              );
+              if (matchingGame) {
+                setGameOdds(matchingGame);
+                console.log('Found matching lock game with odds:', matchingGame);
+              }
+            })
+            .catch(err => console.error('Error fetching lock game odds:', err));
+        }
       })
       .catch(err => {
         console.error('Error fetching lock pick:', err);
@@ -311,7 +345,7 @@ function LoggedInLockPick({ liveGameData }) {
             sport: 'baseball_mlb',
             gameTime: pick.startTime || pick.gameTime || pick.commence_time
           }}
-          bookmakers={liveGameData?.rawBookmakers || []}
+          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
           selectedBet={{
             market: 'moneyline',
             selection: selectedBetType === 'fade' ? 
