@@ -302,8 +302,7 @@ const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     setConfirmationBetData(betConfirmationData);
     setShowBetConfirmation(true);
     console.log('6. Modal should be visible now'); // ADD THIS
-    onClose(); // Close the odds comparison modal
-  }, newWindow ? 3000 : 100);
+     }, newWindow ? 3000 : 100);
 };
 
 
@@ -491,6 +490,7 @@ const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
           onClose={() => {
             setShowBetConfirmation(false);
             setConfirmationBetData(null);
+            onClose();
           }}
           betData={confirmationBetData}
         />
