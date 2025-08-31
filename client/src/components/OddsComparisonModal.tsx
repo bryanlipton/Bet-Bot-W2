@@ -267,45 +267,49 @@ export function OddsComparisonModal({
 
   const bestOdds = sortedOdds[0];
 
-  const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
-    if (!bookmakerData) return;
+ const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
+  if (!bookmakerData) return;
 
-    console.log('=== Bet Now Clicked ===');
-    console.log('Bookmaker:', bookmakerData.displayName);
-    console.log('URL:', bookmakerData.url);
-    console.log('Has Deep Link:', bookmakerData.hasDeepLink);
-    console.log('Link Type:', bookmakerData.linkType);
+  console.log('=== Bet Now Clicked ===');
+  console.log('Bookmaker:', bookmakerData.displayName);
+  console.log('URL:', bookmakerData.url);
+  console.log('Has Deep Link:', bookmakerData.hasDeepLink);
+  console.log('Link Type:', bookmakerData.linkType);
 
-    // Create bet confirmation data
-    const betConfirmationData = {
-      gameId: gameInfo.gameId || `mlb_${Date.now()}`,
-      homeTeam: gameInfo.homeTeam,
-      awayTeam: gameInfo.awayTeam,
-      selection: selectedBet.selection,
-      market: selectedBet.market,
-      line: selectedBet.line?.toString(),
-      odds: bookmakerData.odds,
-      bookmaker: bookmakerData.bookmaker,
-      bookmakerDisplayName: bookmakerData.displayName,
-      gameDate: gameInfo.gameTime || new Date().toISOString()
-    };
+  // Create bet confirmation data
+  const betConfirmationData = {
+    gameId: gameInfo.gameId || `mlb_${Date.now()}`,
+    homeTeam: gameInfo.homeTeam,
+    awayTeam: gameInfo.awayTeam,
+    selection: selectedBet.selection,
+    market: selectedBet.market,
+    line: selectedBet.line?.toString(),
+    odds: bookmakerData.odds,
+    bookmaker: bookmakerData.bookmaker,
+    bookmakerDisplayName: bookmakerData.displayName,
+    gameDate: gameInfo.gameTime || new Date().toISOString()
+  };
+  
+  // Open bookmaker in new tab
+  const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
+  
+  if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+    // Popup was blocked - show alert and still navigate to confirmation
+    alert('Please allow popups in your browser to visit the sportsbook. Click OK to continue to bet confirmation.');
     
-    // Open bookmaker in new tab
-    const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
-    
-    if (!newWindow) {
-      console.error('Popup blocked! Please allow popups for this site.');
-      alert('Please allow popups in your browser to visit the sportsbook.');
-      return;
-    }
-    
-    // Navigate to bet confirmation page after delay
+    // Navigate immediately to bet confirmation since popup was blocked
+    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+    navigate(`/bet-confirmation/${encodedData}`);
+    onClose();
+  } else {
+    // Popup opened successfully - wait 3 seconds then navigate
     setTimeout(() => {
       const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
       navigate(`/bet-confirmation/${encodedData}`);
-      onClose(); // Close the modal
-    }, 3000); // 3 second delay
-  };
+      onClose();
+    }, 3000);
+  }
+};
 
   const handleSaveBet = async () => {
     if (!confirmationData) return;
