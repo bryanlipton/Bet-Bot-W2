@@ -7,25 +7,25 @@ export default function MobileHeader() {
   return (
     <>
       <header className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-40">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Button variant="ghost" size="sm" className="p-2">
+        <div className="flex items-center justify-between px-4 py-2">
+          <Button variant="ghost" size="sm" className="p-1.5">
             <Menu className="w-5 h-5" />
           </Button>
           
           <Link href="/about">
             <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img src={betbotLogo} alt="Bet Bot" className="w-8 h-8" />
-              <span className="font-bold text-lg">Bet Bot</span>
+              <img src={betbotLogo} alt="Bet Bot" className="w-7 h-7" />
+              <span className="font-bold text-base">Bet Bot</span>
             </button>
           </Link>
           
-          <Button variant="ghost" size="sm" className="p-2">
+          <Button variant="ghost" size="sm" className="p-1.5">
             <Settings className="w-5 h-5" />
           </Button>
         </div>
       </header>
-      {/* Reduced spacer for minimal gap below fixed header */}
-      <div className="md:hidden h-12"></div>
+      {/* Exact height to match the header - no extra space */}
+      <div className="md:hidden h-[50px]"></div>
     </>
   );
 }
