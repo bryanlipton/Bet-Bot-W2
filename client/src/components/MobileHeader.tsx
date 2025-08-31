@@ -24,9 +24,8 @@ export default function MobileHeader() {
           </Button>
         </div>
       </header>
-
-      {/* Add top padding for mobile to account for fixed header */}
-      <div className="md:hidden h-16"></div>
+      {/* Reduced spacer for minimal gap below fixed header */}
+      <div className="md:hidden h-12"></div>
     </>
   );
 }
