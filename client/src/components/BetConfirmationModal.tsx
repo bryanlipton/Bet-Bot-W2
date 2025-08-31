@@ -28,7 +28,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   
-  const betUnit = 10; // Default bet unit
+  const betUnit = 10;
   const dollarAmount = units * betUnit;
 
   const handleConfirmBet = async () => {
@@ -52,7 +52,6 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
       queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
       setIsComplete(true);
       
-      // Auto close after 2 seconds
       setTimeout(() => {
         onClose();
         setIsComplete(false);
@@ -82,7 +81,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
   if (isComplete) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md z-[9999]">
           <div className="text-center py-6">
             <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-green-900 dark:text-green-100">
@@ -99,7 +98,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md z-[9999]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
@@ -111,7 +110,6 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {/* Bet Summary */}
           <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
@@ -131,7 +129,6 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
             </CardContent>
           </Card>
 
-          {/* Units Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">How many units did you bet?</label>
             <div className="flex items-center gap-2">
@@ -147,7 +144,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
                 type="number"
                 value={units}
                 onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800"
                 step="0.5"
                 min="0.5"
               />
@@ -162,7 +159,6 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
             </div>
           </div>
 
-          {/* Payout Info */}
           <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-3 space-y-1 text-sm">
               <div className="flex justify-between">
@@ -184,7 +180,6 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
           <div className="flex gap-2">
             <Button
               onClick={handleConfirmBet}
