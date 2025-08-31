@@ -272,6 +272,8 @@ export function OddsComparisonModal({
 
 const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
   if (!bookmakerData) return;
+  
+  console.log('1. handleMakePick called'); // ADD THIS
 
   const betConfirmationData = {
     gameId: gameInfo.gameId || `mlb_${Date.now()}`,
@@ -286,15 +288,22 @@ const handleMakePick = (bookmakerData: typeof sortedOdds[0]) => {
     gameDate: gameInfo.gameTime || new Date().toISOString()
   };
   
+  console.log('2. Bet data created:', betConfirmationData); // ADD THIS
+  
   // Try to open bookmaker
   const newWindow = window.open(bookmakerData.url, '_blank', 'noopener,noreferrer');
   
+  console.log('3. Window opened?', !!newWindow); // ADD THIS
+  
   // Show confirmation modal after delay
   setTimeout(() => {
+    console.log('4. About to show modal'); // ADD THIS
+    console.log('5. Current state before:', showBetConfirmation); // ADD THIS
     setConfirmationBetData(betConfirmationData);
     setShowBetConfirmation(true);
+    console.log('6. Modal should be visible now'); // ADD THIS
     onClose(); // Close the odds comparison modal
-  }, newWindow ? 3000 : 100); // Wait 3s if popup opened, instant if blocked
+  }, newWindow ? 3000 : 100);
 };
 
 
