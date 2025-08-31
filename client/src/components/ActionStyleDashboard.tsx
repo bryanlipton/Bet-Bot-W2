@@ -697,3 +697,4 @@ function LoggedInLockPick({ liveGameData }) {
 
 // [Keep the rest of your ActionStyleDashboard component exactly as is]
 // The main export and all other code remains unchanged
+export default ActionStyleDashboard;
