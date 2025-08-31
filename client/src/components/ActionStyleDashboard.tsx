@@ -1,559 +1,568 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Star, RefreshCw } from "lucide-react";
-import MobileHeader from "@/components/MobileHeader";
+import { ChevronDown, RefreshCw, TrendingUp, User, Info } from "lucide-react";
 import { ActionStyleGameCard } from "./ActionStyleGameCard";
-import { useAuth } from "@/hooks/useAuth";
-import { useProStatus } from "@/hooks/useProStatus";
-import { OddsComparisonModal } from "./OddsComparisonModal";
+import { ProGameCard } from "./ProGameCard";
+import MobileHeader from "./MobileHeader";
 
-// DailyPick component with modal functionality
-function DailyPick({ liveGameData }) {
-  const [pick, setPick] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showOddsModal, setShowOddsModal] = useState(false);
-  const [selectedBetType, setSelectedBetType] = useState(null);
-  const [gameOdds, setGameOdds] = useState(null);
-  
-  useEffect(() => {
-    fetch('/api/daily-pick')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Daily Pick API Response:', data);
-        setPick(data);
-        setLoading(false);
-        // Fetch odds for this specific game
-        if (data && data.homeTeam && data.awayTeam) {
-          fetch('/api/mlb/complete-schedule')
-            .then(res => res.json())
-            .then(games => {
-              const matchingGame = games.find(g => 
-                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
-                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
-              );
-              if (matchingGame) {
-                setGameOdds(matchingGame);
-                console.log('Found matching game with odds:', matchingGame);
-              }
-            })
-            .catch(err => console.error('Error fetching game odds:', err));
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching daily pick:', err);
-        setLoading(false);
-      });
-  }, []);
+// Inline DailyPick Component
+const DailyPick = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [pickStatus, setPickStatus] = useState<string | null>(null);
+  const [fadeStatus, setFadeStatus] = useState<string | null>(null);
 
-  const formatGameTime = (pick) => {
-    const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
-    if (!dateString) return "TBD";
-    
-    try {
-      const date = new Date(dateString);
-      const options = {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      };
-      return date.toLocaleString("en-US", options) + " ET";
-    } catch {
-      return "TBD";
-    }
-  };
-
-  const getLiveOdds = () => {
-    if (!pick) return null;
-    if (!liveGameData) return pick.odds;
-    
-    if (pick.pickTeam === liveGameData.homeTeam) {
-      return liveGameData.homeOdds || pick.odds;
-    } else if (pick.pickTeam === liveGameData.awayTeam) {
-      return liveGameData.awayOdds || pick.odds;
-    }
-    
-    return pick.odds;
-  };
-
-  const handlePick = (e) => {
-    if (!pick) return;
-    setSelectedBetType('pick');
-    setShowOddsModal(true);
-  };
-
-  const handleFade = (e) => {
-    if (!pick) return;
-    setSelectedBetType('fade');
-    setShowOddsModal(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="relative bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-400/30 rounded-xl p-6 shadow-lg shadow-blue-500/10">
-        <div className="animate-pulse">
-          <div className="h-6 bg-blue-100 dark:bg-blue-900/30 rounded w-32 mb-2"></div>
-          <div className="h-4 bg-blue-100 dark:bg-blue-900/30 rounded w-48 mb-3"></div>
-          <div className="h-8 bg-blue-100 dark:bg-blue-900/30 rounded w-40"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!pick || !pick.pickTeam) {
-    return (
-      <div className="relative bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-400/30 rounded-xl p-6 shadow-lg shadow-blue-500/10">
-        <h3 className="text-xl font-bold mb-2 text-blue-600 dark:text-blue-400">Pick of the Day</h3>
-        <p className="text-gray-700 dark:text-gray-300">No Pick Available Today</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Check back when games are available</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="relative bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 rounded-xl p-6 shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:border-blue-500/70 transition-all duration-300">
-        {pick.grade && (
-          <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-            {pick.grade}
-          </div>
-        )}
-        
-        <h3 className="text-xl font-bold mb-1 text-blue-600 dark:text-blue-400">Pick of the Day</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">AI-backed Data Analysis</p>
-        
-        <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-          {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
-            {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
-          </span>
-          {liveGameData && getLiveOdds() !== pick.odds && (
-            <span className="text-xs text-gray-500 ml-2">
-              (opened {pick.odds > 0 ? '+' : ''}{pick.odds})
-            </span>
-          )}
-        </div>
-        
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-          {pick.awayTeam} @ {pick.homeTeam}
-        </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {formatGameTime(pick)} • {pick.venue || 'Stadium TBD'}
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <button 
-            onClick={handlePick}
-            className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Pick
-          </button>
-          <button 
-            onClick={handleFade}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Fade
-          </button>
-        </div>
-      </div>
-
-      {showOddsModal && pick && (
-        <OddsComparisonModal
-          open={showOddsModal}
-          onClose={() => setShowOddsModal(false)}
-          gameInfo={{
-            homeTeam: pick.homeTeam,
-            awayTeam: pick.awayTeam,
-            gameId: pick.gameId,
-            sport: 'baseball_mlb',
-            gameTime: pick.startTime || pick.gameTime || pick.commence_time
-          }}
-          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
-          selectedBet={{
-            market: 'moneyline',
-            selection: selectedBetType === 'fade' ? 
-              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-              pick.pickTeam
-          }}
-        />
-      )}
-    </>
-  );
-}
-
-// LoggedInLockPick component with modal functionality
-function LoggedInLockPick({ liveGameData }) {
-  const [pick, setPick] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showOddsModal, setShowOddsModal] = useState(false);
-  const [selectedBetType, setSelectedBetType] = useState(null);
-  const [gameOdds, setGameOdds] = useState(null);
-
-  useEffect(() => {
-    fetch('/api/daily-pick/lock')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Lock Pick API Response:', data);
-        setPick(data);
-        setLoading(false);
-        // Fetch odds for this specific game
-        if (data && data.homeTeam && data.awayTeam) {
-          fetch('/api/mlb/complete-schedule')
-            .then(res => res.json())
-            .then(games => {
-              const matchingGame = games.find(g => 
-                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
-                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
-              );
-              if (matchingGame) {
-                setGameOdds(matchingGame);
-                console.log('Found matching lock game with odds:', matchingGame);
-              }
-            })
-            .catch(err => console.error('Error fetching lock game odds:', err));
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching lock pick:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  const formatGameTime = (pick) => {
-    const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
-    if (!dateString) return "TBD";
-    
-    try {
-      const date = new Date(dateString);
-      const options = {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      };
-      return date.toLocaleString("en-US", options) + " ET";
-    } catch {
-      return "TBD";
-    }
-  };
-
-  const getLiveOdds = () => {
-    if (!pick) return null;
-    if (!liveGameData) return pick.odds;
-    
-    if (pick.pickTeam === liveGameData.homeTeam) {
-      return liveGameData.homeOdds || pick.odds;
-    } else if (pick.pickTeam === liveGameData.awayTeam) {
-      return liveGameData.awayOdds || pick.odds;
-    }
-    
-    return pick.odds;
-  };
-
-  const handlePick = (e) => {
-    if (!pick) return;
-    setSelectedBetType('pick');
-    setShowOddsModal(true);
-  };
-
-  const handleFade = (e) => {
-    if (!pick) return;
-    setSelectedBetType('fade');
-    setShowOddsModal(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
-        <div className="animate-pulse">
-          <div className="h-6 bg-orange-100 dark:bg-orange-900/30 rounded w-40 mb-2"></div>
-          <div className="h-4 bg-orange-100 dark:bg-orange-900/30 rounded w-56 mb-3"></div>
-          <div className="h-8 bg-orange-100 dark:bg-orange-900/30 rounded w-40"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!pick || !pick.pickTeam) {
-    return (
-      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
-        <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-2">Premium picks available for authenticated users</p>
-        <div className="mt-6">
-          <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200">
-            Log in to view pick
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 rounded-xl p-6 shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70 transition-all duration-300">
-        {pick.grade && (
-          <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-            {pick.grade}
-          </div>
-        )}
-        
-        <h3 className="text-xl font-bold mb-1 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Exclusive pick for authenticated users</p>
-        
-        <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-          {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
-            {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
-          </span>
-          {liveGameData && getLiveOdds() !== pick.odds && (
-            <span className="text-xs text-gray-500 ml-2">
-              (opened {pick.odds > 0 ? '+' : ''}{pick.odds})
-            </span>
-          )}
-        </div>
-        
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-          {pick.awayTeam} @ {pick.homeTeam}
-        </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {formatGameTime(pick)} • {pick.venue || 'Stadium TBD'}
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <button 
-            onClick={handlePick}
-            className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Pick
-          </button>
-          <button 
-            onClick={handleFade}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Fade
-          </button>
-        </div>
-      </div>
-
-      {showOddsModal && pick && (
-        <OddsComparisonModal
-          open={showOddsModal}
-          onClose={() => setShowOddsModal(false)}
-          gameInfo={{
-            homeTeam: pick.homeTeam,
-            awayTeam: pick.awayTeam,
-            gameId: pick.gameId,
-            sport: 'baseball_mlb',
-            gameTime: pick.startTime || pick.gameTime || pick.commence_time
-          }}
-          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
-          selectedBet={{
-            market: 'moneyline',
-            selection: selectedBetType === 'fade' ? 
-              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-              pick.pickTeam
-          }}
-        />
-      )}
-    </>
-  );
-}
-
-// Main ActionStyleDashboard component
-function ActionStyleDashboard() {
-  const [selectedSport, setSelectedSport] = useState("baseball_mlb");
-  const { isAuthenticated } = useAuth();
-  const { isProUser } = useProStatus();
-
-  // Fetch odds data
-  const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
-    queryKey: ['/api/mlb/complete-schedule'],
+  // Fetch daily pick data
+  const { data: dailyPick, isLoading, error } = useQuery({
+    queryKey: ['daily-pick'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/mlb/complete-schedule');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        console.error('Error fetching odds:', error);
-        return [];
-      }
+      const response = await fetch('/api/daily-pick');
+      if (!response.ok) throw new Error('Failed to fetch daily pick');
+      return response.json();
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 
-  // Process games data
-  const processGames = (games) => {
-    if (!Array.isArray(games)) return [];
+  const handlePick = () => {
+    if (!dailyPick) return;
     
-    // Filter out games that have already started
-    const now = new Date();
-    const upcomingGames = games.filter(game => {
-      if (!game.commence_time) return false;
-      const gameTime = new Date(game.commence_time);
-      return gameTime > now; // Only show games that haven't started yet
-    });
+    const pickData = {
+      type: 'daily-pick',
+      team: dailyPick.team,
+      odds: dailyPick.odds,
+      grade: dailyPick.grade,
+      confidence: dailyPick.confidence,
+      timestamp: new Date().toISOString(),
+    };
     
-    return upcomingGames.map(game => {
-      // Get first bookmaker with markets
-      const firstBookmaker = game.bookmakers?.[0];
-      
-      // Extract markets
-      const h2hMarket = firstBookmaker?.markets?.find(m => m.key === 'h2h');
-      const spreadsMarket = firstBookmaker?.markets?.find(m => m.key === 'spreads');
-      const totalsMarket = firstBookmaker?.markets?.find(m => m.key === 'totals');
-      
-      // Get moneyline odds
-      const homeMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.home_team)?.price;
-      const awayMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.away_team)?.price;
-      
-      // Get spread
-      const homeSpread = spreadsMarket?.outcomes?.find(o => o.name === game.home_team)?.point;
-      const awaySpread = spreadsMarket?.outcomes?.find(o => o.name === game.away_team)?.point;
-      
-      // Get total
-      const totalLine = totalsMarket?.outcomes?.find(o => o.name === 'Over')?.point;
-      
-      return {
-        id: game.id || `game_${Date.now()}`,
-        homeTeam: game.home_team || 'Home',
-        awayTeam: game.away_team || 'Away',
-        homeOdds: homeMoneyline,
-        awayOdds: awayMoneyline,
-        spread: homeSpread, // Home team spread
-        total: totalLine,   // Over/Under line
-        startTime: game.commence_time,
-        sportKey: game.sport_key,
-        rawBookmakers: game.bookmakers || [] // Keep the full bookmakers data
-      };
-    });
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(pickData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    setPickStatus('✓ Picked!');
+    setFadeStatus(null);
+    setTimeout(() => setPickStatus(null), 2000);
+    console.log('✅ Pick saved:', pickData);
   };
 
-  const games = processGames(liveOddsData);
+  const handleFade = () => {
+    if (!dailyPick) return;
+    
+    const fadeData = {
+      type: 'daily-pick-fade',
+      team: dailyPick.opponent,
+      odds: dailyPick.opponentOdds,
+      grade: dailyPick.grade,
+      confidence: dailyPick.confidence,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(fadeData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    setFadeStatus('✓ Faded!');
+    setPickStatus(null);
+    setTimeout(() => setFadeStatus(null), 2000);
+    console.log('✅ Fade saved:', fadeData);
+  };
 
-  // Sports tabs
-  const sports = [
-    { key: "baseball_mlb", name: "MLB" },
-    { key: "americanfootball_nfl", name: "NFL" },
-    { key: "basketball_nba", name: "NBA" },
-  ];
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border-blue-500/30">
+        <CardContent className="p-6">
+          <div className="text-gray-300">Loading daily pick...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !dailyPick) {
+    return (
+      <Card className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border-blue-500/30">
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold mb-2">Pick of the Day</h3>
+          <p className="text-gray-300">No Pick Available Today</p>
+          <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 border-blue-500/30">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">Pick of the Day</CardTitle>
+            <Badge className={`bg-${dailyPick.gradeColor || 'blue'}-600`}>
+              {dailyPick.grade}
+            </Badge>
+          </div>
+          <span className="text-sm text-gray-400">
+            {dailyPick.confidence}% confidence
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-white">{dailyPick.team} ML</p>
+            <p className="text-sm text-gray-400">{dailyPick.matchup}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-lg text-green-400">{dailyPick.odds}</p>
+            <p className="text-xs text-gray-400">{dailyPick.time}</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            onClick={handlePick}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            disabled={!!pickStatus || !!fadeStatus}
+          >
+            {pickStatus || 'Pick'}
+          </Button>
+          <Button 
+            onClick={handleFade}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            disabled={!!pickStatus || !!fadeStatus}
+          >
+            {fadeStatus || 'Fade'}
+          </Button>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-gray-400 hover:text-white"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'Hide' : 'Show'} Analysis
+          <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+        </Button>
+        
+        {isExpanded && dailyPick.analysis && (
+          <div className="pt-3 border-t border-gray-700">
+            <p className="text-sm text-gray-300">{dailyPick.analysis}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Inline LoggedInLockPick Component
+const LoggedInLockPick = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [pickStatus, setPickStatus] = useState<string | null>(null);
+  const [fadeStatus, setFadeStatus] = useState<string | null>(null);
+
+  // Check authentication
+  const { data: user } = useQuery({
+    queryKey: ['auth-user'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user');
+      if (!response.ok) return null;
+      return response.json();
+    },
+  });
+
+  // Fetch lock pick data
+  const { data: lockPick, isLoading, error } = useQuery({
+    queryKey: ['lock-pick'],
+    queryFn: async () => {
+      const response = await fetch('/api/daily-pick/lock');
+      if (!response.ok) throw new Error('Failed to fetch lock pick');
+      return response.json();
+    },
+    enabled: !!user, // Only fetch if user is authenticated
+  });
+
+  const handlePick = () => {
+    if (!lockPick) return;
+    
+    const pickData = {
+      type: 'lock-pick',
+      team: lockPick.team,
+      odds: lockPick.odds,
+      grade: lockPick.grade,
+      confidence: lockPick.confidence,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(pickData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    setPickStatus('✓ Picked!');
+    setFadeStatus(null);
+    setTimeout(() => setPickStatus(null), 2000);
+    console.log('✅ Lock pick saved:', pickData);
+  };
+
+  const handleFade = () => {
+    if (!lockPick) return;
+    
+    const fadeData = {
+      type: 'lock-pick-fade',
+      team: lockPick.opponent,
+      odds: lockPick.opponentOdds,
+      grade: lockPick.grade,
+      confidence: lockPick.confidence,
+      timestamp: new Date().toISOString(),
+    };
+    
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(fadeData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    setFadeStatus('✓ Faded!');
+    setPickStatus(null);
+    setTimeout(() => setFadeStatus(null), 2000);
+    console.log('✅ Lock fade saved:', fadeData);
+  };
+
+  if (!user) {
+    return (
+      <Card className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border-orange-500/30">
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold mb-2">Logged in Lock Pick</h3>
+          <p className="text-gray-300">Log in to view another free pick</p>
+          <p className="text-sm text-gray-400 mt-2">Premium picks available for authenticated users</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border-orange-500/30">
+        <CardContent className="p-6">
+          <div className="text-gray-300">Loading lock pick...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !lockPick) {
+    return (
+      <Card className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border-orange-500/30">
+        <CardContent className="p-6">
+          <h3 className="text-xl font-bold mb-2">Logged in Lock Pick</h3>
+          <p className="text-gray-300">No Lock Pick Available Today</p>
+          <p className="text-sm text-gray-400 mt-2">Check back when games are available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-r from-orange-900/20 to-orange-800/10 border-orange-500/30">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">Logged in Lock</CardTitle>
+            <Badge className={`bg-${lockPick.gradeColor || 'orange'}-600`}>
+              {lockPick.grade}
+            </Badge>
+          </div>
+          <span className="text-sm text-gray-400">
+            {lockPick.confidence}% confidence
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-white">{lockPick.team} ML</p>
+            <p className="text-sm text-gray-400">{lockPick.matchup}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-lg text-green-400">{lockPick.odds}</p>
+            <p className="text-xs text-gray-400">{lockPick.time}</p>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            onClick={handlePick}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            disabled={!!pickStatus || !!fadeStatus}
+          >
+            {pickStatus || 'Pick'}
+          </Button>
+          <Button 
+            onClick={handleFade}
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            disabled={!!pickStatus || !!fadeStatus}
+          >
+            {fadeStatus || 'Fade'}
+          </Button>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-gray-400 hover:text-white"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'Hide' : 'Show'} Analysis
+          <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+        </Button>
+        
+        {isExpanded && lockPick.analysis && (
+          <div className="pt-3 border-t border-gray-700">
+            <p className="text-sm text-gray-300">{lockPick.analysis}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export function ActionStyleDashboard() {
+  const [isProUser, setIsProUser] = useState(false);
+  const [selectedSport, setSelectedSport] = useState('MLB');
+  const [pickedGames, setPickedGames] = useState<Set<string>>(new Set());
+  const [fadedGames, setFadedGames] = useState<Set<string>>(new Set());
+
+  // Fetch user data to check pro status
+  const { data: user } = useQuery({
+    queryKey: ['auth-user'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user');
+      if (!response.ok) return null;
+      return response.json();
+    },
+  });
+
+  // Fetch MLB games
+  const { data: games = [], isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
+    queryKey: ['mlb-odds'],
+    queryFn: async () => {
+      const response = await fetch('/api/mlb/complete-schedule');
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data || [];
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch recommendations
+  const { data: recommendations = [] } = useQuery({
+    queryKey: ['recommendations'],
+    queryFn: async () => {
+      const response = await fetch('/api/recommendations');
+      if (!response.ok) return [];
+      return response.json();
+    },
+  });
+
+  // Fetch live odds events
+  const { data: liveOddsData = [] } = useQuery({
+    queryKey: ['live-odds'],
+    queryFn: async () => {
+      const response = await fetch('/api/odds/events');
+      if (!response.ok) return [];
+      return response.json();
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+
+  useEffect(() => {
+    if (user?.isPro) {
+      setIsProUser(true);
+    }
+  }, [user]);
+
+  const handlePick = (gameId: string, team: string, odds: string) => {
+    const pickData = {
+      gameId,
+      team,
+      odds,
+      timestamp: new Date().toISOString(),
+      sport: selectedSport,
+    };
+    
+    // Save to localStorage
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(pickData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    // Update UI
+    setPickedGames(prev => new Set([...prev, `${gameId}-${team}`]));
+    console.log('✅ Pick saved:', pickData);
+  };
+
+  const handleFade = (gameId: string, team: string, odds: string) => {
+    const fadeData = {
+      gameId,
+      team,
+      odds,
+      timestamp: new Date().toISOString(),
+      sport: selectedSport,
+      type: 'fade',
+    };
+    
+    // Save to localStorage
+    const existingPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+    existingPicks.push(fadeData);
+    localStorage.setItem('userPicks', JSON.stringify(existingPicks));
+    
+    // Update UI
+    setFadedGames(prev => new Set([...prev, `${gameId}-${team}`]));
+    console.log('✅ Fade saved:', fadeData);
+  };
+
+  const handleRefresh = () => {
+    refetchOdds();
+    console.log('🔄 Refreshing odds...');
+  };
+
+  const GameCardComponent = isProUser ? ProGameCard : ActionStyleGameCard;
+
+  const upcomingGames = games.filter((game: any) => 
+    !liveOddsData.some((liveGame: any) => liveGame.id === game.id)
+  );
+
+  const liveGames = liveOddsData || [];
 
   return (
     <>
       <MobileHeader />
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 md:space-y-6 pb-20 sm:pb-6">
-        
-        {/* Header */}
-        <div className="space-y-3 mb-4 sm:mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white underline">
-              Bet Bot Sports Genie AI Picks
-            </h2>
-            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto`}>
-              {isProUser ? 'Pro Users' : 'Free Users'}
-            </Badge>
-          </div>
-          
-          {/* Pick Cards */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:gap-6">
-            <DailyPick liveGameData={games.find(g => 
-              g.homeTeam === 'Cincinnati Reds' && g.awayTeam === 'St. Louis Cardinals'
-            )} />
-            <LoggedInLockPick liveGameData={games.find(g => 
-              g.homeTeam === 'Houston Astros' || g.awayTeam === 'Houston Astros'
-            )} />
-          </div>
+      {/* REDUCED SPACING: Changed from py-6 to py-1 */}
+      <div className="max-w-7xl mx-auto px-4 py-1">
+        {/* Header - REDUCED SPACING: Changed from mb-6 to mb-2 */}
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-white underline">
+            Bet Bot Sports Genie AI Picks
+          </h1>
         </div>
 
-        {/* Sports Navigation */}
-        <div className="flex items-center gap-2 sm:gap-4 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-          {sports.map((sport) => (
-            <button
-              key={sport.key}
-              onClick={() => setSelectedSport(sport.key)}
-              className={`py-3 px-2 sm:px-4 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${
-                selectedSport === sport.key
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400"
+        {/* Pick Cards - REDUCED SPACING: Changed from mb-6 to mb-2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2">
+          <DailyPick />
+          <LoggedInLockPick />
+        </div>
+
+        {/* Sports Tabs - REDUCED SPACING: Changed from mb-6 to mb-2 */}
+        <div className="border-b border-gray-700 mb-2">
+          <nav className="flex space-x-8">
+            <button 
+              onClick={() => setSelectedSport('MLB')}
+              className={`py-2 px-1 ${
+                selectedSport === 'MLB' 
+                  ? 'border-b-2 border-blue-500 text-blue-400' 
+                  : 'text-gray-400'
               }`}
             >
-              {sport.name}
+              MLB
             </button>
-          ))}
+            <button 
+              onClick={() => setSelectedSport('NFL')}
+              className={`py-2 px-1 ${
+                selectedSport === 'NFL' 
+                  ? 'border-b-2 border-blue-500 text-blue-400' 
+                  : 'text-gray-400'
+              }`}
+            >
+              NFL
+            </button>
+            <button 
+              onClick={() => setSelectedSport('NBA')}
+              className={`py-2 px-1 ${
+                selectedSport === 'NBA' 
+                  ? 'border-b-2 border-blue-500 text-blue-400' 
+                  : 'text-gray-400'
+              }`}
+            >
+              NBA
+            </button>
+          </nav>
         </div>
 
-        {/* Games Section */}
-        <div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-            <div>
-              <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                MLB Game Odds
+        {/* Live Games Section */}
+        {liveGames.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <h2 className="text-xl font-bold text-white">
+                Live Games ({liveGames.length})
               </h2>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {games.length} games available
-              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchOdds()}
-                disabled={oddsLoading}
-                className="flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3 h-3 ${oddsLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Star className="w-3 h-3" />
-                Live Odds
-              </Badge>
-            </div>
-          </div>
-
-          {oddsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveGames.map((game: any, index: number) => (
+                <GameCardComponent
+                  key={`live-${game.id || index}`}
+                  game={game}
+                  onPick={handlePick}
+                  onFade={handleFade}
+                  isPicked={pickedGames.has(`${game.id}-${game.home_team}`) || 
+                           pickedGames.has(`${game.id}-${game.away_team}`)}
+                  isFaded={fadedGames.has(`${game.id}-${game.home_team}`) || 
+                          fadedGames.has(`${game.id}-${game.away_team}`)}
+                  recommendation={recommendations.find((r: any) => r.gameId === game.id)}
+                  isLive={true}
+                />
               ))}
             </div>
-          ) : games.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {games.map((game) => (
-                <ActionStyleGameCard
-                  key={game.id}
-                  homeTeam={game.homeTeam}
-                  awayTeam={game.awayTeam}
-                  homeOdds={game.homeOdds}
-                  awayOdds={game.awayOdds}
-                  spread={game.spread}
-                  total={game.total}
-                  startTime={game.startTime}
-                  gameId={game.id}
-                  isAuthenticated={isAuthenticated}
-                  rawBookmakers={game.rawBookmakers} // Pass bookmakers to game cards
+          </div>
+        )}
+
+        {/* Upcoming Games Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">
+              {selectedSport} Game Odds ({upcomingGames.length} games)
+            </h2>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+              <Link href="/odds/live">
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Live Odds
+                </Button>
+              </Link>
+            </div>
+          </div>
+          
+          {oddsLoading ? (
+            <div className="text-white">Loading games...</div>
+          ) : upcomingGames.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingGames.slice(0, 9).map((game: any, index: number) => (
+                <GameCardComponent
+                  key={game.id || index}
+                  game={game}
+                  onPick={handlePick}
+                  onFade={handleFade}
+                  isPicked={pickedGames.has(`${game.id}-${game.home_team}`) || 
+                           pickedGames.has(`${game.id}-${game.away_team}`)}
+                  isFaded={fadedGames.has(`${game.id}-${game.home_team}`) || 
+                          fadedGames.has(`${game.id}-${game.away_team}`)}
+                  recommendation={recommendations.find((r: any) => r.gameId === game.id)}
                 />
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No Live Games
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  No games are currently available. Check back later.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center">
+              <p className="text-gray-400">No {selectedSport} games available</p>
+              <p className="text-sm text-gray-500 mt-2">Check back later for upcoming games</p>
+            </div>
           )}
         </div>
       </div>
