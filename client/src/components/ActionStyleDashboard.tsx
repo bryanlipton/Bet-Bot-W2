@@ -143,16 +143,22 @@ function DailyPick({ liveGameData }) {
 
       {showOddsModal && pick && (
         <OddsComparisonModal
-          isOpen={showOddsModal}
+          open={showOddsModal}
           onClose={() => setShowOddsModal(false)}
-          homeTeam={pick.homeTeam}
-          awayTeam={pick.awayTeam}
-          betType="moneyline"
-          selectedTeam={selectedBetType === 'fade' ? 
-            (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-            pick.pickTeam
-          }
-          gameId={pick.gameId}
+          gameInfo={{
+            homeTeam: pick.homeTeam,
+            awayTeam: pick.awayTeam,
+            gameId: pick.gameId,
+            sport: 'baseball_mlb',
+            gameTime: pick.startTime || pick.gameTime || pick.commence_time
+          }}
+          bookmakers={liveGameData?.rawBookmakers || []}
+          selectedBet={{
+            market: 'moneyline',
+            selection: selectedBetType === 'fade' ? 
+              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
+              pick.pickTeam
+          }}
         />
       )}
     </>
@@ -296,16 +302,22 @@ function LoggedInLockPick({ liveGameData }) {
 
       {showOddsModal && pick && (
         <OddsComparisonModal
-          isOpen={showOddsModal}
+          open={showOddsModal}
           onClose={() => setShowOddsModal(false)}
-          homeTeam={pick.homeTeam}
-          awayTeam={pick.awayTeam}
-          betType="moneyline"
-          selectedTeam={selectedBetType === 'fade' ? 
-            (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-            pick.pickTeam
-          }
-          gameId={pick.gameId}
+          gameInfo={{
+            homeTeam: pick.homeTeam,
+            awayTeam: pick.awayTeam,
+            gameId: pick.gameId,
+            sport: 'baseball_mlb',
+            gameTime: pick.startTime || pick.gameTime || pick.commence_time
+          }}
+          bookmakers={liveGameData?.rawBookmakers || []}
+          selectedBet={{
+            market: 'moneyline',
+            selection: selectedBetType === 'fade' ? 
+              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
+              pick.pickTeam
+          }}
         />
       )}
     </>
