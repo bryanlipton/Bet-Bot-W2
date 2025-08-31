@@ -105,9 +105,12 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
             <TrendingUp className="w-5 h-5" />
             Confirm Your Bet
           </DialogTitle>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Did you place this bet? Enter your bet details below.
+          </p>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
           {/* Bet Summary */}
           <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
             <CardContent className="p-4">
@@ -144,7 +147,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
                 type="number"
                 value={units}
                 onChange={(e) => setUnits(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
-                className="w-20 text-center border rounded px-2 py-1"
+                className="w-20 text-center border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 step="0.5"
                 min="0.5"
               />
@@ -155,27 +158,27 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
               >
                 +
               </Button>
-              <span className="text-sm text-gray-600">= ${dollarAmount.toFixed(2)} bet</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">= ${dollarAmount.toFixed(2)} bet</span>
             </div>
           </div>
 
           {/* Payout Info */}
-          <Card>
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="p-3 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span>Bet Amount:</span>
+                <span className="text-gray-600 dark:text-gray-400">Bet Amount:</span>
                 <span className="font-medium">${dollarAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Potential Win:</span>
+                <span className="text-gray-600 dark:text-gray-400">Potential Win:</span>
                 <span className="font-medium text-green-600">
                   ${calculatePotentialWin().toFixed(2)}
                 </span>
               </div>
-              <div className="border-t pt-1 mt-1">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
                 <div className="flex justify-between font-bold">
                   <span>Total Payout:</span>
-                  <span>${(dollarAmount + calculatePotentialWin()).toFixed(2)}</span>
+                  <span className="text-lg">${(dollarAmount + calculatePotentialWin()).toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
@@ -186,7 +189,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
             <Button
               onClick={handleConfirmBet}
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
               {isSubmitting ? 'Saving...' : 'Yes, I Made This Bet'}
             </Button>
