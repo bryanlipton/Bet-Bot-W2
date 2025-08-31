@@ -9,14 +9,14 @@ import { ActionStyleGameCard } from "./ActionStyleGameCard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
 import { OddsComparisonModal } from "./OddsComparisonModal";
+import { useLocation } from 'wouter';
 
 // DailyPick component with modal functionality
 function DailyPick({ liveGameData }) {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showOddsModal, setShowOddsModal] = useState(false);
-  const [selectedBetType, setSelectedBetType] = useState(null);
   const [gameOdds, setGameOdds] = useState(null);
+  const [, navigate] = useLocation();
   
   useEffect(() => {
     fetch('/api/daily-pick')
@@ -79,16 +79,52 @@ function DailyPick({ liveGameData }) {
   };
 
   const handlePick = (e) => {
-    if (!pick) return;
-    setSelectedBetType('pick');
-    setShowOddsModal(true);
+  if (!pick) return;
+  
+  const betConfirmationData = {
+    gameId: pick.gameId || `mlb_${Date.now()}`,
+    homeTeam: pick.homeTeam,
+    awayTeam: pick.awayTeam,
+    selection: pick.pickTeam,
+    market: 'moneyline',
+    odds: getLiveOdds(),
+    bookmaker: 'draftkings',
+    bookmakerDisplayName: 'DraftKings',
+    gameDate: pick.startTime || pick.gameTime || new Date().toISOString()
   };
+  
+  window.open('https://sportsbook.draftkings.com', '_blank', 'noopener,noreferrer');
+  
+  setTimeout(() => {
+    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+    navigate(`/bet-confirmation/${encodedData}`);
+  }, 3000);
+};
 
-  const handleFade = (e) => {
-    if (!pick) return;
-    setSelectedBetType('fade');
-    setShowOddsModal(true);
+ const handleFade = (e) => {
+  if (!pick) return;
+  
+  const fadeSelection = pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam;
+  
+  const betConfirmationData = {
+    gameId: pick.gameId || `mlb_${Date.now()}`,
+    homeTeam: pick.homeTeam,
+    awayTeam: pick.awayTeam,
+    selection: fadeSelection,
+    market: 'moneyline',
+    odds: getLiveOdds(),
+    bookmaker: 'draftkings',
+    bookmakerDisplayName: 'DraftKings',
+    gameDate: pick.startTime || pick.gameTime || new Date().toISOString()
   };
+  
+  window.open('https://sportsbook.draftkings.com', '_blank', 'noopener,noreferrer');
+  
+  setTimeout(() => {
+    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+    navigate(`/bet-confirmation/${encodedData}`);
+  }, 3000);
+};
 
   if (loading) {
     return (
@@ -158,26 +194,7 @@ function DailyPick({ liveGameData }) {
         </div>
       </div>
 
-      {showOddsModal && pick && (
-        <OddsComparisonModal
-          open={showOddsModal}
-          onClose={() => setShowOddsModal(false)}
-          gameInfo={{
-            homeTeam: pick.homeTeam,
-            awayTeam: pick.awayTeam,
-            gameId: pick.gameId,
-            sport: 'baseball_mlb',
-            gameTime: pick.startTime || pick.gameTime || pick.commence_time
-          }}
-          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
-          selectedBet={{
-            market: 'moneyline',
-            selection: selectedBetType === 'fade' ? 
-              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-              pick.pickTeam
-          }}
-        />
-      )}
+    
     </>
   );
 }
@@ -186,10 +203,9 @@ function DailyPick({ liveGameData }) {
 function LoggedInLockPick({ liveGameData }) {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showOddsModal, setShowOddsModal] = useState(false);
-  const [selectedBetType, setSelectedBetType] = useState(null);
   const [gameOdds, setGameOdds] = useState(null);
-
+  const [, navigate] = useLocation();
+  
   useEffect(() => {
     fetch('/api/daily-pick/lock')
       .then(res => res.json())
@@ -251,16 +267,52 @@ function LoggedInLockPick({ liveGameData }) {
   };
 
   const handlePick = (e) => {
-    if (!pick) return;
-    setSelectedBetType('pick');
-    setShowOddsModal(true);
+  if (!pick) return;
+  
+  const betConfirmationData = {
+    gameId: pick.gameId || `mlb_${Date.now()}`,
+    homeTeam: pick.homeTeam,
+    awayTeam: pick.awayTeam,
+    selection: pick.pickTeam,
+    market: 'moneyline',
+    odds: getLiveOdds(),
+    bookmaker: 'draftkings',
+    bookmakerDisplayName: 'DraftKings',
+    gameDate: pick.startTime || pick.gameTime || new Date().toISOString()
   };
+  
+  window.open('https://sportsbook.draftkings.com', '_blank', 'noopener,noreferrer');
+  
+  setTimeout(() => {
+    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+    navigate(`/bet-confirmation/${encodedData}`);
+  }, 3000);
+};
 
   const handleFade = (e) => {
-    if (!pick) return;
-    setSelectedBetType('fade');
-    setShowOddsModal(true);
+  if (!pick) return;
+  
+  const fadeSelection = pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam;
+  
+  const betConfirmationData = {
+    gameId: pick.gameId || `mlb_${Date.now()}`,
+    homeTeam: pick.homeTeam,
+    awayTeam: pick.awayTeam,
+    selection: fadeSelection,
+    market: 'moneyline',
+    odds: getLiveOdds(),
+    bookmaker: 'draftkings',
+    bookmakerDisplayName: 'DraftKings',
+    gameDate: pick.startTime || pick.gameTime || new Date().toISOString()
   };
+  
+  window.open('https://sportsbook.draftkings.com', '_blank', 'noopener,noreferrer');
+  
+  setTimeout(() => {
+    const encodedData = encodeURIComponent(JSON.stringify(betConfirmationData));
+    navigate(`/bet-confirmation/${encodedData}`);
+  }, 3000);
+};
 
   if (loading) {
     return (
@@ -333,27 +385,6 @@ function LoggedInLockPick({ liveGameData }) {
           </button>
         </div>
       </div>
-
-      {showOddsModal && pick && (
-        <OddsComparisonModal
-          open={showOddsModal}
-          onClose={() => setShowOddsModal(false)}
-          gameInfo={{
-            homeTeam: pick.homeTeam,
-            awayTeam: pick.awayTeam,
-            gameId: pick.gameId,
-            sport: 'baseball_mlb',
-            gameTime: pick.startTime || pick.gameTime || pick.commence_time
-          }}
-          bookmakers={gameOdds?.bookmakers || liveGameData?.rawBookmakers || []}
-          selectedBet={{
-            market: 'moneyline',
-            selection: selectedBetType === 'fade' ? 
-              (pick.pickTeam === pick.homeTeam ? pick.awayTeam : pick.homeTeam) : 
-              pick.pickTeam
-          }}
-        />
-      )}
     </>
   );
 }
