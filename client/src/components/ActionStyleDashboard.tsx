@@ -434,23 +434,22 @@ export function ActionStyleDashboard() {
   return (
     <>
       <MobileHeader />
-      {/* REDUCED SPACING: Changed from py-6 to py-1 */}
-      <div className="max-w-7xl mx-auto px-4 py-1">
-        {/* Header - REDUCED SPACING: Changed from mb-6 to mb-2 */}
-        <div className="mb-2">
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-white underline">
             Bet Bot Sports Genie AI Picks
           </h1>
         </div>
 
-        {/* Pick Cards - REDUCED SPACING: Changed from mb-6 to mb-2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2">
+        {/* Pick Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <DailyPick />
           <LoggedInLockPick />
         </div>
 
-        {/* Sports Tabs - REDUCED SPACING: Changed from mb-6 to mb-2 */}
-        <div className="border-b border-gray-700 mb-2">
+        {/* Sports Tabs */}
+        <div className="border-b border-gray-700 mb-6">
           <nav className="flex space-x-8">
             <button 
               onClick={() => setSelectedSport('MLB')}
