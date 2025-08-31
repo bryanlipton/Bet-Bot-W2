@@ -24,8 +24,8 @@ export default function MobileHeader() {
           </Button>
         </div>
       </header>
-      {/* Exact height to match the header - no extra space */}
-      <div className="md:hidden h-[50px]"></div>
+      {/* Remove ALL spacing - this should make content overlap with header if it's working */}
+      {/* <div className="md:hidden h-[44px]"></div> */}
     </>
   );
 }
