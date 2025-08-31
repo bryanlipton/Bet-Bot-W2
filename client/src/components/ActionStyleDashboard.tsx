@@ -386,7 +386,15 @@ function ActionStyleDashboard() {
   const processGames = (games) => {
     if (!Array.isArray(games)) return [];
     
-    return games.map(game => ({
+    // Filter out games that have already started
+    const now = new Date();
+    const upcomingGames = games.filter(game => {
+      if (!game.commence_time) return false;
+      const gameTime = new Date(game.commence_time);
+      return gameTime > now; // Only show games that haven't started yet
+    });
+    
+    return upcomingGames.map(game => ({
       id: game.id || `game_${Date.now()}`,
       homeTeam: game.home_team || 'Home',
       awayTeam: game.away_team || 'Away',
