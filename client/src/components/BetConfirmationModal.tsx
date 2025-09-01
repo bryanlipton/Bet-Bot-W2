@@ -1,10 +1,14 @@
+// client/src/components/BetConfirmationModal.tsx
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, TrendingUp } from 'lucide-react';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface BetConfirmationModalProps {
   open: boolean;
@@ -20,6 +24,7 @@ interface BetConfirmationModalProps {
     bookmaker: string;
     bookmakerDisplayName: string;
     gameDate: string;
+    sport?: string;
   };
 }
 
@@ -27,31 +32,137 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
   const [units, setUnits] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
   
-  const betUnit = 10;
+  // Get bet unit from profile or use default
+  const betUnit = profile?.unit_size || 25;
   const dollarAmount = units * betUnit;
 
   const handleConfirmBet = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save your picks",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await apiRequest('POST', '/api/user/picks', {
-        gameId: betData.gameId,
-        game: `${betData.awayTeam} @ ${betData.homeTeam}`,
-        homeTeam: betData.homeTeam,
+      // Create the pick object matching your Supabase schema
+      const pickToSave = {
+        id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        user_id: user.id,
+        timestamp: new Date().toISOString(),
+        
+        // Store game info as JSONB
+        game_info: {
+          homeTeam: betData.homeTeam,
+          awayTeam: betData.awayTeam,
+          gameId: betData.gameId,
+          sport: betData.sport || 'MLB',
+          gameTime: betData.gameDate
+        },
+        
+        // Store bet info as JSONB
+        bet_info: {
+          market: betData.market,
+          selection: betData.selection,
+          odds: betData.odds,
+          line: betData.line || null,
+          units: units
+        },
+        
+        // Store bookmaker info as JSONB
+        bookmaker: {
+          key: betData.bookmaker,
+          displayName: betData.bookmakerDisplayName,
+          url: `https://sportsbook.${betData.bookmaker}.com`,
+          odds: betData.odds // Store odds here too for your schema
+        },
+        
+        // Additional fields for your schema
+        status: 'pending',
+        bet_unit_at_time: betUnit,
+        show_on_profile: true,
+        show_on_feed: true,
+        result: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        
+        // Add these fields to match your my-picks-fixed component expectations
         awayTeam: betData.awayTeam,
-        selection: betData.selection,
-        market: betData.market,
-        line: betData.line || null,
+        homeTeam: betData.homeTeam,
+        teamBet: betData.selection,
+        betType: betData.market,
         odds: betData.odds,
-        units: units,
-        bookmaker: betData.bookmaker,
-        bookmakerDisplayName: betData.bookmakerDisplayName,
-        gameDate: new Date(betData.gameDate)
-      });
+        line: betData.line || null,
+        createdAt: new Date().toISOString()
+      };
 
-      queryClient.invalidateQueries({ queryKey: ['/api/user/picks'] });
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('picks')
+        .insert([pickToSave])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving pick to Supabase:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save pick. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Pick saved successfully:', data);
+
+      // Also save to localStorage as backup
+      const localPicks = JSON.parse(localStorage.getItem('userPicks') || '[]');
+      localPicks.unshift({
+        id: data?.id || pickToSave.id,
+        timestamp: new Date().toISOString(),
+        gameInfo: {
+          homeTeam: betData.homeTeam,
+          awayTeam: betData.awayTeam,
+          gameId: betData.gameId,
+          sport: betData.sport || 'MLB',
+          gameTime: betData.gameDate
+        },
+        betInfo: {
+          market: betData.market,
+          selection: betData.selection,
+          odds: betData.odds,
+          line: betData.line,
+          units: units
+        },
+        bookmaker: {
+          key: betData.bookmaker,
+          displayName: betData.bookmakerDisplayName,
+          url: `https://sportsbook.${betData.bookmaker}.com`
+        },
+        status: 'pending',
+        betUnitAtTime: betUnit,
+        showOnProfile: true,
+        showOnFeed: true
+      });
+      localStorage.setItem('userPicks', JSON.stringify(localPicks));
+
+      // Invalidate queries to refresh the picks list
+      queryClient.invalidateQueries({ queryKey: ['my-picks-supabase'] });
+      
       setIsComplete(true);
       
+      toast({
+        title: "Success!",
+        description: "Your pick has been saved",
+      });
+      
+      // Auto close after 2 seconds
       setTimeout(() => {
         onClose();
         setIsComplete(false);
@@ -59,7 +170,11 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
       }, 2000);
     } catch (error) {
       console.error('Error confirming bet:', error);
-      alert('Failed to save bet. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to save bet. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -121,7 +236,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
                 </Badge>
               </div>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                {betData.selection} to win
+                {betData.selection} {betData.line ? `(${betData.line})` : ''} {betData.market}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                 @ {betData.bookmakerDisplayName}
@@ -155,8 +270,13 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
               >
                 +
               </Button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">= ${dollarAmount.toFixed(2)} bet</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                = ${dollarAmount.toFixed(2)} bet
+              </span>
             </div>
+            <p className="text-xs text-gray-500 text-center">
+              Unit size: ${betUnit} per unit
+            </p>
           </div>
 
           <Card className="border-gray-200 dark:border-gray-700">
@@ -183,7 +303,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
           <div className="flex gap-2">
             <Button
               onClick={handleConfirmBet}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !user}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
               {isSubmitting ? 'Saving...' : 'Yes, I Made This Bet'}
@@ -196,6 +316,12 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
               No, Skip This
             </Button>
           </div>
+
+          {!user && (
+            <p className="text-xs text-center text-yellow-600 dark:text-yellow-400">
+              Please log in to save your picks
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
