@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { CalendarDays, TrendingUp, TrendingDown, DollarSign, Target, Search, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { isUnauthorizedError } from '@/lib/authUtils';
+import { fetchMyPicks } from '@/services/myPicksAdapter';
 
 // Form schema for adding new bets
 const addBetSchema = z.object({
@@ -129,27 +130,34 @@ export default function MyPicks() {
     }
   }, [isAuthenticated, authLoading, toast]);
 
-  // Fetch user bets
-  const { data: bets, isLoading: betsLoading } = useQuery<UserBet[]>({
-    queryKey: ['/api/bets'],
-    enabled: isAuthenticated,
-    retry: false,
-  });
+  // Fetch user bets from Supabase
+const { data: bets, isLoading: betsLoading } = useQuery({
+  queryKey: ['my-picks-supabase'],
+  queryFn: () => fetchMyPicks(),
+  enabled: isAuthenticated,
+  retry: false,
+});
 
-  // Fetch ROI statistics
-  const { data: roiStats, isLoading: roiLoading } = useQuery<ROIStats>({
-    queryKey: ['/api/bets/roi'],
-    enabled: isAuthenticated,
-    retry: false,
-  });
+  // Comment out these for now since the API endpoints don't exist
+/*
+// Fetch ROI statistics
+const { data: roiStats, isLoading: roiLoading } = useQuery<ROIStats>({
+  queryKey: ['/api/bets/roi'],
+  enabled: isAuthenticated,
+  retry: false,
+});
 
-  // Fetch pending bets
-  const { data: pendingBets, isLoading: pendingLoading } = useQuery<UserBet[]>({
-    queryKey: ['/api/bets/pending'],
-    enabled: isAuthenticated,
-    retry: false,
-  });
-
+// Fetch pending bets
+const { data: pendingBets, isLoading: pendingLoading } = useQuery<UserBet[]>({
+  queryKey: ['/api/bets/pending'],
+  enabled: isAuthenticated,
+  retry: false,
+});
+*/
+const roiStats = null;
+const roiLoading = false;
+const pendingBets = bets?.filter(bet => bet.status === 'pending');
+const pendingLoading = betsLoading;
   // Add bet mutation
   const addBetMutation = useMutation({
     mutationFn: async (betData: AddBetForm) => {
