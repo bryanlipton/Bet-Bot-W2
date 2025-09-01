@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { fetchMyPicks } from '@/services/myPicksAdapter';
 import { 
   Target, 
   ExternalLink, 
@@ -38,10 +39,13 @@ export default function MyPicksPageFixed() {
   const { toast } = useToast();
 
   // Use database-only approach with TanStack Query
-  const { data: userPicks = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/user/picks'],
-    enabled: isAuthenticated
-  });
+  import { fetchMyPicks } from '@/services/myPicksAdapter';
+
+const { data: userPicks = [], isLoading, refetch } = useQuery({
+  queryKey: ['my-picks-supabase'],
+  queryFn: fetchMyPicks,
+  enabled: isAuthenticated
+});
 
   // Get user preferences for bet unit
   const { data: userPreferences } = useQuery({
@@ -160,37 +164,50 @@ export default function MyPicksPageFixed() {
   };
 
   const formatBet = (pick: any) => {
-    if (!pick) return 'Unknown';
-    
-    const odds = pick.odds ? formatOdds(pick.odds) : '';
-    const market = pick.market || 'unknown';
-    const selection = pick.selection || 'Unknown';
-    const line = pick.line;
-    
-    if (market === 'moneyline') {
-      return `${selection} ML ${odds}`;
-    }
-    if (market === 'spread') {
-      const lineValue = line || 0;
-      return `${selection} ${lineValue > 0 ? '+' : ''}${lineValue} ${odds}`;
-    }
-    if (market === 'total') {
-      return `${selection} ${line || ''} ${odds}`;
-    }
-    return `${selection} ${market} ${odds}`;
-  };
-
+  if (!pick) return 'Unknown';
+  
+  const odds = pick.odds ? formatOdds(pick.odds) : '';
+  const market = pick.betType || pick.market || 'unknown';
+  const selection = pick.teamBet || pick.selection || 'Unknown';
+  const line = pick.line;
+  
+  if (market === 'moneyline') {
+    return `${selection} ML ${odds}`;
+  }
+  if (market === 'spread') {
+    const lineValue = line || 0;
+    return `${selection} ${lineValue > 0 ? '+' : ''}${lineValue} ${odds}`;
+  }
+  if (market === 'total') {
+    return `${selection} ${line || ''} ${odds}`;
+  }
+  return `${selection} ${market} ${odds}`;
+};
   const deletePick = async (pickId: string) => {
-    if (confirm('Are you sure you want to delete this pick?')) {
-      try {
-        await apiRequest('DELETE', `/api/user/picks/${pickId}`);
-        refetch();
-      } catch (error) {
+  if (confirm('Are you sure you want to delete this pick?')) {
+    try {
+      const { error } = await supabase
+        .from('picks')
+        .delete()
+        .eq('id', pickId);
+      
+      if (error) {
         console.error('Error deleting pick:', error);
         alert('Failed to delete pick. Please try again.');
+      } else {
+        // Successfully deleted, refresh the picks list
+        refetch();
+        toast({
+          title: "Pick deleted",
+          description: "The pick has been removed successfully.",
+        });
       }
+    } catch (error) {
+      console.error('Error deleting pick:', error);
+      alert('Failed to delete pick. Please try again.');
     }
-  };
+  }
+};
 
   const handleEditOdds = (pickId: string, currentOdds: number) => {
     setEditingOdds(pickId);
