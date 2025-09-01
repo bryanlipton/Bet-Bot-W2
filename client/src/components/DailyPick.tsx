@@ -17,7 +17,7 @@ import { getFactorColorClasses, getFactorTooltip, getGradeColorClasses, getMainG
 import { generatePickAnalysisContent } from "@/lib/pickAnalysisUtils";
 import { apiRequest } from "@/lib/queryClient";
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
-
+import { fetchDailyPick } from '@/services/dailyPickAdapter';
 
 
 // MLB team abbreviations mapping
@@ -429,7 +429,8 @@ export default function DailyPick() {
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: dailyPick, isLoading } = useQuery<DailyPick | null>({
-    queryKey: ['/api/daily-pick'],
+  queryKey: ['daily-pick-supabase'],
+  queryFn: fetchDailyPick,
     staleTime: 30 * 60 * 1000, // Consider data fresh for 30 minutes
     gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour (formerly cacheTime)
     refetchOnWindowFocus: false, // Prevent refetch on window focus
