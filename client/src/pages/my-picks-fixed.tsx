@@ -39,7 +39,7 @@ export default function MyPicksPageFixed() {
   const { toast } = useToast();
 
   // Use database-only approach with TanStack Query
-  import { fetchMyPicks } from '@/services/myPicksAdapter';
+
 
 const { data: userPicks = [], isLoading, refetch } = useQuery({
   queryKey: ['my-picks-supabase'],
@@ -215,22 +215,56 @@ const { data: userPicks = [], isLoading, refetch } = useQuery({
   };
 
   const handleSaveOdds = async (pickId: string) => {
-    const odds = parseFloat(tempOdds);
-    if (isNaN(odds) || odds === 0) {
-      alert('Please enter valid odds (e.g., -110, +150)');
-      return;
-    }
+  const odds = parseFloat(tempOdds);
+  if (isNaN(odds) || odds === 0) {
+    alert('Please enter valid odds (e.g., -110, +150)');
+    return;
+  }
 
-    try {
-      await apiRequest('PATCH', `/api/user/picks/${pickId}/odds`, { odds });
-      refetch();
-      setEditingOdds(null);
-      setTempOdds('');
-    } catch (error) {
-      console.error('Error updating odds:', error);
-      alert('Failed to update odds. Please try again.');
+  try {
+    // Update the odds in the JSONB structure
+    const { data: currentPick } = await supabase
+      .from('picks')
+      .select('*')
+      .eq('id', pickId)
+      .single();
+
+    if (currentPick) {
+      const updatedBetInfo = {
+        ...currentPick.bet_info,
+        odds: odds
+      };
+      const updatedBookmaker = {
+        ...currentPick.bookmaker,
+        odds: odds
+      };
+
+      const { error } = await supabase
+        .from('picks')
+        .update({ 
+          bet_info: updatedBetInfo,
+          bookmaker: updatedBookmaker
+        })
+        .eq('id', pickId);
+
+      if (error) {
+        console.error('Error updating odds:', error);
+        alert('Failed to update odds. Please try again.');
+      } else {
+        refetch();
+        setEditingOdds(null);
+        setTempOdds('');
+        toast({
+          title: "Odds updated",
+          description: `Odds set to ${formatOdds(odds)}`,
+        });
+      }
     }
-  };
+  } catch (error) {
+    console.error('Error updating odds:', error);
+    alert('Failed to update odds. Please try again.');
+  }
+};
 
   const handleCancelEdit = () => {
     setEditingOdds(null);
