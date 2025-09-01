@@ -3,6 +3,7 @@ import { userPicksAPI } from '../services/userPicksApi';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { supabase } from '@/lib/supabase';
 
 interface UserPickDisplay {
   id: number;
@@ -44,18 +45,59 @@ export default function SimpleMyPicks() {
     loadPicks();
   }, []);
 
-  const loadPicks = async () => {
-    try {
-      setLoading(true);
-      const fetchedPicks = await userPicksAPI.getUserPicks();
-      setPicks(fetchedPicks);
-    } catch (error) {
+const loadPicks = async () => {
+  try {
+    setLoading(true);
+    
+    // Fetch directly from Supabase
+    const { data, error } = await window.supabase
+      .from('picks')
+      .select('*')
+      .order('timestamp', { ascending: false });
+    
+    if (error) {
       console.error('Error loading picks:', error);
-    } finally {
-      setLoading(false);
+      setPicks([]);
+      return;
     }
-  };
 
+    // Transform Supabase data to match UserPickDisplay interface
+    const transformedPicks = (data || []).map((pick: any) => ({
+      id: pick.id,
+      gameInfo: {
+        awayTeam: pick.game_info?.awayTeam || 'Away',
+        homeTeam: pick.game_info?.homeTeam || 'Home',
+        game: `${pick.game_info?.awayTeam || 'Away'} @ ${pick.game_info?.homeTeam || 'Home'}`,
+        gameDate: pick.game_info?.gameTime || pick.timestamp
+      },
+      betInfo: {
+        selection: pick.bet_info?.pickTeam || pick.bet_info?.team || 'Unknown',
+        market: pick.bet_info?.pickType || 'moneyline',
+        line: pick.bet_info?.spread?.toString(),
+        odds: pick.bookmaker?.odds || pick.bet_info?.odds || -110,
+        units: pick.bet_unit_at_time || 1
+      },
+      bookmaker: {
+        key: pick.bookmaker?.name?.toLowerCase() || 'unknown',
+        displayName: pick.bookmaker?.name || 'Unknown Book'
+      },
+      status: pick.status || 'pending',
+      result: pick.result,
+      winAmount: 0,
+      wagerAmount: (pick.bet_unit_at_time || 1) * 50,
+      potentialPayout: 100,
+      betUnitAtTime: pick.bet_unit_at_time || 50,
+      createdAt: pick.created_at
+    }));
+
+    setPicks(transformedPicks);
+  } catch (error) {
+    console.error('Error loading picks:', error);
+    setPicks([]);
+  } finally {
+    setLoading(false);
+  }
+};
   const getStatusBadge = (status: UserPickDisplay['status'], pick?: UserPickDisplay) => {
     const isToday = pick && new Date(pick.gameInfo.gameDate).toDateString() === new Date().toDateString();
     
