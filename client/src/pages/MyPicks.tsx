@@ -133,7 +133,7 @@ export default function MyPicks() {
   // Fetch user bets from Supabase
 const { data: bets, isLoading: betsLoading } = useQuery({
   queryKey: ['my-picks-supabase'],
-  queryFn: () => fetchMyPicks(),
+  queryFn: fetchMyPicks,
   enabled: isAuthenticated,
   retry: false,
 });
