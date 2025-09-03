@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { fetchMyPicks, updatePickOdds, deletePickFromSupabase } from '@/services/myPicksAdapter';
+import { GameResultsService } from '@/services/gameResultsService';
 import { 
   Target, 
   ExternalLink, 
@@ -21,7 +22,8 @@ import {
   Save,
   X,
   Plus,
-  Settings
+  Settings,
+  RefreshCw
 } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +37,8 @@ export default function MyPicksPageFixed() {
   const [showUnitDialog, setShowUnitDialog] = useState(false);
   const [betUnit, setBetUnit] = useState(25);
   const [tempBetUnit, setTempBetUnit] = useState('25');
+  const [isGrading, setIsGrading] = useState(false);
+  const [lastGradedTime, setLastGradedTime] = useState<Date | null>(null);
   
   const { toast } = useToast();
 
@@ -67,6 +71,57 @@ export default function MyPicksPageFixed() {
     
     loadUnitSize();
   }, [profile]);
+
+  // Auto-grade picks on mount and every 5 minutes
+  useEffect(() => {
+    // Grade picks when component mounts
+    if (isAuthenticated) {
+      handleGradePicks();
+    }
+    
+    // Set up interval to grade picks every 5 minutes
+    const interval = setInterval(() => {
+      if (isAuthenticated) {
+        handleGradePicks();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  // Function to manually trigger pick grading
+  const handleGradePicks = async () => {
+    if (isGrading || !isAuthenticated) return;
+    
+    setIsGrading(true);
+    try {
+      const result = await GameResultsService.gradeAllPendingPicks();
+      
+      if (result.success && result.gradedCount && result.gradedCount > 0) {
+        toast({
+          title: "Picks Graded!",
+          description: `${result.gradedCount} picks have been graded`,
+        });
+        
+        // Refresh the picks list
+        refetch();
+      } else if (result.success && result.gradedCount === 0) {
+        // Don't show toast on auto-grade if no picks were graded
+        console.log('No picks to grade');
+      }
+      
+      setLastGradedTime(new Date());
+    } catch (error) {
+      console.error('Error grading picks:', error);
+      toast({
+        title: "Error",
+        description: "Failed to grade picks. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGrading(false);
+    }
+  };
 
   // Authentication guard
   if (!isAuthenticated && !authLoading) {
@@ -128,6 +183,17 @@ export default function MyPicksPageFixed() {
     return pick.status === selectedStatus;
   });
 
+  // Sort picks: pending first in "all" tab, then by date
+  const sortedAndFilteredPicks = filteredPicks.sort((a: any, b: any) => {
+    // In "all" tab, pending picks should be on top
+    if (selectedStatus === 'all') {
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+    }
+    // Then sort by date (newest first)
+    return new Date(b.createdAt || b.created_at).getTime() - new Date(a.createdAt || a.created_at).getTime();
+  });
+
   // Calculate stats with unit-based P&L
   const stats = {
     total: picksArray.length,
@@ -135,7 +201,8 @@ export default function MyPicksPageFixed() {
     won: picksArray.filter((p: any) => ['won', 'win'].includes(p?.status)).length,
     lost: picksArray.filter((p: any) => ['lost', 'loss'].includes(p?.status)).length,
     totalUnits: 0,
-    profitLoss: 0
+    profitLoss: 0,
+    winRate: 0
   };
 
   // Calculate profit/loss in units
@@ -157,6 +224,12 @@ export default function MyPicksPageFixed() {
       stats.totalUnits += units;
     }
   });
+
+  // Calculate accurate win rate
+  const completedPicks = stats.won + stats.lost;
+  if (completedPicks > 0) {
+    stats.winRate = (stats.won / completedPicks) * 100;
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -350,10 +423,22 @@ export default function MyPicksPageFixed() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
-        {/* Page Header */}
-        <div className="flex items-center gap-2 mb-6">
-          <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+        {/* Page Header with Grade Picks Button */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+          </div>
+          <Button
+            onClick={handleGradePicks}
+            disabled={isGrading}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isGrading ? 'animate-spin' : ''}`} />
+            {isGrading ? 'Grading...' : 'Grade Picks'}
+          </Button>
         </div>
         
         {/* Stats Cards */}
@@ -391,7 +476,7 @@ export default function MyPicksPageFixed() {
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.won}-{stats.lost}</p>
                   {stats.won + stats.lost > 0 && (
                     <p className="text-xs text-gray-500">
-                      {((stats.won / (stats.won + stats.lost)) * 100).toFixed(1)}% Win
+                      {stats.winRate.toFixed(1)}% Win
                     </p>
                   )}
                 </div>
@@ -437,7 +522,7 @@ export default function MyPicksPageFixed() {
           </TabsList>
 
           <TabsContent value={selectedStatus} className="space-y-4 mt-4">
-            {filteredPicks.length === 0 ? (
+            {sortedAndFilteredPicks.length === 0 ? (
               <Card className="bg-white dark:bg-gray-800">
                 <CardContent className="p-8 text-center">
                   <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
@@ -453,7 +538,7 @@ export default function MyPicksPageFixed() {
                 </CardContent>
               </Card>
             ) : (
-              filteredPicks.map((pick: any) => {
+              sortedAndFilteredPicks.map((pick: any) => {
                 const units = pick.bet_info?.units || pick.units || 1;
                 const betAmount = units * betUnit;
                 
@@ -539,10 +624,10 @@ export default function MyPicksPageFixed() {
                           {(pick.status === 'won' || pick.status === 'win') && (
                             <div className="text-right">
                               <p className="text-sm font-bold text-green-600">
-                                +{((units * pick.odds) / (pick.odds > 0 ? 100 : -100)).toFixed(2)}u
+                                +{((units * Math.abs(pick.odds)) / (pick.odds > 0 ? 100 : Math.abs(pick.odds))).toFixed(2)}u
                               </p>
                               <p className="text-xs text-green-600">
-                                +${((betAmount * pick.odds) / (pick.odds > 0 ? 100 : -100)).toFixed(2)}
+                                +${((betAmount * Math.abs(pick.odds)) / (pick.odds > 0 ? 100 : Math.abs(pick.odds))).toFixed(2)}
                               </p>
                             </div>
                           )}
