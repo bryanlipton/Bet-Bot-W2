@@ -5,22 +5,36 @@ import { supabase } from '@/lib/supabase';
 export async function fetchMyPicks(userId?: string) {
   try {
     // Get current user if no userId provided
-    if (!userId) {
+    let userIdToUse = userId;
+    
+    if (!userIdToUse) {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-      userId = user.id;
+      if (!user) {
+        console.log('No user found');
+        return [];
+      }
+      userIdToUse = user.id; // Use the ID string, not the user object
     }
+    
+    console.log('Fetching picks for user ID:', userIdToUse);
     
     const { data, error } = await supabase
       .from('picks')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userIdToUse) // Make sure this is a string, not an object
       .order('created_at', { ascending: false });
     
-    if (error || !data) {
-      console.log('No picks found');
+    if (error) {
+      console.error('Error fetching picks:', error);
       return [];
     }
+    
+    if (!data || data.length === 0) {
+      console.log('No picks found for user');
+      return [];
+    }
+    
+    console.log(`Found ${data.length} picks`);
     
     // Transform each pick to match what my-picks-fixed.tsx expects
     return data.map(pick => {
