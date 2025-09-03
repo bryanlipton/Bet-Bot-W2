@@ -427,22 +427,11 @@ export default function MyPicksPageFixed() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
         {/* Page Header with Grade Picks Button */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
-          </div>
-          <Button
-            onClick={handleGradePicks}
-            disabled={isGrading}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${isGrading ? 'animate-spin' : ''}`} />
-            {isGrading ? 'Grading...' : 'Grade Picks'}
-          </Button>
-        </div>
+        {/* Page Header */}
+<div className="flex items-center gap-2 mb-6">
+  <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Picks</h1>
+</div>
         
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
