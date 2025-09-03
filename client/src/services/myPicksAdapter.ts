@@ -1,5 +1,4 @@
 // client/src/services/myPicksAdapter.ts
-
 import { supabase } from '@/lib/supabase';
 
 // Fetch all picks for a user
@@ -11,36 +10,65 @@ export async function fetchMyPicks(userId?: string) {
       if (!user) return [];
       userId = user.id;
     }
-
+    
     const { data, error } = await supabase
       .from('picks')
       .select('*')
       .eq('user_id', userId)
-      .order('timestamp', { ascending: false });
-
+      .order('created_at', { ascending: false });
+    
     if (error || !data) {
       console.log('No picks found');
       return [];
     }
-
-    // Transform each pick to match frontend expectations
-    return data.map(pick => ({
-      id: pick.id,
-      date: pick.timestamp,
-      team: pick.bet_info?.pickTeam || pick.bet_info?.team || 'Unknown Team',
-      opponent: pick.game_info?.awayTeam === pick.bet_info?.pickTeam 
-        ? pick.game_info?.homeTeam 
-        : pick.game_info?.awayTeam || 'Unknown',
-      odds: pick.bookmaker?.odds || pick.bet_info?.odds || -110,
-      spread: pick.bet_info?.spread || 0,
-      type: pick.bet_info?.pickType || pick.bet_info?.type || 'moneyline',
-      status: pick.status || 'pending',
-      result: pick.result,
-      homeTeam: pick.game_info?.homeTeam || 'Home',
-      awayTeam: pick.game_info?.awayTeam || 'Away',
-      sport: pick.game_info?.sport || 'MLB',
-      units: pick.bet_unit_at_time || 1
-    }));
+    
+    // Transform each pick to match what my-picks-fixed.tsx expects
+    return data.map(pick => {
+      // Extract data from JSONB fields
+      const gameInfo = pick.game_info || {};
+      const betInfo = pick.bet_info || {};
+      const bookmakerInfo = pick.bookmaker || {};
+      
+      return {
+        id: pick.id,
+        user_id: pick.user_id,
+        
+        // Game information - these field names match what my-picks-fixed expects
+        homeTeam: gameInfo.homeTeam || pick.homeTeam || 'Unknown',
+        awayTeam: gameInfo.awayTeam || pick.awayTeam || 'Unknown',
+        gameId: gameInfo.gameId || pick.gameId,
+        sport: gameInfo.sport || 'MLB',
+        
+        // Bet information - matching the component's expectations
+        teamBet: betInfo.selection || betInfo.pickTeam || betInfo.team || 'Unknown',
+        betType: betInfo.market || betInfo.type || betInfo.pickType || 'moneyline',
+        market: betInfo.market || betInfo.type || 'moneyline',
+        selection: betInfo.selection || betInfo.pickTeam || betInfo.team || 'Unknown',
+        odds: betInfo.odds || bookmakerInfo.odds || pick.odds || 0,
+        line: betInfo.line || betInfo.spread || null,
+        units: betInfo.units || pick.bet_unit_at_time || 1,
+        
+        // Bookmaker information
+        bookmaker: bookmakerInfo.key || pick.bookmaker || 'manual',
+        bookmakerDisplayName: bookmakerInfo.displayName || bookmakerInfo.key || 'Manual Entry',
+        
+        // Status and dates
+        status: pick.status || 'pending',
+        createdAt: pick.created_at || pick.timestamp,
+        updatedAt: pick.updated_at,
+        
+        // Additional fields
+        bet_unit_at_time: pick.bet_unit_at_time,
+        show_on_profile: pick.show_on_profile !== false,
+        show_on_feed: pick.show_on_feed !== false,
+        result: pick.result,
+        
+        // Keep original JSONB fields for reference
+        game_info: gameInfo,
+        bet_info: betInfo,
+        bookmaker_info: bookmakerInfo
+      };
+    });
   } catch (err) {
     console.error('Error fetching picks:', err);
     return [];
