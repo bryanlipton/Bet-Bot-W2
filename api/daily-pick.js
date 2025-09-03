@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     console.log('📅 Daily pick request received');
     
     // Check if we should generate new picks (2 AM EST reset)
-    if (true) { // TEMPORARY: Force refresh for testing. Change back to: if (shouldResetPicks() || !cachedDailyPick) {
+    if (shouldResetPicks() || !cachedDailyPick) {
       console.log('🔄 Generating new picks...');
       
       // Store yesterday's teams before generating new picks
