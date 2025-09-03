@@ -89,8 +89,8 @@ export default function MyPicksPageFixed() {
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
-  // Function to manually trigger pick grading
-  const handleGradePicks = async () => {
+  // Function to automatically grade picks
+  const handleGradePicks = async (showToast: boolean = false) => {
     if (isGrading || !isAuthenticated) return;
     
     setIsGrading(true);
@@ -98,26 +98,29 @@ export default function MyPicksPageFixed() {
       const result = await GameResultsService.gradeAllPendingPicks();
       
       if (result.success && result.gradedCount && result.gradedCount > 0) {
-        toast({
-          title: "Picks Graded!",
-          description: `${result.gradedCount} picks have been graded`,
-        });
+        // Only show toast if explicitly requested or if picks were actually graded
+        if (showToast || result.gradedCount > 0) {
+          toast({
+            title: "Picks Graded!",
+            description: `${result.gradedCount} pick${result.gradedCount > 1 ? 's' : ''} ${result.gradedCount > 1 ? 'have' : 'has'} been graded`,
+          });
+        }
         
         // Refresh the picks list
         refetch();
-      } else if (result.success && result.gradedCount === 0) {
-        // Don't show toast on auto-grade if no picks were graded
-        console.log('No picks to grade');
       }
       
       setLastGradedTime(new Date());
     } catch (error) {
       console.error('Error grading picks:', error);
-      toast({
-        title: "Error",
-        description: "Failed to grade picks. Please try again.",
-        variant: "destructive"
-      });
+      // Only show error toast if it was a manual trigger
+      if (showToast) {
+        toast({
+          title: "Error",
+          description: "Failed to grade picks. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsGrading(false);
     }
