@@ -115,4 +115,196 @@ export class GameResultsService {
         .eq('user_id', user.id)
         .eq('status', 'pending');
       
-      if (picksError || !pendingPicks)
+      if (picksError || !pendingPicks) {
+        console.error('Error fetching pending picks:', picksError);
+        return { success: false, error: picksError };
+      }
+      
+      if (pendingPicks.length === 0) {
+        console.log('No pending picks to grade');
+        return { success: true, message: 'No pending picks', gradedCount: 0 };
+      }
+      
+      console.log(`Found ${pendingPicks.length} pending picks to grade`);
+      
+      // Get unique sports from picks
+      const sports = [...new Set(pendingPicks.map(p => p.game_info?.sport || 'MLB'))];
+      
+      // Fetch game results for each sport
+      let allResults: GameResult[] = [];
+      for (const sport of sports) {
+        const results = await this.fetchGameResults(sport);
+        allResults = [...allResults, ...results];
+      }
+      
+      // Grade each pick
+      let gradedCount = 0;
+      for (const pick of pendingPicks) {
+        const gradeResult = await this.gradeSinglePick(pick, allResults);
+        if (gradeResult.graded) {
+          gradedCount++;
+        }
+      }
+      
+      console.log(`Graded ${gradedCount} out of ${pendingPicks.length} picks`);
+      
+      // Update user stats after grading
+      if (gradedCount > 0) {
+        await this.updateUserStats(user.id);
+      }
+      
+      return { 
+        success: true, 
+        message: `Graded ${gradedCount} picks`,
+        gradedCount,
+        totalPicks: pendingPicks.length 
+      };
+    } catch (error) {
+      console.error('Error in grading process:', error);
+      return { success: false, error };
+    }
+  }
+  
+  // Grade a single pick
+  static async gradeSinglePick(pick: any, gameResults: GameResult[]) {
+    try {
+      const gameInfo = pick.game_info || {};
+      const betInfo = pick.bet_info || {};
+      
+      // Find the game result - match by gameId or by teams
+      const gameResult = gameResults.find(r => {
+        // First try to match by gameId
+        if (r.gameId === gameInfo.gameId || r.gameId === pick.gameId) {
+          return true;
+        }
+        // Then try to match by teams
+        return r.homeTeam === gameInfo.homeTeam && r.awayTeam === gameInfo.awayTeam;
+      });
+      
+      if (!gameResult || gameResult.status !== 'final') {
+        return { graded: false, reason: 'Game not finished' };
+      }
+      
+      // Determine if the pick won
+      let pickResult: 'won' | 'lost' | 'push' = 'lost';
+      
+      if (betInfo.market === 'moneyline') {
+        // For moneyline bets
+        const pickedTeam = betInfo.selection;
+        const isHomeTeam = pickedTeam === gameInfo.homeTeam;
+        
+        if (gameResult.winner === 'tie') {
+          pickResult = 'push';
+        } else if (
+          (isHomeTeam && gameResult.winner === 'home') ||
+          (!isHomeTeam && gameResult.winner === 'away')
+        ) {
+          pickResult = 'won';
+        } else {
+          pickResult = 'lost';
+        }
+      } else if (betInfo.market === 'spread') {
+        // For spread bets
+        const spread = parseFloat(betInfo.line || '0');
+        const pickedTeam = betInfo.selection;
+        const isHomeTeam = pickedTeam === gameInfo.homeTeam;
+        
+        let adjustedScore;
+        if (isHomeTeam) {
+          adjustedScore = gameResult.homeScore + spread;
+          if (adjustedScore > gameResult.awayScore) {
+            pickResult = 'won';
+          } else if (adjustedScore === gameResult.awayScore) {
+            pickResult = 'push';
+          }
+        } else {
+          adjustedScore = gameResult.awayScore + spread;
+          if (adjustedScore > gameResult.homeScore) {
+            pickResult = 'won';
+          } else if (adjustedScore === gameResult.homeScore) {
+            pickResult = 'push';
+          }
+        }
+      } else if (betInfo.market === 'total' || betInfo.market === 'over' || betInfo.market === 'under') {
+        // For over/under bets
+        const totalLine = parseFloat(betInfo.line || '0');
+        const actualTotal = gameResult.homeScore + gameResult.awayScore;
+        const selection = betInfo.selection?.toLowerCase();
+        
+        if (actualTotal === totalLine) {
+          pickResult = 'push';
+        } else if (selection?.includes('over')) {
+          pickResult = actualTotal > totalLine ? 'won' : 'lost';
+        } else if (selection?.includes('under')) {
+          pickResult = actualTotal < totalLine ? 'won' : 'lost';
+        }
+      }
+      
+      // Update the pick in the database
+      const { error: updateError } = await supabase
+        .from('picks')
+        .update({
+          status: pickResult,
+          result: {
+            homeScore: gameResult.homeScore,
+            awayScore: gameResult.awayScore,
+            gradedAt: new Date().toISOString()
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', pick.id);
+      
+      if (updateError) {
+        console.error('Error updating pick:', updateError);
+        return { graded: false, error: updateError };
+      }
+      
+      console.log(`Pick ${pick.id} graded as ${pickResult}`);
+      return { graded: true, result: pickResult };
+    } catch (error) {
+      console.error('Error grading pick:', error);
+      return { graded: false, error };
+    }
+  }
+  
+  // Update user statistics after grading
+  static async updateUserStats(userId: string) {
+    try {
+      // Fetch all user picks to calculate stats
+      const { data: allPicks, error } = await supabase
+        .from('picks')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (error || !allPicks) {
+        console.error('Error fetching picks for stats:', error);
+        return;
+      }
+      
+      // Calculate stats
+      const wonPicks = allPicks.filter(p => p.status === 'won').length;
+      const lostPicks = allPicks.filter(p => p.status === 'lost').length;
+      const totalCompleted = wonPicks + lostPicks;
+      const winRate = totalCompleted > 0 ? (wonPicks / totalCompleted) * 100 : 0;
+      
+      // Update profile with new stats
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          total_picks: allPicks.length,
+          successful_picks: wonPicks,
+          win_rate: winRate,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+      
+      if (updateError) {
+        console.error('Error updating user stats:', updateError);
+      } else {
+        console.log('User stats updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating user stats:', error);
+    }
+  }
+}
