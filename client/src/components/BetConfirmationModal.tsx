@@ -53,7 +53,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
     try {
       // Create the pick object with ONLY the fields that exist in the database
       const pickToSave = {
-        id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        // Don't include 'id' - let Supabase generate it automatically
         user_id: user.id,
         timestamp: new Date().toISOString(),
         
