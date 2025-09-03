@@ -171,9 +171,10 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
       setIsComplete(true);
       
       toast({
-        title: "Success!",
-        description: "Your pick has been saved",
-      });
+  title: "Success!",
+  description: "Your pick has been saved",
+  duration: 1500, // Auto-dismiss after 1.5 seconds
+});
       
       // Auto close after 2 seconds
       setTimeout(() => {
