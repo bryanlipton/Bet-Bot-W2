@@ -51,7 +51,7 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
 
     setIsSubmitting(true);
     try {
-      // Create the pick object matching your Supabase schema
+      // Create the pick object with ONLY the fields that exist in the database
       const pickToSave = {
         id: `pick_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         user_id: user.id,
@@ -80,27 +80,23 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
           key: betData.bookmaker,
           displayName: betData.bookmakerDisplayName,
           url: `https://sportsbook.${betData.bookmaker}.com`,
-          odds: betData.odds // Store odds here too for your schema
+          odds: betData.odds
         },
         
-        // Additional fields for your schema
+        // Only include fields that actually exist in the database
         status: 'pending',
         bet_unit_at_time: betUnit,
         show_on_profile: true,
         show_on_feed: true,
         result: null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
         
-        // Add these fields to match your my-picks-fixed component expectations
-        awayTeam: betData.awayTeam,
-        homeTeam: betData.homeTeam,
-        teamBet: betData.selection,
-        betType: betData.market,
-        odds: betData.odds,
-        line: betData.line || null,
-        createdAt: new Date().toISOString()
+        // DO NOT include these fields - they don't exist in the database:
+        // awayTeam, homeTeam, teamBet, betType, odds, line, createdAt
       };
+
+      console.log('Attempting to save pick:', pickToSave);
 
       // Save to Supabase
       const { data, error } = await supabase
@@ -111,11 +107,28 @@ export function BetConfirmationModal({ open, onClose, betData }: BetConfirmation
 
       if (error) {
         console.error('Error saving pick to Supabase:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save pick. Please try again.",
-          variant: "destructive"
-        });
+        console.error('Error details:', error.message, error.details, error.hint);
+        
+        // More specific error messages
+        if (error.message?.includes('duplicate')) {
+          toast({
+            title: "Duplicate Pick",
+            description: "This pick has already been saved",
+            variant: "destructive"
+          });
+        } else if (error.message?.includes('violates')) {
+          toast({
+            title: "Invalid Data",
+            description: "Some fields are missing or invalid. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to save pick. Please try again.",
+            variant: "destructive"
+          });
+        }
         return;
       }
 
