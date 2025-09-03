@@ -1,31 +1,29 @@
 // client/src/services/myPicksAdapter.ts
 import { supabase } from '@/lib/supabase';
 
-// Fetch all picks for a user
-export async function fetchMyPicks(userId?: string) {
+// Replace fetchMyPicks in client/src/services/myPicksAdapter.ts
+
+export async function fetchMyPicks() {
   try {
-    // Get current user if no userId provided
-    let userIdToUse = userId;
+    // Always get the current user from Supabase - don't accept parameters
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!userIdToUse) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('No user found');
-        return [];
-      }
-      userIdToUse = user.id; // Use the ID string, not the user object
+    if (!user) {
+      console.log('No user found - not authenticated');
+      return [];
     }
     
-    console.log('Fetching picks for user ID:', userIdToUse);
+    const userId = user.id;
+    console.log('Fetching picks for user ID:', userId);
     
     const { data, error } = await supabase
       .from('picks')
       .select('*')
-      .eq('user_id', userIdToUse) // Make sure this is a string, not an object
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error fetching picks:', error);
+      console.error('Error fetching picks from Supabase:', error);
       return [];
     }
     
@@ -34,7 +32,7 @@ export async function fetchMyPicks(userId?: string) {
       return [];
     }
     
-    console.log(`Found ${data.length} picks`);
+    console.log(`Found ${data.length} picks for user ${userId}`);
     
     // Transform each pick to match what my-picks-fixed.tsx expects
     return data.map(pick => {
@@ -47,23 +45,23 @@ export async function fetchMyPicks(userId?: string) {
         id: pick.id,
         user_id: pick.user_id,
         
-        // Game information - these field names match what my-picks-fixed expects
-        homeTeam: gameInfo.homeTeam || pick.homeTeam || 'Unknown',
-        awayTeam: gameInfo.awayTeam || pick.awayTeam || 'Unknown',
-        gameId: gameInfo.gameId || pick.gameId,
+        // Game information
+        homeTeam: gameInfo.homeTeam || 'Unknown',
+        awayTeam: gameInfo.awayTeam || 'Unknown',
+        gameId: gameInfo.gameId,
         sport: gameInfo.sport || 'MLB',
         
-        // Bet information - matching the component's expectations
-        teamBet: betInfo.selection || betInfo.pickTeam || betInfo.team || 'Unknown',
-        betType: betInfo.market || betInfo.type || betInfo.pickType || 'moneyline',
-        market: betInfo.market || betInfo.type || 'moneyline',
-        selection: betInfo.selection || betInfo.pickTeam || betInfo.team || 'Unknown',
-        odds: betInfo.odds || bookmakerInfo.odds || pick.odds || 0,
-        line: betInfo.line || betInfo.spread || null,
-        units: betInfo.units || pick.bet_unit_at_time || 1,
+        // Bet information
+        teamBet: betInfo.selection || 'Unknown',
+        betType: betInfo.market || 'moneyline',
+        market: betInfo.market || 'moneyline',
+        selection: betInfo.selection || 'Unknown',
+        odds: betInfo.odds || 0,
+        line: betInfo.line || null,
+        units: betInfo.units || 1,
         
         // Bookmaker information
-        bookmaker: bookmakerInfo.key || pick.bookmaker || 'manual',
+        bookmaker: bookmakerInfo.key || 'manual',
         bookmakerDisplayName: bookmakerInfo.displayName || bookmakerInfo.key || 'Manual Entry',
         
         // Status and dates
@@ -84,7 +82,7 @@ export async function fetchMyPicks(userId?: string) {
       };
     });
   } catch (err) {
-    console.error('Error fetching picks:', err);
+    console.error('Error in fetchMyPicks:', err);
     return [];
   }
 }
