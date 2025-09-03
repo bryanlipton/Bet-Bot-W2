@@ -7,6 +7,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/reset-picks",
+      "schedule": "0 7 * * *"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
