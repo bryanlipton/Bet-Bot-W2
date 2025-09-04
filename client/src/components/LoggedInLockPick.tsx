@@ -419,7 +419,10 @@ export default function LoggedInLockPick() {
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isAuthenticated, isLoading: authLoading, signInWithGoogle } = useAuth();
-  console.log('signInWithGoogle function:', signInWithGoogle);
+ console.log('LoggedInLockPick - signInWithGoogle:', signInWithGoogle); // Add this line
+console.log('LoggedInLockPick - isAuthenticated:', isAuthenticated);
+  console.log('LoggedInLockPick - authLoading:', authLoading);
+
   // Fetch lock pick only for authenticated users
   const { data: lockPick, isLoading } = useQuery<any>({
     queryKey: ['/api/daily-pick/lock'],
