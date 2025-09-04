@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     
     // TEMPORARY: Allow access for testing
     // Remove this after we identify the cookie issue
-    const TEMP_BYPASS_AUTH = true;
+    const TEMP_BYPASS_AUTH = false;
     
     if (!isAuthenticated && !TEMP_BYPASS_AUTH) {
       console.log('❌ No authentication - returning 401');
