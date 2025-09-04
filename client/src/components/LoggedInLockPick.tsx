@@ -506,19 +506,7 @@ console.log('LoggedInLockPick - isAuthenticated:', isAuthenticated);
             </div>
             <Button 
   className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
-  onClick={async () => {
-    console.log('Button clicked');
-    try {
-      if (!signInWithGoogle) {
-        console.error('signInWithGoogle is not defined');
-        return;
-      }
-      console.log('Calling signInWithGoogle...');
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Login error:', error);
-    }
-  }}
+  onClick={signInWithGoogle}  // Simple, just like LoginButton
 >
   Log in with Google
 </Button>
