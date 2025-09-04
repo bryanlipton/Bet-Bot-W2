@@ -184,7 +184,7 @@ function DailyPick({ liveGameData }) {
 
 // LoggedInLockPick component with modal functionality
 function LoggedInLockPick({ liveGameData }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signInWithGoogle } = useAuth(); // Added signInWithGoogle
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showOddsModal, setShowOddsModal] = useState(false);
@@ -276,30 +276,34 @@ function LoggedInLockPick({ liveGameData }) {
   }
 
   if (!pick || !pick.pickTeam) {
-  // If user is authenticated but no pick available
-  if (isAuthenticated) {
+    // If user is authenticated but no pick available
+    if (isAuthenticated) {
+      return (
+        <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
+          <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
+          <p className="text-gray-700 dark:text-gray-300">No Lock Pick Available Today</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Check back when games are available</p>
+        </div>
+      );
+    }
+    
+    // If user is not authenticated
     return (
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
         <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-gray-700 dark:text-gray-300">No Lock Pick Available Today</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Check back when games are available</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-2">Premium picks available for authenticated users</p>
+        <div className="mt-6">
+          <button 
+            onClick={signInWithGoogle}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200"
+          >
+            Log in to view pick
+          </button>
+        </div>
       </div>
     );
   }
-  
-  // If user is not authenticated
-  return (
-    <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
-      <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-2">Premium picks available for authenticated users</p>
-      <div className="mt-6">
-        <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200">
-          Log in to view pick
-        </button>
-      </div>
-    </div>
-  );
-}
+
   return (
     <>
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 rounded-xl p-6 shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70 transition-all duration-300">
