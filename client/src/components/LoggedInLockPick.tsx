@@ -405,6 +405,7 @@ const getFactors = (analysis: any, probablePitchers: { home: string | null; away
 };
 
 export default function LoggedInLockPick() {
+  console.log('LoggedInLockPick component is rendering');
   const [, setLocation] = useLocation();
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
