@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -404,6 +405,7 @@ const getFactors = (analysis: any, probablePitchers: { home: string | null; away
 };
 
 export default function LoggedInLockPick() {
+  const [, setLocation] = useLocation();
   const [analysisDialogOpen, setAnalysisDialogOpen] = useState(false);
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [selectedBet, setSelectedBet] = useState<any>(null);
@@ -500,13 +502,13 @@ export default function LoggedInLockPick() {
               </p>
             </div>
             <Button 
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
-              onClick={() => {
-                // Clear auth cache before redirect to ensure fresh data after login
-                queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-                window.location.href = '/api/auth/login';
-              }}
-            >
+  className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
+  onClick={() => {
+    // Clear auth cache before redirect to ensure fresh data after login
+    queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
+    setLocation('/login');  // Changed this line
+  }}
+>
               Log in
             </Button>
           </div>
