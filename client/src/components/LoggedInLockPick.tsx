@@ -419,7 +419,7 @@ export default function LoggedInLockPick() {
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { isAuthenticated, isLoading: authLoading, signInWithGoogle } = useAuth();
-  
+  console.log('signInWithGoogle function:', signInWithGoogle);
   // Fetch lock pick only for authenticated users
   const { data: lockPick, isLoading } = useQuery<any>({
     queryKey: ['/api/daily-pick/lock'],
@@ -503,9 +503,18 @@ export default function LoggedInLockPick() {
             </div>
             <Button 
   className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
-  onClick={() => {
-    // Use the existing Supabase Google auth
-    signInWithGoogle();
+  onClick={async () => {
+    console.log('Button clicked');
+    try {
+      if (!signInWithGoogle) {
+        console.error('signInWithGoogle is not defined');
+        return;
+      }
+      console.log('Calling signInWithGoogle...');
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   }}
 >
   Log in with Google
