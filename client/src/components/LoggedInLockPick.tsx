@@ -418,7 +418,7 @@ export default function LoggedInLockPick() {
   // Removed odds cycling functionality
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, signInWithGoogle } = useAuth();
   
   // Fetch lock pick only for authenticated users
   const { data: lockPick, isLoading } = useQuery<any>({
@@ -504,13 +504,12 @@ export default function LoggedInLockPick() {
             <Button 
   className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 font-semibold"
   onClick={() => {
-    // Clear auth cache before redirect to ensure fresh data after login
-    queryClient.removeQueries({ queryKey: ["/api/auth/user"] });
-    setLocation('/login');  // Changed this line
+    // Use the existing Supabase Google auth
+    signInWithGoogle();
   }}
 >
-              Log in
-            </Button>
+  Log in with Google
+</Button>
           </div>
         </CardContent>
       </Card>
