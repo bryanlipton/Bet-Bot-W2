@@ -181,30 +181,24 @@ function DailyPick({ liveGameData }) {
     </>
   );
 }
-
 // LoggedInLockPick component with modal functionality
 function LoggedInLockPick({ liveGameData }) {
-  const { isAuthenticated, signInWithGoogle } = useAuth();
+  const { isAuthenticated, signInWithGoogle, isLoading: authLoading } = useAuth();
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
   const [gameOdds, setGameOdds] = useState(null);
 
-  // Add debug logging
-  console.log('LockPick Render:', {
-    isAuthenticated,
-    loading,
-    hasPick: !!pick,
-    pickTeam: pick?.pickTeam
-  });
-
   useEffect(() => {
-    console.log('LockPick useEffect triggered, isAuthenticated:', isAuthenticated);
+    // Don't do anything while auth is still loading
+    if (authLoading) {
+      return;
+    }
+    
     setLoading(true);
     
     if (!isAuthenticated) {
-      console.log('Not authenticated, showing login prompt');
       setTimeout(() => {
         setPick(null);
         setLoading(false);
@@ -212,26 +206,38 @@ function LoggedInLockPick({ liveGameData }) {
       return;
     }
     
-    console.log('Authenticated, fetching lock pick...');
+    // Fetch lock pick for authenticated users
     fetch('/api/daily-pick/lock')
       .then(res => res.json())
       .then(data => {
-        console.log('Lock Pick received:', data);
         setPick(data);
         setTimeout(() => {
-          console.log('Setting loading to false');
           setLoading(false);
         }, 100);
-        // ... rest of odds fetching
+        
+        // Fetch odds for this specific game
+        if (data && data.homeTeam && data.awayTeam) {
+          fetch('/api/mlb/complete-schedule')
+            .then(res => res.json())
+            .then(games => {
+              const matchingGame = games.find(g => 
+                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
+                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
+              );
+              if (matchingGame) {
+                setGameOdds(matchingGame);
+              }
+            })
+            .catch(err => console.error('Error fetching lock game odds:', err));
+        }
       })
       .catch(err => {
         console.error('Error fetching lock pick:', err);
         setPick(null);
         setLoading(false);
       });
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authLoading]);
 
-  // ... rest of component
   const formatGameTime = (pick) => {
     const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
     if (!dateString) return "TBD";
@@ -262,32 +268,35 @@ function LoggedInLockPick({ liveGameData }) {
     return pick.odds;
   };
 
-  const handlePick = (e) => {
+  const handlePick = () => {
     if (!pick) return;
     setSelectedBetType('pick');
     setShowOddsModal(true);
   };
 
-  const handleFade = (e) => {
+  const handleFade = () => {
     if (!pick) return;
     setSelectedBetType('fade');
     setShowOddsModal(true);
   };
 
- if (loading || (isAuthenticated === undefined)) {
-  return (
-    <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
-      <div className="animate-pulse">
-        <div className="h-6 bg-orange-100 dark:bg-orange-900/30 rounded w-32 mb-2"></div>
-        <div className="h-4 bg-orange-100 dark:bg-orange-900/30 rounded w-48 mb-3"></div>
-        <div className="h-8 bg-orange-100 dark:bg-orange-900/30 rounded w-40"></div>
+  // Show loading while auth is initializing OR while fetching data
+  if (loading || authLoading) {
+    return (
+      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
+        <div className="animate-pulse">
+          <div className="h-6 bg-orange-100 dark:bg-orange-900/30 rounded w-32 mb-2"></div>
+          <div className="h-4 bg-orange-100 dark:bg-orange-900/30 rounded w-48 mb-3"></div>
+          <div className="h-8 bg-orange-100 dark:bg-orange-900/30 rounded w-40"></div>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
+  // Handle cases where there's no pick data
   if (!pick || !pick.pickTeam) {
-    // If user is authenticated but no pick available
     if (isAuthenticated) {
+      // Authenticated but no pick available
       return (
         <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
           <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
@@ -297,7 +306,7 @@ function LoggedInLockPick({ liveGameData }) {
       );
     }
     
-    // If user is not authenticated
+    // Not authenticated - show login prompt
     return (
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
         <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
@@ -314,6 +323,7 @@ function LoggedInLockPick({ liveGameData }) {
     );
   }
 
+  // Render the lock pick
   return (
     <>
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 rounded-xl p-6 shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70 transition-all duration-300">
@@ -383,6 +393,9 @@ function LoggedInLockPick({ liveGameData }) {
     </>
   );
 }
+
+
+      
 
 // Main ActionStyleDashboard component
 function ActionStyleDashboard() {
