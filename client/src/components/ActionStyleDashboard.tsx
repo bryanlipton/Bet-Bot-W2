@@ -192,15 +192,15 @@ function LoggedInLockPick({ liveGameData }) {
   const [gameOdds, setGameOdds] = useState(null);
 
   useEffect(() => {
-  // Set loading true at start (in case of re-renders)
+  // Always start with loading true
   setLoading(true);
   
-  // If not authenticated, wait a moment to match the other card's timing
+  // If not authenticated, wait then show login prompt
   if (!isAuthenticated) {
     setTimeout(() => {
       setPick(null);
       setLoading(false);
-    }, 300); // Small delay to match the other card's animation
+    }, 300);
     return;
   }
   
@@ -210,14 +210,33 @@ function LoggedInLockPick({ liveGameData }) {
     .then(data => {
       console.log('Lock Pick API Response:', data);
       setPick(data);
-      setLoading(false);
-      // Rest of your odds fetching code...
+      // Add small delay to match the other card's timing
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
+      // Fetch odds for this specific game
+      if (data && data.homeTeam && data.awayTeam) {
+        fetch('/api/mlb/complete-schedule')
+          .then(res => res.json())
+          .then(games => {
+            const matchingGame = games.find(g => 
+              (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
+              (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
+            );
+            if (matchingGame) {
+              setGameOdds(matchingGame);
+              console.log('Found matching lock game with odds:', matchingGame);
+            }
+          })
+          .catch(err => console.error('Error fetching lock game odds:', err));
+      }
     })
     .catch(err => {
       console.error('Error fetching lock pick:', err);
+      setPick(null);
       setLoading(false);
     });
-}, [isAuthenticated]);// ADD isAuthenticated to dependency array
+}, [isAuthenticated]);
   const formatGameTime = (pick) => {
     const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
     if (!dateString) return "TBD";
