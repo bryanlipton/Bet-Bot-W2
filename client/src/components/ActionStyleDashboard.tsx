@@ -184,59 +184,54 @@ function DailyPick({ liveGameData }) {
 
 // LoggedInLockPick component with modal functionality
 function LoggedInLockPick({ liveGameData }) {
-  const { isAuthenticated, signInWithGoogle } = useAuth(); // Added signInWithGoogle
+  const { isAuthenticated, signInWithGoogle } = useAuth();
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
   const [gameOdds, setGameOdds] = useState(null);
 
+  // Add debug logging
+  console.log('LockPick Render:', {
+    isAuthenticated,
+    loading,
+    hasPick: !!pick,
+    pickTeam: pick?.pickTeam
+  });
+
   useEffect(() => {
-  // Always start with loading true
-  setLoading(true);
-  
-  // If not authenticated, wait then show login prompt
-  if (!isAuthenticated) {
-    setTimeout(() => {
-      setPick(null);
-      setLoading(false);
-    }, 300);
-    return;
-  }
-  
-  // If authenticated, fetch the lock pick
-  fetch('/api/daily-pick/lock')
-    .then(res => res.json())
-    .then(data => {
-      console.log('Lock Pick API Response:', data);
-      setPick(data);
-      // Add small delay to match the other card's timing
+    console.log('LockPick useEffect triggered, isAuthenticated:', isAuthenticated);
+    setLoading(true);
+    
+    if (!isAuthenticated) {
+      console.log('Not authenticated, showing login prompt');
       setTimeout(() => {
+        setPick(null);
         setLoading(false);
-      }, 100);
-      // Fetch odds for this specific game
-      if (data && data.homeTeam && data.awayTeam) {
-        fetch('/api/mlb/complete-schedule')
-          .then(res => res.json())
-          .then(games => {
-            const matchingGame = games.find(g => 
-              (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
-              (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
-            );
-            if (matchingGame) {
-              setGameOdds(matchingGame);
-              console.log('Found matching lock game with odds:', matchingGame);
-            }
-          })
-          .catch(err => console.error('Error fetching lock game odds:', err));
-      }
-    })
-    .catch(err => {
-      console.error('Error fetching lock pick:', err);
-      setPick(null);
-      setLoading(false);
-    });
-}, [isAuthenticated]);
+      }, 300);
+      return;
+    }
+    
+    console.log('Authenticated, fetching lock pick...');
+    fetch('/api/daily-pick/lock')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Lock Pick received:', data);
+        setPick(data);
+        setTimeout(() => {
+          console.log('Setting loading to false');
+          setLoading(false);
+        }, 100);
+        // ... rest of odds fetching
+      })
+      .catch(err => {
+        console.error('Error fetching lock pick:', err);
+        setPick(null);
+        setLoading(false);
+      });
+  }, [isAuthenticated]);
+
+  // ... rest of component
   const formatGameTime = (pick) => {
     const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
     if (!dateString) return "TBD";
