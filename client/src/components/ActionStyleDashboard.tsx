@@ -260,7 +260,7 @@ function LoggedInLockPick({ liveGameData }) {
     setShowOddsModal(true);
   };
 
- if (loading) {
+ if (loading || (isAuthenticated === undefined)) {
   return (
     <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
       <div className="animate-pulse">
