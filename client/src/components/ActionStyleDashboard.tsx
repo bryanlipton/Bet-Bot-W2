@@ -10,13 +10,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 
-// DailyPick component with modal functionality
+// DailyPick component with all game states
 function DailyPick({ liveGameData }) {
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
   const [gameOdds, setGameOdds] = useState(null);
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
+  const [gameResult, setGameResult] = useState(null);
   
   useEffect(() => {
     fetch('/api/daily-pick')
@@ -25,6 +26,7 @@ function DailyPick({ liveGameData }) {
         console.log('Daily Pick API Response:', data);
         setPick(data);
         setLoading(false);
+        
         // Fetch odds for this specific game
         if (data && data.homeTeam && data.awayTeam) {
           fetch('/api/mlb/complete-schedule')
@@ -40,6 +42,16 @@ function DailyPick({ liveGameData }) {
               }
             })
             .catch(err => console.error('Error fetching game odds:', err));
+            
+          // Fetch game result if game is finished
+          fetch(`/api/mlb/game-result?homeTeam=${encodeURIComponent(data.homeTeam)}&awayTeam=${encodeURIComponent(data.awayTeam)}&gameId=${data.gameId}`)
+            .then(res => res.json())
+            .then(resultData => {
+              if (resultData && resultData.status === 'finished') {
+                setGameResult(resultData);
+              }
+            })
+            .catch(err => console.error('Error fetching game result:', err));
         }
       })
       .catch(err => {
@@ -78,14 +90,78 @@ function DailyPick({ liveGameData }) {
     return pick.odds;
   };
 
+  // Check game status
+  const getGameStatus = () => {
+    if (!pick) return 'pending';
+    
+    // If we have game result data, game is finished
+    if (gameResult && gameResult.status === 'finished') {
+      return 'finished';
+    }
+    
+    const gameTime = pick?.startTime || pick?.commence_time || pick?.gameTime;
+    if (!gameTime) return 'pending';
+    
+    const now = new Date();
+    const gameDate = new Date(gameTime);
+    
+    // Game has started but not finished
+    if (now > gameDate) {
+      return 'in-progress';
+    }
+    
+    return 'pending';
+  };
+
+  // Determine pick result (Won/Lost/Push)
+  const getPickResult = () => {
+    if (!gameResult || !pick) return null;
+    
+    const homeScore = gameResult.homeScore;
+    const awayScore = gameResult.awayScore;
+    const pickTeam = pick.pickTeam;
+    const homeTeam = pick.homeTeam;
+    const awayTeam = pick.awayTeam;
+    
+    // Determine winner
+    let winner = null;
+    if (homeScore > awayScore) {
+      winner = homeTeam;
+    } else if (awayScore > homeScore) {
+      winner = awayTeam;
+    } else {
+      return 'PUSH'; // Tie game
+    }
+    
+    // Check if pick was correct
+    if (winner === pickTeam) {
+      return 'WON';
+    } else {
+      return 'LOST';
+    }
+  };
+
+  // Navigate to scores tab for this specific game
+  const handleSeeScore = () => {
+    window.location.href = '/scores';
+    
+    if (pick) {
+      localStorage.setItem('highlightGame', JSON.stringify({
+        homeTeam: pick.homeTeam,
+        awayTeam: pick.awayTeam,
+        gameId: pick.gameId
+      }));
+    }
+  };
+
   const handlePick = (e) => {
-    if (!pick) return;
+    if (!pick || getGameStatus() !== 'pending') return;
     setSelectedBetType('pick');
     setShowOddsModal(true);
   };
 
   const handleFade = (e) => {
-    if (!pick) return;
+    if (!pick || getGameStatus() !== 'pending') return;
     setSelectedBetType('fade');
     setShowOddsModal(true);
   };
@@ -112,19 +188,79 @@ function DailyPick({ liveGameData }) {
     );
   }
 
+  const gameStatus = getGameStatus();
+  const pickResult = getPickResult();
+
+  // Style based on game status
+  const getCardStyle = () => {
+    switch (gameStatus) {
+      case 'finished':
+        if (pickResult === 'WON') {
+          return 'bg-green-50/50 dark:bg-green-950/20 border-2 border-green-500/50 shadow-green-500/20';
+        } else if (pickResult === 'LOST') {
+          return 'bg-red-50/50 dark:bg-red-950/20 border-2 border-red-500/50 shadow-red-500/20';
+        } else {
+          return 'bg-yellow-50/50 dark:bg-yellow-950/20 border-2 border-yellow-500/50 shadow-yellow-500/20';
+        }
+      case 'in-progress':
+        return 'bg-gray-50/50 dark:bg-gray-950/20 border-2 border-gray-400/30 shadow-gray-500/10';
+      default:
+        return 'bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 shadow-blue-500/20 hover:shadow-blue-500/30 hover:border-blue-500/70';
+    }
+  };
+
+  const getHeaderColor = () => {
+    switch (gameStatus) {
+      case 'finished':
+        if (pickResult === 'WON') return 'text-green-600 dark:text-green-400';
+        if (pickResult === 'LOST') return 'text-red-600 dark:text-red-400';
+        return 'text-yellow-600 dark:text-yellow-400';
+      case 'in-progress':
+        return 'text-gray-600 dark:text-gray-400';
+      default:
+        return 'text-blue-600 dark:text-blue-400';
+    }
+  };
+
+  const getBadgeColor = () => {
+    if (gameStatus === 'finished' && pickResult) {
+      switch (pickResult) {
+        case 'WON': return 'bg-green-500';
+        case 'LOST': return 'bg-red-500';
+        case 'PUSH': return 'bg-yellow-500';
+      }
+    }
+    return gameStatus === 'in-progress' ? 'bg-gray-500' : 'bg-blue-500';
+  };
+
   return (
     <>
-      <div className="relative bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 rounded-xl p-6 shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:border-blue-500/70 transition-all duration-300">
-        {pick.grade && (
-          <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-            {pick.grade}
-          </div>
-        )}
+      <div className={`relative rounded-xl p-6 shadow-xl transition-all duration-300 ${getCardStyle()}`}>
+        <div className="absolute top-4 right-4">
+          {gameStatus === 'finished' && pickResult ? (
+            <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
+              {pickResult}
+            </div>
+          ) : pick.grade ? (
+            <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
+              {pick.grade}
+            </div>
+          ) : null}
+        </div>
         
-        <h3 className="text-xl font-bold mb-1 text-blue-600 dark:text-blue-400">Pick of the Day</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">AI-backed Data Analysis</p>
+        <h3 className={`text-xl font-bold mb-1 ${getHeaderColor()}`}>
+          Pick of the Day
+        </h3>
         
-        <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {gameStatus === 'finished' ? 'Game finished' : 
+           gameStatus === 'in-progress' ? 'Game in progress' : 
+           'AI-backed Data Analysis'}
+        </p>
+        
+        <div className={`text-2xl font-bold mb-3 ${
+          gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
+        }`}>
           {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
             {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
           </span>
@@ -137,28 +273,42 @@ function DailyPick({ liveGameData }) {
         
         <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
           {pick.awayTeam} @ {pick.homeTeam}
+          {gameResult && gameStatus === 'finished' && (
+            <span className="ml-2 font-semibold">
+              {gameResult.awayScore} - {gameResult.homeScore}
+            </span>
+          )}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {formatGameTime(pick)} • {pick.venue || 'Stadium TBD'}
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        {gameStatus === 'pending' ? (
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={handlePick}
+              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            >
+              Pick
+            </button>
+            <button 
+              onClick={handleFade}
+              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            >
+              Fade
+            </button>
+          </div>
+        ) : (
           <button 
-            onClick={handlePick}
-            className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            onClick={handleSeeScore}
+            className="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
           >
-            Pick
+            {gameStatus === 'finished' ? 'View Details' : 'See Score'}
           </button>
-          <button 
-            onClick={handleFade}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Fade
-          </button>
-        </div>
+        )}
       </div>
 
-      {showOddsModal && pick && (
+      {showOddsModal && pick && gameStatus === 'pending' && (
         <OddsComparisonModal
           open={showOddsModal}
           onClose={() => setShowOddsModal(false)}
@@ -181,7 +331,8 @@ function DailyPick({ liveGameData }) {
     </>
   );
 }
-// LoggedInLockPick component with modal functionality
+
+// LoggedInLockPick component with all game states
 function LoggedInLockPick({ liveGameData }) {
   const { isAuthenticated, signInWithGoogle, isLoading: authLoading } = useAuth();
   const [pick, setPick] = useState(null);
@@ -189,9 +340,9 @@ function LoggedInLockPick({ liveGameData }) {
   const [showOddsModal, setShowOddsModal] = useState(false);
   const [selectedBetType, setSelectedBetType] = useState(null);
   const [gameOdds, setGameOdds] = useState(null);
+  const [gameResult, setGameResult] = useState(null);
 
   useEffect(() => {
-    // Don't do anything while auth is still loading
     if (authLoading) {
       return;
     }
@@ -206,7 +357,6 @@ function LoggedInLockPick({ liveGameData }) {
       return;
     }
     
-    // Fetch lock pick for authenticated users
     fetch('/api/daily-pick/lock')
       .then(res => res.json())
       .then(data => {
@@ -215,7 +365,6 @@ function LoggedInLockPick({ liveGameData }) {
           setLoading(false);
         }, 100);
         
-        // Fetch odds for this specific game
         if (data && data.homeTeam && data.awayTeam) {
           fetch('/api/mlb/complete-schedule')
             .then(res => res.json())
@@ -229,6 +378,16 @@ function LoggedInLockPick({ liveGameData }) {
               }
             })
             .catch(err => console.error('Error fetching lock game odds:', err));
+            
+          // Fetch game result if game is finished
+          fetch(`/api/mlb/game-result?homeTeam=${encodeURIComponent(data.homeTeam)}&awayTeam=${encodeURIComponent(data.awayTeam)}&gameId=${data.gameId}`)
+            .then(res => res.json())
+            .then(resultData => {
+              if (resultData && resultData.status === 'finished') {
+                setGameResult(resultData);
+              }
+            })
+            .catch(err => console.error('Error fetching game result:', err));
         }
       })
       .catch(err => {
@@ -268,19 +427,77 @@ function LoggedInLockPick({ liveGameData }) {
     return pick.odds;
   };
 
+  // Check game status
+  const getGameStatus = () => {
+    if (!pick) return 'pending';
+    
+    if (gameResult && gameResult.status === 'finished') {
+      return 'finished';
+    }
+    
+    const gameTime = pick?.startTime || pick?.commence_time || pick?.gameTime;
+    if (!gameTime) return 'pending';
+    
+    const now = new Date();
+    const gameDate = new Date(gameTime);
+    
+    if (now > gameDate) {
+      return 'in-progress';
+    }
+    
+    return 'pending';
+  };
+
+  // Determine pick result (Won/Lost/Push)
+  const getPickResult = () => {
+    if (!gameResult || !pick) return null;
+    
+    const homeScore = gameResult.homeScore;
+    const awayScore = gameResult.awayScore;
+    const pickTeam = pick.pickTeam;
+    const homeTeam = pick.homeTeam;
+    const awayTeam = pick.awayTeam;
+    
+    let winner = null;
+    if (homeScore > awayScore) {
+      winner = homeTeam;
+    } else if (awayScore > homeScore) {
+      winner = awayTeam;
+    } else {
+      return 'PUSH';
+    }
+    
+    if (winner === pickTeam) {
+      return 'WON';
+    } else {
+      return 'LOST';
+    }
+  };
+
+  const handleSeeScore = () => {
+    window.location.href = '/scores';
+    
+    if (pick) {
+      localStorage.setItem('highlightGame', JSON.stringify({
+        homeTeam: pick.homeTeam,
+        awayTeam: pick.awayTeam,
+        gameId: pick.gameId
+      }));
+    }
+  };
+
   const handlePick = () => {
-    if (!pick) return;
+    if (!pick || getGameStatus() !== 'pending') return;
     setSelectedBetType('pick');
     setShowOddsModal(true);
   };
 
   const handleFade = () => {
-    if (!pick) return;
+    if (!pick || getGameStatus() !== 'pending') return;
     setSelectedBetType('fade');
     setShowOddsModal(true);
   };
 
-  // Show loading while auth is initializing OR while fetching data
   if (loading || authLoading) {
     return (
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
@@ -293,10 +510,8 @@ function LoggedInLockPick({ liveGameData }) {
     );
   }
 
-  // Handle cases where there's no pick data
   if (!pick || !pick.pickTeam) {
     if (isAuthenticated) {
-      // Authenticated but no pick available
       return (
         <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
           <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
@@ -306,7 +521,6 @@ function LoggedInLockPick({ liveGameData }) {
       );
     }
     
-    // Not authenticated - show login prompt
     return (
       <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
         <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
@@ -323,20 +537,79 @@ function LoggedInLockPick({ liveGameData }) {
     );
   }
 
-  // Render the lock pick
+  const gameStatus = getGameStatus();
+  const pickResult = getPickResult();
+
+  // Style based on game status
+  const getCardStyle = () => {
+    switch (gameStatus) {
+      case 'finished':
+        if (pickResult === 'WON') {
+          return 'bg-green-50/40 dark:bg-green-950/20 border-2 border-green-500/50 shadow-green-500/20';
+        } else if (pickResult === 'LOST') {
+          return 'bg-red-50/40 dark:bg-red-950/20 border-2 border-red-500/50 shadow-red-500/20';
+        } else {
+          return 'bg-yellow-50/40 dark:bg-yellow-950/20 border-2 border-yellow-500/50 shadow-yellow-500/20';
+        }
+      case 'in-progress':
+        return 'bg-gray-50/40 dark:bg-gray-950/20 border-2 border-gray-400/30 shadow-gray-500/10';
+      default:
+        return 'bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70';
+    }
+  };
+
+  const getHeaderColor = () => {
+    switch (gameStatus) {
+      case 'finished':
+        if (pickResult === 'WON') return 'text-green-600 dark:text-green-400';
+        if (pickResult === 'LOST') return 'text-red-600 dark:text-red-400';
+        return 'text-yellow-600 dark:text-yellow-400';
+      case 'in-progress':
+        return 'text-gray-600 dark:text-gray-400';
+      default:
+        return 'text-orange-600 dark:text-orange-400';
+    }
+  };
+
+  const getBadgeColor = () => {
+    if (gameStatus === 'finished' && pickResult) {
+      switch (pickResult) {
+        case 'WON': return 'bg-green-500';
+        case 'LOST': return 'bg-red-500';
+        case 'PUSH': return 'bg-yellow-500';
+      }
+    }
+    return gameStatus === 'in-progress' ? 'bg-gray-500' : 'bg-orange-500';
+  };
+
   return (
     <>
-      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 rounded-xl p-6 shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70 transition-all duration-300">
-        {pick.grade && (
-          <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
-            {pick.grade}
-          </div>
-        )}
+      <div className={`relative rounded-xl p-6 shadow-xl transition-all duration-300 ${getCardStyle()}`}>
+        <div className="absolute top-4 right-4">
+          {gameStatus === 'finished' && pickResult ? (
+            <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
+              {pickResult}
+            </div>
+          ) : pick.grade ? (
+            <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
+              {pick.grade}
+            </div>
+          ) : null}
+        </div>
         
-        <h3 className="text-xl font-bold mb-1 text-orange-600 dark:text-orange-400">Logged in Lock Pick</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Exclusive pick for authenticated users</p>
+        <h3 className={`text-xl font-bold mb-1 ${getHeaderColor()}`}>
+          Logged in Lock Pick
+        </h3>
         
-        <div className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {gameStatus === 'finished' ? 'Game finished' : 
+           gameStatus === 'in-progress' ? 'Game in progress' : 
+           'Exclusive pick for authenticated users'}
+        </p>
+        
+        <div className={`text-2xl font-bold mb-3 ${
+          gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
+        }`}>
           {pick.pickTeam} ML <span className="text-yellow-600 dark:text-yellow-400">
             {getLiveOdds() > 0 ? '+' : ''}{getLiveOdds()}
           </span>
@@ -349,28 +622,42 @@ function LoggedInLockPick({ liveGameData }) {
         
         <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
           {pick.awayTeam} @ {pick.homeTeam}
+          {gameResult && gameStatus === 'finished' && (
+            <span className="ml-2 font-semibold">
+              {gameResult.awayScore} - {gameResult.homeScore}
+            </span>
+          )}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {formatGameTime(pick)} • {pick.venue || 'Stadium TBD'}
         </div>
         
-        <div className="grid grid-cols-2 gap-3">
+        {gameStatus === 'pending' ? (
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={handlePick}
+              className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            >
+              Pick
+            </button>
+            <button 
+              onClick={handleFade}
+              className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            >
+              Fade
+            </button>
+          </div>
+        ) : (
           <button 
-            onClick={handlePick}
-            className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+            onClick={handleSeeScore}
+            className="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
           >
-            Pick
+            {gameStatus === 'finished' ? 'View Details' : 'See Score'}
           </button>
-          <button 
-            onClick={handleFade}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            Fade
-          </button>
-        </div>
+        )}
       </div>
 
-      {showOddsModal && pick && (
+      {showOddsModal && pick && gameStatus === 'pending' && (
         <OddsComparisonModal
           open={showOddsModal}
           onClose={() => setShowOddsModal(false)}
@@ -393,9 +680,6 @@ function LoggedInLockPick({ liveGameData }) {
     </>
   );
 }
-
-
-      
 
 // Main ActionStyleDashboard component
 function ActionStyleDashboard() {
@@ -531,7 +815,7 @@ function ActionStyleDashboard() {
                 {games.length} games available
               </p>
             </div>
-                     </div>
+          </div>
 
           {oddsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
