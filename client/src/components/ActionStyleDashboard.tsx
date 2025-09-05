@@ -270,18 +270,17 @@ function LoggedInLockPick({ liveGameData }) {
     setShowOddsModal(true);
   };
 
-  if (loading) {
-    return (
-      <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
-        <div className="animate-pulse">
-          <div className="h-6 bg-orange-100 dark:bg-orange-900/30 rounded w-40 mb-2"></div>
-          <div className="h-4 bg-orange-100 dark:bg-orange-900/30 rounded w-56 mb-3"></div>
-          <div className="h-8 bg-orange-100 dark:bg-orange-900/30 rounded w-40"></div>
-        </div>
+ if (loading) {
+  return (
+    <div className="relative bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-400/30 rounded-xl p-6 shadow-lg shadow-orange-500/10">
+      <div className="animate-pulse">
+        <div className="h-6 bg-orange-100 dark:bg-orange-900/30 rounded w-32 mb-2"></div>
+        <div className="h-4 bg-orange-100 dark:bg-orange-900/30 rounded w-48 mb-3"></div>
+        <div className="h-8 bg-orange-100 dark:bg-orange-900/30 rounded w-40"></div>
       </div>
-    );
-  }
-
+    </div>
+  );
+}
   if (!pick || !pick.pickTeam) {
     // If user is authenticated but no pick available
     if (isAuthenticated) {
