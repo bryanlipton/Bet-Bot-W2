@@ -313,7 +313,7 @@ function DailyPick({ liveGameData }) {
             <div className="text-xl font-bold text-gray-900 dark:text-white mb-1">
               Final Score
             </div>
-            <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+            <div className="text-2xl font-semibold text-gray-700 dark:text-gray-200">
               {pick.awayTeam} {gameResult.awayScore} - {gameResult.homeScore} {pick.homeTeam}
             </div>
           </div>
