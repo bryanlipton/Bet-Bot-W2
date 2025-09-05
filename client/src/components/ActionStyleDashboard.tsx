@@ -203,7 +203,7 @@ function DailyPick({ liveGameData }) {
           return 'bg-yellow-50/50 dark:bg-yellow-950/20 border-2 border-yellow-500/50 shadow-yellow-500/20';
         }
       case 'in-progress':
-        return 'bg-gray-50/50 dark:bg-gray-950/20 border-2 border-gray-400/30 shadow-gray-500/10';
+        return 'bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 shadow-blue-500/20';
       default:
         return 'bg-blue-50/50 dark:bg-blue-950/20 border-2 border-blue-500/50 shadow-blue-500/20 hover:shadow-blue-500/30 hover:border-blue-500/70';
     }
@@ -216,7 +216,7 @@ function DailyPick({ liveGameData }) {
         if (pickResult === 'LOST') return 'text-red-600 dark:text-red-400';
         return 'text-yellow-600 dark:text-yellow-400';
       case 'in-progress':
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-blue-600 dark:text-blue-400';
       default:
         return 'text-blue-600 dark:text-blue-400';
     }
@@ -230,7 +230,7 @@ function DailyPick({ liveGameData }) {
         case 'PUSH': return 'bg-yellow-500';
       }
     }
-    return gameStatus === 'in-progress' ? 'bg-gray-500' : 'bg-blue-500';
+    return 'bg-blue-500';
   };
 
   return (
@@ -253,15 +253,15 @@ function DailyPick({ liveGameData }) {
         </h3>
         
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-  {gameStatus === 'finished' ? 'Game finished' : 
-   gameStatus === 'in-progress' ? (
-     <span className="inline-flex items-center text-red-500 font-bold text-sm">
-       <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
-       LIVE
-     </span>
-   ) : 
-   'AI-backed Data Analysis'}
-</p>
+          {gameStatus === 'finished' ? 'Game finished' : 
+           gameStatus === 'in-progress' ? (
+             <span className="inline-flex items-center text-red-500 font-bold text-sm">
+               <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+               LIVE
+             </span>
+           ) : 
+           'AI-backed Data Analysis'}
+        </p>
         
         <div className={`text-2xl font-bold mb-3 ${
           gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
@@ -545,7 +545,6 @@ function LoggedInLockPick({ liveGameData }) {
   const gameStatus = getGameStatus();
   const pickResult = getPickResult();
 
-  // Style based on game status
   const getCardStyle = () => {
     switch (gameStatus) {
       case 'finished':
@@ -557,7 +556,7 @@ function LoggedInLockPick({ liveGameData }) {
           return 'bg-yellow-50/40 dark:bg-yellow-950/20 border-2 border-yellow-500/50 shadow-yellow-500/20';
         }
       case 'in-progress':
-        return 'bg-gray-50/40 dark:bg-gray-950/20 border-2 border-gray-400/30 shadow-gray-500/10';
+        return 'bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 shadow-orange-500/20';
       default:
         return 'bg-orange-50/40 dark:bg-orange-950/20 border-2 border-orange-500/50 shadow-orange-500/20 hover:shadow-orange-500/30 hover:border-orange-500/70';
     }
@@ -570,7 +569,7 @@ function LoggedInLockPick({ liveGameData }) {
         if (pickResult === 'LOST') return 'text-red-600 dark:text-red-400';
         return 'text-yellow-600 dark:text-yellow-400';
       case 'in-progress':
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-orange-600 dark:text-orange-400';
       default:
         return 'text-orange-600 dark:text-orange-400';
     }
@@ -584,7 +583,7 @@ function LoggedInLockPick({ liveGameData }) {
         case 'PUSH': return 'bg-yellow-500';
       }
     }
-    return gameStatus === 'in-progress' ? 'bg-gray-500' : 'bg-orange-500';
+    return 'bg-orange-500';
   };
 
   return (
@@ -606,13 +605,16 @@ function LoggedInLockPick({ liveGameData }) {
           Logged in Lock Pick
         </h3>
         
-        // Option 1: LIVE badge with red background
-<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white mr-2">
-    LIVE
-  </span>
-  Game in progress
-</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {gameStatus === 'finished' ? 'Game finished' : 
+           gameStatus === 'in-progress' ? (
+             <span className="inline-flex items-center text-red-500 font-bold text-sm">
+               <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+               LIVE
+             </span>
+           ) : 
+           'Exclusive pick for authenticated users'}
+        </p>
         
         <div className={`text-2xl font-bold mb-3 ${
           gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
