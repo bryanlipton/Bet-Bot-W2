@@ -531,23 +531,7 @@ function ActionStyleDashboard() {
                 {games.length} games available
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchOdds()}
-                disabled={oddsLoading}
-                className="flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3 h-3 ${oddsLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Star className="w-3 h-3" />
-                Live Odds
-              </Badge>
-            </div>
-          </div>
+                     </div>
 
           {oddsLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
