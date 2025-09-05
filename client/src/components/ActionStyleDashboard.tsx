@@ -47,7 +47,7 @@ function DailyPick({ liveGameData }) {
           fetch(`/api/mlb/game-result?homeTeam=${encodeURIComponent(data.homeTeam)}&awayTeam=${encodeURIComponent(data.awayTeam)}&gameId=${data.gameId}`)
             .then(res => res.json())
             .then(resultData => {
-              if (resultData && resultData.status === 'finished') {
+              if (resultData && (resultData.status === 'finished' || resultData.status === 'in-progress')) {
                 setGameResult(resultData);
               }
             })
@@ -94,9 +94,14 @@ function DailyPick({ liveGameData }) {
   const getGameStatus = () => {
     if (!pick) return 'pending';
     
-    // If we have game result data, game is finished
+    // If we have game result data with finished status
     if (gameResult && gameResult.status === 'finished') {
       return 'finished';
+    }
+    
+    // If we have game result data with in-progress status
+    if (gameResult && gameResult.status === 'in-progress') {
+      return 'in-progress';
     }
     
     const gameTime = pick?.startTime || pick?.commence_time || pick?.gameTime;
@@ -105,7 +110,7 @@ function DailyPick({ liveGameData }) {
     const now = new Date();
     const gameDate = new Date(gameTime);
     
-    // Game has started but not finished
+    // Game has started but no result data yet
     if (now > gameDate) {
       return 'in-progress';
     }
@@ -115,7 +120,7 @@ function DailyPick({ liveGameData }) {
 
   // Determine pick result (Won/Lost/Push)
   const getPickResult = () => {
-    if (!gameResult || !pick) return null;
+    if (!gameResult || gameResult.status !== 'finished' || !pick) return null;
     
     const homeScore = gameResult.homeScore;
     const awayScore = gameResult.awayScore;
@@ -241,7 +246,7 @@ function DailyPick({ liveGameData }) {
             <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
               {pickResult}
             </div>
-          ) : pick.grade ? (
+          ) : gameStatus !== 'finished' && pick.grade ? (
             <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
               {pick.grade}
             </div>
@@ -303,13 +308,22 @@ function DailyPick({ liveGameData }) {
               Fade
             </button>
           </div>
+        ) : gameStatus === 'finished' ? (
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              Final Score
+            </div>
+            <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+              {pick.awayTeam} {gameResult.awayScore} - {gameResult.homeScore} {pick.homeTeam}
+            </div>
+          </div>
         ) : (
           <button 
-  onClick={handleSeeScore}
-  className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
->
-  {gameStatus === 'finished' ? 'View Details' : 'View Live Score'}
-</button>
+            onClick={handleSeeScore}
+            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+          >
+            View Live Score
+          </button>
         )}
       </div>
 
@@ -388,7 +402,7 @@ function LoggedInLockPick({ liveGameData }) {
           fetch(`/api/mlb/game-result?homeTeam=${encodeURIComponent(data.homeTeam)}&awayTeam=${encodeURIComponent(data.awayTeam)}&gameId=${data.gameId}`)
             .then(res => res.json())
             .then(resultData => {
-              if (resultData && resultData.status === 'finished') {
+              if (resultData && (resultData.status === 'finished' || resultData.status === 'in-progress')) {
                 setGameResult(resultData);
               }
             })
@@ -440,6 +454,10 @@ function LoggedInLockPick({ liveGameData }) {
       return 'finished';
     }
     
+    if (gameResult && gameResult.status === 'in-progress') {
+      return 'in-progress';
+    }
+    
     const gameTime = pick?.startTime || pick?.commence_time || pick?.gameTime;
     if (!gameTime) return 'pending';
     
@@ -455,7 +473,7 @@ function LoggedInLockPick({ liveGameData }) {
 
   // Determine pick result (Won/Lost/Push)
   const getPickResult = () => {
-    if (!gameResult || !pick) return null;
+    if (!gameResult || gameResult.status !== 'finished' || !pick) return null;
     
     const homeScore = gameResult.homeScore;
     const awayScore = gameResult.awayScore;
@@ -594,7 +612,7 @@ function LoggedInLockPick({ liveGameData }) {
             <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
               {pickResult}
             </div>
-          ) : pick.grade ? (
+          ) : gameStatus !== 'finished' && pick.grade ? (
             <div className={`${getBadgeColor()} text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg`}>
               {pick.grade}
             </div>
@@ -656,13 +674,22 @@ function LoggedInLockPick({ liveGameData }) {
               Fade
             </button>
           </div>
+        ) : gameStatus === 'finished' ? (
+          <div className="text-center">
+            <div className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+              Final Score
+            </div>
+            <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300">
+              {pick.awayTeam} {gameResult.awayScore} - {gameResult.homeScore} {pick.homeTeam}
+            </div>
+          </div>
         ) : (
           <button 
-  onClick={handleSeeScore}
-  className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
->
-  {gameStatus === 'finished' ? 'View Details' : 'View Live Score'}
-</button>
+            onClick={handleSeeScore}
+            className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+          >
+            View Live Score
+          </button>
         )}
       </div>
 
