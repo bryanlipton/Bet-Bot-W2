@@ -192,35 +192,42 @@ function LoggedInLockPick({ liveGameData }) {
   const [gameOdds, setGameOdds] = useState(null);
 
   useEffect(() => {
-    fetch('/api/daily-pick/lock')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Lock Pick API Response:', data);
-        setPick(data);
-        setLoading(false);
-        // Fetch odds for this specific game
-        if (data && data.homeTeam && data.awayTeam) {
-          fetch('/api/mlb/complete-schedule')
-            .then(res => res.json())
-            .then(games => {
-              const matchingGame = games.find(g => 
-                (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
-                (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
-              );
-              if (matchingGame) {
-                setGameOdds(matchingGame);
-                console.log('Found matching lock game with odds:', matchingGame);
-              }
-            })
-            .catch(err => console.error('Error fetching lock game odds:', err));
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching lock pick:', err);
-        setLoading(false);
-      });
-  }, []);
-
+  // If not authenticated, don't fetch
+  if (!isAuthenticated) {
+    setPick(null);
+    setLoading(false);
+    return;
+  }
+  
+  // If authenticated, fetch the lock pick
+  fetch('/api/daily-pick/lock')
+    .then(res => res.json())
+    .then(data => {
+      console.log('Lock Pick API Response:', data);
+      setPick(data);
+      setLoading(false);
+      // Fetch odds for this specific game
+      if (data && data.homeTeam && data.awayTeam) {
+        fetch('/api/mlb/complete-schedule')
+          .then(res => res.json())
+          .then(games => {
+            const matchingGame = games.find(g => 
+              (g.home_team === data.homeTeam && g.away_team === data.awayTeam) ||
+              (g.home_team.includes(data.homeTeam) && g.away_team.includes(data.awayTeam))
+            );
+            if (matchingGame) {
+              setGameOdds(matchingGame);
+              console.log('Found matching lock game with odds:', matchingGame);
+            }
+          })
+          .catch(err => console.error('Error fetching lock game odds:', err));
+      }
+    })
+    .catch(err => {
+      console.error('Error fetching lock pick:', err);
+      setLoading(false);
+    });
+}, [isAuthenticated]); // ADD isAuthenticated to dependency array
   const formatGameTime = (pick) => {
     const dateString = pick?.startTime || pick?.commence_time || pick?.gameTime;
     if (!dateString) return "TBD";
