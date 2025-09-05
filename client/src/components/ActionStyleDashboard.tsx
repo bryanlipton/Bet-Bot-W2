@@ -253,10 +253,15 @@ function DailyPick({ liveGameData }) {
         </h3>
         
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {gameStatus === 'finished' ? 'Game finished' : 
-           gameStatus === 'in-progress' ? 'Game in progress' : 
-           'AI-backed Data Analysis'}
-        </p>
+  {gameStatus === 'finished' ? 'Game finished' : 
+   gameStatus === 'in-progress' ? (
+     <span className="inline-flex items-center text-red-500 font-bold text-sm">
+       <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+       LIVE
+     </span>
+   ) : 
+   'AI-backed Data Analysis'}
+</p>
         
         <div className={`text-2xl font-bold mb-3 ${
           gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
@@ -601,11 +606,13 @@ function LoggedInLockPick({ liveGameData }) {
           Logged in Lock Pick
         </h3>
         
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {gameStatus === 'finished' ? 'Game finished' : 
-           gameStatus === 'in-progress' ? 'Game in progress' : 
-           'Exclusive pick for authenticated users'}
-        </p>
+        // Option 1: LIVE badge with red background
+<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white mr-2">
+    LIVE
+  </span>
+  Game in progress
+</p>
         
         <div className={`text-2xl font-bold mb-3 ${
           gameStatus === 'in-progress' ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'
