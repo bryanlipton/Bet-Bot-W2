@@ -305,11 +305,11 @@ function DailyPick({ liveGameData }) {
           </div>
         ) : (
           <button 
-            onClick={handleSeeScore}
-            className="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            {gameStatus === 'finished' ? 'View Details' : 'See Score'}
-          </button>
+  onClick={handleSeeScore}
+  className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+>
+  {gameStatus === 'finished' ? 'View Details' : 'View Live Score'}
+</button>
         )}
       </div>
 
@@ -658,11 +658,11 @@ function LoggedInLockPick({ liveGameData }) {
           </div>
         ) : (
           <button 
-            onClick={handleSeeScore}
-            className="w-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
-          >
-            {gameStatus === 'finished' ? 'View Details' : 'See Score'}
-          </button>
+  onClick={handleSeeScore}
+  className="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white py-3 px-4 rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 transform active:scale-95"
+>
+  {gameStatus === 'finished' ? 'View Details' : 'View Live Score'}
+</button>
         )}
       </div>
 
