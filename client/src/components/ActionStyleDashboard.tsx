@@ -730,19 +730,22 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
   queryFn: async () => {
     try {
       let endpoint;
-      switch (selectedSport) {
-        case 'baseball_mlb':
-          endpoint = '/api/mlb/complete-schedule';
-          break;
-        case 'americanfootball_nfl':
-          endpoint = '/api/nfl/complete-schedule';
-          break;
-        case 'basketball_nba':
-          endpoint = '/api/nba/complete-schedule';
-          break;
-        default:
-          endpoint = '/api/mlb/complete-schedule';
-      }
+     switch (selectedSport) {
+  case 'baseball_mlb':
+    endpoint = '/api/mlb/complete-schedule';
+    break;
+  case 'americanfootball_nfl':
+    endpoint = '/api/nfl/complete-schedule';
+    break;
+  case 'basketball_nba':
+    endpoint = '/api/nba/complete-schedule';
+    break;
+  case 'americanfootball_ncaaf':  // Add this case for CFB
+    endpoint = '/api/cfb/complete-schedule';
+    break;
+  default:
+    endpoint = '/api/mlb/complete-schedule';
+}
       
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error('Failed to fetch');
