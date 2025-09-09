@@ -20,6 +20,7 @@ interface GameCardProps {
   spread?: number;
   total?: number;
   startTime?: string;
+  sport?: string;
   prediction?: {
     homeWinProbability: number;
     awayWinProbability: number;
@@ -96,7 +97,66 @@ const formatGameTime = (startTime?: string): string => {
     return "TBD";
   }
 };
-
+const getTeamColorBySport = (teamName: string, sport?: string): string => {
+  if (sport === 'americanfootball_nfl') {
+    const nflColors: Record<string, string> = {
+      'Kansas City Chiefs': '#E31837',
+      'Dallas Cowboys': '#041E42',
+      'Green Bay Packers': '#203731',
+      'Pittsburgh Steelers': '#FFB612',
+      'New England Patriots': '#002244',
+      'San Francisco 49ers': '#AA0000',
+      'Seattle Seahawks': '#002244',
+      'Buffalo Bills': '#00338D',
+      'Miami Dolphins': '#008E97',
+      'New York Jets': '#125740'
+    };
+    return nflColors[teamName] || '#6B7280';
+  }
+  
+  if (sport === 'basketball_nba') {
+    const nbaColors: Record<string, string> = {
+      'Los Angeles Lakers': '#552583',
+      'Boston Celtics': '#007A33',
+      'Golden State Warriors': '#1D428A',
+      'Chicago Bulls': '#CE1141',
+      'Miami Heat': '#98002E',
+      'Brooklyn Nets': '#000000',
+      'Philadelphia 76ers': '#006BB6',
+      'Milwaukee Bucks': '#00471B'
+    };
+    return nbaColors[teamName] || '#6B7280';
+  }
+  
+  if (sport === 'americanfootball_ncaaf') {
+    const cfbColors: Record<string, string> = {
+      'Alabama': '#9E1B32',
+      'Georgia': '#BA0C2F',
+      'Michigan': '#00274C',
+      'Ohio State': '#BB0000',
+      'Texas': '#BF5700',
+      'Oklahoma': '#841617',
+      'Notre Dame': '#0C2340',
+      'USC': '#990000'
+    };
+    return cfbColors[teamName] || '#6B7280';
+  }
+  
+  // MLB colors (default)
+  const mlbColors: Record<string, string> = {
+    'Boston Red Sox': '#BD3039',
+    'New York Yankees': '#132448',
+    'Los Angeles Dodgers': '#005A9C',
+    'San Francisco Giants': '#FD5A1E',
+    'Chicago Cubs': '#0E3386',
+    'St. Louis Cardinals': '#C41E3A',
+    'Houston Astros': '#002D62',
+    'Atlanta Braves': '#CE1141',
+    'Philadelphia Phillies': '#E81828',
+    'New York Mets': '#002D72'
+  };
+  return mlbColors[teamName] || '#6B7280';
+};
 export function ActionStyleGameCard({
   homeTeam,
   awayTeam,
@@ -119,7 +179,8 @@ export function ActionStyleGameCard({
   lockPickId,
   isAuthenticated = false,
   onClick,
-  rawBookmakers
+  rawBookmakers,
+  sport = 'baseball_mlb'
 }: GameCardProps) {
   const [oddsModalOpen, setOddsModalOpen] = useState(false);
   const [gameDetailsOpen, setGameDetailsOpen] = useState(false);
@@ -187,8 +248,10 @@ export function ActionStyleGameCard({
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800">
-              MLB
-            </Badge>
+  {sport === 'americanfootball_nfl' ? 'NFL' : 
+   sport === 'basketball_nba' ? 'NBA' : 
+   sport === 'americanfootball_ncaaf' ? 'CFB' : 'MLB'}
+</Badge>
             {isLive && (
               <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                 LIVE
@@ -217,7 +280,7 @@ export function ActionStyleGameCard({
             <div className="col-span-2 flex items-center gap-2 sm:gap-3">
               <div 
                 className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
-                style={{ backgroundColor: getTeamColor(awayTeam) }}
+                style={{ backgroundColor: getTeamColorBySport(awayTeam, sport) }}
               />
               <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{awayTeam}</p>
             </div>
@@ -236,7 +299,7 @@ export function ActionStyleGameCard({
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', awayTeam)}
                   className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
-                  style={{ backgroundColor: getTeamColor(awayTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(awayTeam, sport) }}
                 >
                   Pick
                 </Button>
@@ -253,7 +316,7 @@ export function ActionStyleGameCard({
             <div className="col-span-2 flex items-center gap-2 sm:gap-3">
               <div 
                 className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
-                style={{ backgroundColor: getTeamColor(homeTeam) }}
+                style={{ backgroundColor: getTeamColorBySport(homeTeam, sport) }}
               />
               <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{homeTeam}</p>
             </div>
@@ -272,7 +335,7 @@ export function ActionStyleGameCard({
                   size="sm"
                   onClick={(e) => handleMakePick(e, 'moneyline', homeTeam)}
                   className="text-xs px-2 sm:px-3 py-1 h-6 sm:h-7 text-white border-0 font-semibold shadow-sm hover:opacity-90"
-                  style={{ backgroundColor: getTeamColor(homeTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(homeTeam, sport) }}
                 >
                   Pick
                 </Button>
@@ -491,7 +554,7 @@ export function ActionStyleGameCard({
             homeTeam,
             awayTeam,
             gameId,
-            sport: 'baseball_mlb',
+            sport: sport || 'baseball_mlb',
             gameTime: startTime
           }}
           bookmakers={rawBookmakers}
