@@ -820,9 +820,9 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
         {/* Header */}
         <div className="space-y-2 mb-1 sm:mb-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-  {sports.find(s => s.key === selectedSport)?.name || 'MLB'} Game Odds
-</h2>
+            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white underline">
+              Bet Bot Sports Genie AI Picks
+            </h2>
             <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto`}>
               {isProUser ? 'Pro Users' : 'Free Users'}
             </Badge>
@@ -861,8 +861,8 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <div>
               <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-                MLB Game Odds
-              </h2>
+  {sports.find(s => s.key === selectedSport)?.name || 'MLB'} Game Odds
+</h2>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 {games.length} games available
               </p>
@@ -886,20 +886,19 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {games.map((game) => (
                 <ActionStyleGameCard
-  key={game.id}
-  homeTeam={game.homeTeam}
-  awayTeam={game.awayTeam}
-  homeOdds={game.homeOdds}
-  awayOdds={game.awayOdds}
-  spread={game.spread}
-  total={game.total}
-  startTime={game.startTime}
-  gameId={game.id}
-  isAuthenticated={isAuthenticated}
-  rawBookmakers={game.rawBookmakers}
-  sport={selectedSport} // Add this line
-/>ers={game.rawBookmakers} // Pass bookmakers to game cards
-                />
+                  key={game.id}
+                  homeTeam={game.homeTeam}
+                  awayTeam={game.awayTeam}
+                  homeOdds={game.homeOdds}
+                  awayOdds={game.awayOdds}
+                  spread={game.spread}
+                  total={game.total}
+                  startTime={game.startTime}
+                  gameId={game.id}
+                  isAuthenticated={isAuthenticated}
+                  rawBookmakers={game.rawBookmakers}
+                  sport={selectedSport}
+                    />
               ))}
             </div>
           ) : (
