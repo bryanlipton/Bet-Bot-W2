@@ -724,22 +724,38 @@ function ActionStyleDashboard() {
   const { isProUser } = useProStatus();
 
   // Fetch odds data
-  const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
-    queryKey: ['/api/mlb/complete-schedule'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/mlb/complete-schedule');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        return Array.isArray(data) ? data : [];
-      } catch (error) {
-        console.error('Error fetching odds:', error);
-        return [];
+  // Fetch odds data based on selected sport
+const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
+  queryKey: [selectedSport, 'complete-schedule'],
+  queryFn: async () => {
+    try {
+      let endpoint;
+      switch (selectedSport) {
+        case 'baseball_mlb':
+          endpoint = '/api/mlb/complete-schedule';
+          break;
+        case 'americanfootball_nfl':
+          endpoint = '/api/nfl/complete-schedule';
+          break;
+        case 'basketball_nba':
+          endpoint = '/api/nba/complete-schedule';
+          break;
+        default:
+          endpoint = '/api/mlb/complete-schedule';
       }
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+      
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching odds:', error);
+      return [];
+    }
+  },
+  staleTime: 5 * 60 * 1000,
+  refetchOnWindowFocus: false,
+});
 
   // Process games data
   const processGames = (games) => {
@@ -790,12 +806,12 @@ function ActionStyleDashboard() {
 
   const games = processGames(liveOddsData);
 
-  // Sports tabs
   const sports = [
-    { key: "baseball_mlb", name: "MLB" },
-    { key: "americanfootball_nfl", name: "NFL" },
-    { key: "basketball_nba", name: "NBA" },
-  ];
+  { key: "baseball_mlb", name: "MLB" },
+  { key: "americanfootball_nfl", name: "NFL" },
+  { key: "basketball_nba", name: "NBA" },
+  { key: "americanfootball_ncaaf", name: "CFB" },
+];
 
   return (
     <>
@@ -804,9 +820,9 @@ function ActionStyleDashboard() {
         {/* Header */}
         <div className="space-y-2 mb-1 sm:mb-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white underline">
-              Bet Bot Sports Genie AI Picks
-            </h2>
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
+  {sports.find(s => s.key === selectedSport)?.name || 'MLB'} Game Odds
+</h2>
             <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto`}>
               {isProUser ? 'Pro Users' : 'Free Users'}
             </Badge>
@@ -870,17 +886,19 @@ function ActionStyleDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {games.map((game) => (
                 <ActionStyleGameCard
-                  key={game.id}
-                  homeTeam={game.homeTeam}
-                  awayTeam={game.awayTeam}
-                  homeOdds={game.homeOdds}
-                  awayOdds={game.awayOdds}
-                  spread={game.spread}
-                  total={game.total}
-                  startTime={game.startTime}
-                  gameId={game.id}
-                  isAuthenticated={isAuthenticated}
-                  rawBookmakers={game.rawBookmakers} // Pass bookmakers to game cards
+  key={game.id}
+  homeTeam={game.homeTeam}
+  awayTeam={game.awayTeam}
+  homeOdds={game.homeOdds}
+  awayOdds={game.awayOdds}
+  spread={game.spread}
+  total={game.total}
+  startTime={game.startTime}
+  gameId={game.id}
+  isAuthenticated={isAuthenticated}
+  rawBookmakers={game.rawBookmakers}
+  sport={selectedSport} // Add this line
+/>ers={game.rawBookmakers} // Pass bookmakers to game cards
                 />
               ))}
             </div>
