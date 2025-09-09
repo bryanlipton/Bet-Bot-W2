@@ -9,6 +9,7 @@ import {
   Info
 } from "lucide-react";
 import { getTeamColor } from "@/utils/teamLogos";
+import { getTeamColorBySport, cleanTeamName } from "@/utils/teamColors";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 import { GameDetailsModal } from "./GameDetailsModal";
 
@@ -97,186 +98,7 @@ const formatGameTime = (startTime?: string): string => {
     return "TBD";
   }
 };
-const getTeamColorBySport = (teamName: string, sport?: string): string => {
-  if (sport === 'americanfootball_nfl') {
-    const nflColors: Record<string, string> = {
-      'Arizona Cardinals': '#97233F',
-      'Atlanta Falcons': '#A71930',
-      'Baltimore Ravens': '#241773',
-      'Buffalo Bills': '#00338D',
-      'Carolina Panthers': '#0085CA',
-      'Chicago Bears': '#C83803',
-      'Cincinnati Bengals': '#FB4F14',
-      'Cleveland Browns': '#311D00',
-      'Dallas Cowboys': '#041E42',
-      'Denver Broncos': '#FB4F14',
-      'Detroit Lions': '#0076B6',
-      'Green Bay Packers': '#203731',
-      'Houston Texans': '#03202F',
-      'Indianapolis Colts': '#002C5F',
-      'Jacksonville Jaguars': '#9F792C',
-      'Kansas City Chiefs': '#E31837',
-      'Las Vegas Raiders': '#000000',
-      'Los Angeles Chargers': '#0080C6',
-      'Los Angeles Rams': '#003594',
-      'Miami Dolphins': '#008E97',
-      'Minnesota Vikings': '#4F2683',
-      'New England Patriots': '#002244',
-      'New Orleans Saints': '#D3BC8D',
-      'New York Giants': '#0B2265',
-      'New York Jets': '#125740',
-      'Philadelphia Eagles': '#004C54',
-      'Pittsburgh Steelers': '#FFB612',
-      'San Francisco 49ers': '#AA0000',
-      'Seattle Seahawks': '#002244',
-      'Tampa Bay Buccaneers': '#D50A0A',
-      'Tennessee Titans': '#0C2340',
-      'Washington Commanders': '#5A1414'
-    };
-    return nflColors[teamName] || '#6B7280';
-  }
-  
-  if (sport === 'basketball_nba') {
-    const nbaColors: Record<string, string> = {
-      'Atlanta Hawks': '#E03A3E',
-      'Boston Celtics': '#007A33',
-      'Brooklyn Nets': '#000000',
-      'Charlotte Hornets': '#1D1160',
-      'Chicago Bulls': '#CE1141',
-      'Cleveland Cavaliers': '#6F263D',
-      'Dallas Mavericks': '#00538C',
-      'Denver Nuggets': '#0E2240',
-      'Detroit Pistons': '#C8102E',
-      'Golden State Warriors': '#1D428A',
-      'Houston Rockets': '#CE1141',
-      'Indiana Pacers': '#002D62',
-      'Los Angeles Clippers': '#C8102E',
-      'Los Angeles Lakers': '#552583',
-      'Memphis Grizzlies': '#5D76A9',
-      'Miami Heat': '#98002E',
-      'Milwaukee Bucks': '#00471B',
-      'Minnesota Timberwolves': '#0C2340',
-      'New Orleans Pelicans': '#0C2340',
-      'New York Knicks': '#006BB6',
-      'Oklahoma City Thunder': '#007AC1',
-      'Orlando Magic': '#0077C0',
-      'Philadelphia 76ers': '#006BB6',
-      'Phoenix Suns': '#1D1160',
-      'Portland Trail Blazers': '#E03A3E',
-      'Sacramento Kings': '#5A2D81',
-      'San Antonio Spurs': '#C4CED4',
-      'Toronto Raptors': '#CE1141',
-      'Utah Jazz': '#002B5C',
-      'Washington Wizards': '#002B5C'
-    };
-    return nbaColors[teamName] || '#6B7280';
-  }
-  
-  if (sport === 'americanfootball_ncaaf') {
-    const cfbColors: Record<string, string> = {
-      'Alabama': '#9E1B32',
-      'Auburn': '#0C385B',
-      'Arkansas': '#9D2235',
-      'Florida': '#0021A5',
-      'Georgia': '#BA0C2F',
-      'Kentucky': '#0033A0',
-      'LSU': '#461D7C',
-      'Mississippi State': '#5D1725',
-      'Missouri': '#F1B82D',
-      'Ole Miss': '#14213D',
-      'South Carolina': '#73000A',
-      'Tennessee': '#FF8200',
-      'Texas A&M': '#500000',
-      'Vanderbilt': '#866D4B',
-      'Clemson': '#F56600',
-      'Duke': '#003087',
-      'Florida State': '#782F40',
-      'Georgia Tech': '#B3A369',
-      'Louisville': '#AD0000',
-      'Miami': '#F47321',
-      'North Carolina': '#4B9CD3',
-      'NC State': '#CC0000',
-      'Pittsburgh': '#003594',
-      'Syracuse': '#D44500',
-      'Virginia': '#232D4B',
-      'Virginia Tech': '#861F41',
-      'Wake Forest': '#9E7E38',
-      'Illinois': '#13294B',
-      'Indiana': '#990000',
-      'Iowa': '#FFCD00',
-      'Maryland': '#E03A3E',
-      'Michigan': '#00274C',
-      'Michigan State': '#18453B',
-      'Minnesota': '#7A0019',
-      'Nebraska': '#D00000',
-      'Northwestern': '#4E2A84',
-      'Ohio State': '#BB0000',
-      'Penn State': '#041E42',
-      'Purdue': '#CEB888',
-      'Rutgers': '#CC0033',
-      'Wisconsin': '#C5050C',
-      'Baylor': '#003015',
-      'Iowa State': '#C8102E',
-      'Kansas': '#0051BA',
-      'Kansas State': '#512888',
-      'Oklahoma': '#841617',
-      'Oklahoma State': '#FF7300',
-      'TCU': '#4D1979',
-      'Texas': '#BF5700',
-      'Texas Tech': '#CC0000',
-      'West Virginia': '#002855',
-      'Arizona': '#003366',
-      'Arizona State': '#8C1D40',
-      'California': '#003262',
-      'Colorado': '#CFB87C',
-      'Oregon': '#154733',
-      'Oregon State': '#DC4405',
-      'Stanford': '#8C1515',
-      'UCLA': '#2774AE',
-      'USC': '#990000',
-      'Utah': '#CC0000',
-      'Washington': '#4B2E83',
-      'Washington State': '#981E32',
-      'Notre Dame': '#0C2340'
-    };
-    return cfbColors[teamName] || '#6B7280';
-  }
-  
-  // MLB colors (default)
-  const mlbColors: Record<string, string> = {
-    'Arizona Diamondbacks': '#A71930',
-    'Atlanta Braves': '#CE1141',
-    'Baltimore Orioles': '#DF4601',
-    'Boston Red Sox': '#BD3039',
-    'Chicago Cubs': '#0E3386',
-    'Chicago White Sox': '#27251F',
-    'Cincinnati Reds': '#C6011F',
-    'Cleveland Guardians': '#E31937',
-    'Colorado Rockies': '#33006F',
-    'Detroit Tigers': '#0C2340',
-    'Houston Astros': '#002D62',
-    'Kansas City Royals': '#004687',
-    'Los Angeles Angels': '#BA0021',
-    'Los Angeles Dodgers': '#005A9C',
-    'Miami Marlins': '#00A3E0',
-    'Milwaukee Brewers': '#12284B',
-    'Minnesota Twins': '#002B5C',
-    'New York Mets': '#002D72',
-    'New York Yankees': '#132448',
-    'Oakland Athletics': '#003831',
-    'Philadelphia Phillies': '#E81828',
-    'Pittsburgh Pirates': '#FDB827',
-    'San Diego Padres': '#2F241D',
-    'San Francisco Giants': '#FD5A1E',
-    'Seattle Mariners': '#0C2C56',
-    'St. Louis Cardinals': '#C41E3A',
-    'Tampa Bay Rays': '#092C5C',
-    'Texas Rangers': '#003278',
-    'Toronto Blue Jays': '#134A8E',
-    'Washington Nationals': '#AB0003'
-  };
-  return mlbColors[teamName] || '#6B7280';
-};
+
 export function ActionStyleGameCard({
   homeTeam,
   awayTeam,
@@ -368,10 +190,10 @@ export function ActionStyleGameCard({
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800">
-  {sport === 'americanfootball_nfl' ? 'NFL' : 
-   sport === 'basketball_nba' ? 'NBA' : 
-   sport === 'americanfootball_ncaaf' ? 'CFB' : 'MLB'}
-</Badge>
+              {sport === 'americanfootball_nfl' ? 'NFL' : 
+               sport === 'basketball_nba' ? 'NBA' : 
+               sport === 'americanfootball_ncaaf' ? 'CFB' : 'MLB'}
+            </Badge>
             {isLive && (
               <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                 LIVE
@@ -402,7 +224,7 @@ export function ActionStyleGameCard({
                 className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
                 style={{ backgroundColor: getTeamColorBySport(awayTeam, sport) }}
               />
-              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{awayTeam}</p>
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{cleanTeamName(awayTeam)}</p>
             </div>
             
             <div className="flex items-center justify-center">
@@ -438,7 +260,7 @@ export function ActionStyleGameCard({
                 className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shadow-sm flex-shrink-0" 
                 style={{ backgroundColor: getTeamColorBySport(homeTeam, sport) }}
               />
-              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{homeTeam}</p>
+              <p className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">{cleanTeamName(homeTeam)}</p>
             </div>
             
             <div className="flex items-center justify-center">
@@ -485,7 +307,7 @@ export function ActionStyleGameCard({
                     return (
                       <div className="space-y-1">
                         <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                          {favoredTeam} -{favoredSpread}
+                          {cleanTeamName(favoredTeam)} -{favoredSpread}
                         </div>
                         <div className="flex gap-1">
                           <Button
@@ -557,7 +379,7 @@ export function ActionStyleGameCard({
                   return (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-700 dark:text-gray-300 min-w-[80px]">
-                        {favoredTeam} -{favoredSpread}
+                        {cleanTeamName(favoredTeam)} -{favoredSpread}
                       </span>
                       <div className="flex gap-1">
                         <Button
@@ -632,7 +454,7 @@ export function ActionStyleGameCard({
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-green-600" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  Bet: {recommendation.team}
+                  Bet: {cleanTeamName(recommendation.team)}
                 </span>
               </div>
               <div className="text-right">
