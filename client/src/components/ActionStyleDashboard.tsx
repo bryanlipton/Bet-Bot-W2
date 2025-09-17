@@ -10,8 +10,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProStatus } from "@/hooks/useProStatus";
 import { OddsComparisonModal } from "./OddsComparisonModal";
 
-// DailyPick component with all game states
+// ADD THESE IMPORTS FOR ML INTEGRATION
+import { MLApiService } from '../services/mlApi';
+import { MLGradeDisplay } from './MLGradeDisplay';
+
+// Your existing DailyPick component stays the same
 function DailyPick({ liveGameData }) {
+  // ... keep all your existing DailyPick code exactly as is ...
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
   const [gameOdds, setGameOdds] = useState(null);
@@ -351,8 +356,9 @@ function DailyPick({ liveGameData }) {
   );
 }
 
-// LoggedInLockPick component with all game states
+// Your existing LoggedInLockPick component stays the same
 function LoggedInLockPick({ liveGameData }) {
+  // Keep all your existing LoggedInLockPick code exactly as is
   const { isAuthenticated, signInWithGoogle, isLoading: authLoading } = useAuth();
   const [pick, setPick] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -717,79 +723,97 @@ function LoggedInLockPick({ liveGameData }) {
   );
 }
 
-// Main ActionStyleDashboard component
+// MAIN COMPONENT WITH ML INTEGRATION
 function ActionStyleDashboard() {
   const [selectedSport, setSelectedSport] = useState("baseball_mlb");
   const { isAuthenticated } = useAuth();
   const { isProUser } = useProStatus();
 
-  // Fetch odds data
-  // Fetch odds data based on selected sport
-const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
-  queryKey: [selectedSport, 'complete-schedule'],
-  queryFn: async () => {
-    try {
-      let endpoint;
-     switch (selectedSport) {
-  case 'baseball_mlb':
-    endpoint = '/api/mlb/complete-schedule';
-    break;
-  case 'americanfootball_nfl':
-    endpoint = '/api/nfl/complete-schedule';
-    break;
-  case 'basketball_nba':
-    endpoint = '/api/nba/complete-schedule';
-    break;
-  case 'americanfootball_ncaaf':  // Add this case for CFB
-    endpoint = '/api/cfb/complete-schedule';
-    break;
-  default:
-    endpoint = '/api/mlb/complete-schedule';
-}
-      
-      const response = await fetch(endpoint);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    } catch (error) {
-      console.error('Error fetching odds:', error);
-      return [];
-    }
-  },
-  staleTime: 5 * 60 * 1000,
-  refetchOnWindowFocus: false,
-});
+  // NEW: ML API QUERIES FOR PREDICTIONS
+  const { data: nflPicks, isLoading: nflPicksLoading } = useQuery({
+    queryKey: ['nfl-picks'],
+    queryFn: () => MLApiService.getNFLPicks(),
+    enabled: selectedSport === 'americanfootball_nfl',
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+  });
+
+  const { data: cfbPicks, isLoading: cfbPicksLoading } = useQuery({
+    queryKey: ['cfb-picks'],
+    queryFn: () => MLApiService.getCFBPicks(),
+    enabled: selectedSport === 'americanfootball_ncaaf',
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
+  });
+
+  // NEW: ML HEALTH CHECK
+  const { data: mlHealth } = useQuery({
+    queryKey: ['ml-health'],
+    queryFn: () => MLApiService.checkHealth(),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  // EXISTING: Fetch odds data based on selected sport
+  const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = useQuery({
+    queryKey: [selectedSport, 'complete-schedule'],
+    queryFn: async () => {
+      try {
+        let endpoint;
+        switch (selectedSport) {
+          case 'baseball_mlb':
+            endpoint = '/api/mlb/complete-schedule';
+            break;
+          case 'americanfootball_nfl':
+            endpoint = '/api/nfl/complete-schedule';
+            break;
+          case 'basketball_nba':
+            endpoint = '/api/nba/complete-schedule';
+            break;
+          case 'americanfootball_ncaaf':
+            endpoint = '/api/cfb/complete-schedule';
+            break;
+          default:
+            endpoint = '/api/mlb/complete-schedule';
+        }
+        
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching odds:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   // Process games data
   const processGames = (games) => {
     if (!Array.isArray(games)) return [];
     
-    // Filter out games that have already started
     const now = new Date();
     const upcomingGames = games.filter(game => {
       if (!game.commence_time) return false;
       const gameTime = new Date(game.commence_time);
-      return gameTime > now; // Only show games that haven't started yet
+      return gameTime > now;
     });
     
     return upcomingGames.map(game => {
-      // Get first bookmaker with markets
       const firstBookmaker = game.bookmakers?.[0];
       
-      // Extract markets
       const h2hMarket = firstBookmaker?.markets?.find(m => m.key === 'h2h');
       const spreadsMarket = firstBookmaker?.markets?.find(m => m.key === 'spreads');
       const totalsMarket = firstBookmaker?.markets?.find(m => m.key === 'totals');
       
-      // Get moneyline odds
       const homeMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.home_team)?.price;
       const awayMoneyline = h2hMarket?.outcomes?.find(o => o.name === game.away_team)?.price;
       
-      // Get spread
       const homeSpread = spreadsMarket?.outcomes?.find(o => o.name === game.home_team)?.point;
       const awaySpread = spreadsMarket?.outcomes?.find(o => o.name === game.away_team)?.point;
       
-      // Get total
       const totalLine = totalsMarket?.outcomes?.find(o => o.name === 'Over')?.point;
       
       return {
@@ -798,37 +822,83 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
         awayTeam: game.away_team || 'Away',
         homeOdds: homeMoneyline,
         awayOdds: awayMoneyline,
-        spread: homeSpread, // Home team spread
-        total: totalLine,   // Over/Under line
+        spread: homeSpread,
+        total: totalLine,
         startTime: game.commence_time,
         sportKey: game.sport_key,
-        rawBookmakers: game.bookmakers || [] // Keep the full bookmakers data
+        rawBookmakers: game.bookmakers || []
       };
     });
   };
 
-  const games = processGames(liveOddsData);
+  // NEW: COMBINE GAMES WITH ML PREDICTIONS
+  const combineGamesWithPredictions = (games, mlPicks) => {
+    if (!mlPicks || !Array.isArray(mlPicks)) return games;
+
+    return games.map(game => {
+      const mlPick = mlPicks.find(pick => 
+        (pick.homeTeam === game.homeTeam && pick.awayTeam === game.awayTeam) ||
+        (pick.homeTeam.includes(game.homeTeam.split(' ').pop()) && 
+         pick.awayTeam.includes(game.awayTeam.split(' ').pop()))
+      );
+
+      return {
+        ...game,
+        mlPrediction: mlPick || null
+      };
+    });
+  };
+
+  // Process games and combine with ML predictions
+  let games = processGames(liveOddsData);
+  
+  // NEW: GET CURRENT ML PREDICTIONS
+  const getCurrentMLPicks = () => {
+    switch (selectedSport) {
+      case "americanfootball_nfl": return nflPicks;
+      case "americanfootball_ncaaf": return cfbPicks;
+      default: return null;
+    }
+  };
+
+  const currentMLPicks = getCurrentMLPicks();
+  games = combineGamesWithPredictions(games, currentMLPicks);
+
+  // NEW: SEPARATE GAMES WITH AND WITHOUT PREDICTIONS
+  const gamesWithPredictions = games.filter(game => game.mlPrediction);
+  const gamesWithoutPredictions = games.filter(game => !game.mlPrediction);
 
   const sports = [
-  { key: "baseball_mlb", name: "MLB" },
-  { key: "americanfootball_nfl", name: "NFL" },
-  { key: "basketball_nba", name: "NBA" },
-  { key: "americanfootball_ncaaf", name: "CFB" },
-];
+    { key: "baseball_mlb", name: "MLB" },
+    { key: "americanfootball_nfl", name: "NFL" },
+    { key: "basketball_nba", name: "NBA" },
+    { key: "americanfootball_ncaaf", name: "CFB" },
+  ];
 
   return (
     <>
       <MobileHeader />
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-1 sm:pt-4 pb-20 sm:pb-6 space-y-4 md:space-y-6">
-        {/* Header */}
+        {/* Header with ML Health Status */}
         <div className="space-y-2 mb-1 sm:mb-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white underline">
               Bet Bot Sports Genie AI Picks
             </h2>
-            <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto`}>
-              {isProUser ? 'Pro Users' : 'Free Users'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={`${isProUser ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'} text-white border-none self-start sm:self-auto`}>
+                {isProUser ? 'Pro Users' : 'Free Users'}
+              </Badge>
+              
+              {/* NEW: ML HEALTH STATUS */}
+              <div className={`px-3 py-1 rounded-full text-xs ${
+                mlHealth?.status === 'healthy' 
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}>
+                AI: {mlHealth?.status || 'offline'}
+              </div>
+            </div>
           </div>
           
           {/* Pick Cards */}
@@ -848,13 +918,18 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
             <button
               key={sport.key}
               onClick={() => setSelectedSport(sport.key)}
-              className={`py-3 px-2 sm:px-4 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${
+              className={`py-3 px-2 sm:px-4 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap relative ${
                 selectedSport === sport.key
                   ? "border-blue-500 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400"
               }`}
             >
               {sport.name}
+              {/* NEW: SHOW INDICATOR FOR SPORTS WITH ML PREDICTIONS */}
+              {((sport.key === 'americanfootball_nfl' && nflPicks?.length > 0) || 
+                (sport.key === 'americanfootball_ncaaf' && cfbPicks?.length > 0)) && (
+                <span className="ml-1 inline-block w-2 h-2 bg-green-400 rounded-full"></span>
+              )}
             </button>
           ))}
         </div>
@@ -864,8 +939,8 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <div>
               <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-  {sports.find(s => s.key === selectedSport)?.name || 'MLB'} Game Odds
-</h2>
+                {sports.find(s => s.key === selectedSport)?.name || 'MLB'} Game Odds
+              </h2>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 {games.length} games available
               </p>
@@ -885,37 +960,118 @@ const { data: liveOddsData, isLoading: oddsLoading, refetch: refetchOdds } = use
                 </Card>
               ))}
             </div>
-          ) : games.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {games.map((game) => (
-                <ActionStyleGameCard
-                  key={game.id}
-                  homeTeam={game.homeTeam}
-                  awayTeam={game.awayTeam}
-                  homeOdds={game.homeOdds}
-                  awayOdds={game.awayOdds}
-                  spread={game.spread}
-                  total={game.total}
-                  startTime={game.startTime}
-                  gameId={game.id}
-                  isAuthenticated={isAuthenticated}
-                  rawBookmakers={game.rawBookmakers}
-                  sport={selectedSport}
-                    />
-              ))}
-            </div>
           ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No Live Games
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  No games are currently available. Check back later.
-                </p>
-              </CardContent>
-            </Card>
+            <>
+              {/* NEW: GAMES WITH AI PREDICTIONS */}
+              {gamesWithPredictions.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      AI Predictions & Grades
+                    </h3>
+                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                      {gamesWithPredictions.length} Games
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {gamesWithPredictions.map((game) => (
+                      <div key={game.id} className="relative">
+                        {/* ML GRADE HEADER */}
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-3 rounded-t-lg border-b">
+                          <MLGradeDisplay 
+                            grade={game.mlPrediction.recommendation.grade}
+                            confidence={game.mlPrediction.recommendation.confidence}
+                            edge={game.mlPrediction.recommendation.edge}
+                            compact={true}
+                          />
+                          <div className="mt-2 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-blue-500">
+                            <div className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                              Recommended: {game.mlPrediction.recommendation.market.toUpperCase()} - {game.mlPrediction.recommendation.pick.toUpperCase()}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              {game.mlPrediction.recommendation.reasoning}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* GAME CARD */}
+                        <div className="rounded-b-lg overflow-hidden border border-t-0">
+                          <ActionStyleGameCard
+                            key={game.id}
+                            homeTeam={game.homeTeam}
+                            awayTeam={game.awayTeam}
+                            homeOdds={game.homeOdds}
+                            awayOdds={game.awayOdds}
+                            spread={game.spread}
+                            total={game.total}
+                            startTime={game.startTime}
+                            gameId={game.id}
+                            isAuthenticated={isAuthenticated}
+                            rawBookmakers={game.rawBookmakers}
+                            sport={selectedSport}
+                            mlPrediction={game.mlPrediction}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* REGULAR GAMES */}
+              {gamesWithoutPredictions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {gamesWithPredictions.length > 0 ? 'Additional Games' : 'Live Odds'}
+                    </h3>
+                    <Badge variant="outline">
+                      {gamesWithoutPredictions.length} Games
+                    </Badge>
+                    {(selectedSport === 'americanfootball_nfl' || selectedSport === 'americanfootball_ncaaf') && gamesWithPredictions.length === 0 && (
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        AI predictions coming soon
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {gamesWithoutPredictions.map((game) => (
+                      <ActionStyleGameCard
+                        key={game.id}
+                        homeTeam={game.homeTeam}
+                        awayTeam={game.awayTeam}
+                        homeOdds={game.homeOdds}
+                        awayOdds={game.awayOdds}
+                        spread={game.spread}
+                        total={game.total}
+                        startTime={game.startTime}
+                        gameId={game.id}
+                        isAuthenticated={isAuthenticated}
+                        rawBookmakers={game.rawBookmakers}
+                        sport={selectedSport}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* NO GAMES MESSAGE */}
+              {games.length === 0 && (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      No Live Games
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No games are currently available. Check back later.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </div>
       </div>
