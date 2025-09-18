@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { LiveGameModal } from "@/components/LiveGameModal";
 import FootballLiveGameModal from "@/components/FootballLiveGameModal";
 import { GameDetailsModal } from "@/components/GameDetailsModal";
-import { getTeamColor } from "@/utils/teamLogos";
+import { getTeamColorBySport } from "@/utils/teamColors";
 import { 
   Calendar,
   Clock,
@@ -737,7 +737,7 @@ function ScoreGameCard({
               <div className="flex items-center gap-2">
                 <div 
                   className="w-3 h-3 rounded-full shadow-sm" 
-                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(game.awayTeam, game.sportKey) }}
                 />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {liveData?.teams?.away?.abbreviation || game.awayTeam}
@@ -753,7 +753,7 @@ function ScoreGameCard({
               <div className="flex items-center gap-2">
                 <div 
                   className="w-3 h-3 rounded-full shadow-sm" 
-                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(game.homeTeam, game.sportKey) }}
                 />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {liveData?.teams?.home?.abbreviation || game.homeTeam}
@@ -788,7 +788,7 @@ function ScoreGameCard({
               <div className="flex items-center gap-2">
                 <div 
                   className="w-3 h-3 rounded-full shadow-sm" 
-                  style={{ backgroundColor: getTeamColor(game.awayTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(game.awayTeam, game.sportKey) }}
                 />
                 <span className={`text-sm font-medium ${
                   isFinished && homeWon && !isTied 
@@ -803,7 +803,7 @@ function ScoreGameCard({
               <div className="flex items-center gap-2">
                 <div 
                   className="w-3 h-3 rounded-full shadow-sm" 
-                  style={{ backgroundColor: getTeamColor(game.homeTeam) }}
+                  style={{ backgroundColor: getTeamColorBySport(game.homeTeam, game.sportKey) }}
                 />
                 <span className={`text-sm font-medium ${
                   isFinished && awayWon && !isTied 
