@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, MapPin, RefreshCw } from 'lucide-react';
-import { getNFLTeamColor, getCFBTeamColor } from '@/utils/teamColors';
+import { getTeamColorBySport } from '@/utils/teamColors';
 
 const FootballLiveGameModal = ({ gameId, homeTeam, awayTeam, sport, isOpen, onClose }) => {
   const [gameData, setGameData] = useState(null);
@@ -21,12 +21,7 @@ const FootballLiveGameModal = ({ gameId, homeTeam, awayTeam, sport, isOpen, onCl
 
   // Get team colors based on sport
   const getTeamColor = (teamName) => {
-    if (sport === 'americanfootball_nfl') {
-      return getNFLTeamColor(teamName);
-    } else if (sport === 'americanfootball_ncaaf') {
-      return getCFBTeamColor(teamName);
-    }
-    return '#6B7280';
+    return getTeamColorBySport(teamName, sport);
   };
 
   useEffect(() => {
