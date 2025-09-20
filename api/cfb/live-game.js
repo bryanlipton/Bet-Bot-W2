@@ -1,3 +1,22 @@
+// Add this function at the top
+const getSchoolName = (teamName) => {
+  if (!teamName) return teamName;
+  
+  // Common mascot patterns to remove
+  const mascotPatterns = [
+    /\s+(Tigers|Bulldogs|Eagles|Bears|Lions|Cardinals|Wildcats|Wolverines|Buckeyes|Sooners|Crimson Tide|Blue Devils|Tar Heels|Seminoles|Gators|Volunteers|Commodores|Razorbacks|Aggies|Longhorns|Cowboys|Red Raiders|Horned Frogs|Jayhawks|Cyclones|Mountaineers|Hoosiers|Spartans|Fighting Irish|Golden Eagles|Panthers|Hurricanes|Hokies|Demon Deacons|Yellow Jackets|Orange|Orangemen|Knights|Bulls|Huskies|Ducks|Beavers|Sun Devils|Trojans|Bruins|Golden Bears|Cardinal|Fighting Illini|Badgers|Golden Gophers|Cornhuskers|Nittany Lions|Terrapins|Scarlet Knights|Boilermakers|Hawkeyes|Gamecocks|Rebels|Black Bears|Golden Flashes|Broncos|Rams|Falcons|Rainbow Warriors)$/i
+  ];
+  
+  let schoolName = teamName;
+  
+  // Remove mascot patterns
+  mascotPatterns.forEach(pattern => {
+    schoolName = schoolName.replace(pattern, '');
+  });
+  
+  return schoolName.trim();
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
@@ -44,108 +63,4 @@ export default async function handler(req, res) {
             // Extract team info for possession mapping
             const competition = data.header.competitions?.[0];
             if (competition?.competitors) {
-              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
-              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
-            }
-            break;
-          }
-        } else if (endpoint.includes('scoreboard')) {
-          const game = data.events?.find(event => event.id === cleanGameId);
-          if (game) {
-            gameData = game;
-            situation = game.competitions?.[0]?.situation || {};
-            // Extract team info for possession mapping
-            const competition = game.competitions?.[0];
-            if (competition?.competitors) {
-              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
-              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
-            }
-            break;
-          }
-        } else {
-          // Core API endpoints
-          if (data.competitions) {
-            gameData = data;
-            situation = data.competitions?.[0]?.situation || {};
-            // Extract team info for possession mapping
-            const competition = data.competitions?.[0];
-            if (competition?.competitors) {
-              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
-              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
-            }
-            break;
-          }
-        }
-      } catch (error) {
-        console.log(`Endpoint failed: ${endpoint} - ${error.message}`);
-        continue;
-      }
-    }
-    
-    if (!gameData) {
-      throw new Error('No game data found from any endpoint');
-    }
-    
-    // Extract down and distance - only if we have real data
-    let downDistance = null;
-    if (situation.shortDownDistanceText) {
-      downDistance = situation.shortDownDistanceText;
-    } else if (situation.downDistanceText) {
-      downDistance = situation.downDistanceText;
-    } else if (situation.down && situation.distance) {
-      const ordinals = ['st', 'nd', 'rd', 'th'];
-      const suffix = ordinals[Math.min(situation.down - 1, 3)] || 'th';
-      downDistance = `${situation.down}${suffix} & ${situation.distance}`;
-    }
-    
-    // Extract possession - map team ID to team name if possible
-    let possession = null;
-    if (situation.possession) {
-      // If possession is a number (team ID), try to map it to team name
-      if (typeof situation.possession === 'string' && !isNaN(situation.possession)) {
-        const teamId = situation.possession;
-        if (teams.home?.id === teamId) {
-          possession = teams.home.displayName || teams.home.name;
-        } else if (teams.away?.id === teamId) {
-          possession = teams.away.displayName || teams.away.name;
-        }
-      } else if (typeof situation.possession === 'string') {
-        // possession is already a team name or abbreviation
-        possession = situation.possession;
-      }
-    }
-    
-    // Extract yard line - only if we have real data
-    let yardLine = null;
-    if (situation.possessionText) {
-      yardLine = situation.possessionText;
-    }
-    
-    const status = gameData.status || {};
-    
-    console.log('Extracted data:', {
-      down: downDistance,
-      possession: possession,
-      yardLine: yardLine,
-      situationRaw: situation
-    });
-    
-    return res.status(200).json({
-      gameId: cleanGameId,
-      quarter: status.period ? `Q${status.period}` : null,
-      clock: status.displayClock || null,
-      down: downDistance,
-      possession: possession,
-      yardLine: yardLine,
-      status: status.type?.description || 'In Progress'
-    });
-    
-  } catch (error) {
-    console.error('CFB Live Game API Error:', error.message);
-    
-    return res.status(500).json({ 
-      error: 'Failed to fetch live game data',
-      message: error.message 
-    });
-  }
-}
+              teams.home = competition.competitors.find(c => c.
