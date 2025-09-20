@@ -1,8 +1,4 @@
-// Helper function to get current CFB week
-function getCurrentCFBWeek() {
-  // Simple, reliable version - return Week 4
-  return 4;
-}export default async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   
@@ -177,43 +173,50 @@ function getCurrentCFBWeek() {
   }
 }
 
-// Helper function to get current CFB week
+// Smart CFB week calculation with Tuesday midnight rollover
 function getCurrentCFBWeek() {
   const now = new Date();
   const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
+  const date = now.getDate();
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday
+  const hour = now.getHours();
   
-  // CFB season typically starts first Saturday of September
-  // Week boundaries: Tuesday midnight to Monday 11:59 PM
-  const seasonStart = new Date(year, 8, 1); // September 1st
-  
-  // Find first Saturday of September (Week 1 start)
-  while (seasonStart.getDay() !== 6) {
-    seasonStart.setDate(seasonStart.getDate() + 1);
+  // CFB 2025 season week mapping
+  if (month === 7) { // August
+    if (date >= 24) return 1; // Week 1 starts late August
+    return 1;
   }
   
-  // Calculate weeks since season start, but account for Tuesday rollover
-  const currentDate = new Date(now);
-  
-  // If it's Monday or early Tuesday (before midnight), stay on current week
-  // If it's Tuesday midnight or later, advance to next week
-  const dayOfWeek = currentDate.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
-  const hour = currentDate.getHours();
-  
-  // Adjust the date for week calculation
-  if (dayOfWeek === 2 && hour >= 0) {
-    // Tuesday midnight or later - advance to next week
-    currentDate.setDate(currentDate.getDate() + 1);
-  } else if (dayOfWeek < 2) {
-    // Sunday or Monday - stay on current week (don't advance)
-    // No adjustment needed
+  if (month === 8) { // September
+    // Week boundaries with Tuesday midnight rollover
+    if (date <= 2) return 1;
+    if (date >= 3 && date <= 9) return 2;
+    if (date >= 10 && date <= 16) return 3;
+    
+    // Week 4: Sep 17-23 (current week)
+    if (date >= 17 && date <= 23) {
+      // Stay on Week 4 until Tuesday midnight Sep 24
+      return 4;
+    }
+    
+    // Week 5: Sep 24-30
+    if (date >= 24 && date <= 30) {
+      // If it's Tuesday midnight or later, show Week 5
+      if (dayOfWeek >= 2 || (dayOfWeek === 2 && hour >= 0)) return 5;
+      return 4; // Still Monday, stay on Week 4
+    }
   }
   
-  // Calculate weeks since season start
-  const daysSinceStart = Math.floor((currentDate - seasonStart) / (24 * 60 * 60 * 1000));
-  const weeksSinceStart = Math.floor(daysSinceStart / 7);
+  if (month === 9) { // October
+    return Math.min(5 + Math.floor((date - 1) / 7), 15);
+  }
   
-  const calculatedWeek = Math.max(1, weeksSinceStart + 1);
+  // November and beyond
+  if (month >= 10) {
+    return Math.min(13 + Math.floor(month - 10), 15);
+  }
   
-  // Cap at Week 15 (end of regular season)
-  return Math.min(calculatedWeek, 15);
+  // Default fallback
+  return 4;
 }
