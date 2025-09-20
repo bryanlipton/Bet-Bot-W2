@@ -13,11 +13,12 @@ export default async function handler(req, res) {
     console.log(`Fetching CFB live data for game ${gameId}: ${awayTeam} @ ${homeTeam}`);
     
     // ESPN College Football API endpoints for live data
-    const cfbUrls = [
-      `https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${gameId}`,
-      `https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/events/${gameId}`,
-      `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard`,
-    ];
+const cfbUrls = [
+  `https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${gameId}`,
+  `https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${gameId}&enable=boxscore`,
+  `https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/events/${gameId}/competitions/${gameId}/competitors`,
+  `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard`,
+];
     
     for (const url of cfbUrls) {
       try {
