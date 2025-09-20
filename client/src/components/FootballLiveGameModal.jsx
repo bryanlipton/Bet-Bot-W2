@@ -131,6 +131,7 @@ const FootballLiveGameModal = ({
       const awayVal = value.away || 0;
       return `${homeVal} - ${awayVal}`;
     }
+    if (typeof value === 'number') return value.toString();
     return value.toString();
   };
 
