@@ -15,72 +15,38 @@ const FootballLiveGameModal = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-  if (isOpen && gameData) {
-    console.log('Football Modal - Sport:', sport, 'GameId:', gameId);
-    
-    // Try to fetch live data first
-    const fetchLiveData = async () => {
-      try {
-        setLoading(true);
-        const apiEndpoint = sport.includes('ncaaf') ? '/api/cfb/live-game' : '/api/nfl/live-game';
-        console.log('Calling API:', `${apiEndpoint}?gameId=${gameId}`);
-        const response = await fetch(`${apiEndpoint}?gameId=${gameId}`);
-        const liveData = await response.json();
-        
-        if (liveData && !liveData.error) {
-          // Use live API data
-          setLiveData({
-            homeTeam: {
-              name: gameData.homeTeam,
-              score: gameData.homeScore || 0,
-              color: getTeamColor(gameData.homeTeam, sport)
-            },
-            awayTeam: {
-              name: gameData.awayTeam,
-              score: gameData.awayScore || 0,
-              color: getTeamColor(gameData.awayTeam, sport)
-            },
-            game: {
-              status: liveData.status,
-              quarter: liveData.quarter || gameData.quarter || 'Q1',
-clock: liveData.clock || gameData.clock || '15:00',
-              down: liveData.down,
-              possession: liveData.possession,
-              yardLine: liveData.yardLine
-            }
-          });
-        } else {
-          throw new Error('Live data not available');
+    if (isOpen && gameData) {
+      // Use the existing gameData instead of fetching from API
+      const processedData = {
+        homeTeam: {
+          name: gameData.homeTeam,
+          score: gameData.homeScore || 0,
+          color: getTeamColor(gameData.homeTeam, sport)
+        },
+        awayTeam: {
+          name: gameData.awayTeam,
+          score: gameData.awayScore || 0,
+          color: getTeamColor(gameData.awayTeam, sport)
+        },
+        game: {
+          status: gameData.status || 'Scheduled',
+          quarter: gameData.quarter || 'Q1',
+          clock: gameData.clock || '15:00',
+          // Extract down & distance from game data
+          down: gameData.down || gameData.downDistance || extractDownDistance(gameData),
+          possession: gameData.possession || null,
+          yardLine: gameData.yardLine || null,
+          temperature: gameData.weather?.temperature || null,
+          conditions: gameData.weather?.conditions || null,
+          wind: gameData.weather?.wind || null
         }
-      } catch (error) {
-        // Fallback to basic game data
-        setLiveData({
-          homeTeam: {
-            name: gameData.homeTeam,
-            score: gameData.homeScore || 0,
-            color: getTeamColor(gameData.homeTeam, sport)
-          },
-          awayTeam: {
-            name: gameData.awayTeam,
-            score: gameData.awayScore || 0,
-            color: getTeamColor(gameData.awayTeam, sport)
-          },
-          game: {
-            status: gameData.status,
-            quarter: gameData.quarter || 'Q1',
-            clock: gameData.clock || '15:00',
-            down: 'Down & Distance',
-            possession: null,
-            yardLine: null
-          }
-        });
-      }
+      };
+      
+      setLiveData(processedData);
       setLoading(false);
-    };
-
-    fetchLiveData();
-  }
-}, [isOpen, gameData, gameId, sport]);
+      setError(null);
+    }
+  }, [isOpen, gameData, sport]);
 
   // Function to get team colors
   const getTeamColor = (teamName, sport) => {
@@ -294,11 +260,15 @@ clock: liveData.clock || gameData.clock || '15:00',
               {/* 50 Yard Line */}
               <div className="absolute top-0 h-full w-1 bg-white" style={{ left: '50%' }}></div>
               
-              {/* Ball Position */}
+              {/* Ball Position - Football Shape */}
               {game.yardLine && (
                 <div 
-                  className="absolute top-1/2 transform -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full border-2 border-orange-500"
-                  style={{ left: `${fieldPosition}%` }}
+                  className="absolute top-1/2 transform -translate-y-1/2 w-4 h-2 bg-amber-600 border border-amber-800"
+                  style={{ 
+                    left: `${fieldPosition}%`,
+                    borderRadius: '50% 50% 50% 50%',
+                    clipPath: 'ellipse(70% 50% at 50% 50%)'
+                  }}
                 ></div>
               )}
             </div>
@@ -320,7 +290,22 @@ clock: liveData.clock || gameData.clock || '15:00',
           </div>
 
           {/* Game Information Row */}
-          <div className="grid grid-cols-2 gap-6 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            {/* Possession */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="text-gray-400 text-sm mb-1">Possession</div>
+              <div 
+                className="font-bold text-lg"
+                style={{ 
+                  color: game.possession ? 
+                    (game.possession.includes(home.name) ? home.color : away.color) : 
+                    '#9CA3AF'
+                }}
+              >
+                {game.possession || 'Unknown'}
+              </div>
+            </div>
+
             {/* Down & Distance */}
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-gray-400 text-sm mb-1">Down & Distance</div>
@@ -329,29 +314,14 @@ clock: liveData.clock || gameData.clock || '15:00',
               </div>
             </div>
 
-            {/* Game Status */}
+            {/* Yard Line */}
             <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-gray-400 text-sm mb-1">Game Status</div>
-              <div className="text-green-400 font-bold text-lg">
-                {getGameStatus()}
+              <div className="text-gray-400 text-sm mb-1">Yard Line</div>
+              <div className="text-blue-400 font-bold text-lg">
+                {game.yardLine || 'Unknown'}
               </div>
             </div>
           </div>
-
-          {/* Possession Indicator */}
-          {game.possession && (
-            <div className="text-center mt-4">
-              <span className="text-gray-400">Possession: </span>
-              <span 
-                className="font-bold"
-                style={{ 
-                  color: game.possession.includes(home.name) ? home.color : away.color 
-                }}
-              >
-                {game.possession}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Weather Info */}
