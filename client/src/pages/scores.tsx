@@ -111,11 +111,12 @@ export default function ScoresPage() {
   });
   
   const [selectedLiveGame, setSelectedLiveGame] = useState<{
-    gameId: string;
-    homeTeam: string;
-    awayTeam: string;
-    sport: string;
-  } | null>(null);
+  gameId: string;
+  homeTeam: string;
+  awayTeam: string;
+  sport: string;
+  gameData?: any;
+} | null>(null);
   
   const [selectedScheduledGame, setSelectedScheduledGame] = useState<{
     gameId: string;
@@ -488,7 +489,7 @@ export default function ScoresPage() {
                   <ScoreGameCard 
                     key={game.id} 
                     game={game} 
-                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport})} 
+                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport, gameData: game})} 
                     onScheduledGameClick={setSelectedScheduledGame} 
                   />
                 ))}
@@ -528,7 +529,7 @@ export default function ScoresPage() {
                   <ScoreGameCard 
                     key={game.id} 
                     game={game} 
-                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport})} 
+                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport, gameData: game})} 
                     onScheduledGameClick={setSelectedScheduledGame} 
                   />
                 ))}
@@ -554,7 +555,7 @@ export default function ScoresPage() {
                   <ScoreGameCard 
                     key={game.id} 
                     game={game} 
-                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport})} 
+                    onLiveGameClick={(gameInfo) => setSelectedLiveGame({...gameInfo, sport: selectedSport, gameData: game})} 
                     onScheduledGameClick={setSelectedScheduledGame} 
                   />
                 ))}
@@ -569,15 +570,16 @@ export default function ScoresPage() {
       {selectedLiveGame && (
         <>
           {selectedLiveGame.sport.includes('football') ? (
-            <FootballLiveGameModal
-              gameId={selectedLiveGame.gameId}
-              homeTeam={selectedLiveGame.homeTeam}
-              awayTeam={selectedLiveGame.awayTeam}
-              sport={selectedLiveGame.sport}
-              isOpen={!!selectedLiveGame}
-              onClose={() => setSelectedLiveGame(null)}
-            />
-          ) : (
+  <FootballLiveGameModal
+    gameId={selectedLiveGame.gameId}
+    homeTeam={selectedLiveGame.homeTeam}
+    awayTeam={selectedLiveGame.awayTeam}
+    sport={selectedLiveGame.sport}
+    gameData={selectedLiveGame.gameData}
+    isOpen={!!selectedLiveGame}
+    onClose={() => setSelectedLiveGame(null)}
+  />
+            ) : (
             <LiveGameModal
               gameId={selectedLiveGame.gameId}
               homeTeam={selectedLiveGame.homeTeam}
@@ -610,7 +612,7 @@ function ScoreGameCard({
   onScheduledGameClick 
 }: { 
   game: ScoreGame; 
-  onLiveGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string }) => void;
+  onLiveGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string; gameData: any }) => void;
   onScheduledGameClick: (gameInfo: { gameId: string; homeTeam: string; awayTeam: string; startTime?: string; venue?: string; probablePitchers?: { home: string | null; away: string | null; } }) => void;
 }) {
   const getStatusBadge = (status: string) => {
@@ -682,12 +684,13 @@ function ScoreGameCard({
   };
 
   const handleCardClick = () => {
-    if (isLive) {
-      onLiveGameClick({
-        gameId: game.id,
-        homeTeam: game.homeTeam,
-        awayTeam: game.awayTeam
-      });
+  if (isLive) {
+    onLiveGameClick({
+      gameId: game.id,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      gameData: game
+    });
     } else if (!isFinished) {
       onScheduledGameClick({
         gameId: game.id,
