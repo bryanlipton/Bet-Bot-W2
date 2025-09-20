@@ -15,38 +15,72 @@ const FootballLiveGameModal = ({
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (isOpen && gameData) {
-      // Use the existing gameData instead of fetching from API
-      const processedData = {
-        homeTeam: {
-          name: gameData.homeTeam,
-          score: gameData.homeScore || 0,
-          color: getTeamColor(gameData.homeTeam, sport)
-        },
-        awayTeam: {
-          name: gameData.awayTeam,
-          score: gameData.awayScore || 0,
-          color: getTeamColor(gameData.awayTeam, sport)
-        },
-        game: {
-          status: gameData.status || 'Scheduled',
-          quarter: gameData.quarter || 'Q1',
-          clock: gameData.clock || '15:00',
-          // Extract down & distance from game data
-          down: gameData.down || gameData.downDistance || extractDownDistance(gameData),
-          possession: gameData.possession || null,
-          yardLine: gameData.yardLine || null,
-          temperature: gameData.weather?.temperature || null,
-          conditions: gameData.weather?.conditions || null,
-          wind: gameData.weather?.wind || null
+  if (isOpen && gameData) {
+    console.log('Football Modal - Sport:', sport, 'GameId:', gameId);
+    
+    // Try to fetch live data first
+    const fetchLiveData = async () => {
+      try {
+        setLoading(true);
+        const apiEndpoint = sport.includes('ncaaf') ? '/api/cfb/live-game' : '/api/nfl/live-game';
+        console.log('Calling API:', `${apiEndpoint}?gameId=${gameId}`);
+        const response = await fetch(`${apiEndpoint}?gameId=${gameId}`);
+        const liveData = await response.json();
+        
+        if (liveData && !liveData.error) {
+          // Use live API data
+          setLiveData({
+            homeTeam: {
+              name: gameData.homeTeam,
+              score: gameData.homeScore || 0,
+              color: getTeamColor(gameData.homeTeam, sport)
+            },
+            awayTeam: {
+              name: gameData.awayTeam,
+              score: gameData.awayScore || 0,
+              color: getTeamColor(gameData.awayTeam, sport)
+            },
+            game: {
+              status: liveData.status,
+              quarter: liveData.quarter || gameData.quarter || 'Q1',
+              clock: liveData.clock || gameData.clock || '15:00',
+              down: liveData.down || 'Down & Distance',
+              possession: gameData.homeTeam, // Use team name instead of the number
+              yardLine: liveData.yardLine || null
+            }
+          });
+        } else {
+          throw new Error('Live data not available');
         }
-      };
-      
-      setLiveData(processedData);
+      } catch (error) {
+        // Fallback to basic game data
+        setLiveData({
+          homeTeam: {
+            name: gameData.homeTeam,
+            score: gameData.homeScore || 0,
+            color: getTeamColor(gameData.homeTeam, sport)
+          },
+          awayTeam: {
+            name: gameData.awayTeam,
+            score: gameData.awayScore || 0,
+            color: getTeamColor(gameData.awayTeam, sport)
+          },
+          game: {
+            status: gameData.status,
+            quarter: gameData.quarter || 'Q1',
+            clock: gameData.clock || '15:00',
+            down: 'Down & Distance',
+            possession: null,
+            yardLine: null
+          }
+        });
+      }
       setLoading(false);
-      setError(null);
-    }
-  }, [isOpen, gameData, sport]);
+    };
+
+    fetchLiveData();
+  }
+}, [isOpen, gameData, gameId, sport]);
 
   // Function to get team colors
   const getTeamColor = (teamName, sport) => {
