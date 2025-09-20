@@ -22,21 +22,56 @@ export default async function handler(req, res) {
     
     const data = await response.json();
     
+    // Helper function to map ESPN status to MLB-like format
+    function mapESPNStatus(espnStatus, espnState, hasScores) {
+      if (!espnStatus) return { status: 'Scheduled', abstractGameState: 'Preview' };
+      
+      const status = espnStatus.toLowerCase();
+      const state = espnState?.toLowerCase() || '';
+      
+      // Map to MLB-like status values that your component expects
+      if (status.includes('final') || state === 'post') {
+        return { status: 'Final', abstractGameState: 'Final' };
+      }
+      
+      if (status.includes('progress') || status.includes('quarter') || status.includes('halftime') || 
+          state === 'in' || (hasScores && (status.includes('1st') || status.includes('2nd') || 
+          status.includes('3rd') || status.includes('4th')))) {
+        return { status: 'In Progress', abstractGameState: 'Live' };
+      }
+      
+      return { status: 'Scheduled', abstractGameState: 'Preview' };
+    }
+    
     // Process data similar to your MLB structure
     const allGames = data.events?.map(event => {
       const game = event;
       const homeTeam = game.competitions[0].competitors.find(c => c.homeAway === 'home');
       const awayTeam = game.competitions[0].competitors.find(c => c.homeAway === 'away');
       
+      const homeScore = parseInt(homeTeam?.score || 0);
+      const awayScore = parseInt(awayTeam?.score || 0);
+      const hasScores = homeScore > 0 || awayScore > 0;
+      
+      // Map ESPN status to MLB-compatible format
+      const mappedStatus = mapESPNStatus(
+        game.status?.type?.description, 
+        game.status?.type?.state,
+        hasScores
+      );
+      
       return {
         id: `nfl_${game.id}`,
         gameId: game.id,
         homeTeam: homeTeam?.team?.displayName || homeTeam?.team?.name || 'Home',
         awayTeam: awayTeam?.team?.displayName || awayTeam?.team?.name || 'Away',
-        homeScore: parseInt(homeTeam?.score || 0),
-        awayScore: parseInt(awayTeam?.score || 0),
-        status: game.status?.type?.description || 'Scheduled',
-        abstractGameState: game.status?.type?.state || 'pre',
+        homeScore: homeScore,
+        awayScore: awayScore,
+        
+        // Use mapped status that matches MLB format
+        status: mappedStatus.status,
+        abstractGameState: mappedStatus.abstractGameState,
+        
         startTime: game.date,
         venue: game.competitions[0]?.venue?.fullName || 'TBD',
         // Football-specific: Quarter instead of inning
@@ -56,30 +91,30 @@ export default async function handler(req, res) {
     
     console.log(`Processed ${allGames.length} NFL games`);
     
-    // Categorize games by status (same logic as MLB)
+    // Categorize games using the same logic as MLB (but with mapped statuses)
     const liveGames = allGames.filter(game => {
       const status = game.status.toLowerCase();
       const state = game.abstractGameState.toLowerCase();
       return status.includes('progress') || 
-             status.includes('quarter') ||
-             status.includes('halftime') ||
-             state === 'in' ||
-             game.abstractGameState === 'in';
+             status.includes('live') ||
+             state === 'live' ||
+             game.abstractGameState === 'Live';
     });
 
     const scheduledGames = allGames.filter(game => {
       const status = game.status.toLowerCase();
       const state = game.abstractGameState.toLowerCase();
       return status === 'scheduled' || 
-             state === 'pre' ||
-             status.includes('upcoming');
+             state === 'preview' ||
+             status.includes('warmup') ||
+             status.includes('delayed');
     });
 
     const finishedGames = allGames.filter(game => {
       const status = game.status.toLowerCase();
       const state = game.abstractGameState.toLowerCase();
       return status.includes('final') ||
-             state === 'post' ||
+             state === 'final' ||
              status.includes('completed');
     });
     
