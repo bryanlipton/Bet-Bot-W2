@@ -1,4 +1,42 @@
-export default async function handler(req, res) {
+// Helper function to get current CFB week
+function getCurrentCFBWeek() {
+  const now = new Date();
+  const month = now.getMonth(); // 0-based (8 = September)
+  const date = now.getDate();
+  const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
+  const hour = now.getHours();
+  
+  // September 2025 CFB week mapping (corrected)
+  if (month === 8) { // September
+    // Week 1: Aug 31 - Sep 2 (games Aug 31)
+    if (date <= 2) return 1;
+    
+    // Week 2: Sep 3 - Sep 9 (games Sep 7) 
+    if (date >= 3 && date <= 9) return 2;
+    
+    // Week 3: Sep 10 - Sep 16 (games Sep 14)
+    if (date >= 10 && date <= 16) return 3;
+    
+    // Week 4: Sep 17 - Sep 23 (games Sep 21) - CURRENT WEEK
+    if (date >= 17 && date <= 23) {
+      // Stay on Week 4 until Tuesday midnight Sep 24
+      if (date === 23 && dayOfWeek === 1) return 4; // Monday - stay on Week 4
+      if (date === 24 && dayOfWeek === 2 && hour >= 0) return 5; // Tue midnight - advance to Week 5
+      return 4;
+    }
+    
+    // Week 5: Sep 24 - Sep 30 (games Sep 28)
+    if (date >= 24 && date <= 30) return 5;
+  }
+  
+  // October and beyond
+  if (month === 9) { // October
+    return Math.min(5 + Math.floor(date / 7), 15);
+  }
+  
+  // Default fallback
+  return 4;
+}export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
   
