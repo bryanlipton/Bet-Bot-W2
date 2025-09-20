@@ -11,8 +11,8 @@ export default async function handler(req, res) {
     const currentSeasonType = seasontype || '2'; // 1=preseason, 2=regular, 3=playoffs
     const currentGroup = group || '80'; // 80=FBS (Division 1)
     
-    // ESPN College Football API endpoint
-    const cfbUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?seasontype=${currentSeasonType}&week=${currentWeek}&year=${currentSeason}&group=${currentGroup}`;
+    // ESPN College Football API endpoint - remove group filter to get all games
+    const cfbUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?seasontype=${currentSeasonType}&week=${currentWeek}&year=${currentSeason}&limit=200`;
     
     console.log(`Fetching CFB data from: ${cfbUrl}`);
     
@@ -101,6 +101,9 @@ export default async function handler(req, res) {
     
     console.log(`Processed ${allGames.length} CFB games`);
     
+    // Sort all games by start time before categorizing
+    allGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    
     // Categorize games using the same logic as MLB (but with mapped statuses)
     const liveGames = allGames.filter(game => {
       const status = game.status.toLowerCase();
@@ -127,6 +130,11 @@ export default async function handler(req, res) {
              state === 'final' ||
              status.includes('completed');
     });
+    
+    // Sort each category by start time for proper chronological display
+    liveGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    scheduledGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    finishedGames.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     
     console.log(`Categorized CFB games: ${liveGames.length} live, ${scheduledGames.length} scheduled, ${finishedGames.length} finished`);
     
