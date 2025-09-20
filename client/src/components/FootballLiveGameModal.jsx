@@ -63,7 +63,7 @@ const FootballLiveGameModal = ({ gameId, homeTeam, awayTeam, sport, isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white border-gray-700">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">
             {awayTeam} @ {homeTeam}
@@ -140,80 +140,83 @@ const FootballLiveGameModal = ({ gameId, homeTeam, awayTeam, sport, isOpen, onCl
               </div>
             </div>
 
-            {/* Live Game Situation */}
+            {/* Football Field Visualization */}
             <div className="bg-green-900/30 rounded-lg p-4">
-              <h3 className="text-lg font-bold text-green-400 mb-3 flex items-center">
-                <Users className="mr-2 h-5 w-5" />
-                Live Game Situation
+              <h3 className="text-lg font-bold text-green-400 mb-3 text-center">
+                Field Position
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
-                {/* Game Clock */}
-                <div className="bg-black/20 rounded p-3">
-                  <div className="flex items-center mb-1">
-                    <Clock className="mr-2 h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-400">Game Clock</span>
-                  </div>
-                  <div className="text-lg font-semibold">
-                    {gameData.quarter || 'Q1'} {gameData.clock || '15:00'}
-                  </div>
-                </div>
-
-                {/* Down & Distance */}
-                {gameData.down && (
-                  <div className="bg-black/20 rounded p-3">
-                    <div className="text-sm text-gray-400 mb-1">Down & Distance</div>
-                    <div className="text-lg font-semibold text-yellow-400">
-                      {gameData.down}
-                    </div>
-                  </div>
-                )}
-
-                {/* Possession */}
-                {gameData.possession && (
-                  <div className="bg-black/20 rounded p-3">
-                    <div className="text-sm text-gray-400 mb-1">Possession</div>
-                    <div className="text-lg font-semibold flex items-center">
-                      <div 
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: getTeamColor(gameData.possession) }}
-                      ></div>
-                      {gameData.possession}
-                    </div>
-                  </div>
-                )}
-
-                {/* Venue */}
-                {gameData.venue && (
-                  <div className="bg-black/20 rounded p-3">
-                    <div className="flex items-center mb-1">
-                      <MapPin className="mr-2 h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-400">Venue</span>
-                    </div>
-                    <div className="text-lg font-semibold">
-                      {gameData.venue}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Additional Football Stats (if available) */}
-            {gameData.stats && (
-              <div className="bg-gray-800/50 rounded-lg p-4">
-                <h3 className="text-lg font-bold mb-3">Game Stats</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {Object.entries(gameData.stats).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-gray-400">{key}:</span>
-                      <span className="font-semibold">
-                        {typeof value === 'object' && value !== null 
-                          ? `${value.home || 'N/A'} - ${value.away || 'N/A'}`
-                          : value || 'N/A'
-                        }
+              {/* Simplified Football Field */}
+              <div className="relative bg-green-700 rounded-lg h-20 mx-4 mb-4 overflow-hidden">
+                {/* Yard lines */}
+                <div className="absolute inset-0 flex">
+                  {[...Array(11)].map((_, i) => (
+                    <div key={i} className="flex-1 border-r border-white/20 h-full relative">
+                      <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-white/60">
+                        {i === 0 ? 'G' : i === 10 ? 'G' : i * 10}
                       </span>
                     </div>
                   ))}
+                </div>
+                
+                {/* Ball position indicator */}
+                {gameData.yardLine && (
+                  <div 
+                    className="absolute top-1/2 transform -translate-y-1/2 w-2 h-2 bg-yellow-400 rounded-full"
+                    style={{ 
+                      left: `${Math.min(Math.max(5, 95), 5)}%` // Simplified positioning
+                    }}
+                  ></div>
+                )}
+                
+                {/* End zones */}
+                <div className="absolute left-0 top-0 w-8 h-full bg-blue-600/30 flex items-center justify-center">
+                  <span className="text-xs text-white font-bold transform -rotate-90">END</span>
+                </div>
+                <div className="absolute right-0 top-0 w-8 h-full bg-red-600/30 flex items-center justify-center">
+                  <span className="text-xs text-white font-bold transform rotate-90">END</span>
+                </div>
+              </div>
+
+              {/* Game Situation Info */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Down & Distance */}
+                <div className="bg-black/20 rounded p-3 text-center">
+                  <div className="text-sm text-gray-400 mb-1">Down & Distance</div>
+                  <div className="text-lg font-semibold text-yellow-400">
+                    {gameData.down || '1st & 10'}
+                  </div>
+                </div>
+
+                {/* Possession */}
+                <div className="bg-black/20 rounded p-3 text-center">
+                  <div className="text-sm text-gray-400 mb-1">Possession</div>
+                  <div className="text-lg font-semibold flex items-center justify-center">
+                    {gameData.possession ? (
+                      <>
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: getTeamColor(gameData.possession) }}
+                        ></div>
+                        {gameData.possession}
+                      </>
+                    ) : (
+                      <span className="text-gray-500">Not available</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Venue Info */}
+            {gameData.venue && gameData.venue !== 'Unknown Venue' && (
+              <div className="bg-gray-800/50 rounded-lg p-4 text-center">
+                <div className="flex items-center justify-center mb-1">
+                  <MapPin className="mr-2 h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">Venue</span>
+                </div>
+                <div className="text-lg font-semibold">
+                  {gameData.venue}
                 </div>
               </div>
             )}
