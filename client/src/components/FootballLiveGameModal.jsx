@@ -44,8 +44,8 @@ const FootballLiveGameModal = ({
               status: liveData.status,
               quarter: liveData.quarter || gameData.quarter || 'Q1',
               clock: liveData.clock || gameData.clock || '15:00',
-              down: liveData.down || 'Down & Distance',
-              possession: gameData.homeTeam, // Use team name instead of the number
+              down: liveData.down || null,
+              possession: liveData.possession || null,
               yardLine: liveData.yardLine || null
             }
           });
@@ -69,7 +69,7 @@ const FootballLiveGameModal = ({
             status: gameData.status,
             quarter: gameData.quarter || 'Q1',
             clock: gameData.clock || '15:00',
-            down: 'Down & Distance',
+            down: null,
             possession: null,
             yardLine: null
           }
@@ -112,7 +112,7 @@ const FootballLiveGameModal = ({
     }
     
     // Default fallback
-    return 'Down & Distance';
+    return null;
   };
 
   // Function to get readable game status
@@ -297,7 +297,7 @@ const FootballLiveGameModal = ({
               {/* Ball Position - Football Shape */}
               {game.yardLine && (
                 <div 
-                  className="absolute top-1/2 transform -translate-y-1/2 w-4 h-2 bg-amber-600 border border-amber-800"
+                  className="absolute top-1/2 transform -translate-y-1/2 w-6 h-4 bg-amber-600 border border-amber-800"
                   style={{ 
                     left: `${fieldPosition}%`,
                     borderRadius: '50% 50% 50% 50%',
@@ -333,10 +333,10 @@ const FootballLiveGameModal = ({
                 style={{ 
                   color: game.possession ? 
                     (game.possession.includes(home.name) ? home.color : away.color) : 
-                    '#9CA3AF'
+                    '#6B7280'
                 }}
               >
-                {game.possession || 'Unknown'}
+                {game.possession || '—'}
               </div>
             </div>
 
@@ -344,7 +344,7 @@ const FootballLiveGameModal = ({
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-gray-400 text-sm mb-1">Down & Distance</div>
               <div className="text-yellow-400 font-bold text-lg">
-                {game.down}
+                {game.down || '—'}
               </div>
             </div>
 
@@ -352,7 +352,7 @@ const FootballLiveGameModal = ({
             <div className="bg-gray-700 rounded-lg p-4">
               <div className="text-gray-400 text-sm mb-1">Yard Line</div>
               <div className="text-blue-400 font-bold text-lg">
-                {game.yardLine || 'Unknown'}
+                {game.yardLine || '—'}
               </div>
             </div>
           </div>
