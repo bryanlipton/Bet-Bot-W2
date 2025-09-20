@@ -21,29 +21,24 @@ const FootballLiveGameModal = ({
         homeTeam: {
           name: gameData.homeTeam,
           score: gameData.homeScore || 0,
-          color: gameData.homeTeamColor || '#000000'
+          color: getTeamColor(gameData.homeTeam, sport)
         },
         awayTeam: {
           name: gameData.awayTeam,
           score: gameData.awayScore || 0,
-          color: gameData.awayTeamColor || '#000000'
+          color: getTeamColor(gameData.awayTeam, sport)
         },
         game: {
           status: gameData.status || 'Scheduled',
-          quarter: gameData.quarter || gameData.period || 'Q1',
-          clock: gameData.clock || gameData.time || '15:00',
-          down: gameData.down || gameData.situation?.down || gameData.downDistance || 'N/A',
-          possession: gameData.possession || gameData.possessionTeam || null,
-          yardLine: gameData.yardLine || gameData.fieldPosition || gameData.situation?.yardLine || null,
+          quarter: gameData.quarter || 'Q1',
+          clock: gameData.clock || '15:00',
+          // Extract down & distance from game data
+          down: gameData.down || gameData.downDistance || extractDownDistance(gameData),
+          possession: gameData.possession || null,
+          yardLine: gameData.yardLine || null,
           temperature: gameData.weather?.temperature || null,
           conditions: gameData.weather?.conditions || null,
           wind: gameData.weather?.wind || null
-        },
-        stats: gameData.stats || {
-          totalYards: { home: null, away: null },
-          passingYards: { home: null, away: null },
-          rushingYards: { home: null, away: null },
-          turnovers: { home: null, away: null }
         }
       };
       
@@ -51,7 +46,84 @@ const FootballLiveGameModal = ({
       setLoading(false);
       setError(null);
     }
-  }, [isOpen, gameData]);
+  }, [isOpen, gameData, sport]);
+
+  // Function to get team colors
+  const getTeamColor = (teamName, sport) => {
+    // Basic team color mapping - you can expand this
+    const colors = {
+      'Auburn Tigers': '#0C2340',
+      'Oklahoma Sooners': '#841617',
+      'Alabama Crimson Tide': '#9E1B32',
+      'Georgia Bulldogs': '#BA0C2F',
+      'Texas Longhorns': '#BF5700',
+      'Ohio State Buckeyes': '#BB0000',
+      // Add more teams as needed
+    };
+    return colors[teamName] || '#6B7280';
+  };
+
+  // Function to extract down and distance from various data sources
+  const extractDownDistance = (data) => {
+    // Check various possible fields for down and distance
+    if (data.downDistance) return data.downDistance;
+    if (data.down) return data.down;
+    if (data.situation?.downDistanceText) return data.situation.downDistanceText;
+    if (data.situation?.shortDownDistanceText) return data.situation.shortDownDistanceText;
+    
+    // Try to construct from individual fields
+    if (data.downNumber && data.distance) {
+      const downSuffix = ['st', 'nd', 'rd', 'th'][Math.min(data.downNumber - 1, 3)];
+      return `${data.downNumber}${downSuffix} & ${data.distance}`;
+    }
+    
+    // Default fallback
+    return 'Down & Distance';
+  };
+
+  // Function to get readable game status
+  const getGameStatus = () => {
+    if (!liveData) return 'Loading...';
+    
+    const { game } = liveData;
+    
+    // Handle different status types
+    if (game.status.toLowerCase().includes('final')) {
+      return 'Final';
+    }
+    
+    if (game.status.toLowerCase().includes('progress') || 
+        game.status.toLowerCase().includes('live') ||
+        game.quarter !== 'Q1' || 
+        game.clock !== '15:00') {
+      return 'Live';
+    }
+    
+    if (game.status.toLowerCase().includes('scheduled')) {
+      return 'Scheduled';
+    }
+    
+    return game.status;
+  };
+
+  // Calculate field position for visualization
+  const getFieldPosition = () => {
+    if (!liveData?.game.yardLine) return 50; // Default to 50-yard line
+    
+    // Parse yard line (e.g., "OAK 25" or "25")
+    const yardLineMatch = liveData.game.yardLine.toString().match(/(\d+)/);
+    if (!yardLineMatch) return 50;
+    
+    const yard = parseInt(yardLineMatch[1]);
+    
+    // Determine if it's team's own side or opponent's side
+    if (liveData.game.yardLine.includes(liveData.homeTeam.name.split(' ').pop()) || 
+        liveData.game.yardLine.includes(liveData.homeTeam.name.substring(0, 3).toUpperCase())) {
+      return yard; // Home team's side
+    } else {
+      return 100 - yard; // Away team's side (flip)
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -101,38 +173,8 @@ const FootballLiveGameModal = ({
     );
   }
 
-  const { homeTeam: home, awayTeam: away, game, stats } = liveData;
-
-  // Calculate field position for visualization
-  const getFieldPosition = () => {
-    if (!game.yardLine) return 50; // Default to 50-yard line
-    
-    // Parse yard line (e.g., "OAK 25" or "25")
-    const yardLineMatch = game.yardLine.toString().match(/(\d+)/);
-    if (!yardLineMatch) return 50;
-    
-    const yard = parseInt(yardLineMatch[1]);
-    
-    // Determine if it's team's own side or opponent's side
-    if (game.yardLine.includes(home.name.split(' ').pop()) || 
-        game.yardLine.includes(home.name.substring(0, 3).toUpperCase())) {
-      return yard; // Home team's side
-    } else {
-      return 100 - yard; // Away team's side (flip)
-    }
-  };
-
+  const { homeTeam: home, awayTeam: away, game } = liveData;
   const fieldPosition = getFieldPosition();
-
-  const formatStatValue = (value) => {
-    if (!value) return 'N/A';
-    if (typeof value === 'object' && value.home !== undefined && value.away !== undefined) {
-      const homeVal = value.home || 0;
-      const awayVal = value.away || 0;
-      return `${homeVal} - ${awayVal}`;
-    }
-    return value.toString();
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -144,7 +186,7 @@ const FootballLiveGameModal = ({
               {away.name} @ {home.name}
             </h2>
             <span className="px-3 py-1 bg-red-600 text-white text-sm rounded-full">
-              {game.status}
+              LIVE
             </span>
           </div>
           <button 
@@ -179,11 +221,6 @@ const FootballLiveGameModal = ({
               <div className="text-xl text-gray-300">
                 {game.clock}
               </div>
-              {game.down && (
-                <div className="text-sm text-gray-400 mt-2">
-                  {game.down}
-                </div>
-              )}
             </div>
 
             {/* Home Team */}
@@ -234,7 +271,7 @@ const FootballLiveGameModal = ({
             
             {/* Field Labels */}
             <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>Goal</span>
+              <span>G</span>
               <span>10</span>
               <span>20</span>
               <span>30</span>
@@ -244,13 +281,32 @@ const FootballLiveGameModal = ({
               <span>30</span>
               <span>20</span>
               <span>10</span>
-              <span>Goal</span>
+              <span>G</span>
+            </div>
+          </div>
+
+          {/* Game Information Row */}
+          <div className="grid grid-cols-2 gap-6 text-center">
+            {/* Down & Distance */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="text-gray-400 text-sm mb-1">Down & Distance</div>
+              <div className="text-yellow-400 font-bold text-lg">
+                {game.down}
+              </div>
+            </div>
+
+            {/* Game Status */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <div className="text-gray-400 text-sm mb-1">Game Status</div>
+              <div className="text-green-400 font-bold text-lg">
+                {getGameStatus()}
+              </div>
             </div>
           </div>
 
           {/* Possession Indicator */}
           {game.possession && (
-            <div className="text-center mb-4">
+            <div className="text-center mt-4">
               <span className="text-gray-400">Possession: </span>
               <span 
                 className="font-bold"
@@ -262,23 +318,6 @@ const FootballLiveGameModal = ({
               </span>
             </div>
           )}
-        </div>
-
-        {/* Game Stats */}
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Game Statistics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(stats).map(([statName, value]) => (
-              <div key={statName} className="bg-gray-800 p-4 rounded">
-                <div className="text-gray-400 text-sm mb-1">
-                  {statName.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                </div>
-                <div className="text-white font-bold">
-                  {formatStatValue(value)}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Weather Info */}
