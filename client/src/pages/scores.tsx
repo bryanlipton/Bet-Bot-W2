@@ -202,8 +202,8 @@ export default function ScoresPage() {
   // Dynamic query based on sport type
   const { data: scoresData, isLoading, refetch } = useQuery({
     queryKey: isFootballSport 
-      ? [selectedSport, 'scores', selectedWeek]
-      : ['/api/mlb/scores', formatDateForAPI(selectedDate)],
+  ? [selectedSport, 'scores', selectedWeek]
+  : [selectedSport, 'scores', formatDateForAPI(selectedDate)],
     queryFn: async ({ queryKey }) => {
       let url;
       
@@ -219,11 +219,18 @@ export default function ScoresPage() {
           throw new Error('Unsupported football sport');
         }
       } else {
-        // MLB uses date-based API
-        const baseUrl = queryKey[0] as string;
-        const dateParam = queryKey[1] as string;
-        url = `${baseUrl}?date=${dateParam}`;
-      }
+  // Date-based sports (MLB, NBA)
+  const sport = queryKey[0] as string;
+  const dateParam = queryKey[2] as string;
+  
+  if (sport === 'baseball_mlb') {
+    url = `/api/mlb/scores?date=${dateParam}`;
+  } else if (sport === 'basketball_nba') {
+    url = `/api/nba/scores?date=${dateParam}`;
+  } else {
+    throw new Error('Unsupported sport');
+  }
+}
       
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
