@@ -206,7 +206,12 @@ const FootballLiveGameModal = ({ gameId, homeTeam, awayTeam, sport, isOpen, onCl
                   {Object.entries(gameData.stats).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-gray-400">{key}:</span>
-                      <span className="font-semibold">{value}</span>
+                      <span className="font-semibold">
+                        {typeof value === 'object' && value !== null 
+                          ? `${value.home || 'N/A'} - ${value.away || 'N/A'}`
+                          : value || 'N/A'
+                        }
+                      </span>
                     </div>
                   ))}
                 </div>
