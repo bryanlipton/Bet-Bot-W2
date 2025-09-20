@@ -22,13 +22,14 @@ export default async function handler(req, res) {
     
     let gameData = null;
     let situation = {};
+    let teams = { home: null, away: null };
     
     // Try each endpoint until we find detailed data
     for (const endpoint of endpoints) {
       try {
         console.log(`Trying endpoint: ${endpoint}`);
         const response = await fetch(endpoint, {
-          timeout: 5000 // 5 second timeout
+          signal: AbortSignal.timeout(5000) // 5 second timeout
         });
         
         if (!response.ok) continue;
@@ -40,6 +41,12 @@ export default async function handler(req, res) {
           if (data.header) {
             gameData = data.header;
             situation = data.header.competitions?.[0]?.situation || {};
+            // Extract team info for possession mapping
+            const competition = data.header.competitions?.[0];
+            if (competition?.competitors) {
+              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
+              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
+            }
             break;
           }
         } else if (endpoint.includes('scoreboard')) {
@@ -47,6 +54,12 @@ export default async function handler(req, res) {
           if (game) {
             gameData = game;
             situation = game.competitions?.[0]?.situation || {};
+            // Extract team info for possession mapping
+            const competition = game.competitions?.[0];
+            if (competition?.competitors) {
+              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
+              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
+            }
             break;
           }
         } else {
@@ -54,6 +67,12 @@ export default async function handler(req, res) {
           if (data.competitions) {
             gameData = data;
             situation = data.competitions?.[0]?.situation || {};
+            // Extract team info for possession mapping
+            const competition = data.competitions?.[0];
+            if (competition?.competitors) {
+              teams.home = competition.competitors.find(c => c.homeAway === 'home')?.team;
+              teams.away = competition.competitors.find(c => c.homeAway === 'away')?.team;
+            }
             break;
           }
         }
@@ -79,10 +98,21 @@ export default async function handler(req, res) {
       downDistance = `${situation.down}${suffix} & ${situation.distance}`;
     }
     
-    // Extract possession - only if we have real data
+    // Extract possession - map team ID to team name if possible
     let possession = null;
     if (situation.possession) {
-      possession = situation.possession;
+      // If possession is a number (team ID), try to map it to team name
+      if (typeof situation.possession === 'string' && !isNaN(situation.possession)) {
+        const teamId = situation.possession;
+        if (teams.home?.id === teamId) {
+          possession = teams.home.displayName || teams.home.name;
+        } else if (teams.away?.id === teamId) {
+          possession = teams.away.displayName || teams.away.name;
+        }
+      } else if (typeof situation.possession === 'string') {
+        // possession is already a team name or abbreviation
+        possession = situation.possession;
+      }
     }
     
     // Extract yard line - only if we have real data
@@ -92,6 +122,13 @@ export default async function handler(req, res) {
     }
     
     const status = gameData.status || {};
+    
+    console.log('Extracted data:', {
+      down: downDistance,
+      possession: possession,
+      yardLine: yardLine,
+      situationRaw: situation
+    });
     
     return res.status(200).json({
       gameId: cleanGameId,
