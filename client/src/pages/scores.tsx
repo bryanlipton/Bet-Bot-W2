@@ -18,7 +18,24 @@ import {
   Play,
   Radio
 } from "lucide-react";
-
+// Function to remove mascot names from college football team names
+const getSchoolName = (teamName: string) => {
+  if (!teamName) return teamName;
+  
+  // Common mascot patterns to remove
+  const mascotPatterns = [
+    /\s+(Tigers|Bulldogs|Eagles|Bears|Lions|Cardinals|Wildcats|Wolverines|Buckeyes|Sooners|Seminoles|Gators|Volunteers|Commodores|Razorbacks|Aggies|Longhorns|Cowboys|Red Raiders|Horned Frogs|Jayhawks|Cyclones|Mountaineers|Hoosiers|Spartans|Fighting Irish|Golden Eagles|Panthers|Hurricanes|Hokies|Demon Deacons|Yellow Jackets|Orange|Orangemen|Knights|Bulls|Huskies|Ducks|Beavers|Sun Devils|Trojans|Bruins|Golden Bears|Cardinal|Fighting Illini|Badgers|Golden Gophers|Cornhuskers|Nittany Lions|Terrapins|Scarlet Knights|Boilermakers|Hawkeyes|Gamecocks|Rebels|Black Bears|Golden Flashes|Broncos|Rams|Falcons|Rainbow Warriors|Minutemen)$/i,
+    /\s+(Crimson Tide|Blue Devils|Tar Heels|Red Raiders|Horned Frogs|Fighting Irish|Golden Eagles|Nittany Lions|Scarlet Knights|Black Bears|Golden Flashes|Rainbow Warriors|Golden Gophers|Fighting Illini)$/i
+  ];
+  
+  let schoolName = teamName;
+  
+  mascotPatterns.forEach(pattern => {
+    schoolName = schoolName.replace(pattern, '');
+  });
+  
+  return schoolName.trim();
+};
 interface ScoreGame {
   id: string;
   homeTeam: string;
@@ -291,21 +308,24 @@ export default function ScoresPage() {
       }
       
       return {
-        id: game.id || `${selectedSport}_${game.gameId}`,
-        homeTeam: game.home_team || game.homeTeam,
-        awayTeam: game.away_team || game.awayTeam,
-        homeScore: finalHomeScore,
-        awayScore: finalAwayScore,
-        status: status,
-        startTime: game.commence_time || game.startTime,
-        inning: inning,
-        quarter: quarter,
-        clock: clock,
-        sportKey: selectedSport,
-        liveDetails: liveDetails
-      };
+  id: game.id || `${selectedSport}_${game.gameId}`,
+  homeTeam: selectedSport === 'americanfootball_ncaaf' 
+    ? getSchoolName(game.home_team || game.homeTeam)
+    : (game.home_team || game.homeTeam),
+  awayTeam: selectedSport === 'americanfootball_ncaaf' 
+    ? getSchoolName(game.away_team || game.awayTeam)
+    : (game.away_team || game.awayTeam),
+  homeScore: finalHomeScore,  // Add this line back
+  awayScore: finalAwayScore,  // Add this line back
+  status: status,
+  startTime: game.commence_time || game.startTime,
+  inning: inning,
+  quarter: quarter,
+  clock: clock,
+  sportKey: selectedSport,
+  liveDetails: liveDetails
+};
     });
-
     // Categorize games
     const liveGames: ScoreGame[] = [];
     const upcomingGames: ScoreGame[] = [];
