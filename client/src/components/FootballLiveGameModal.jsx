@@ -16,11 +16,15 @@ const FootballLiveGameModal = ({
 
   useEffect(() => {
   if (isOpen && gameData) {
+    console.log('Football Modal - Sport:', sport, 'GameId:', gameId);
+    
     // Try to fetch live data first
     const fetchLiveData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/cfb/live-game?gameId=${gameId}`);
+        const apiEndpoint = sport.includes('ncaaf') ? '/api/cfb/live-game' : '/api/nfl/live-game';
+        console.log('Calling API:', `${apiEndpoint}?gameId=${gameId}`);
+        const response = await fetch(`${apiEndpoint}?gameId=${gameId}`);
         const liveData = await response.json();
         
         if (liveData && !liveData.error) {
@@ -38,8 +42,8 @@ const FootballLiveGameModal = ({
             },
             game: {
               status: liveData.status,
-              quarter: liveData.quarter,
-              clock: liveData.clock,
+              quarter: liveData.quarter || gameData.quarter || 'Q1',
+clock: liveData.clock || gameData.clock || '15:00',
               down: liveData.down,
               possession: liveData.possession,
               yardLine: liveData.yardLine
