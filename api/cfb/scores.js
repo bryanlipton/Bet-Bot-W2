@@ -175,17 +175,21 @@ export default async function handler(req, res) {
 
 // Helper function to get current CFB week
 function getCurrentCFBWeek() {
-  // College football season typically starts late August/early September
+  // For now, default to Week 3 where there are live/finished games
+  // You can make this more sophisticated later
   const now = new Date();
-  const year = now.getFullYear();
   const month = now.getMonth(); // 0-based
+  const date = now.getDate();
   
-  // Simple logic: August/September = Week 1, increment weekly
-  if (month < 7) return 1; // Before August
-  if (month > 11) return 15; // After season
+  // September 2025 - adjust based on when CFB season actually started
+  if (month === 8) { // September
+    if (date >= 1 && date <= 7) return 1;    // Week 1: Sep 1-7
+    if (date >= 8 && date <= 14) return 2;   // Week 2: Sep 8-14  
+    if (date >= 15 && date <= 21) return 3;  // Week 3: Sep 15-21
+    if (date >= 22 && date <= 28) return 4;  // Week 4: Sep 22-28
+    return 5; // Week 5: Sep 29+
+  }
   
-  // Rough estimate - you can refine this
-  const augustStart = new Date(year, 7, 20); // August 20
-  const weeksSince = Math.floor((now - augustStart) / (7 * 24 * 60 * 60 * 1000));
-  return Math.min(Math.max(weeksSince + 1, 1), 15);
+  // For now, default to Week 3 since that has live games
+  return 3;
 }
