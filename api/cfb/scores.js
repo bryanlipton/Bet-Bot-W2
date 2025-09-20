@@ -175,21 +175,41 @@ export default async function handler(req, res) {
 
 // Helper function to get current CFB week
 function getCurrentCFBWeek() {
-  // For now, default to Week 3 where there are live/finished games
-  // You can make this more sophisticated later
   const now = new Date();
-  const month = now.getMonth(); // 0-based
-  const date = now.getDate();
+  const year = now.getFullYear();
   
-  // September 2025 - adjust based on when CFB season actually started
-  if (month === 8) { // September
-    if (date >= 1 && date <= 7) return 1;    // Week 1: Sep 1-7
-    if (date >= 8 && date <= 14) return 2;   // Week 2: Sep 8-14  
-    if (date >= 15 && date <= 21) return 3;  // Week 3: Sep 15-21
-    if (date >= 22 && date <= 28) return 4;  // Week 4: Sep 22-28
-    return 5; // Week 5: Sep 29+
+  // CFB season typically starts first Saturday of September
+  // Week boundaries: Tuesday midnight to Monday 11:59 PM
+  const seasonStart = new Date(year, 8, 1); // September 1st
+  
+  // Find first Saturday of September (Week 1 start)
+  while (seasonStart.getDay() !== 6) {
+    seasonStart.setDate(seasonStart.getDate() + 1);
   }
   
-  // For now, default to Week 3 since that has live games
-  return 3;
+  // Calculate weeks since season start, but account for Tuesday rollover
+  const currentDate = new Date(now);
+  
+  // If it's Monday or early Tuesday (before midnight), stay on current week
+  // If it's Tuesday midnight or later, advance to next week
+  const dayOfWeek = currentDate.getDay(); // 0=Sunday, 1=Monday, 2=Tuesday, etc.
+  const hour = currentDate.getHours();
+  
+  // Adjust the date for week calculation
+  if (dayOfWeek === 2 && hour >= 0) {
+    // Tuesday midnight or later - advance to next week
+    currentDate.setDate(currentDate.getDate() + 1);
+  } else if (dayOfWeek < 2) {
+    // Sunday or Monday - stay on current week (don't advance)
+    // No adjustment needed
+  }
+  
+  // Calculate weeks since season start
+  const daysSinceStart = Math.floor((currentDate - seasonStart) / (24 * 60 * 60 * 1000));
+  const weeksSinceStart = Math.floor(daysSinceStart / 7);
+  
+  const calculatedWeek = Math.max(1, weeksSinceStart + 1);
+  
+  // Cap at Week 15 (end of regular season)
+  return Math.min(calculatedWeek, 15);
 }
