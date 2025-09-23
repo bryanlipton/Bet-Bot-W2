@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     return res.status(200).json(null);
   }
   
-  // Define game variable outside try block
   let game = null;
   
   try {
@@ -30,132 +29,154 @@ export default async function handler(req, res) {
       return res.status(200).json(null);
     }
     
-    // Step 2: Call your ML Server API
-    const mlServerUrl = process.env.ML_SERVER_URL || process.env.DIGITAL_OCEAN_URL;
-    const mlApiKey = process.env.ML_API_KEY || process.env.DIGITAL_OCEAN_API_KEY;
+    // Step 2: Try to call your ML Server
+    const mlServerUrl = process.env.ML_SERVER_URL;
     
     console.log('🔍 ML_SERVER_URL:', mlServerUrl);
+    console.log(`🎯 Analyzing: ${game.away_team} @ ${game.home_team}`);
     
-    if (!mlServerUrl) {
-      console.error('❌ ML_SERVER_URL not configured');
-      return res.status(200).json(generateFallbackPick(game));
-    }
-    
-    console.log(`🚀 Calling ML Server API at: ${mlServerUrl}/api/ml-prediction`);
-    
-    // Call the CORRECT ML endpoint
-    const mlRequest = {
-      gameData: {
-        homeTeam: game.home_team,
-        awayTeam: game.away_team,
-        teams: `${game.away_team} @ ${game.home_team}`,
-        pitcher1: {},
-        pitcher2: {},
-        weather: {},
-        venue: 'Stadium',
-        odds: {
-          homeOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price,
-          awayOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price,
-          spread: game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads')?.outcomes?.[0]?.point,
-          total: game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals')?.outcomes?.[0]?.point
+    if (mlServerUrl) {
+      try {
+        console.log(`🚀 Calling ML Server: ${mlServerUrl}/api/ml-prediction`);
+        
+        // Prepare ML request with flexible structure
+        const mlRequest = {
+          gameData: {
+            homeTeam: game.home_team,
+            awayTeam: game.away_team,
+            gameDate: game.commence_time,
+            gameId: gameId,
+            odds: {
+              homeOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.home_team)?.price || -110,
+              awayOdds: game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h')?.outcomes?.find(o => o.name === game.away_team)?.price || -110,
+              spread: game.bookmakers?.[0]?.markets?.find(m => m.key === 'spreads')?.outcomes?.[0]?.point,
+              total: game.bookmakers?.[0]?.markets?.find(m => m.key === 'totals')?.outcomes?.[0]?.point
+            }
+          }
+        };
+        
+        // Call ML server with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        
+        const mlResponse = await fetch(`${mlServerUrl}/api/ml-prediction`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(mlRequest),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (mlResponse.ok) {
+          const mlData = await mlResponse.json();
+          console.log('✅ ML Server Response:', JSON.stringify(mlData, null, 2));
+          
+          // Handle different response structures
+          const prediction = mlData.prediction || mlData.data || mlData;
+          
+          // Extract probabilities with multiple possible property names
+          const homeWinProb = prediction.homeWinProbability || 
+                            prediction.homeTeamWinProbability || 
+                            prediction.home_win_probability || 
+                            prediction.homeProbability || 
+                            0.5;
+                            
+          const awayWinProb = prediction.awayWinProbability || 
+                            prediction.awayTeamWinProbability || 
+                            prediction.away_win_probability || 
+                            prediction.awayProbability || 
+                            (1 - homeWinProb);
+          
+          const confidence = prediction.confidence || 
+                           prediction.modelConfidence || 
+                           prediction.overall_confidence || 
+                           0.75;
+          
+          // Determine pick
+          const pickHomeTeam = homeWinProb > awayWinProb;
+          const pickTeam = pickHomeTeam ? game.home_team : game.away_team;
+          const winProb = pickHomeTeam ? homeWinProb : awayWinProb;
+          
+          // Get team odds
+          const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
+          const teamOdds = h2hMarket?.outcomes?.find(o => o.name === pickTeam)?.price || -110;
+          
+          // Calculate analysis factors
+          const analysis = {
+            offensiveProduction: prediction.factors?.offensiveProduction || calculateOffensiveScore(prediction.predictedTotal || 8.5, winProb),
+            pitchingMatchup: prediction.factors?.pitchingMatchup || calculatePitchingScore(winProb, confidence),
+            situationalEdge: prediction.factors?.situationalEdge || calculateSituationalScore(pickHomeTeam, winProb),
+            teamMomentum: prediction.factors?.teamMomentum || calculateMomentumScore(winProb, confidence),
+            marketInefficiency: prediction.factors?.marketInefficiency || calculateMarketScore(game, pickTeam, winProb),
+            systemConfidence: confidence * 100
+          };
+          
+          const overallConfidence = calculateOverallConfidence(analysis);
+          const grade = confidenceToGrade(overallConfidence);
+          const reasoning = generateMLReasoning(game, pickTeam, winProb, analysis, grade);
+          
+          // Return ML-powered pick
+          const mlPick = {
+            gameId: gameId,
+            homeTeam: game.home_team,
+            awayTeam: game.away_team,
+            pickTeam: pickTeam,
+            grade: grade,
+            confidence: Math.round(overallConfidence),
+            reasoning: reasoning,
+            odds: teamOdds,
+            analysis: {
+              marketInefficiency: Math.round(analysis.marketInefficiency),
+              situationalEdge: Math.round(analysis.situationalEdge),
+              pitchingMatchup: Math.round(analysis.pitchingMatchup),
+              teamMomentum: Math.round(analysis.teamMomentum),
+              systemConfidence: Math.round(analysis.systemConfidence),
+              offensiveProduction: Math.round(analysis.offensiveProduction)
+            },
+            mlPrediction: {
+              homeWinProb: (homeWinProb * 100).toFixed(1),
+              awayWinProb: (awayWinProb * 100).toFixed(1),
+              modelConfidence: (confidence * 100).toFixed(1),
+              predictedTotal: prediction.predictedTotal?.toFixed(1) || null
+            },
+            source: 'digital_ocean_ml',
+            mlPowered: true
+          };
+          
+          console.log(`✅ ML Pick Generated: ${pickTeam} (${grade}) - ${overallConfidence.toFixed(1)}% confidence`);
+          return res.status(200).json(mlPick);
+          
+        } else {
+          console.error(`❌ ML Server returned ${mlResponse.status}: ${mlResponse.statusText}`);
+          throw new Error(`ML Server error: ${mlResponse.status}`);
         }
+        
+      } catch (mlError) {
+        if (mlError.name === 'AbortError') {
+          console.error('❌ ML Server timeout (8s)');
+        } else {
+          console.error('❌ ML Server error:', mlError.message);
+        }
+        // Fall through to fallback
       }
-    };
-    
-    const mlResponse = await fetch(`${mlServerUrl}/api/ml-prediction`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(mlRequest)
-    });
-    
-    if (!mlResponse.ok) {
-      console.error(`❌ ML Server API returned ${mlResponse.status}`);
-      throw new Error(`ML API returned ${mlResponse.status}`);
+    } else {
+      console.log('❌ ML_SERVER_URL not configured');
     }
     
-    const mlData = await mlResponse.json();
-    console.log('✅ Received ML response:', mlData);
-    
-    // Extract the prediction from the response
-    const mlPrediction = mlData.prediction || mlData;
-    
-    // Step 3: Process the ML prediction into Pro Pick format
-    const homeWinProb = mlPrediction.homeTeamWinProbability || mlPrediction.homeWinProbability || 0.5;
-    const awayWinProb = 1 - homeWinProb;
-    const pickHomeTeam = homeWinProb > awayWinProb;
-    const pickTeam = pickHomeTeam ? game.home_team : game.away_team;
-    const winProb = pickHomeTeam ? homeWinProb : awayWinProb;
-    
-    // Step 4: Calculate 6-factor analysis from ML data
-    const analysis = {
-      offensiveProduction: mlPrediction.factors?.value ? mlPrediction.factors.value * 100 : calculateOffensiveScore(mlPrediction.predictedTotal || 8.5, winProb),
-      
-      pitchingMatchup: mlPrediction.factors?.pitchingMatchup ? mlPrediction.factors.pitchingMatchup * 100 : calculatePitchingScore(winProb, mlPrediction.confidence || 0.7),
-      
-      situationalEdge: mlPrediction.factors?.homeFieldAdvantage ? mlPrediction.factors.homeFieldAdvantage * 100 : calculateSituationalScore(pickHomeTeam, winProb),
-      
-      teamMomentum: mlPrediction.factors?.recentForm ? mlPrediction.factors.recentForm * 100 : calculateMomentumScore(winProb, mlPrediction.confidence || 0.7),
-      
-      marketInefficiency: mlPrediction.factors?.value ? mlPrediction.factors.value * 100 : calculateMarketScore(game, pickTeam, winProb),
-      
-      systemConfidence: mlPrediction.confidence ? mlPrediction.confidence * 100 : 75
-    };
-    
-    // Step 5: Calculate overall confidence and grade
-    const confidence = calculateOverallConfidence(analysis);
-    const grade = confidenceToGrade(confidence);
-    
-    // Step 6: Get odds for the picked team
-    const h2hMarket = game.bookmakers?.[0]?.markets?.find(m => m.key === 'h2h');
-    const teamOdds = h2hMarket?.outcomes?.find(o => o.name === pickTeam)?.price || -110;
-    
-    // Step 7: Generate reasoning
-    const reasoning = generateMLReasoning(game, pickTeam, winProb, analysis, grade);
-    
-    // Step 8: Format final Pro Pick response
-    const proPick = {
-      gameId: gameId,
-      homeTeam: game.home_team,
-      awayTeam: game.away_team,
-      pickTeam: pickTeam,
-      grade: grade,
-      confidence: Math.round(confidence),
-      reasoning: reasoning,
-      odds: teamOdds,
-      analysis: {
-        marketInefficiency: Math.round(analysis.marketInefficiency),
-        situationalEdge: Math.round(analysis.situationalEdge),
-        pitchingMatchup: Math.round(analysis.pitchingMatchup),
-        teamMomentum: Math.round(analysis.teamMomentum),
-        systemConfidence: Math.round(analysis.systemConfidence),
-        offensiveProduction: Math.round(analysis.offensiveProduction)
-      },
-      mlPrediction: {
-        homeWinProb: (mlPrediction.homeWinProbability * 100).toFixed(1),
-        awayWinProb: (mlPrediction.awayWinProbability * 100).toFixed(1),
-        overProb: mlPrediction.overProbability ? (mlPrediction.overProbability * 100).toFixed(1) : null,
-        underProb: mlPrediction.underProbability ? (mlPrediction.underProbability * 100).toFixed(1) : null,
-        predictedTotal: mlPrediction.predictedTotal?.toFixed(1) || null,
-        modelConfidence: mlPrediction.confidence ? (mlPrediction.confidence * 100).toFixed(1) : null
-      },
-      source: 'digital_ocean_ml'
-    };
-    
-    console.log(`✅ Pro Pick: ${pickTeam} (${grade}) - ${confidence.toFixed(1)}% confidence`);
-    
-    res.status(200).json(proPick);
+    // Fallback analysis
+    console.log(`🔄 Using fallback analysis for ${game.away_team} @ ${game.home_team}`);
+    return res.status(200).json(generateFallbackPick(game));
     
   } catch (error) {
-    console.error('❌ Error generating pro pick:', error.message);
+    console.error('❌ Error in analysis API:', error.message);
     
-    // Return fallback pick if ML Server is down
-    // Check if game exists before using it
     if (game) {
       return res.status(200).json(generateFallbackPick(game));
     } else {
-      // If no game data, return basic fallback
       return res.status(200).json(generateFallbackPick({
         id: gameId,
         home_team: 'Home Team',
@@ -165,10 +186,9 @@ export default async function handler(req, res) {
   }
 }
 
-// Helper functions for calculating scores when DO doesn't provide them
+// Helper functions (same as your current ones)
 function calculateOffensiveScore(predictedTotal, winProb) {
   let score = 60;
-  
   if (predictedTotal > 9.5) score += 10;
   else if (predictedTotal > 8.5) score += 5;
   else if (predictedTotal < 7.0) score -= 5;
@@ -178,13 +198,11 @@ function calculateOffensiveScore(predictedTotal, winProb) {
   else if (winProb < 0.45) score -= 6;
   
   score += (Math.random() - 0.5) * 8;
-  
   return Math.max(50, Math.min(95, score));
 }
 
 function calculatePitchingScore(winProb, mlConfidence) {
   let score = 65;
-  
   if (winProb > 0.58) score += 12;
   else if (winProb > 0.54) score += 6;
   else if (winProb < 0.46) score -= 8;
@@ -193,28 +211,21 @@ function calculatePitchingScore(winProb, mlConfidence) {
   else if (mlConfidence < 0.65) score -= 3;
   
   score += (Math.random() - 0.5) * 6;
-  
   return Math.max(55, Math.min(90, score));
 }
 
 function calculateSituationalScore(isHome, winProb) {
   let score = 60;
-  
-  if (isHome) {
-    score += 8;
-  } else {
-    score -= 3;
-  }
+  if (isHome) score += 8;
+  else score -= 3;
   
   score += (winProb - 0.50) * 40;
   score += (Math.random() - 0.5) * 8;
-  
   return Math.max(55, Math.min(85, score));
 }
 
 function calculateMomentumScore(winProb, mlConfidence) {
   let score = 65;
-  
   if (winProb > 0.56) score += 10;
   else if (winProb > 0.52) score += 5;
   else if (winProb < 0.44) score -= 10;
@@ -222,7 +233,6 @@ function calculateMomentumScore(winProb, mlConfidence) {
   
   score += (mlConfidence - 0.70) * 20;
   score += (Math.random() - 0.5) * 6;
-  
   return Math.max(50, Math.min(95, score));
 }
 
@@ -236,7 +246,6 @@ function calculateMarketScore(game, pickTeam, mlWinProb) {
       Math.abs(teamOdds) / (Math.abs(teamOdds) + 100);
     
     const edge = mlWinProb - impliedProb;
-    
     let score = 65;
     
     if (edge > 0.10) score += 15;
@@ -246,7 +255,6 @@ function calculateMarketScore(game, pickTeam, mlWinProb) {
     else if (edge < -0.10) score -= 15;
     
     score += (Math.random() - 0.5) * 8;
-    
     return Math.max(55, Math.min(90, score));
   } catch (error) {
     return 70;
@@ -287,21 +295,10 @@ function confidenceToGrade(confidence) {
 function generateMLReasoning(game, pickTeam, winProb, analysis, grade) {
   const factors = [];
   
-  if (analysis.offensiveProduction >= 75) {
-    factors.push("strong offensive metrics");
-  }
-  
-  if (analysis.pitchingMatchup >= 75) {
-    factors.push("favorable pitching matchup");
-  }
-  
-  if (analysis.teamMomentum >= 75) {
-    factors.push("positive momentum indicators");
-  }
-  
-  if (analysis.marketInefficiency >= 75) {
-    factors.push("market value detected");
-  }
+  if (analysis.offensiveProduction >= 75) factors.push("strong offensive metrics");
+  if (analysis.pitchingMatchup >= 75) factors.push("favorable pitching matchup");
+  if (analysis.teamMomentum >= 75) factors.push("positive momentum indicators");
+  if (analysis.marketInefficiency >= 75) factors.push("market value detected");
   
   const isHome = pickTeam === game.home_team;
   const location = isHome ? "at home" : "on the road";
@@ -313,12 +310,10 @@ function generateMLReasoning(game, pickTeam, winProb, analysis, grade) {
   }
   
   reasoning += `Grade ${grade} with ${analysis.systemConfidence.toFixed(0)}% model confidence.`;
-  
   return reasoning;
 }
 
 function generateFallbackPick(game) {
-  // Fallback pick when Digital Ocean is unavailable
   const pickHome = Math.random() > 0.5;
   const pickTeam = pickHome ? game.home_team : game.away_team;
   const grades = ['B+', 'B', 'B-', 'C+'];
@@ -341,6 +336,7 @@ function generateFallbackPick(game) {
       systemConfidence: 70 + Math.random() * 10,
       offensiveProduction: 70 + Math.random() * 10
     },
-    source: 'fallback'
+    source: 'fallback',
+    mlPowered: false
   };
 }
