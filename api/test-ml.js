@@ -6,8 +6,7 @@ export default async function handler(req, res) {
   try {
     console.log('Testing ML connection...');
     
-    const mlResponse = await fetch('http://104.236.118.108:3001/api/ml-prediction', {
-      method: 'POST',
+const mlResponse = await fetch('http://104.236.118.108:3001/api/generate-daily-pick', {      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         gameData: {
