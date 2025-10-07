@@ -7,21 +7,14 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  // Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    console.log('Stripe Key exists:', !!process.env.STRIPE_SECRET_KEY);
+    console.log('=== Checkout Session Debug ===');
+    console.log('Stripe key exists:', !!process.env.STRIPE_SECRET_KEY);
+    console.log('Stripe key prefix:', process.env.STRIPE_SECRET_KEY?.substring(0, 10));
     console.log('Request body:', req.body);
 
     const { userId, userEmail } = req.body;
@@ -31,7 +24,11 @@ export default async function handler(req, res) {
     }
 
     if (!process.env.STRIPE_SECRET_KEY) {
-      return res.status(500).json({ error: 'Stripe not configured' });
+      return res.status(500).json({ error: 'Stripe secret key not configured' });
+    }
+
+    if (!process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+      return res.status(500).json({ error: 'Invalid Stripe secret key format' });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -44,7 +41,7 @@ export default async function handler(req, res) {
             name: 'Bet Bot Pro',
             description: 'Premium sports analytics and predictions',
           },
-          unit_amount: 999, // $9.99
+          unit_amount: 999,
           recurring: {
             interval: 'month'
           }
@@ -59,11 +56,11 @@ export default async function handler(req, res) {
       },
     });
 
-    console.log('Stripe session created:', session.id);
+    console.log('Session created successfully:', session.id);
     return res.status(200).json({ sessionId: session.id });
 
   } catch (error) {
-    console.error('Stripe session creation error:', error);
+    console.error('Stripe error:', error);
     return res.status(500).json({ 
       error: 'Failed to create checkout session',
       details: error.message 
