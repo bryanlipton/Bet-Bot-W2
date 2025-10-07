@@ -95,6 +95,7 @@ function Router() {
         <Route path="/get-pro" component={GetPro} />
         <Route path="/subscribe" component={Subscribe} />
         <Route path="/bet-confirmation/:dataId" component={BetConfirmation} />
+        <Route path="/success" component={PaymentSuccess} />
         <Route component={NotFound} />
       </Switch>
       <MobileBottomNavigation />
