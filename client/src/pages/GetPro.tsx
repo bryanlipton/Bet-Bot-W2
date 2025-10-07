@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import GetProButton from '@/components/GetProButton';
+import { useAuth } from '@/hooks/useAuth';
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 const features = [
@@ -62,11 +64,7 @@ const plans = [
 
 export default function GetPro() {
   const [selectedPlan, setSelectedPlan] = useState("annual");
-
-  const handleSubscribe = (planId: string) => {
-    // In a real app, this would integrate with payment processor
-    alert(`Subscribing to ${planId} plan - Payment integration would go here`);
-  };
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -164,12 +162,15 @@ export default function GetPro() {
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   Begin by logging in or creating a free account.
                 </p>
-                <Button 
-                  onClick={() => handleSubscribe(selectedPlan)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                >
-                  Subscribe Now
-                </Button>
+                <div className="w-full">
+                  <GetProButton />
+                </div>
+                
+                {!isAuthenticated && (
+                  <p className="text-center text-gray-400 text-sm mt-2">
+                    Please log in to subscribe
+                  </p>
+                )}
               </div>
             </div>
           </div>
