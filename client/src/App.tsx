@@ -21,6 +21,7 @@ import BetConfirmation from "@/pages/bet-confirmation";
 import NotFound from "@/pages/not-found";
 import Feed from "@/pages/Feed";
 import MobileBottomNavigation from "@/components/MobileBottomNavigation";
+import PaymentSuccess from "@/pages/PaymentSuccess";
 
 const TestDashboard = () => {
   return (
