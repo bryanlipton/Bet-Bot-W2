@@ -31,7 +31,7 @@ const GetProButton: React.FC = () => {
         }),
       });
 
-      // Check response status BEFORE parsing
+      // Check response status BEFORE parsing JSON
       if (!response.ok) {
         let errorMessage = `Server error: ${response.status}`;
         
