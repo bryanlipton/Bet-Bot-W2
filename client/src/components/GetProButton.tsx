@@ -31,10 +31,34 @@ const GetProButton: React.FC = () => {
         }),
       });
 
-      const { sessionId, error: sessionError } = await response.json();
+      // Check response status BEFORE parsing
+      if (!response.ok) {
+        let errorMessage = `Server error: ${response.status}`;
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch {
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch {
+            // Keep default error message
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
 
-      if (sessionError) {
-        throw new Error(sessionError);
+      // Only parse JSON if response is ok
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (!data.sessionId) {
+        throw new Error('No session ID returned from server');
       }
 
       const stripe = await stripePromise;
@@ -42,7 +66,13 @@ const GetProButton: React.FC = () => {
         throw new Error('Stripe failed to load');
       }
 
-      await stripe.redirectToCheckout({ sessionId });
+      const { error: stripeError } = await stripe.redirectToCheckout({ 
+        sessionId: data.sessionId 
+      });
+
+      if (stripeError) {
+        throw new Error(stripeError.message);
+      }
 
     } catch (error) {
       console.error('Upgrade error:', error);
@@ -81,7 +111,6 @@ const GetProButton: React.FC = () => {
           </>
         )}
       </button>
-
       {error && (
         <div className="text-red-400 text-sm bg-red-900/20 border border-red-600 rounded p-3">
           {error}
