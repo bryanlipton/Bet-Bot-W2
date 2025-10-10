@@ -2,23 +2,18 @@ import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Zap, CreditCard, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
 const GetProButton: React.FC = () => {
   const { user, profile, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
   const handleUpgrade = async () => {
     if (!isAuthenticated || !user) {
       setError('Please log in to upgrade to Pro');
       return;
     }
-
     setIsLoading(true);
     setError('');
-
     try {
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -30,50 +25,15 @@ const GetProButton: React.FC = () => {
           userEmail: user.email,
         }),
       });
-
-      // Check response status BEFORE parsing JSON
-      if (!response.ok) {
-        let errorMessage = `Server error: ${response.status}`;
-        
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch {
-          try {
-            const errorText = await response.text();
-            errorMessage = errorText || errorMessage;
-          } catch {
-            // Keep default error message
-          }
-        }
-        
-        throw new Error(errorMessage);
+      const { sessionId, error: sessionError } = await response.json();
+      if (sessionError) {
+        throw new Error(sessionError);
       }
-
-      // Only parse JSON if response is ok
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      if (!data.sessionId) {
-        throw new Error('No session ID returned from server');
-      }
-
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error('Stripe failed to load');
       }
-
-      const { error: stripeError } = await stripe.redirectToCheckout({ 
-        sessionId: data.sessionId 
-      });
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
-      }
-
+      await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error('Upgrade error:', error);
       setError(error instanceof Error ? error.message : 'Failed to start upgrade process');
@@ -81,7 +41,6 @@ const GetProButton: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   if (profile?.is_pro) {
     return (
       <div className="flex items-center gap-2">
@@ -90,7 +49,6 @@ const GetProButton: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       <button
@@ -119,5 +77,4 @@ const GetProButton: React.FC = () => {
     </div>
   );
 };
-
 export default GetProButton;
