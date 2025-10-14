@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-const GetProButton: React.FC = () => {
+const GetProButton: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
   const { user, profile, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -84,13 +84,44 @@ const GetProButton: React.FC = () => {
 
   if (profile?.is_pro) {
     return (
-      <div className="flex items-center gap-2">
-        <CheckCircle size={20} className="text-green-400" />
+      <div className={`flex items-center gap-2 ${compact ? 'text-sm' : ''}`}>
+        <CheckCircle size={compact ? 16 : 20} className="text-green-400" />
         <span className="text-green-400 font-medium">Pro Member</span>
       </div>
     );
   }
 
+  // Compact version for header
+  if (compact) {
+    return (
+      <div className="relative">
+        <button
+          onClick={handleUpgrade}
+          disabled={isLoading || !isAuthenticated}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 text-sm"
+        >
+          {isLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Zap size={16} />
+              Get Pro
+            </>
+          )}
+        </button>
+        {error && (
+          <div className="absolute top-full mt-2 right-0 w-64 text-red-400 text-xs bg-red-900/90 border border-red-600 rounded p-2 z-50">
+            {error}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Full version for pages
   return (
     <div className="space-y-4">
       <button

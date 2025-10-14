@@ -87,7 +87,7 @@ function ActionStyleHeader() {  // Remove props
             {/* REMOVED DARK MODE TOGGLE BUTTON */}
             
             {/* Get Pro Button - triggers Stripe checkout */}
-            <GetProButton />
+            <GetProButton compact={true} />
             
             <LoginButton />
           </div>
