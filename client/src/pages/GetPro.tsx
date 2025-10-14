@@ -34,7 +34,21 @@ const testimonials = [
   }
 ];
 
-const plans = [
+interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  billingNote: string;
+  badge?: string;
+  popular: boolean;
+  displayPrice: string;
+  numericPrice: number;
+  billingInterval: string;
+  stripePriceId: string;
+}
+
+const plans: PricingPlan[] = [
   {
     id: "annual",
     name: "Annual",
@@ -42,7 +56,11 @@ const plans = [
     period: "month",
     billingNote: "billed annually",
     badge: "Best Offer",
-    popular: true
+    popular: true,
+    displayPrice: "$9.99/month",
+    numericPrice: 9.99,
+    billingInterval: "year",
+    stripePriceId: import.meta.env.VITE_STRIPE_ANNUAL_PRICE_ID || "price_annual"
   },
   {
     id: "monthly", 
@@ -50,7 +68,11 @@ const plans = [
     price: "$29.99",
     period: "month",
     billingNote: "billed monthly",
-    popular: false
+    popular: false,
+    displayPrice: "$29.99/month",
+    numericPrice: 29.99,
+    billingInterval: "month",
+    stripePriceId: import.meta.env.VITE_STRIPE_MONTHLY_PRICE_ID || "price_monthly"
   },
   {
     id: "weekly",
@@ -58,12 +80,16 @@ const plans = [
     price: "$19.99",
     period: "week",
     billingNote: "billed weekly",
-    popular: false
+    popular: false,
+    displayPrice: "$19.99/week",
+    numericPrice: 19.99,
+    billingInterval: "week",
+    stripePriceId: import.meta.env.VITE_STRIPE_WEEKLY_PRICE_ID || "price_weekly"
   }
 ];
 
 export default function GetPro() {
-  const [selectedPlan, setSelectedPlan] = useState("annual");
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan>(plans[0]); // Default to annual
   const { isAuthenticated } = useAuth();
 
   return (
@@ -109,11 +135,11 @@ export default function GetPro() {
                   <Card 
                     key={plan.id}
                     className={`cursor-pointer transition-all ${
-                      selectedPlan === plan.id 
+                      selectedPlan.id === plan.id 
                         ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' 
                         : 'hover:shadow-md'
                     }`}
-                    onClick={() => setSelectedPlan(plan.id)}
+                    onClick={() => setSelectedPlan(plan)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -121,8 +147,8 @@ export default function GetPro() {
                           <div className="flex items-center gap-2">
                             <input
                               type="radio"
-                              checked={selectedPlan === plan.id}
-                              onChange={() => setSelectedPlan(plan.id)}
+                              checked={selectedPlan.id === plan.id}
+                              onChange={() => setSelectedPlan(plan)}
                               className="w-4 h-4 text-blue-600"
                             />
                             <div>
@@ -145,7 +171,7 @@ export default function GetPro() {
                             </div>
                           </div>
                         </div>
-                        {selectedPlan === plan.id && (
+                        {selectedPlan.id === plan.id && (
                           <Check className="w-6 h-6 text-blue-600" />
                         )}
                       </div>
@@ -163,7 +189,7 @@ export default function GetPro() {
                   Begin by logging in or creating a free account.
                 </p>
                 <div className="w-full">
-                  <GetProButton />
+                  <GetProButton selectedPlan={selectedPlan} />
                 </div>
                 
                 {!isAuthenticated && (
