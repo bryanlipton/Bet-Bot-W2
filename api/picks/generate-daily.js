@@ -45,7 +45,34 @@ export default async function handler(req, res) {
     // Step 5: Select best recommendation (highest grade/confidence)
     const bestRecommendation = recommendations[0];
     
-    // Step 6: Convert to daily pick format
+    // Step 5.5: Try to enhance with ML prediction from Digital Ocean server
+    let mlEnhancement = null;
+    try {
+      const mlServerUrl = process.env.ML_SERVER_URL || 'http://104.236.118.108:3001';
+      console.log(`🤖 Attempting ML enhancement from ${mlServerUrl}...`);
+      
+      const mlResponse = await fetch(`${mlServerUrl}/api/ml-prediction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sport: 'MLB',
+          homeTeam: bestRecommendation.homeTeam,
+          awayTeam: bestRecommendation.awayTeam,
+          gameId: bestRecommendation.gameId,
+          gameDate: bestRecommendation.gameTime
+        }),
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      if (mlResponse.ok) {
+        mlEnhancement = await mlResponse.json();
+        console.log(`✅ ML enhancement received: Confidence ${mlEnhancement.confidence}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ ML enhancement unavailable: ${error.message}`);
+    }
+    
+    // Step 6: Convert to daily pick format (enhanced with ML if available)
     const dailyPick = {
       id: `pick_${new Date().toISOString().split('T')[0]}_${bestRecommendation.gameId}`,
       gameId: bestRecommendation.gameId,
@@ -54,9 +81,9 @@ export default async function handler(req, res) {
       pickTeam: bestRecommendation.selection,
       pickType: "moneyline",
       odds: bestRecommendation.odds,
-      grade: bestRecommendation.grade,
-      confidence: bestRecommendation.confidence,
-      reasoning: bestRecommendation.reasoning,
+      grade: mlEnhancement?.grade || bestRecommendation.grade,
+      confidence: mlEnhancement?.confidence ? mlEnhancement.confidence * 100 : bestRecommendation.confidence,
+      reasoning: mlEnhancement?.reasoning || bestRecommendation.reasoning,
       analysis: bestRecommendation.analysis,
       gameTime: bestRecommendation.gameTime,
       venue: getVenueForTeam(bestRecommendation.homeTeam),
@@ -64,12 +91,14 @@ export default async function handler(req, res) {
         home: 'TBD',
         away: 'TBD'
       },
+      mlPowered: !!mlEnhancement,
+      mlFactors: mlEnhancement?.factors,
       createdAt: new Date().toISOString(),
       pickDate: new Date().toISOString().split('T')[0],
       status: 'pending'
     };
     
-    console.log(`✅ Generated daily pick: ${dailyPick.pickTeam} ${dailyPick.odds > 0 ? '+' : ''}${dailyPick.odds} (Grade: ${dailyPick.grade})`);
+    console.log(`✅ Generated daily pick: ${dailyPick.pickTeam} ${dailyPick.odds > 0 ? '+' : ''}${dailyPick.odds} (Grade: ${dailyPick.grade}) ${dailyPick.mlPowered ? '[ML Enhanced]' : '[BettingEngine]'}`);
     res.status(200).json(dailyPick);
     
   } catch (error) {
