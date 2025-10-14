@@ -6,13 +6,23 @@ import { useAuth } from '@/hooks/useAuth';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const GetProButton: React.FC = () => {
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleUpgrade = async () => {
     if (!isAuthenticated || !user) {
       setError('Please log in to upgrade to Pro');
+      return;
+    }
+
+    // Get email with proper null checks - try user.email first, then profile.email
+    const userEmail = user?.email || profile?.email;
+    const userId = user?.id;
+
+    // Validate that we have the required data before proceeding
+    if (!userId || !userEmail) {
+      setError('Unable to retrieve user information. Please try logging in again.');
       return;
     }
 
@@ -26,8 +36,8 @@ const GetProButton: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
+          userId: userId,
+          userEmail: userEmail,
         }),
       });
 
@@ -91,11 +101,29 @@ const GetProButton: React.FC = () => {
     );
   }
 
+  // Show loading state while user data is being fetched
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <button
+          disabled={true}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+        >
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          Loading...
+        </button>
+      </div>
+    );
+  }
+
+  // Check if we have required user data
+  const hasRequiredData = user?.id && (user?.email || profile?.email);
+
   return (
     <div className="space-y-4">
       <button
         onClick={handleUpgrade}
-        disabled={isLoading || !isAuthenticated}
+        disabled={isLoading || !isAuthenticated || !hasRequiredData}
         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
       >
         {isLoading ? (
@@ -114,6 +142,11 @@ const GetProButton: React.FC = () => {
       {error && (
         <div className="text-red-400 text-sm bg-red-900/20 border border-red-600 rounded p-3">
           {error}
+        </div>
+      )}
+      {!hasRequiredData && !loading && isAuthenticated && (
+        <div className="text-yellow-400 text-sm bg-yellow-900/20 border border-yellow-600 rounded p-3">
+          Unable to load user information. Please try refreshing the page.
         </div>
       )}
     </div>
