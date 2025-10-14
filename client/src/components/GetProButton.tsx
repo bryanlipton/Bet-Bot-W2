@@ -3,7 +3,9 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Zap, CreditCard, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Load Stripe with proper validation
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const GetProButton: React.FC = () => {
   const { user, profile, isAuthenticated } = useAuth();
@@ -13,6 +15,11 @@ const GetProButton: React.FC = () => {
   const handleUpgrade = async () => {
     if (!isAuthenticated || !user) {
       setError('Please log in to upgrade to Pro');
+      return;
+    }
+
+    if (!stripePromise) {
+      setError('Payment system is not configured. Please contact support.');
       return;
     }
 
