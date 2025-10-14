@@ -1,4 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -11,7 +14,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const event = req.body;
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event;
+
+    // Verify webhook signature if webhook secret is configured
+    if (webhookSecret && sig) {
+      try {
+        // Vercel provides req.body as raw string when needed
+        const payload = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
+      } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).json({ error: 'Webhook signature verification failed' });
+      }
+    } else {
+      // For development/testing without signature verification
+      console.warn('⚠️  Webhook signature verification skipped - no STRIPE_WEBHOOK_SECRET configured');
+      event = req.body;
+    }
+
+    console.log('Processing webhook event:', event.type);
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -23,6 +47,8 @@ export default async function handler(req, res) {
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object);
         break;
+      default:
+        console.log('Unhandled event type:', event.type);
     }
 
     return res.status(200).json({ received: true });
@@ -34,9 +60,15 @@ export default async function handler(req, res) {
 
 async function handleCheckoutCompleted(session) {
   const userId = session.metadata?.userId;
-  if (!userId) return;
+  
+  console.log('Checkout completed for user:', userId);
+  
+  if (!userId) {
+    console.error('No userId in session metadata');
+    return;
+  }
 
-  await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .update({
       is_pro: true,
@@ -45,6 +77,12 @@ async function handleCheckoutCompleted(session) {
       subscription_status: 'active'
     })
     .eq('id', userId);
+
+  if (error) {
+    console.error('Error updating profile:', error);
+  } else {
+    console.log('✅ User upgraded to Pro:', userId);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription) {
