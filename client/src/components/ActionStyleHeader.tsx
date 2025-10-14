@@ -8,6 +8,7 @@ import { Zap, User, LogOut, ChevronDown } from "lucide-react";  // Removed Moon,
 import { LoginButton } from "@/components/LoginButton";
 import { useAuth } from "@/hooks/useAuth";
 import UserAvatar from "@/components/UserAvatar";
+import GetProButton from "@/components/GetProButton";
 
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
@@ -85,28 +86,8 @@ function ActionStyleHeader() {  // Remove props
           <div className="flex items-center gap-3">
             {/* REMOVED DARK MODE TOGGLE BUTTON */}
             
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/get-pro">
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
-                    <Zap className="w-4 h-4 mr-1" />
-                    Get Pro
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                <div className="space-y-1">
-                  <p className="font-medium text-gray-900 dark:text-white text-sm">Get Pro Access</p>
-                  <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-0.5">
-                    <li>-Full access to BET BOT</li>
-                    <li>-All genie expert game picks</li>
-                    <li>-Daily News Articles</li>
-                    <li>-Raffles for pro users</li>
-                    <li>-Data analytics of your picks and ROI strategies</li>
-                  </ul>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+            {/* Get Pro Button - triggers Stripe checkout */}
+            <GetProButton />
             
             <LoginButton />
           </div>

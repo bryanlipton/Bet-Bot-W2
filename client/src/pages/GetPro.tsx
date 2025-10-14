@@ -87,13 +87,16 @@ export default function GetPro() {
                     <p className="text-gray-700 dark:text-gray-300 mb-6">
                       Get unlimited access to all Pro features. Cancel anytime.
                     </p>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        Click "Get Pro" in the top navigation to subscribe
+                    <div className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-4 mb-4 transition-colors cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                      <div className="font-semibold mb-1">
+                        Ready to upgrade?
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500">
-                        You'll need to be logged in to complete your subscription
+                      <div className="text-sm opacity-90">
+                        Scroll up and click "Get Pro" in the navigation
                       </div>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-500">
+                      You'll need to be logged in to complete your subscription
                     </div>
                   </div>
                 </CardContent>
