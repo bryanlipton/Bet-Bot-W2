@@ -1025,8 +1025,8 @@ function ActionStyleDashboard() {
                 <div>
                   <div className="flex items-center gap-2 mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {gamesWithPredictions.length > 0 ? 'Additional Games' : 'Live Odds'}
-                    </h3>
+  Live Odds
+</h3>
                     <Badge variant="outline">
                       {gamesWithoutPredictions.length} Games
                     </Badge>
