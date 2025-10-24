@@ -833,7 +833,7 @@ function ActionStyleDashboard() {
   };
 
   // NEW: COMBINE GAMES WITH ML PREDICTIONS
-  const combineGamesWithPredictions = (games, mlPicks) => {
+  const combinefeaturedgames = (games, mlPicks) => {
     if (!mlPicks || !Array.isArray(mlPicks)) return games;
 
     return games.map(game => {
@@ -863,10 +863,10 @@ function ActionStyleDashboard() {
   };
 
   const currentMLPicks = getCurrentMLPicks();
-  games = combineGamesWithPredictions(games, currentMLPicks);
+  games = combinefeaturedgames(games, currentMLPicks);
 
   // NEW: SEPARATE GAMES WITH AND WITHOUT PREDICTIONS
-  const gamesWithPredictions = games.filter(game => game.mlPrediction);
+  const featuredgames = games.filter(game => game.mlPrediction);
   const gamesWithoutPredictions = games.filter(game => !game.mlPrediction);
 
   const sports = [
@@ -964,19 +964,19 @@ function ActionStyleDashboard() {
           ) : (
             <>
               {/* NEW: GAMES WITH AI PREDICTIONS */}
-              {gamesWithPredictions.length > 0 && (
+              {featuredgames.length > 0 && (
                 <div className="mb-8">
                   <div className="flex items-center gap-2 mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       AI Predictions & Grades
                     </h3>
                     <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                      {gamesWithPredictions.length} Games
+                      {featuredgames.length} Games
                     </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                    {gamesWithPredictions.map((game) => (
+                    {featuredgames.map((game) => (
                       <div key={game.id} className="relative">
                         {/* ML GRADE HEADER */}
                         <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-3 rounded-t-lg border-b">
@@ -1030,7 +1030,7 @@ function ActionStyleDashboard() {
                     <Badge variant="outline">
                       {gamesWithoutPredictions.length} Games
                     </Badge>
-                    {(selectedSport === 'americanfootball_nfl' || selectedSport === 'americanfootball_ncaaf') && gamesWithPredictions.length === 0 && (
+                    {(selectedSport === 'americanfootball_nfl' || selectedSport === 'americanfootball_ncaaf') && featuredgames.length === 0 && (
                       <span className="text-sm text-gray-500 dark:text-gray-400">
                         AI predictions coming soon
                       </span>
