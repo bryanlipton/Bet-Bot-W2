@@ -1,11 +1,7 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
-import GetProButton from '@/components/GetProButton';
-import { useAuth } from '@/hooks/useAuth';
 import betbotLogo from "@assets/dde5f7b9-6c02-4772-9430-78d9b96b7edb_1752677738478.png";
 
 const features = [
@@ -34,37 +30,7 @@ const testimonials = [
   }
 ];
 
-const plans = [
-  {
-    id: "annual",
-    name: "Annual",
-    price: "$9.99",
-    period: "month",
-    billingNote: "billed annually",
-    badge: "Best Offer",
-    popular: true
-  },
-  {
-    id: "monthly", 
-    name: "Monthly",
-    price: "$29.99",
-    period: "month",
-    billingNote: "billed monthly",
-    popular: false
-  },
-  {
-    id: "weekly",
-    name: "Weekly", 
-    price: "$19.99",
-    period: "week",
-    billingNote: "billed weekly",
-    popular: false
-  }
-];
-
 export default function GetPro() {
-  const [selectedPlan, setSelectedPlan] = useState("annual");
-  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -103,75 +69,38 @@ export default function GetPro() {
                 ))}
               </div>
 
-              {/* Pricing Plans */}
-              <div className="space-y-4">
-                {plans.map((plan) => (
-                  <Card 
-                    key={plan.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedPlan === plan.id 
-                        ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                        : 'hover:shadow-md'
-                    }`}
-                    onClick={() => setSelectedPlan(plan.id)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              checked={selectedPlan === plan.id}
-                              onChange={() => setSelectedPlan(plan.id)}
-                              className="w-4 h-4 text-blue-600"
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-gray-900 dark:text-white">
-                                  {plan.name}
-                                </span>
-                                {plan.badge && (
-                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    {plan.badge}
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                                {plan.price} <span className="text-sm font-normal text-gray-500">/ {plan.period}</span>
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {plan.billingNote}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {selectedPlan === plan.id && (
-                          <Check className="w-6 h-6 text-blue-600" />
-                        )}
+              {/* Pricing Section */}
+              <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-500">
+                <CardContent className="p-8">
+                  <div className="text-center">
+                    <Badge variant="secondary" className="bg-blue-600 text-white mb-4">
+                      Best Value
+                    </Badge>
+                    <div className="mb-4">
+                      <div className="text-5xl font-bold text-gray-900 dark:text-white">
+                        $9.99
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Account Section */}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  1. Account
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Begin by logging in or creating a free account.
-                </p>
-                <div className="w-full">
-                  <GetProButton />
-                </div>
-                
-                {!isAuthenticated && (
-                  <p className="text-center text-gray-400 text-sm mt-2">
-                    Please log in to subscribe
-                  </p>
-                )}
-              </div>
+                      <div className="text-gray-600 dark:text-gray-400 text-lg mt-2">
+                        per month
+                      </div>
+                    </div>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                      Get unlimited access to all Pro features. Cancel anytime.
+                    </p>
+                    <div className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-4 mb-4 transition-colors cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                      <div className="font-semibold mb-1">
+                        Ready to upgrade?
+                      </div>
+                      <div className="text-sm opacity-90">
+                        Scroll up and click "Get Pro" in the navigation
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-500">
+                      You'll need to be logged in to complete your subscription
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
