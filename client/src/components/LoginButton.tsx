@@ -13,12 +13,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export function LoginButton() {
   const { user, isAuthenticated, signInWithGoogle, signOut, loading } = useAuth();
   const [location, navigate] = useLocation();
-  
+
   // Add these debug logs
   console.log('LoginButton - loading:', loading);
   console.log('LoginButton - isAuthenticated:', isAuthenticated);
   console.log('LoginButton - user:', user);
-  
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Optionally show a user-friendly error message
+      alert('Login failed. Please try again.');
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+      alert('Logout failed. Please try again.');
+    }
+  };
+
   // rest of your component...
   if (loading) {
     return (
@@ -30,10 +49,10 @@ export function LoginButton() {
 
   if (!isAuthenticated) {
     return (
-      <Button 
+      <Button
         variant="outline"
         size="sm"
-        onClick={signInWithGoogle}  // <-- This is the fix!
+        onClick={handleSignIn}
         className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
       >
         <LogIn className="w-4 h-4" />
@@ -66,7 +85,7 @@ export function LoginButton() {
           <User className="w-4 h-4 mr-2" />
           Profile
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={signOut}>
+        <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-2" />
           Log out
         </DropdownMenuItem>
