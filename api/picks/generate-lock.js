@@ -32,6 +32,33 @@ export default async function handler(req, res) {
       recommendationEngine.getGradeValue(r.grade) >= 8 // B+ or higher
     ) || recommendations[Math.min(1, recommendations.length - 1)]; // Second best if available
     
+    // Try to enhance with ML prediction from Digital Ocean server
+    let mlEnhancement = null;
+    try {
+      const mlServerUrl = process.env.ML_SERVER_URL || 'http://104.236.118.108:3001';
+      console.log(`🤖 Attempting ML enhancement for lock pick from ${mlServerUrl}...`);
+      
+      const mlResponse = await fetch(`${mlServerUrl}/api/ml-prediction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sport: 'MLB',
+          homeTeam: lockRecommendation.homeTeam,
+          awayTeam: lockRecommendation.awayTeam,
+          gameId: lockRecommendation.gameId,
+          gameDate: lockRecommendation.gameTime
+        }),
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      if (mlResponse.ok) {
+        mlEnhancement = await mlResponse.json();
+        console.log(`✅ ML enhancement received for lock: Confidence ${mlEnhancement.confidence}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ ML enhancement unavailable for lock: ${error.message}`);
+    }
+    
     const lockPick = {
       id: `lock_${new Date().toISOString().split('T')[0]}_${lockRecommendation.gameId}`,
       gameId: lockRecommendation.gameId,
@@ -40,9 +67,9 @@ export default async function handler(req, res) {
       pickTeam: lockRecommendation.selection,
       pickType: "moneyline",
       odds: lockRecommendation.odds,
-      grade: lockRecommendation.grade,
-      confidence: lockRecommendation.confidence,
-      reasoning: lockRecommendation.reasoning,
+      grade: mlEnhancement?.grade || lockRecommendation.grade,
+      confidence: mlEnhancement?.confidence ? mlEnhancement.confidence * 100 : lockRecommendation.confidence,
+      reasoning: mlEnhancement?.reasoning || lockRecommendation.reasoning,
       analysis: lockRecommendation.analysis,
       gameTime: lockRecommendation.gameTime,
       venue: getVenueForTeam(lockRecommendation.homeTeam),
@@ -50,12 +77,14 @@ export default async function handler(req, res) {
         home: 'TBD',
         away: 'TBD'
       },
+      mlPowered: !!mlEnhancement,
+      mlFactors: mlEnhancement?.factors,
       createdAt: new Date().toISOString(),
       pickDate: new Date().toISOString().split('T')[0],
       status: 'pending'
     };
     
-    console.log(`✅ Generated lock pick: ${lockPick.pickTeam} ${lockPick.odds > 0 ? '+' : ''}${lockPick.odds} (Grade: ${lockPick.grade})`);
+    console.log(`✅ Generated lock pick: ${lockPick.pickTeam} ${lockPick.odds > 0 ? '+' : ''}${lockPick.odds} (Grade: ${lockPick.grade}) ${lockPick.mlPowered ? '[ML Enhanced]' : '[BettingEngine]'}`);
     res.status(200).json(lockPick);
     
   } catch (error) {
