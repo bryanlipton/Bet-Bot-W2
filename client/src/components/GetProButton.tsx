@@ -5,7 +5,25 @@ import { useAuth } from '@/hooks/useAuth';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-const GetProButton: React.FC = () => {
+interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  billingNote: string;
+  badge?: string;
+  popular: boolean;
+  displayPrice: string;
+  numericPrice: number;
+  billingInterval: string;
+  stripePriceId: string;
+}
+
+interface GetProButtonProps {
+  selectedPlan: PricingPlan;
+}
+
+const GetProButton: React.FC<GetProButtonProps> = ({ selectedPlan }) => {
   const { user, profile, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,6 +46,10 @@ const GetProButton: React.FC = () => {
         body: JSON.stringify({
           userId: user.id,
           userEmail: user.email,
+          priceId: selectedPlan.stripePriceId,
+          interval: selectedPlan.billingInterval,
+          planId: selectedPlan.id,
+          amount: selectedPlan.numericPrice,
         }),
       });
 
@@ -106,7 +128,7 @@ const GetProButton: React.FC = () => {
         ) : (
           <>
             <Zap size={20} />
-            Get Pro - $9.99/month
+            Get Pro - {selectedPlan.displayPrice}
             <CreditCard size={16} className="opacity-75" />
           </>
         )}
